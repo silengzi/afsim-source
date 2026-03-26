@@ -8,4 +8,17 @@ demos/_doc
 demos/.lingma
 output
 
-documentation
+# documentation
+*.pdf
+*.jpg
+*.png
+*.gif
+*.rst.txt
+.buildinfo
+*.idx
+*.inv
+*.txt
+*.css
+*.js
+*.svg
+*.ico
