@@ -1,0 +1,399 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###############################################################################
+# Iridium Flares Demo
+#
+# Iridium Flares are very localized events that look like flares
+# or shooting stars:  they become very bright and then fade away
+# over a period of about ten seconds.  Some flares are 100x brighter than
+# the brightest star.  They are caused by specular reflection by the sun
+# from the Iridium Satellites  solar panels and main communications antennae,
+# which look like shiny flat plates that act like mirrors.
+#
+# This demo computes flare locations for the entire Iridium satellite
+# constellation.  Lines are drawn from the satellites to the approximate flare
+# location on the ground.  A platform is created and moved across the ground
+# to visualize the flare's ground track.
+#
+# If you want to use this as a tool to see the flares, change the lat/lon/alt
+# defined in script_variables, below, to your location; then set the
+# GMT_Offset to the correct offset for your time zone. Either use the
+# "start_time_now" setting to get a current report, or set the start_date and
+# start_time to the desired observing date and time (keep in mind that the time
+# is UT, not local time).
+#
+# Update the iridium platforms list by running the "download_tle.pl"
+# Perl script, which will automatically update all major TLE lists from the
+# Celestrack website, including the Iridium satellite TLEs
+# (see  http://www.celestrak.com/NORAD/elements/iridium.txt ).
+#
+# When you run this demo, a custom file gives a report of nearby flares
+# and local az / el locations of the satellites.  You can also try tethering to
+# the "center" platform in Mystic and pan around to visualize 
+# the satellite's location relative to your viewing location.
+###############################################################################
+#start_time_now
+end_time 24 hours
+
+script_variables
+# CHANGE THE VARIABLES BELOW FOR YOUR OBSERVING LOCATION
+   double latitude    =  40.0; // Set this for your observing location (deg N/S).
+   double longitude   = -90.0; // Set this for your observing location (deg E/W).
+   double altitude    = 100.0; // Set this for your observing location (m).
+   int    GMT_Offset  = -5;    // Set this to the GMT offset for your observing location.
+# CHANGE THE VARIABLES ABOVE FOR YOUR OBSERVING LOCATION
+
+   // The following should not be changed.
+   Vec3 sNULL_VEC = Vec3.Construct(0.0, 0.0, 0.0);
+   int sDrawId = 1;
+   Map<string, int> sDrawIds = {};
+   Map<WsfTrackId, double> sGroundRanges = {};
+   Map<WsfTrackId, double> sLastGroundRanges = {};
+   bool mDraw = true;
+end_script_variables
+
+script bool IsNull(Vec3 aVec)
+   return ((aVec.X() == 0.0) && (aVec.Y() == 0.0) && (aVec.Z() == 0.0));
+end_script
+
+// script for determining reflection
+script Vec3 GetLocalRelection(WsfVisualPart aPart)
+
+   Vec3 sunVecWCS = Sun.UnitVecWCS(WsfDateTime.CurrentTime());
+   Vec3 sunVecPCS = aPart.ConvertWCSVectorToPCS(sunVecWCS);
+   sunVecPCS.Normalize();
+
+   if (sunVecPCS[2] < 0.0)
+   {
+      //drawNormal.End();
+      return sNULL_VEC;
+   }
+
+   // Check for earth occulting sun so that satellite not illuminated
+   // I do not check for penumbral (partial) occulting
+   sunVecWCS.Normalize();
+   WsfGeoPoint loc = aPart.Platform().Location();
+   Vec3 satelliteLoc = Vec3.Construct(loc.X(), loc.Y(), loc.Z());
+   Vec3 crossProduct = Vec3.Cross(sunVecWCS, satelliteLoc);
+   double dotProduct = Vec3.Dot(sunVecWCS, satelliteLoc);
+   double crossProductMag = crossProduct.Magnitude();
+
+   if ((dotProduct < 0.0) && crossProductMag <= Earth.MEAN_RADIUS())
+   {
+      return sNULL_VEC;
+   }
+
+   Vec3 reflectedVecPCS = Vec3.Construct(-sunVecPCS[0], -sunVecPCS[1], sunVecPCS[2]);
+
+   // convert to WCS
+   Vec3 reflectedVecWCS = aPart.ConvertPCSVectorToWCS(reflectedVecPCS);
+   return reflectedVecWCS;
+
+end_script
+
+// Get flare location for one of the MMAs or the solar panel.  If
+script Vec3 GetFlareLocation(WsfVisualPart aPart)
+   // In the following, I'm solving for sides and angles of a triangle using
+   // sine and cosine law relations.  sides are labeled a, b, and c.
+   // Unit vecs are aHat, bHat, cHat.  Angles are A, B, C.
+   // See associated diagram for more information.
+   Vec3 cHat = GetLocalRelection(aPart);
+   cHat.Normalize();  // should not be necessary
+
+   if (IsNull(cHat))
+   {
+      return sNULL_VEC;
+   }
+
+   Vec3 a = aPart.Platform().LocationWCS();
+   double aLength = a.Magnitude();
+   double argB = Vec3.Dot(cHat, a) / aLength;
+   double B = 180.0 - Math.ACos(argB);
+   double argA = (aLength * Math.Sin(B)) / Earth.MEAN_RADIUS();
+   if (Math.Fabs(argA) > 1.0)
+   {
+      return sNULL_VEC;
+   }
+   double A = Math.ASin(argA);
+
+   // There are two possible solutions here.
+   // The correct geometry has the angle A > 90 degrees.
+   if (A < 90.0)
+   {
+      A = 180.0 - A;
+   }
+   double C = 180.0 - B - A;
+   double cLength = aLength * Math.Sin(C) / argA;
+   Vec3 c = Vec3(cHat);
+   c.Scale(cLength);
+   Vec3 b = Vec3.Add(a, c);
+   // test
+   double bLength = b.Magnitude();
+
+   if (bLength > 6400000.0)
+   {
+      return sNULL_VEC;
+   }
+   else // Perform slight adjustment to place on surface of the earth
+   {
+      // todo
+   }
+
+   return b;
+
+end_script
+
+platform_type GROUND_TRACK WSF_PLATFORM
+   side blue
+   icon Wedge
+end_platform_type
+
+platform_type IRIDIUM WSF_PLATFORM
+
+   script_variables
+      Array<WsfVisualPart> mVisualParts = {};
+   end_script_variables
+
+   on_initialize
+      mVisualParts.PushBack(PLATFORM.VisualPart("MMA1"));
+      mVisualParts.PushBack(PLATFORM.VisualPart("MMA2"));
+      mVisualParts.PushBack(PLATFORM.VisualPart("MMA3"));
+      mVisualParts.PushBack(PLATFORM.VisualPart("SOLAR_PANEL"));
+   end_on_initialize
+
+   script void CheckFlares()
+
+      foreach (WsfVisualPart part in mVisualParts)
+      {
+         if (part.Name() != "SOLAR_PANEL")  // still need to test solar panel geometry
+         {
+            Vec3 location = GetFlareLocation(part);
+            string key = PLATFORM.Name() + "_" + part.Name();
+
+            // check for existing flare
+            WsfPlatform groundTrack = WsfSimulation.FindPlatform(key);
+
+            if (! IsNull(location))
+            {
+               if (! groundTrack.IsValid())
+               {
+                  groundTrack = WsfSimulation.CreatePlatform("GROUND_TRACK");
+                  groundTrack.SetLocation(WsfGeoPoint.ConstructWCS(location));
+                  groundTrack.SetOrientationNED(0.0, 0.0, 0.0);
+                  groundTrack.SetAuxData("SatelliteName", PLATFORM.Name());
+                  groundTrack = WsfSimulation.AddPlatform(groundTrack, key);
+                  sDrawIds[key] = sDrawId;
+                  sDrawId += 1;
+                  
+                  if (mDraw)
+                  {
+                     int drawId = sDrawIds[key];
+                     WsfDraw draw = {};
+                     draw.SetId(drawId);
+                     draw.SetColor(1.0, 0.2, 0.2);
+                     draw.BeginLines();
+                     draw.Vertex(part.Platform());
+                     draw.Vertex(groundTrack);
+                     draw.End();
+                  }
+               }
+               else
+               {
+                  double oldConcealment = groundTrack.ConcealmentFactor();
+                  groundTrack.SetConcealmentFactor(0.0);
+                  Vec3 orientationNED = PLATFORM.OrientationNED();
+                  groundTrack.SetOrientationNED(orientationNED[0], orientationNED[1], orientationNED[2]);
+                  WsfGeoPoint loc = WsfGeoPoint.ConstructWCS(location);
+                  loc.SetAltitudeAGL(10.0);
+                  groundTrack.SetLocation(loc);
+                  
+                  if ((mDraw) && (oldConcealment == 1.0))
+                  {
+                     int drawId = sDrawIds[key];
+                     WsfDraw draw = {};
+                     draw.SetId(drawId);
+                     draw.SetColor(1.0, 0.2, 0.2);
+                     draw.BeginLines();
+                     draw.Vertex(part.Platform());
+                     draw.Vertex(groundTrack);
+                     draw.End();
+                  }
+               }
+
+            }
+            else if (groundTrack.IsValid())
+            {
+               double oldConcealment = groundTrack.ConcealmentFactor();
+               groundTrack.SetConcealmentFactor(1.0);
+
+               // set below the surface
+               groundTrack.SetLocation(groundTrack.Latitude(), groundTrack.Longitude(), -2000.0);
+               groundTrack.SetVelocityNED(0.0, 0.0, 0.0);
+
+               if ((mDraw) && (oldConcealment == 0.0))
+               {
+                  // erase the line
+                  int drawId = sDrawIds[key];
+                  WsfDraw draw = {};
+                  draw.Erase(drawId);
+               }
+            }
+         }
+      }
+   end_script
+
+   processor CheckFlaresProcessor WSF_SCRIPT_PROCESSOR
+      update_interval 10 s
+      on_update
+         CheckFlares();
+      end_on_update
+   end_processor
+
+   icon satellite
+   mover WSF_NORAD_SPACE_MOVER
+      attitude_controller instant
+         orientation nadir_with_eci_velocity_constraint
+      end_attitude_controller
+   end_mover
+   visual_part MMA1 WSF_VISUAL_PART
+      yaw 0 deg
+      pitch 50 deg
+   end_visual_part
+   visual_part MMA2 WSF_VISUAL_PART
+      yaw 120 deg
+      pitch 50 deg
+   end_visual_part
+   visual_part MMA3 WSF_VISUAL_PART
+      yaw -120 deg
+      pitch 50 deg
+   end_visual_part
+   visual_part SOLAR_PANEL WSF_VISUAL_PART
+      yaw 0 deg
+      pitch -45.0 deg  // initial guess
+   end_visual_part
+end_platform_type
+
+include ./TLE/iridium_platforms.txt
+
+platform_type CENTER WSF_PLATFORM
+   side white
+   icon wedge
+
+   sensor local_flare_detector WSF_GEOMETRIC_SENSOR
+      on
+
+      mode_template
+         maximum_range 80 km
+         check_terrain_masking off
+         reports_location
+         reports_velocity
+      end_mode_template
+
+      mode search
+         frame_time 5.0 seconds
+      end_mode
+
+      mode track
+         frame_time 0.5 seconds
+      end_mode
+
+      processor dummy  // to trigger the callbacks we must send the messages to something
+   end_sensor
+
+   processor dummy WSF_SCRIPT_PROCESSOR
+   end_processor
+
+end_platform_type
+
+platform center CENTER
+   on_initialize
+      WsfGeoPoint initialLoc = WsfGeoPoint.Construct(latitude, longitude, altitude);
+      PLATFORM.SetLocation(initialLoc);
+   end_on_initialize
+
+   position 40.0n 90.0w altitude 100.0 m agl
+end_platform
+
+event_pipe
+   file output/iridium_flares.aer
+end_event_pipe
+
+script_variables
+   FileIO sFile = {};
+end_script_variables
+
+script void SimulationStarting()
+   sFile.Open("./output/iridium_flares_report.txt", "out");
+end_script
+
+script void SimulationComplete()
+   sFile.Close();
+end_script
+
+script void SensorTrackInitiated(WsfPlatform aPlatform,
+                                 WsfSensor   aSensor,
+                                 WsfTrack    aTrack)
+   double groundRange = aTrack.GroundRangeTo(aPlatform);
+   sGroundRanges[aTrack.TrackId()] = groundRange;
+   sLastGroundRanges[aTrack.TrackId()] = groundRange;
+
+   // Update the flare more frequently now that we are detecting it.
+   aSensor.SelectMode("track");
+   WsfPlatform satellite = WsfSimulation.FindPlatform(aTrack.Target().AuxDataString("SatelliteName"));
+   satellite.Processor("CheckFlaresProcessor").SetUpdateInterval(0.1);
+end_script
+
+script void SensorTrackUpdated(WsfPlatform aPlatform,
+                               WsfSensor   aSensor,
+                               WsfTrack    aTrack)
+   double lastGroundRange = sLastGroundRanges[aTrack.TrackId()];
+   double groundRange = sGroundRanges[aTrack.TrackId()];
+   double currentRange = aTrack.GroundRangeTo(aPlatform);
+   if ((currentRange > groundRange) && (lastGroundRange > groundRange))
+   {
+      WsfPlatform satellite = WsfSimulation.FindPlatform(aTrack.Target().AuxDataString("SatelliteName"));
+      WsfGeoPoint loc = satellite.Location();
+      double bearing = aPlatform.RelativeAzimuthOf(loc);
+      double elev = aPlatform.RelativeElevationOf(loc);
+      string str = WsfDateTime.CurrentTime().ToStringLocalTime(GMT_Offset) +
+                  " (Elapsed: " + (string)TIME_NOW + " s) (" + aTrack.TargetName() + "):\n" +
+                  "      Bearing: " + (string)bearing + " deg, Elevation: "+ (string)elev + " deg, " +
+                   "Distance to Center: " + (string)(groundRange / 1000.0) + " km";
+      sFile.Writeln(str);
+   }
+   sLastGroundRanges[aTrack.TrackId()] = groundRange;
+   sGroundRanges[aTrack.TrackId()] = currentRange;
+end_script
+
+script void SensorTrackDropped(WsfPlatform aPlatform,
+                               WsfSensor   aSensor,
+                               WsfTrack    aTrack)
+   sGroundRanges.Erase(aTrack.TrackId());
+   sLastGroundRanges.Erase(aTrack.TrackId());
+
+   // Update the flare less frequently now that we are no longer detecting it.
+   aSensor.SelectMode("search");
+   WsfPlatform satellite = WsfSimulation.FindPlatform(aTrack.Target().AuxDataString("SatelliteName"));
+   satellite.Processor("CheckFlaresProcessor").SetUpdateInterval(10.0);
+end_script
+
+observer
+   enable SIMULATION_STARTING SimulationStarting
+   enable SIMULATION_STARTING SimulationComplete
+   enable SENSOR_TRACK_INITIATED SensorTrackInitiated
+   enable SENSOR_TRACK_UPDATED SensorTrackUpdated
+   enable SENSOR_TRACK_DROPPED SensorTrackDropped
+end_observer
+
+# Previous start date and time:
+# start_date sep 9 2014
+# start_time 13:00:00
+start_date apr 30 2019
+start_time 14:11:16.075

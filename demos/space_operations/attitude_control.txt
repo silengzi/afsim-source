@@ -1,0 +1,206 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =============================================================================
+# A demonstration of generalized attitude control, which allows pointing
+# the satellite or oriented platform part such as a sensor or comm device,
+# along a particular vector to a target (e.g., another platform, nadir, the sun, etc).
+# A 3D satellite model is used as a visual reference. A comm device, sensor,
+# and  solar panel  (WSF_VISUAL_PART) are placed on an AFSIM platform
+# in the same orientations as they appear on the 3D model.
+# The solar panel is oriented with roughly a pitch up of 90 degrees.  T
+# he comm device (dish antenna) points forward, along the model's x-axis.
+# The sensor aperture is oriented with a pitch of -90 degrees.
+# Try tethering to the satellite, then use pointing vectors in Mystic
+# to the sun, ground station, and sensing target,
+# to visualize that the satellite is pointing its sensor panels, comm device,
+# or sensor, respectively.
+#
+# In order to do this, from the tethered view:
+# - right click on the satellite
+# - select "vectors"->"sun"
+# - select "vectors"->"new vector"->"ground station"
+# - select "vectors"->"new vector"->"target"
+#
+# In the main view, screen annotations will indicate when the satellite
+# is pointing solar panels to the sun, antenna to ground station, or sensor to target.
+# =============================================================================
+
+antenna_pattern comm_antenna
+   circular_pattern
+      peak_gain  20 db
+      beamwidth 0.5 deg
+end_antenna_pattern
+
+comm COMM WSF_RADIO_TRANSCEIVER
+   transmitter
+      power 1 kw
+      frequency 1 ghz
+      antenna_pattern comm_antenna
+   end_transmitter
+   receiver
+   end_receiver
+end_comm
+
+platform_type ORIENTED_SATELLITE WSF_PLATFORM
+
+   icon stereo_satellite
+
+   mover WSF_SPACE_MOVER
+      attitude_controller rate_limited
+         maximum_yaw_rate 5 deg/s
+         maximum_pitch_rate 5 deg/s
+         maximum_roll_rate 5 deg/s
+         orientation none
+      end_attitude_controller
+   end_mover
+
+   // Orient the given articulated part along the vector from the platform to the target location, using a nadir z-axis constraint.
+   script void OrientToTarget(WsfArticulatedPart aPart, Vec3 aTargetLocECI)
+       Vec3 xAxis = Vec3.Construct(1.0, 0.0, 0.0);
+       Vec3 xAxisECS = aPart.ConvertPCSVectorToECS(xAxis);
+       Vec3 targetVecECI = Vec3.Subtract(aTargetLocECI, PLATFORM.LocationECI());
+       Vec3 nadir = PLATFORM.LocationECI();
+       nadir.Scale(-1.0);
+
+       # Below is the call that enable generalized pointing:
+       # Align "aPart" (PCS x-axis) with "targetVecECI".
+       # Constrain "aPart" PCS z-axis to the nadir.
+       ((WsfSpaceMover)PLATFORM.Mover()).SetOrientation(aPart, targetVecECI, nadir);
+
+       //((WsfSpaceMover)PLATFORM.Mover()).SetOrientation(aPart.Yaw(), aPart.Pitch(), aPart.Roll(), targetVec, nadir); # alternate script method.
+
+       # Draw a line indicating the pointing direction.
+       WsfDraw draw = {};
+       draw.Erase(0);
+       draw.SetId(0);
+       draw.SetColor(0.2, 0.8, 0.2);
+       draw.SetLineSize(2);
+       draw.BeginLines();
+       draw.Vertex(aPart.Platform());
+       draw.VertexWCS(PLATFORM.ConvertECIToWCS(aTargetLocECI));
+       draw.End();
+   end_script
+
+   visual_part solar_panels WSF_VISUAL_PART
+      pitch 90 degrees
+   end_visual_part
+
+   sensor sensor WSF_GEOMETRIC_SENSOR
+      frame_time 2 s
+      pitch -90 deg
+      reports_location
+      field_of_view circular
+         half_angle 5 deg
+      end_field_of_view
+      yaw 0 degrees
+   end_sensor
+
+   comm comm COMM
+      yaw 0 deg
+   end_comm
+
+   processor xmit WSF_SCRIPT_PROCESSOR
+      update_interval 10 s
+      on_update
+         PLATFORM.Comm("comm").SendMessage(WsfControlMessage(), "ground_station", "comm");
+      end_on_update
+   end_processor
+
+   processor Controller WSF_SCRIPT_PROCESSOR
+      update_interval 10 s
+      on_update
+         WsfPlatform target = WsfSimulation.FindPlatform("target1");
+         WsfPlatform groundStation = WsfSimulation.FindPlatform("ground_station");
+         WsfSpaceMover sp = (WsfSpaceMover)PLATFORM.Mover();
+         static double cMAX_RANGE = 1500000.0;
+         if (PLATFORM.SlantRangeTo(target) < cMAX_RANGE)
+         {
+            writeln(TIME_NOW, " Orient sensor to target");
+            OrientToTarget(PLATFORM.Sensor("sensor"), target.LocationECI());
+         }
+         else if (PLATFORM.SlantRangeTo(groundStation) < cMAX_RANGE)
+         {
+            writeln(TIME_NOW, "Orient comm to g station");
+            OrientToTarget(PLATFORM.Comm("comm"), groundStation.LocationECI());
+         }
+         else
+         {
+            writeln(TIME_NOW, "Orient solar panels to sun");
+            OrientToTarget(PLATFORM.VisualPart("solar_panels"), Sun.LocationECI(WsfDateTime.CurrentTime()));
+         }
+      end_on_update
+   end_processor
+
+end_platform_type
+
+platform oriented_satellite1 ORIENTED_SATELLITE
+   mover
+      position 0n 90w altitude 450 km heading 30 deg
+   end_mover
+end_platform
+
+platform target1 WSF_PLATFORM
+   icon bullseye
+   position 40n 100w
+end_platform
+
+platform ground_station WSF_PLATFORM
+   icon tower
+   position 33:29:27.352n 66:39:49.016e
+   add comm comm COMM
+   end_comm
+end_platform
+
+event_output
+   file output/attitude_control.evt
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_DROPPED
+   enable MESSAGE_RECEIVED
+end_event_output
+
+event_pipe
+   file output/attitude_control.aer
+end_event_pipe
+
+platform_availability
+   default availability 1.0
+   name oriented_satellite1  availability 1.0
+end_platform_availability
+
+script void ScreenPrint(string aName)
+  WsfDraw draw = {};
+  draw.SetId(1);
+  draw.Erase(1);
+  draw.SetTextSize(14);
+  draw.SetColor(0.2, 1.0, 0.2);
+  draw.BeginText(aName);
+  draw.Vertex(WsfSimulation.FindPlatform("oriented_satellite1"));
+  draw.End();
+end_script
+
+execute at_time 2110 s absolute
+   ScreenPrint("Orient Antenna Dish to Ground Station");
+end_execute
+
+execute at_time 0.1 s absolute
+   ScreenPrint("Orient Solar Panels to Sun");
+   WsfDraw draw = {};
+end_execute
+
+execute at_time 2440 s absolute
+   ScreenPrint("Orient Solar Panels to Sun");
+end_execute
+
+execute at_time 6140 s absolute
+   WsfSimulation.FindPlatform("oriented_satellite1").Sensor("sensor").TurnOn();
+   ScreenPrint("Orient Sensor to Target");
+end_execute
+
+end_time 6430 s

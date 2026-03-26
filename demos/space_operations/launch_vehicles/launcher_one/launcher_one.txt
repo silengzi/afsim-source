@@ -1,0 +1,24 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                         Virgin Orbit Launcher One
+#
+# This is a convenience that defines LAUNCHER_ONE using the base without changes.
+#==============================================================================
+
+include_once launcher_one_base.txt
+
+platform_type LAUNCHER_ONE LAUNCHER_ONE_BASE
+end_platform_type
+
+weapon LAUNCHER_ONE LAUNCHER_ONE_BASE
+   launched_platform_type LAUNCHER_ONE
+end_weapon

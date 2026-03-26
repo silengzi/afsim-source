@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Sensor to determine which iridium satellites are nearby.
+# Used to establish network links between sat sensors and
+# iridium constellation for communication.
+sensor SENSE_IRIDIUM WSF_GEOMETRIC_SENSOR
+   on
+   reports_location
+   frame_time 10 s
+   maximum_range 1500 nm
+   ignore commander
+   ignore launch
+   ignore sat_sensor
+end_sensor

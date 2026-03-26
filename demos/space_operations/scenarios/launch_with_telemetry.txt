@@ -1,0 +1,67 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Send launch vehicle into orbit while launch vehicle sends telemetry
+# back to launch facility
+
+include_once scripts/attempt_orbital_launch.txt
+
+#Create group to receive telemetry
+group telemetry WSF_GROUP
+end_group
+protocol LAUNCH_MULTICAST WSF_COMM_PROTOCOL_IGMP
+      join_multicast_group 230.1.1.1/32
+end_protocol
+
+platform_type DELTA_IV_M_MOD DELTA_IV_M
+   script_variables  # Identify the satellite stage number and platform_type to 'launch_payload.txt'
+      int mPayloadStage = 4;
+      string mPayloadType = "SATELLITE";
+   end_script_variables
+
+   include scripts/launch_payload.txt
+
+   comm LV_comm WSF_COMM_TRANSCEIVER
+      add protocol localMulticast LAUNCH_MULTICAST
+      end_protocol
+   end_comm
+
+   # Launch vehicle makes track of itself and sends back to launch facility to model
+   # transmission of telemetry data
+   execute at_interval_of 5 s
+      WsfTrack LV_track = PLATFORM.MakeTrack();
+      WsfTrackMessage lv_trk_msg = WsfTrackMessage();
+      lv_trk_msg.SetTrack(LV_track);
+#      WsfGroup group = WsfGroup.Group("telemetry");
+      WsfAddress telemetry = {};
+      telemetry.SetAddress("230.1.1.1", 32);
+      PLATFORM.Comm("LV_comm").SendMessage(lv_trk_msg, telemetry);
+      PLATFORM.Comment("Sending telemetry back to launch facility.");
+   end_execute
+
+end_platform_type
+
+platform LAUNCHER LAUNCH_FACILITY
+   icon Wedge
+   side red
+   commander SELF
+
+   # Cape Canaveral, SLC-37 (Eastern Range Launch Site), inclinations 28-57
+   position 28.531986n 80.566821w altitude 1 m agl heading 0 deg
+
+   add weapon launcher DELTA_IV_M
+      launch_computer WSF_ORBITAL_LAUNCH_COMPUTER
+         leo_data ../launch_vehicles/delta_iv_m/delta_iv_m_ccafs_leo.txt
+      end_launch_computer
+      launched_platform_type DELTA_IV_M_MOD
+   end_weapon
+
+   execute at_time 1.0 sec absolute
+      AttemptOrbitalLaunch(PLATFORM, "launcher", 402290.0, 28.6);
+   end_execute
+end_platform

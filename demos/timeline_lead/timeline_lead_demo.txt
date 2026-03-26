@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This demo illustrates the WSF timeline agents
+# High level description: blue sweep from the west, red defend
+define_path_variable CASE timeline_lead_demo
+# setup include paths
+
+file_path .
+file_path ../base_types/processors/timeline_agents
+
+end_time 40 min
+random_seed 142535
+# setup simulation output and data logging
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+include event_output.txt
+event_output  file   output/$(CASE).evt end_event_output
+
+#types
+include_once platforms/common.txt
+include_once platforms/flight_lead.txt
+include_once platforms/red_flight_lead.txt
+include_once platforms/striker.txt
+#laydowns
+include scenarios/full_laydown.txt
+
+platform_availability
+   name red_flight_lead  availability 1
+   name red_east_cap_1  availability 0
+   name red_east_cap_2  availability 0
+   name red_east_cap_3  availability 0
+   name red_east_cap_4  availability 0
+   name red_west_cap_1  availability 0
+   name red_west_cap_2  availability 0
+
+   name red_west_cap_3  availability 1
+   name red_west_cap_4  availability 1
+
+   name red_sweep_1  availability 1
+   name red_sweep_2  availability 1
+   name red_sweep_3  availability 1
+   name red_sweep_4  availability 1
+   name red_sweep_5  availability 1
+   name red_sweep_6  availability 1
+   name blue_flight_lead  availability 1
+   name blue_1  availability 0
+   name blue_2  availability 0
+   name blue_3  availability 1
+   name blue_4  availability 1
+
+end_platform_availability
+
+
+

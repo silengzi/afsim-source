@@ -1,0 +1,1115 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates full flight operations including taxi, takeoff,
+# script-commanded maneuvers, route following, approach, landing/touchdown,
+# roll-out, and taxi to the ramp.
+#
+# Two aircraft begin the demo parked in the Quick Reaction Alert (QRA) area
+# at Honolulu International Airport. The lead aircraft begins to taxi and
+# pauses to test brakes. The leader then taxis to the runway, with the wingman
+# taxiing slightly behind. The leader lines up on the left side of the runway
+# and the wingman lines up on the right side. A formation takeoff (simulated)
+# is performed with a steep climb-out. The aircraft then perform a route orbit.
+# The leader then descends and makes an approach and landing with the wingman
+# slightly behind. Both aircraft taxi back to the ramp and park. This scenario
+# demonstrates the ability of SixDOF to support a realistic scramble (and 
+# recovery) by two interceptors.
+#
+# ******************************************************************************
+
+define_path_variable CASE rb_airport_operations
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 48 min
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once platforms/fa-lgt_landing-gear.txt
+
+route TaxiRoute
+   label TaxiRouteStart
+   position   47.43858n  122.31539w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43870n  122.31518w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43871n  122.31386w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43843n  122.31359w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43823n  122.31327w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43809n  122.31286w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43808n  122.31246w  altitude 342.0 ft  speed 7.0 kts
+end_route
+
+route TakeOffRoute
+   position   47.43807n  122.31192w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43822n  122.31121w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43850n  122.31121w  altitude 342.0 ft  speed 7.0 kts
+   position   47.43900n  122.31121w  altitude 342.0 ft  speed 350.0 kts
+end_route
+
+route Scramble1TakeOffRoute
+   label TaxiRouteStart
+
+#  turn_g_limit        0.02 m/sec
+#  radial_acceleration 0.04 m/sec
+
+   position   21.32536n 157.94275w altitude    11.0 ft speed  500.0 kts
+   position   21.32536n 157.80757w altitude 20000.0 ft speed  500.0 kts
+   position   21.32536n 157.64850w altitude 20000.0 ft speed  500.0 kts
+   position   21.68723n 157.92758w altitude 20000.0 ft speed  500.0 kts
+   label start
+   position   21.39834n 157.81025w altitude 20000.0 ft speed  500.0 kts
+   position   21.39834n 158.07747w altitude 20000.0 ft speed  500.0 kts
+   position   21.51654n 158.07747w altitude 20000.0 ft speed  500.0 kts
+   position   21.51654n 157.81025w altitude 20000.0 ft speed  500.0 kts
+   goto start
+
+end_route
+
+route Scramble2TakeOffRoute
+   label TaxiRouteStart
+
+#  turn_g_limit        0.02 m/sec
+#  radial_acceleration 0.04 m/sec
+
+   position   21.32514n 157.94275w altitude    11.0 ft speed  500.0 kts
+   position   21.32514n 157.80757w altitude 19950.0 ft speed  500.0 kts
+   position   21.30229n 157.64850w altitude 19950.0 ft speed  499.0 kts
+   position   21.68701n 157.92758w altitude 19950.0 ft speed  499.0 kts
+   label start
+   position   21.39834n 157.81025w altitude 19950.0 ft speed  499.0 kts
+   position   21.39834n 158.07747w altitude 19950.0 ft speed  499.0 kts
+   position   21.51654n 158.07747w altitude 19950.0 ft speed  499.0 kts
+   position   21.51654n 157.81025w altitude 19950.0 ft speed  499.0 kts
+   goto start
+
+end_route
+
+route ScrambleMainRoute1
+   label ScrambleMainRouteStart
+
+#  turn_g_limit 0.02 m/sec
+#  radial_acceleration 0.04 m/sec
+
+   position   21.30229n 157.64850w altitude 20000.0 ft speed  500.0 kts
+   position   21.68701n 157.92758w altitude 20000.0 ft speed  500.0 kts
+   label start
+   position   21.39834n 157.81025w altitude 20000.0 ft speed  500.0 kts
+   position   21.39834n 158.07747w altitude 20000.0 ft speed  500.0 kts
+   position   21.51654n 158.07747w altitude 20000.0 ft speed  500.0 kts
+   position   21.51654n 157.81025w altitude 20000.0 ft speed  500.0 kts
+   goto start
+
+end_route
+
+route ScrambleMainRoute2
+   label ScrambleMainRouteStart
+
+#  turn_g_limit 0.02 m/sec
+#  radial_acceleration 0.04 m/sec
+
+   position   21.30229n 157.64850w altitude 19950.0 ft speed  499.0 kts
+   position   21.68701n 157.92758w altitude 19950.0 ft speed  499.0 kts
+   label start
+   position   21.39834n 157.81025w altitude 19950.0 ft speed  499.0 kts
+   position   21.39834n 158.07747w altitude 19950.0 ft speed  499.0 kts
+   position   21.51654n 158.07747w altitude 19950.0 ft speed  499.0 kts
+   position   21.51654n 157.81025w altitude 19950.0 ft speed  499.0 kts
+   goto start
+
+end_route
+
+route TaxiBackToRampRoute1
+   label TaxiBackToRampRoute1
+   position   21.32525n 157.91617w altitude    11.0 ft speed    15.0 kts
+   position   21.32525n 157.91769w altitude    11.0 ft speed    8.0 kts
+   position   21.32691n 157.91885w altitude    11.0 ft speed    8.0 kts
+   position   21.32692n 157.92724w altitude    11.0 ft speed    8.0 kts
+   position   21.32742n 157.92824w altitude    11.0 ft speed    8.0 kts
+   position   21.32742n 157.94418w altitude    11.0 ft speed    8.0 kts
+   # Large radius
+   position   21.32980n 157.94676w altitude    11.0 ft speed    8.0 kts
+   position   21.32918n 157.94756w altitude    11.0 ft speed    8.0 kts
+   position   21.32784n 157.94614w altitude    11.0 ft speed    8.0 kts
+   position   21.32785n 157.94682w altitude    11.0 ft speed    8.0 kts
+   position   21.32820n 157.94732w altitude    11.0 ft speed    4.0 kts
+   position   21.32819n 157.94753w altitude    11.0 ft speed    4.0 kts
+   position   21.32819n 157.94754w altitude    11.0 ft speed    0.0 kts
+end_route
+
+route TaxiBackToRampRoute2
+   label TaxiBackToRampRoute2
+   position   21.32525n 157.91617w altitude    11.0 ft speed    15.0 kts
+   position   21.32525n 157.91769w altitude    11.0 ft speed    8.0 kts
+   position   21.32691n 157.91885w altitude    11.0 ft speed    8.0 kts
+   position   21.32692n 157.92724w altitude    11.0 ft speed    8.0 kts
+   position   21.32742n 157.92824w altitude    11.0 ft speed    8.0 kts
+   position   21.32742n 157.94418w altitude    11.0 ft speed    8.0 kts
+   # Large radius
+   position   21.32980n 157.94676w altitude    11.0 ft speed    8.0 kts
+   position   21.32918n 157.94756w altitude    11.0 ft speed    8.0 kts
+   position   21.32784n 157.94614w altitude    11.0 ft speed    8.0 kts
+   position   21.32785n 157.94682w altitude    11.0 ft speed    8.0 kts
+   position   21.32807n 157.94728w altitude    11.0 ft speed    4.0 kts
+   position   21.32807n 157.94753w altitude    11.0 ft speed    4.0 kts
+   position   21.32807n 157.94754w altitude    11.0 ft speed    0.0 kts
+end_route
+
+route FlightCircleRoute
+   # bank_angle_limit 20.0 deg
+   position   47.46011n  122.31103w  altitude  800.0 ft  speed 600.0 kts
+   position   47.46503n  122.29582w  altitude 1000.0 ft  speed 600.0 kts
+   label start
+   position   47.54500n  122.20000w  altitude 20000.0 ft  speed 400.0 kts
+   position   47.54500n  122.10000w  altitude 20000.0 ft  speed 400.0 kts
+   position   47.36000n  122.10000w  altitude 20000.0 ft  speed 400.0 kts
+   position   47.36000n  122.20000w  altitude 20000.0 ft  speed 400.0 kts
+   goto start
+end_route
+
+platform ParkedFighter1 WSF_PLATFORM
+   side blue
+   icon f15c
+   position  21.32785n 157.94755w altitude 11.0 ft
+   heading   90.0 deg
+end_platform
+
+platform ParkedFighter2 WSF_PLATFORM
+   side blue
+   icon f15c
+   position  21.32772n 157.94755w altitude 11.0 ft
+   heading   90.0 deg
+end_platform
+
+platform_type ScrambleFighter FA-LGT-LANDING-GEAR
+   update_interval 0.01 sec
+   side blue
+   icon f15c
+   
+   event_control_inputs_data 10 Hz
+   event_control_surfaces_data  10 Hz
+
+   include scripts/six_dof_all_scripts.txt
+
+   script_variables
+
+      // Flight Modes
+      // -------------------------------
+      // 00 = Ad Hoc
+      // 01 = Taxi
+      // 02 = Take Off
+      // 03 = Fly Route
+      // 04 = Approach
+      // 05 = Landing Flare
+      // 06 = Formation - Station Keeping
+      // 07 = Formation - Turning
+      // 08 = Formation - Transition
+      // 09 = Formation - Joining
+      // 15 = Air Combat - BVR
+      // 16 = Air Combat - WVR
+      // 17 = Ground Attack - Standoff
+      // 18 = Ground Attack - Missile
+      // 19 = Ground Attack - Bomb
+      // 20 = Ground Attack - Gun
+      // 21 = Defensive - Maneuver
+      // 22 = Defensive - Countermeasures
+      // 23 = Eject
+      int mFlightMode = 0;
+
+      int multiuseModeFlag = -1;
+
+      string TaxiBackToRamp = "TaxiBackToRampRoute1";
+
+      WsfPlatform leader;
+
+   end_script_variables
+
+# ******************************************************************************
+   
+   script_variables
+      WsfGeoPoint RunwayStartPt;
+      WsfGeoPoint RunwayEndPt;
+      WsfGeoPoint ApproachPt;
+      WsfGeoPoint InitialPointPt;
+      double      RunwayHeading_deg = 270.0; // Due west
+      double      RunwayAltitude_m  = 1.5;
+      WsfGeoPoint RunwayThreshold   = WsfGeoPoint.Construct(21.32525,-157.90693,RunwayAltitude_m);
+      int         LandingMode = 0;
+   end_script_variables
+
+   script void SetBankAngleMax(double bankAngle_deg)
+      WsfMover mover = PLATFORM.Mover();
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         WsfRigidBodySixDOF_Mover sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+         sixDofMover.SetBankAngleMax(bankAngle_deg);
+      }
+   end_script
+
+   script void SetPitchGLoadMax(double gLoad)
+      WsfMover mover = PLATFORM.Mover();
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         WsfRigidBodySixDOF_Mover sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+         sixDofMover.SetPitchGLoadMax(gLoad);
+      }
+   end_script
+
+   script void SetRollRateMax(double rollRate_dps)
+      WsfMover mover = PLATFORM.Mover();
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         WsfRigidBodySixDOF_Mover sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+         sixDofMover.SetRollRateMax(rollRate_dps);
+      }
+   end_script
+
+   script void BrakeCheck()
+      ReleaseWheelBrakes(PLATFORM);
+      PLATFORM.ExecuteAtTime(TIME_NOW + 2.0, "SetParkingBrake", {PLATFORM});
+      PLATFORM.ExecuteAtTime(TIME_NOW + 6.0, "SetTaxiRoute");
+   end_script
+
+   script void SetTaxiRoute()
+      ReleaseWheelBrakes(PLATFORM);
+      SetTaxiMode(PLATFORM, true);
+      SetAutopilotWaypointMode(PLATFORM);
+      FollowRouteWithCallback(PLATFORM, "TaxiRoute", "TaxiRouteComplete");
+   end_script
+
+   script void TaxiRouteComplete()
+      SetParkingBrake(PLATFORM);
+      PLATFORM.ExecuteAtTime(TIME_NOW + 5.0, "SetTakeOffRoute");
+   end_script
+
+   script void ShutdownAfterTaxiToRamp()
+      SetParkingBrake(PLATFORM);
+      TurnOffEngines(PLATFORM);
+   end_script
+
+   script void SetTakeOffRoute1()
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      SetTaxiMode(PLATFORM, true);
+      PLATFORM.FollowRoute("TakeOffRoute");
+      BeginTakeOff(PLATFORM, 80, 2000.0, "TakeOffRouteComplete1");
+   end_script
+
+   script void SetTakeOffRoute2()
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      SetTaxiMode(PLATFORM, true);
+      PLATFORM.FollowRoute("TakeOffRoute");
+      BeginTakeOff(PLATFORM, 80, 2000.0, "TakeOffRouteComplete2");
+   end_script
+
+   script void TakeOffRouteComplete1()
+      //Should already be in waypoint mode, but set it anyway.
+      SetAutopilotWaypointMode(PLATFORM);
+      PLATFORM.FollowRoute("ScrambleMainRoute1");
+   end_script
+
+   script void TakeOffRouteComplete2()
+      //Should already be in waypoint mode, but set it anyway.
+      SetAutopilotWaypointMode(PLATFORM);
+      PLATFORM.FollowRoute("ScrambleMainRoute2");
+   end_script
+
+   script double TwoMinuteTurnRadius()
+      double spd_mps = PLATFORM.Speed();
+      double radius_m = (120.0 * spd_mps)/(2.0*MATH.PI());
+      return radius_m;
+   end_script
+
+   script double TwoMinuteTurnGLoad(double radius_m)
+      double spd_mps = PLATFORM.Speed();
+      double horizontalG = (spd_mps*spd_mps)/radius_m;
+      return MATH.Sqrt( horizontalG + 1 );
+   end_script
+
+   script void CalcApproachData(WsfGeoPoint runwayThreshold,
+                                double      runwayHeading_deg,
+                                double      runwayAltitude_m)
+
+      double currentAlt_m = PLATFORM.Altitude();
+      double deltaAlt_m = currentAlt_m - runwayAltitude_m;
+
+      writeln(">>> CalcApproachData() <<<");
+      writeln("  currentAlt_m     = ", currentAlt_m);
+      writeln("  runwayAltitude_m = ", runwayAltitude_m);
+      writeln("  deltaAlt_m       = ", deltaAlt_m);
+
+      double glideSlopeAngle_deg = 3.0;
+      double slantRange_m = deltaAlt_m / MATH.Sin(glideSlopeAngle_deg);
+      double downRange_m = slantRange_m * MATH.Cos(glideSlopeAngle_deg);
+
+      writeln("  slantRange_m     = ", slantRange_m);
+      writeln("  downRange_m      = ", downRange_m);
+      writeln("  slantRange(nm)   = ", slantRange_m/MATH.M_PER_NM());
+      writeln("  downRange(nm)    = ", downRange_m/MATH.M_PER_NM());
+
+      double heading_deg = runwayHeading_deg;
+      double xOffset = -downRange_m;
+      double yOffset = 0.0;
+      double zOffset = -deltaAlt_m;
+
+      WsfGeoPoint runwayStartPt = WsfGeoPoint.ConstructWCS(runwayThreshold.LocationWCS());
+      WsfGeoPoint runwayEndPt = WsfGeoPoint.ConstructWCS(runwayThreshold.LocationWCS());
+      WsfGeoPoint approachPt = WsfGeoPoint.ConstructWCS(runwayThreshold.LocationWCS());
+      WsfGeoPoint initialPointPt = WsfGeoPoint.ConstructWCS(runwayThreshold.LocationWCS());
+
+      double defaultRunwayLength_m = 3000.0;
+      runwayEndPt.Offset( heading_deg, defaultRunwayLength_m,0.0,0.0);
+      approachPt.Offset( heading_deg, xOffset,yOffset,zOffset);
+      initialPointPt.Offset( heading_deg, xOffset - 3000.0,yOffset,zOffset);
+
+      RunwayStartPt = WsfGeoPoint.ConstructWCS(runwayStartPt.LocationWCS());
+      RunwayEndPt = WsfGeoPoint.ConstructWCS(runwayEndPt.LocationWCS());
+      ApproachPt = WsfGeoPoint.ConstructWCS(approachPt.LocationWCS());
+      InitialPointPt = WsfGeoPoint.ConstructWCS(initialPointPt.LocationWCS());
+
+      WsfGeoPoint startPt = WsfGeoPoint.ConstructWCS(PLATFORM.LocationWCS());
+
+      double lat = startPt.Latitude();
+      double lon = InitialPointPt.Longitude();
+      double alt_m = InitialPointPt.Altitude();
+
+      WsfGeoPoint crossPointPt = WsfGeoPoint.Construct(lat,lon,alt_m);
+
+      // Create the route
+      WsfRoute landingRoute = WsfRoute.Create("LandingRoute");
+      double speed_ktas = 250.0;
+      double speed_mps = (speed_ktas * MATH.FT_PER_NM() / 3600.0) * MATH.M_PER_FT();
+
+      speed_ktas = 350.0;
+      speed_mps = (speed_ktas * MATH.FT_PER_NM() / 3600.0) * MATH.M_PER_FT();
+      landingRoute.Append(startPt, speed_mps);
+      landingRoute.Append(crossPointPt, speed_mps);
+      landingRoute.Append(InitialPointPt, speed_mps);
+      landingRoute.Append(ApproachPt, speed_mps);
+
+      speed_ktas = 250.0;
+      speed_mps = (speed_ktas * MATH.FT_PER_NM() / 3600.0) * MATH.M_PER_FT();
+      landingRoute.Append(RunwayStartPt, speed_mps);
+
+      speed_ktas = 200.0;
+      speed_mps = (speed_ktas * MATH.FT_PER_NM() / 3600.0) * MATH.M_PER_FT();
+      landingRoute.Append(RunwayEndPt, speed_mps);
+
+      // Calc Approach Data
+
+      WsfDraw draw = WsfDraw();
+
+      draw.SetColor(0.8,0.2,0.2,1.0);
+      draw.SetLineSize(4);
+      draw.BeginPolyline();
+      draw.Vertex(landingRoute.Waypoint(0).Location());
+      draw.Vertex(landingRoute.Waypoint(1).Location());
+      draw.End();
+
+      draw.SetLineSize(2);
+      draw.SetColor(0.8,0.0,0.8,1.0);
+      draw.BeginLines();
+      draw.Vertex(landingRoute.Waypoint(1).Location());
+      draw.Vertex(landingRoute.Waypoint(2).Location());
+      draw.End();
+      draw.SetColor(0.8,0.3,0.0,0.8);
+      draw.BeginLines();
+      draw.Vertex(landingRoute.Waypoint(2).Location());
+      draw.Vertex(landingRoute.Waypoint(3).Location());
+      draw.End();
+      draw.SetColor(0.8,0.6,0.0,0.8);
+      draw.BeginLines();
+      draw.Vertex(landingRoute.Waypoint(3).Location());
+      draw.Vertex(landingRoute.Waypoint(4).Location());
+      draw.End();
+      draw.SetColor(0.8,0.9,0.0,0.8);
+      draw.BeginLines();
+      draw.Vertex(landingRoute.Waypoint(4).Location());
+      draw.Vertex(landingRoute.Waypoint(5).Location());
+      draw.End();
+
+      draw.SetColor(0.0,0.5,0.9,1.0);
+      draw.SetLineSize(1);
+      draw.BeginPolyline();
+      draw.Vertex(startPt);
+      draw.Vertex(crossPointPt);
+      draw.Vertex(InitialPointPt);
+      draw.Vertex(ApproachPt);
+      draw.Vertex(RunwayStartPt);
+      draw.Vertex(RunwayEndPt);
+      draw.End();
+
+      draw.SetPointSize(6);
+
+      draw.SetColor(1.0,0.0,0.0,1.0);
+      draw.BeginPoints();
+      draw.Vertex(startPt);
+      draw.End();
+
+      draw.SetColor(1.0,0.5,0.0,1.0);
+      draw.BeginPoints();
+      draw.Vertex(crossPointPt);
+      draw.End();
+
+      draw.SetColor(1.0,1.0,0.0,1.0);
+      draw.BeginPoints();
+      draw.Vertex(InitialPointPt);
+      draw.End();
+
+      draw.SetColor(0.0,1.0,0.0,1.0);
+      draw.BeginPoints();
+      draw.Vertex(ApproachPt);
+      draw.End();
+
+      draw.SetColor(0.0,1.0,1.0,1.0);
+      draw.BeginPoints();
+      draw.Vertex(RunwayStartPt);
+      draw.End();
+
+      draw.SetColor(0.0,1.0,0.5,1.0);
+      draw.BeginPoints();
+      draw.Vertex(RunwayEndPt);
+      draw.End();
+
+      PLATFORM.FollowRoute(landingRoute);
+
+   end_script
+
+   script double VerticalSpeedForGlideslope_fpm(double glideSlopeAng_deg)
+
+      double speed_mps = PLATFORM.Speed();
+      double vertSpeed_mps = speed_mps * MATH.Sin(glideSlopeAng_deg);
+      double vertSpeed_fpm = -vertSpeed_mps * MATH.FT_PER_M() * 60.0;
+
+      return vertSpeed_fpm;
+
+   end_script
+
+   script double CurrentApproachAngle_deg(WsfGeoPoint runwayThreshold, double glideSlopeAng_deg)
+
+      double groundRange_m = runwayThreshold.GroundRangeTo(PLATFORM.Location());
+      double altitude_m = PLATFORM.Altitude() - runwayThreshold.Altitude();
+
+      double angle_deg = 0.0;
+      if(groundRange_m > 0.001 )
+      {
+         angle_deg = MATH.ATan(altitude_m/groundRange_m);
+      }
+      else if( altitude_m > 0.001 )
+      {
+         angle_deg = 90.0;
+      }
+
+      return angle_deg;
+
+   end_script
+
+   script double CurrentApproachDeviation_ft(WsfGeoPoint runwayThreshold, double glideSlopeAng_deg)
+
+      double slantRange_m = runwayThreshold.SlantRangeTo(PLATFORM.Location());
+      double altitude_m = PLATFORM.Altitude() - runwayThreshold.Altitude();
+
+      double altitudeGlideSlope_m = slantRange_m * MATH.Sin(glideSlopeAng_deg);
+
+      double deviation_ft = (altitude_m - altitudeGlideSlope_m) * MATH.FT_PER_M();
+
+      return deviation_ft;
+
+   end_script
+
+   script void TaxiToRamp()
+
+      writeln("Taxi to ramp ......");
+
+      WsfMover mover = PLATFORM.Mover();
+      WsfRigidBodySixDOF_Mover sixDofMover;
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+      }
+      else
+      {
+         writeln("--ERROR-- Cannot execute TaxiToRamp() since not a RB6 Mover.");
+         return;
+      }
+
+      EnableDirectBraking(PLATFORM);
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+
+      SetTaxiMode(PLATFORM, true);
+      SetAutopilotWaypointMode(PLATFORM);
+      SetEnableNWS(PLATFORM,true);
+      //SetTaxiRadius(PLATFORM, 10.0);
+      FollowRouteWithCallback(PLATFORM, TaxiBackToRamp, "ShutdownAfterTaxiToRamp");
+
+   end_script
+
+   script void PerformLandingFlare()
+
+      WsfMover mover = PLATFORM.Mover();
+      WsfRigidBodySixDOF_Mover sixDofMover;
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+      }
+      else
+      {
+         writeln("--ERROR-- Cannot execute PerformLandingFlare() since not an RB6 Mover.");
+      }
+
+      bool taxiMode = false;
+
+      if(sixDofMover.WeightOnNoseWheel())
+      {
+         sixDofMover.SetAutopilotPitchAngle(0.0);
+
+         // Goto taxi mode
+         SetTaxiMode(PLATFORM, true);
+
+         // Apply brakes
+         sixDofMover.SetParkingBrake();
+
+         sixDofMover.SetAutopilotSpeedKCAS(0.0);
+         //MoveThrottleToIdle(PLATFORM);
+
+         double tgtSpd_mps = 15.0*MATH.M_PER_NM()/3600.0; // Looking for 15 kts
+
+         if( PLATFORM.Speed() < tgtSpd_mps )
+         {
+            writeln("Speed reduced, now taxi to ramp ......");
+
+            taxiMode = true;
+         }
+      }
+      else
+      {
+         if(sixDofMover.WeightOnWheels())
+         {
+            sixDofMover.SetAutopilotPitchRate(-10.0); // Pitch rate in deg/sec
+         }
+      }
+
+      if( taxiMode )
+      {
+         TaxiToRamp();
+      }
+      else
+      {
+         PLATFORM.ExecuteAtTime(TIME_NOW + .05, "PerformLandingFlare", {});
+      }
+
+   end_script
+
+   script void PerformFinalApproach()
+
+      WsfMover mover = PLATFORM.Mover();
+      WsfRigidBodySixDOF_Mover sixDofMover;
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+      }
+      else
+      {
+         writeln("--ERROR-- PerformFinalApproach(): Cannot execute PerformLandingApproach() since not an RB6 Mover.");
+      }
+
+      double glideSlopeAng_deg = 3.0;
+      double vertSpdForGlideslope_fpm = VerticalSpeedForGlideslope_fpm(glideSlopeAng_deg);
+      double currentGlideAngle_deg = CurrentApproachAngle_deg(RunwayThreshold, glideSlopeAng_deg);
+      double deviation_ft = CurrentApproachDeviation_ft(RunwayThreshold, glideSlopeAng_deg);
+      double currentAlt_m = PLATFORM.Altitude();
+      double heightAboveThreshold_m = currentAlt_m - RunwayAltitude_m;
+      double heightAboveThreshold_ft = heightAboveThreshold_m * MATH.FT_PER_M();
+      double nextDeltaT_sec = 1.0;
+      double deviationFactor_fpm = -50.0 * deviation_ft;
+
+      deviationFactor_fpm = -1.0 * deviation_ft;
+
+      if(deviation_ft > 0.0)
+      {
+         deviationFactor_fpm = -2.0 * deviation_ft;
+      }
+      else
+      {
+         deviationFactor_fpm = -100.0 * deviation_ft;
+      }
+
+      double vertSpd_fpm = vertSpdForGlideslope_fpm + deviationFactor_fpm;
+
+      nextDeltaT_sec = 1.0;
+
+      if( heightAboveThreshold_ft < 20.0 )
+      {
+         if( LandingMode < 4 )
+         {
+            writeln("***>>> heightAboveThreshold_ft < 20.0 ....");
+            LandingMode = 4;
+            vertSpd_fpm = -50.0;
+            nextDeltaT_sec = 0.02;
+         }
+      }
+      else if( heightAboveThreshold_ft < 50.0 )
+      {
+         if( LandingMode < 3 )
+         {
+            LandingMode = 3;
+            vertSpd_fpm = -100.0;
+            nextDeltaT_sec = 0.05;
+         }
+      }
+      else if( heightAboveThreshold_ft < 100.0 )
+      {
+         if( LandingMode < 2 )
+         {
+            LandingMode = 2;
+            nextDeltaT_sec = 0.2;
+         }
+      }
+      else if( heightAboveThreshold_ft < 200.0 )
+      {
+         if( LandingMode < 1 )
+         {
+            LandingMode = 1;
+            nextDeltaT_sec = 0.5;
+         }
+      }
+
+      sixDofMover.SetAutopilotVerticalSpeed((MATH.M_PER_FT() / 60) * vertSpd_fpm);
+
+      if( LandingMode >= 4 )
+      {
+         writeln("PerformLandingFlare() ...");
+         PerformLandingFlare();
+      }
+      else
+      {
+         PLATFORM.ExecuteAtTime(TIME_NOW + nextDeltaT_sec, "PerformFinalApproach", {});
+      }
+
+   end_script
+
+   script void PerformLandingApproach()
+
+      WsfMover mover = PLATFORM.Mover();
+      WsfRigidBodySixDOF_Mover sixDofMover;
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+      }
+      else
+      {
+         writeln("--ERROR-- PerformLandingApproach(): Cannot execute PerformLandingApproach() since not an RB6 Mover.");
+      }
+
+      double currentAlt_m = PLATFORM.Altitude();
+      double heightAboveThreshold_m = currentAlt_m - RunwayAltitude_m;
+      double heightAboveThreshold_ft = heightAboveThreshold_m * MATH.FT_PER_M();
+
+      double nextDeltaT_sec = 1.0;
+
+      if( heightAboveThreshold_ft < 4000.0 )
+      {
+         writeln("--- FINAL APPROACH for ", PLATFORM.Name(), " ---");
+
+         // Chop the power...
+         sixDofMover.SetAutopilotSpeedKTAS(180.0);
+         sixDofMover.LowerLandingGear();
+
+         PerformFinalApproach();
+      }
+      else
+      {
+         PLATFORM.ExecuteAtTime(TIME_NOW + nextDeltaT_sec, "PerformLandingApproach", {});
+      }
+
+   end_script
+
+   script void LoadLandingApproach()
+
+      writeln("CalcApproachData() ........");
+      CalcApproachData(RunwayThreshold,RunwayHeading_deg,RunwayAltitude_m);
+
+      // Set controls for Landing
+      EnableDirectBraking(PLATFORM);
+      ReleaseWheelBrakes(PLATFORM);
+      SetTaxiMode(PLATFORM, false);
+      SetAutopilotWaypointMode(PLATFORM);
+
+      writeln("PerformLandingApproach() ........");
+      PerformLandingApproach();
+
+   end_script
+
+   script void ReportFuelState()
+
+      WsfMover mover = PLATFORM.Mover();
+      WsfRigidBodySixDOF_Mover sixDofMover;
+      if(mover.IsA_TypeOf("WSF_RIGID_BODY_SIX_DOF_MOVER"))
+      {
+         sixDofMover = (WsfRigidBodySixDOF_Mover)mover;
+      }
+      else
+      {
+         writeln("--ERROR-- ReportFuelState(): Cannot execute PerformLandingApproach() since not a SixDOF Mover.");
+      }
+
+      //writeln("At ", TIME_NOW, " sec there is ", sixDofMover.GetTotalFuelRemaining_lbs(), " lbs of fuel remaining..." );
+
+      PLATFORM.ExecuteAtTime(TIME_NOW + 30.0, "ReportFuelState", {});
+   end_script
+
+   script void PilotThinker(WsfPlatform aPlatform)
+
+      WsfPlatform cmdrPlatform = aPlatform.Commander();
+
+      if(cmdrPlatform == aPlatform)
+      {
+         // This is the flight leader
+         if( TIME_NOW > 960.0 ) // 16 minutes
+         {
+            if( multiuseModeFlag < 0 )
+            {
+               // Time to land
+               // Set approach mode
+               mFlightMode = 4; // 04 = Approach
+               multiuseModeFlag = 1;
+            }
+         }
+
+         if(mFlightMode == 4)
+         {
+            if(multiuseModeFlag == 1 )
+            {
+               writeln(PLATFORM.Name(), " is dropping down to 6kft, slowing to 350kts, and heading east ........");
+
+               PLATFORM.GoToAltitude(6000.0/3.28);
+               PLATFORM.GoToSpeed( (350.0*MATH.FT_PER_NM()/3600.0)*MATH.M_PER_FT() );
+               PLATFORM.TurnToHeading(100.0);
+
+               multiuseModeFlag = 2;
+            }
+            else if( multiuseModeFlag == 2 )
+            {
+               if( PLATFORM.Altitude() < 10500.0/3.28 )
+               {
+                  writeln("We're at our target alt ........");
+                  multiuseModeFlag = 3;
+               }
+            }
+            else if( multiuseModeFlag == 3 )
+            {
+               // Wait until we've slowed down ...
+               if( PLATFORM.Speed() < ((350.0*MATH.FT_PER_NM()/3600.0)*MATH.M_PER_FT()) )
+               {
+                  writeln("We've slowed down enough ........");
+                  multiuseModeFlag = 4;
+               }
+            }
+            else if( multiuseModeFlag == 4 )
+            {
+               // We're close enough to the alt, so land
+               writeln("Begin landing approach ........");
+               SetAutopilotWaypointMode(PLATFORM);
+               LoadLandingApproach();
+               multiuseModeFlag = 5;
+            }
+         }
+      }
+      else
+      {
+          // This is the wingman
+
+         if( TIME_NOW > 1080.0 ) // 18 minutes
+         {
+            // Set approach mode
+            mFlightMode = 4; // 04 = Approach, 05 = Landing Flare
+         }
+         else if(( TIME_NOW > 240.0 )&&( TIME_NOW < 1080.0 )) // 6 minutes
+         {
+            if(multiuseModeFlag < 0)
+            {
+               multiuseModeFlag = 1;
+
+               // Fly formation, if the leader is valid
+               if(cmdrPlatform.IsValid())
+               {
+                  // Set formation mode
+                  mFlightMode = 6; // 06 = Formation - Station Keeping
+               }
+               else
+               {
+                  // No commander, so approach/land
+                  mFlightMode = 4; // 04 = Approach, 05 = Landing Flare
+                  multiuseModeFlag = -1;
+               }
+            }
+         }
+         else
+         {
+            // Normal, do nothing
+         }
+
+         if( mFlightMode == 4 ) // 04 = Approach, 05 = Landing Flare
+         {
+            // Revert to 60 deg max bank angle for approach
+            SetBankAngleMax(60);
+
+            if(multiuseModeFlag < 0 )
+            {
+               multiuseModeFlag = 1;
+            }
+
+            if(multiuseModeFlag == 1 )
+            {
+               // Goto 4,000 ft
+               // Set speed to 400 kts
+               // Head east
+
+               //writeln("Wingman landing with ", GetTotalFuelRemaining_lbs(PLATFORM), " lbs of fuel remaining..." );
+
+               PLATFORM.GoToAltitude(6000.0/3.28);
+               PLATFORM.GoToSpeed( (400.0*MATH.FT_PER_NM()/3600.0)*MATH.M_PER_FT() );
+               PLATFORM.TurnToHeading(10.0);
+
+               multiuseModeFlag = 2;
+            }
+            else if( multiuseModeFlag == 2 )
+            {
+               //writeln("Wingman checking altitude = ", PLATFORM.Altitude()*3.28, " ft");
+               double deltaAlt_m = PLATFORM.Altitude() - (6000.0/3.28);
+               if( MATH.Fabs(deltaAlt_m) < (200.0/3.28) )
+               {
+                  writeln("We're at our target alt ........");
+                  multiuseModeFlag = 3;
+               }
+            }
+            else if( multiuseModeFlag == 3 )
+            {
+               double deltaSpd_m = PLATFORM.Speed() - ((400.0*MATH.FT_PER_NM()/3600.0)*MATH.M_PER_FT());
+               double deltaHdg_deg = PLATFORM.Heading() - 10.0;
+               if( MATH.Fabs(deltaSpd_m) < 10.0 )
+               {
+                  if( MATH.Fabs(deltaHdg_deg) < 1.0 )
+                  {
+                     writeln("We're at our tgt speed and heading ........");
+                     multiuseModeFlag = 4;
+                  }
+               }
+            }
+            else if( multiuseModeFlag == 4 )
+            {
+               // We're close enough to the alt, so land
+               writeln("# Wingman begining landing approach .....#");
+               //writeln("Wingman landing with ", GetTotalFuelRemaining_lbs(PLATFORM), " lbs of fuel remaining..." );
+               SetAutopilotWaypointMode(PLATFORM);
+               LoadLandingApproach();
+               multiuseModeFlag = 5;
+               return;
+            }
+            else
+            {
+               // Do nothing
+               return;
+            }
+         }
+      }
+
+      PLATFORM.ExecuteAtTime(TIME_NOW + .02, "PilotThinker", {PLATFORM});
+
+   end_script
+
+   execute at_time 0.02 sec absolute
+
+      mFlightMode = 3; // 03 = Fly Route
+
+      PilotThinker(PLATFORM);
+      PLATFORM.ExecuteAtTime(TIME_NOW + .02, "PilotThinker", {PLATFORM});
+   end_execute
+
+end_platform_type
+
+# ******************************************************************************
+
+platform Scramble1 ScrambleFighter
+   update_interval 0.01 sec
+   side blue
+   icon f15c
+
+   commander SELF
+
+   # Airport altitude is assumed to be 5 ft
+   route
+      position   21.32819n 157.94755w altitude    11.0 ft speed    0.0 kts
+      position   21.32820n 157.94732w altitude    11.0 ft speed    8.0 kts
+      position   21.32785n 157.94679w altitude    11.0 ft speed    8.0 kts
+      position   21.32785n 157.94614w altitude    11.0 ft speed    8.0 kts
+      position   21.32525n 157.94335w altitude    11.0 ft speed    8.0 kts
+      position   21.32525n 157.94312w altitude    11.0 ft speed    8.0 kts
+      position   21.32536n 157.94290w altitude    11.0 ft speed    8.0 kts
+      position   21.32536n 157.94275w altitude    11.0 ft speed    4.0 kts
+   end_route
+   follow_vertical_track
+
+   edit mover
+      engines_on        true
+      landing_gear_down true
+      parking_brake_on  true
+      nws_enabled       true
+   end_mover
+
+   execute at_time 0.01 sec absolute
+      TaxiBackToRamp = "TaxiBackToRampRoute1";
+      SetTaxiMode(PLATFORM, true);
+      SetTaxiRadius(PLATFORM, 80.0);
+      SetAutopilotNoControl(PLATFORM);
+      EnableDirectThrottleInput(PLATFORM);
+      MoveThrottleToIdle(PLATFORM);
+   end_execute
+
+   # Begin taxiing
+   execute at_time 10.0 sec absolute
+      EnableDirectBraking(PLATFORM);
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      ReleaseDirectThrottleInput(PLATFORM);
+      SetAutopilotWaypointMode(PLATFORM);
+   end_execute
+
+   # Test brakes
+   execute at_time 15.0 sec absolute
+      EnableDirectBraking(PLATFORM);
+      SetParkingBrake(PLATFORM);
+   end_execute
+
+   # Release brakes and continue taxiing
+   execute at_time 16.0 sec absolute
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+   end_execute
+
+   # Bring power to idle and set brakes
+   execute at_time 180.0 sec absolute
+      SetAutopilotNoControl(PLATFORM);
+      EnableDirectBraking(PLATFORM);
+      SetParkingBrake(PLATFORM);
+      EnableDirectThrottleInput(PLATFORM);
+      MoveThrottleToIdle(PLATFORM);
+   end_execute
+
+   # Bring power up to full MIL power
+   execute at_time 183.0 sec absolute
+      MoveThrottleToFull(PLATFORM);
+   end_execute
+
+   # Bring power up to full AB power
+   execute at_time 187.0 sec absolute
+      MoveThrottleToAfterburner(PLATFORM);
+   end_execute
+
+   # Release the brakes and start takeoff roll in full AB
+   execute at_time 190.0 sec absolute
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      SetVerticalSpeedMax(PLATFORM, 40000);
+      SetAutopilotWaypointMode(PLATFORM);
+      SetTaxiMode(PLATFORM, true);
+      PLATFORM.FollowRoute("Scramble1TakeOffRoute");
+#     BeginTakeOff(PLATFORM, 120, 12000.0, "TakeOffRouteComplete");
+      BeginSteepTakeOff(PLATFORM, 120, 50.0, "TakeOffRouteComplete1");
+   end_execute
+
+   # Do we need to turn off NWS? **************************************************
+
+   execute at_time 760.0 sec absolute
+
+      // RTB
+
+   end_execute
+
+end_platform
+
+platform Scramble2 ScrambleFighter
+   update_interval 0.01 sec
+   side blue
+   icon f15c
+
+   commander Scramble1   
+
+   # Airport altitude is assumed to be 5 ft
+   route
+      position   21.32807n 157.94755w altitude    11.0 ft speed    0.0 kts
+      position   21.32807n 157.94728w altitude    11.0 ft speed    8.0 kts
+      position   21.32785n 157.94674w altitude    11.0 ft speed    8.0 kts
+      position   21.32785n 157.94614w altitude    11.0 ft speed    8.0 kts
+      position   21.32525n 157.94335w altitude    11.0 ft speed    8.0 kts
+      position   21.32525n 157.94312w altitude    11.0 ft speed    8.0 kts
+      position   21.32514n 157.94290w altitude    11.0 ft speed    8.0 kts
+      position   21.32514n 157.94275w altitude    11.0 ft speed    4.0 kts
+   end_route
+   follow_vertical_track
+
+   edit mover
+      engines_on        true
+      landing_gear_down true
+      parking_brake_on  true
+      nws_enabled       true
+   end_mover
+
+   execute at_time 0.01 sec absolute
+      LowerLandingGear(PLATFORM);
+      TaxiBackToRamp = "TaxiBackToRampRoute2";
+      SetTaxiMode(PLATFORM, true);
+      SetTaxiRadius(PLATFORM, 80.0);
+      SetAutopilotNoControl(PLATFORM);
+      EnableDirectThrottleInput(PLATFORM);
+      MoveThrottleToIdle(PLATFORM);
+   end_execute
+
+   execute at_time 20.0 sec absolute
+      EnableDirectBraking(PLATFORM);
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      ReleaseDirectThrottleInput(PLATFORM);
+      SetAutopilotWaypointMode(PLATFORM);
+   end_execute
+
+   execute at_time 180.0 sec absolute
+      SetAutopilotNoControl(PLATFORM);
+      EnableDirectBraking(PLATFORM);
+      SetParkingBrake(PLATFORM);
+      EnableDirectThrottleInput(PLATFORM);
+      MoveThrottleToIdle(PLATFORM);
+   end_execute
+
+   # Bring power up to full MIL power
+   execute at_time 183.0 sec absolute
+      MoveThrottleToFull(PLATFORM);
+   end_execute
+
+   # Bring power up to full AB power
+   execute at_time 187.0 sec absolute
+      MoveThrottleToAfterburner(PLATFORM);
+   end_execute
+
+   # Release the brakes and start takeoff roll in full AB
+   execute at_time 190.0 sec absolute
+      ReleaseWheelBrakes(PLATFORM);
+      ReleaseDirectBraking(PLATFORM);
+      SetVerticalSpeedMax(PLATFORM, 40000);
+      SetAutopilotWaypointMode(PLATFORM);
+      SetTaxiMode(PLATFORM, true);
+      PLATFORM.FollowRoute("Scramble2TakeOffRoute");
+#     BeginTakeOff(PLATFORM, 120, 12000.0, "TakeOffRouteComplete");
+      BeginSteepTakeOff(PLATFORM, 120, 50.0, "TakeOffRouteComplete2");
+   end_execute
+
+end_platform

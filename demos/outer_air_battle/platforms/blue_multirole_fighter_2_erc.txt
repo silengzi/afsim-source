@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+include_once platforms/blue_multirole_fighter_2.txt
+
+platform_type BLUE_MULTIROLE_FIGHTER_2_ERC BLUE_MULTIROLE_FIGHTER_2
+
+   category ERC
+
+   edit mover
+      at_end_of_path extrapolate
+   end_mover
+
+   script void deleteSelf()
+      PLATFORM.DeletePlatform();
+   end_script
+
+end_platform_type

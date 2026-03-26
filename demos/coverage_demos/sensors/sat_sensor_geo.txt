@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: sensors/sat_sensor_geo.txt
+
+# Satellite Sensor, pointing GEO
+
+sensor SAT_SENSOR WSF_GEOMETRIC_SENSOR 
+   pitch 90 deg
+   
+   frame_time 20 s
+   maximum_range 40000 km
+   
+   slew_mode azimuth_and_elevation
+   
+   field_of_view rectangular
+      azimuth_field_of_view -2.5 deg 2.5 deg
+      elevation_field_of_view -2.5 deg 2.5 deg 
+   end_field_of_view
+   
+   check_terrain_masking enable
+   
+   hits_to_establish_track 1 1
+   hits_to_maintain_track 1 1
+   
+   ignore_same_side
+   reports_location
+end_sensor

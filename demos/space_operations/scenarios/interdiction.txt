@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This scenario sets up the blue side of the simulation. If a staging failure
+# occurs, blue_naval_sam_battery cues into its path and controls the launch of a missile
+# to intercept it.
+
+include_once platforms/common.txt
+include_once platforms/blue_naval_sam_battery.txt
+include_once platforms/blue_naval_sam_launcher.txt
+include_once platforms/blue_abm_ttr.txt
+
+platform blue_naval_sam_battery_01 BLUE_NAVAL_SAM_BATTERY
+  commander SELF
+  side blue
+  icon Ship
+  position 27:44:11.25n 58:25:42.38w
+end_platform
+
+platform blue_naval_sam_launcher01 BLUE_NAVAL_SAM_LAUNCHER
+  commander blue_naval_sam_battery_01
+  side blue
+  icon PAC-3_Launcher
+  position 27:46:13.05n 58:16:56.04w
+end_platform
+
+platform blue_abm_ttr_01 BLUE_ABM_TTR
+  commander blue_naval_sam_battery_01
+  side blue
+  icon ew_radar_icon
+  position 27:46:13.05n 58:16:56.04w
+  heading 270 deg
+end_platform

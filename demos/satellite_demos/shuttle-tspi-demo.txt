@@ -1,0 +1,222 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+   #        1         2         3         4         5         6         7
+#234567890123456789012345678901234567890123456789012345678901234567890123456789
+################################################################################
+#                Shuttle Ascent demo using TSPI data.
+#         Data show one nominal ascent and three abort modes
+#
+################################################################################
+
+platform_type SPACE_SHUTTLE WSF_PLATFORM
+   icon Space_Shuttle
+
+   mover WSF_TSPI_MOVER
+      heading in degrees
+      pitch in degrees
+      roll in degrees
+      altitude in feet
+      speed in ft/s
+      //extrapolation disabled
+   end_mover
+
+end_platform_type
+
+platform discovery-tal SPACE_SHUTTLE // Transatlantic Abort Scenario
+   edit mover
+      TSPI_filename ./tspi/DATA_TAL.txt
+   end_mover
+end_platform
+
+platform discovery-rtls SPACE_SHUTTLE  // Return To Launch Site Scenario
+   edit mover
+      TSPI_filename ./tspi/DATA_RTLS.txt
+   end_mover
+end_platform
+
+platform discovery-ecal SPACE_SHUTTLE  // East Coast Abort Landing Scenario
+   edit mover
+      TSPI_filename ./tspi/DATA_ECAL.txt
+   end_mover
+end_platform
+
+script_interface
+  //debug
+end_script_interface
+
+platform discovery-nom SPACE_SHUTTLE  // NOMinal Ascent Scenario
+   script_variables
+      WsfDraw mDraw = WsfDraw();  // todo mark comment bubble locations with WsfDraw.
+   end_script_variables
+
+   on_initialize
+      mDraw.BeginPoints();
+      mDraw.SetPointSize(10);
+      mDraw.SetId("points-of-interest");
+   end_on_initialize
+
+   edit mover
+      TSPI_filename ./tspi/DATA_NOM.txt
+   end_mover
+   execute at_time  1 s absolute
+      PLATFORM.Comment("Abort option: RTLS Only");
+      //mDraw.SetColor(0.0, 1.0, 0.0);
+      //mDraw.Vertex(PLATFORM);
+   end_execute
+   execute at_time 11 s absolute
+      PLATFORM.Comment("Start Roll");
+      //mDraw.SetColor(0.0, 0.0, 1.0);
+      //mDraw.Vertex(PLATFORM);
+   end_execute
+   execute at_time 18 s absolute
+      PLATFORM.Comment("End Roll");
+   end_execute
+   execute at_time 33 s absolute
+      PLATFORM.Comment("Start Throttle Down (72%)");
+   end_execute
+   execute at_time 45 s absolute
+      PLATFORM.Comment("Start Throttle Up (104.5%)");
+   end_execute
+   execute at_time 60 s absolute
+      PLATFORM.Comment("Max. Q (742 psf)");
+   end_execute
+   execute at_time 124 s absolute
+      PLATFORM.Comment("SRB Separation");
+   end_execute
+   execute at_time 134 s absolute
+      PLATFORM.Comment("Start OMS Assist");
+   end_execute
+   execute at_time 139 s absolute
+      PLATFORM.Comment("Abort option: TAL Available");
+   end_execute
+   execute at_time 141 s absolute
+      PLATFORM.Comment("2E TAL Moron");
+   end_execute
+   execute at_time 146 s absolute
+      PLATFORM.Comment("2E TAL Zarazoga");
+   end_execute
+   execute at_time 156 s absolute
+      PLATFORM.Comment("2E TAL Istres");
+   end_execute
+   execute at_time 232 s absolute
+      PLATFORM.Comment("Negative Return (KSC)");
+   end_execute
+   execute at_time 287 s absolute
+      PLATFORM.Comment("Abort option: ATO Available");
+   end_execute
+   execute at_time 322 s absolute
+      PLATFORM.Comment("Droop Zaragoza");
+   end_execute
+   execute at_time 325 s absolute
+      PLATFORM.Comment("1E OPS-3 Zaragoza");
+   end_execute
+   execute at_time 346 s absolute
+      PLATFORM.Comment("Roll to Heads-Up");
+   end_execute
+   execute at_time 363 s absolute
+      PLATFORM.Comment("1E TAL Zarazoga");
+   end_execute
+   execute at_time 387 s absolute
+      PLATFORM.Comment("2E Normal Orbit Possible");
+   end_execute
+   execute at_time 387 s absolute
+      PLATFORM.Comment("1E TAL Moron");
+   end_execute
+   execute at_time 387 s absolute
+      PLATFORM.Comment("1E TAL Istres");
+   end_execute
+   execute at_time 387 s absolute
+      PLATFORM.Comment("1E TAL Istres");
+   end_execute
+   execute at_time 441 s absolute
+      PLATFORM.Comment("Negative Moron");
+   end_execute
+   execute at_time 441 s absolute
+      PLATFORM.Comment("3G Limiting");
+   end_execute
+   execute at_time 461 s absolute
+      PLATFORM.Comment("Last 2E Pre-MECO TAL Zarazoga");
+   end_execute
+   execute at_time 461 s absolute
+      PLATFORM.Comment("Negative Istres");
+   end_execute
+   execute at_time 467 s absolute
+      PLATFORM.Comment("Last 1E Pre-MECO TAL Zarazoga");
+   end_execute
+   execute at_time 472 s absolute
+      PLATFORM.Comment("Last 3E Pre-MECO TAL Zarazoga");
+   end_execute
+   execute at_time 497 s absolute
+      PLATFORM.Comment("Last TAL Diego Garcia");
+   end_execute
+   execute at_time 503 s absolute
+      PLATFORM.Comment("MECO");
+   end_execute
+   execute at_time 509 s absolute
+      PLATFORM.Comment("Zero Thrust");
+   end_execute
+
+   execute at_time 900 s absolute
+      mDraw.End();
+   end_execute
+
+end_platform
+
+platform launch-platform WSF_PLATFORM
+   icon Bullseye
+   position 28:36:30n 80:36:14w altitude 200 ft msl  // start of tspi data at this alt.
+end_platform
+
+platform_type ABORT_SITE WSF_PLATFORM
+   icon airbase
+   side green
+end_platform_type
+
+platform Zaragoza ABORT_SITE
+   position 41.6802522n 1.0823679w altitude 0 ft agl
+//   position 41:39:25.2n 0:52:33.6w altitude 0 ft agl
+end_platform
+
+platform Moron ABORT_SITE
+   position 37.1603165n 5.6229401w altitude 0 ft agl
+//   position 37:10:29n 5:36:57w altitude 0 ft agl
+end_platform
+
+platform Istres ABORT_SITE
+   position 43.5471795n 4.9067259e altitude 0 ft agl
+end_platform
+
+platform Diego_Garcia ABORT_SITE
+   position 7.304622s 72.3970485e altitude 0 ft agl
+end_platform
+
+###############################################################################
+#               Define simulation control and information objects
+###############################################################################
+
+# Record the simulation to it can be displayed by 'Mystic'.
+event_pipe
+   file shuttle-all.aer
+end_event_pipe
+
+# Capture the event log.
+event_output
+   file shuttle-all.evt
+   enable all
+end_event_output
+
+platform_availability
+   name discovery-rtls availability 1.0
+   name discovery-nom availability 1.0
+   name discovery-ecal availability 1.0
+   name discovery-tal availability 1.0
+end_platform_availability
+
+end_time 1010 sec

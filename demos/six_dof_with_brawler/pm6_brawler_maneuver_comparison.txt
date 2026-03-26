@@ -1,0 +1,81 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This demo contains two Brawler movers and two PM6DOF movers converted from 
+# the Brawler mover. It is a simple flyout of each vehicle responding to
+# slice-turn or level-turn commands, and serves to illustrate how the two
+# movers may differ in execution when using the same aerodynamic and
+# propulsion properties.
+#
+# ****************************************************************************
+
+conditional_section
+   conditionals
+      feature_present brawler
+   end_conditionals
+
+define_path_variable CASE pm_brawler_maneuver_comparison
+
+include std_setup.txt
+include_once platforms/lte_fighter.txt
+
+end_time 3 min
+
+platform_type MANEUVER_TEST_PM6 BLUE_FIGHTER_PM6
+   update_interval 0.01 sec 
+   side light_blue
+   heading 90 deg
+   
+   route
+      position 00:05:00.00n  01:10:00.00w  altitude 30000 ft msl speed 900 ft/s
+      position 00:00:36.035n 01:47:21.156e altitude 30000 ft msl speed 900 ft/s
+      position 00:00:36.035n 01:57:21.156e altitude 30000 ft msl speed 900 ft/s
+   end_route
+   
+end_platform_type
+
+platform_type MANEUVER_TEST_BM BLUE_FIGHTER
+   update_interval 0.01 sec 
+   side blue
+   heading 90 deg
+   altitude 30000 ft msl
+   position 00:05:00.00n  01:10:00.00w 
+   
+end_platform_type
+
+platform slice_PM6 MANEUVER_TEST_PM6  
+   execute at_interval_of 1 sec
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)Mover();
+      mover.Slice(230, Math.M_PER_FT() * 15000.0, 0.75);
+   end_execute 
+end_platform
+
+platform turn_PM6 MANEUVER_TEST_PM6    
+   execute at_time 1 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)Mover();
+      mover.Prlvl(230, 0.75);
+   end_execute 
+end_platform
+
+platform slice_BM MANEUVER_TEST_BM
+   execute at_interval_of 1 sec
+      WsfBrawlerMover mover = (WsfBrawlerMover)Mover();
+      mover.Slice(230, 15000, 0.75);
+   end_execute 
+end_platform
+
+platform turn_BM MANEUVER_TEST_BM
+   execute at_interval_of 1 sec
+      WsfBrawlerMover mover = (WsfBrawlerMover) PLATFORM.Mover();
+      mover.Prlvl(230, 0.75);
+   end_execute 
+end_platform
+
+end_conditional_section
+

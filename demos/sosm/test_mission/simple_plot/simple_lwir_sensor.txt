@@ -1,0 +1,27 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =============================================================================
+# Used by 'test_stp.txt' (the simple target plot).
+#
+# A trivial long-wave (8 um - 12 um) sensor (uniform response).
+# =============================================================================
+
+sensor_model default
+   response_limits 8.0 um 12.0 um
+
+   response_curve
+      wavelength  8 um  1.0
+      wavelength 12 um  1.0
+   end_response_curve
+
+   noise_equivalent_irradiance    1.0E-10 w/m2
+   detection_threshold            6.0 db
+
+#   show_response true
+end_sensor_model

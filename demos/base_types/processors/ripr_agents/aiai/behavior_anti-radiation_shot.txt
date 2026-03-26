@@ -1,0 +1,68 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior anti-radiation_shot
+
+   script_variables
+      bool tempVariable;
+   end_script_variables
+
+
+   precondition
+      writeln("precondition anti-radiation_shot");
+
+     #extern Array<string> ttrs;
+      foreach(string ttr in ttrs)
+      {
+         if (PLATFORM.AuxDataBool(ttr))    #is this guy painting us with his radar?
+         {
+            return true;
+         }
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing anti-radiation_shot.");
+      PLATFORM.Comment("anti-radiation_shot");
+
+      ########################################################################
+      ###   shoot on any target tracking radards that are painting us
+      ########################################################################
+
+     #extern Array<string> ttrs;
+      foreach(string ttr in ttrs)
+      {
+        if (PLATFORM.AuxDataBool(ttr))    #shoot at this guy if we can, he's tracking us
+        {
+          writeln_d(PLATFORM.Name(), " trying to shoot at ttr: ", ttr);
+          WsfPlatform ttrPlatform = WsfSimulation.FindPlatform(ttr);
+          if (ttrPlatform.IsValid())      #take a shot
+          {
+            WsfTrack ttrTrack = ttrPlatform.MakeTrack();
+            ttrTrack.SetAuxData("notlocal", "true");
+           #extern bool CheckAndFire(WsfTrack);
+            if (CheckAndFire(ttrTrack))
+            {
+              writeln_d(PLATFORM.Name(), " shot at the ttr: ", ttr);
+              PLATFORM.SetAuxData(ttr, false);
+            }
+          }
+        }
+      }
+
+   end_execute
+
+end_behavior
+
+

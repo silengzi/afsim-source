@@ -1,0 +1,128 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# GLONASS SATELLITE COMMUNICATIONS DEFINITIONS
+
+include_once ../../patterns/SATCOM_nadir.txt
+
+# references:
+# 1) https://www.unavco.org/community/publications_and_reports/meeting_events_pubs/2011/Berglund-GPS-GNSS.pdf
+# 2) http://www.navipedia.net/index.php/GLONASS_Signal_Plan
+# 3) https://en.wikipedia.org/wiki/GLONASS
+# 4) http://www.navtechgps.com/gnss_facts/
+# 5) http://www.insidegnss.com/auto/julyaug16-ZAMINPARDAZ.pdf
+# 6) http://www.rfwireless-world.com/Terminology/GPS-Frequency-Band-and-GNSS-Frequency-Band.html
+# 7) http://lea.hamradio.si/~s53mv/navsats/theory.html
+# 8) http://www.ignss2016.unsw.edu.au/sites/ignss2016/files/u80/Papers/peer-reviewed/IGNSS2016_paper_23.pdf
+
+comm GLONASS_DOWNLINKL1_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   -70.0 deg  # ref 8
+
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           1602 MHz  # ref 1, Each GLONASS satellite uses a unique frequency 1602 + n x 0.5625
+      bandwidth                           6.5  MHz # ref 6
+      wavelength                          18.7 cm   # ref 6
+      propagation_model                   none
+      power                               26.0 dBW   # ref 3
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GLONASS_DOWNLINKL2_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg  180 deg         # ref 8
+   elevation_field_of_view                 -90 deg  -62 deg         # ref 8
+
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           1246 MHz   # ref 3  1246 + n x 0.4375
+      bandwidth                           8.75 MHz   # ref 6
+      wavelength                          24.04 cm   # ref 6
+      propagation_model                   none
+      power                               20.0 dBW   # ref 7
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GLONASS_DOWNLINKL3_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg  180 deg     # ref 8
+   elevation_field_of_view                 -90 deg  -62 deg     # ref 8
+
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           1202.025 MHz    # ref 3
+      bandwidth                           20.46 MHz   # ref 6
+      wavelength                          24.94 cm    # ref 5
+      propagation_model                   none
+      power                               24.0 dBW    # guess
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GLONASS_UPLINKL1_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1602 mhz   # ref 6
+      bandwidth                           6.5 mhz    # ref 6
+      noise_power                         -161.0 dBW  # ref 2,  Minimum Recieved Power
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm GLONASS_UPLINKL2_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1246 mhz    # ref 6
+      bandwidth                           8.75 mhz    # ref 6
+      noise_power                         -167.0 dBW  # ref 2,  Minimum Recieved Power
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm GLONASS_UPLINKL3_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1202.025 mhz  # ref 6
+      bandwidth                           20.46 mhz     # ref 6
+      noise_power                         -161.0 dBW  # ref 2,  Minimum Recieved Power
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm

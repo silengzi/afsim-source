@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+sp {propose*pursue-target*lead*not-head-to-slower-than-target
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link <il>
+              ^io.input-link.track-root <tr>
+#              ^target-name <tn>
+                           )
+   (<il> ^ownship-engagement-range-min <erm>
+#         ^ownship-engagement-range-max <erx>
+         ^ownship-speed <os>)
+   (<tr> ^<target> <t>)
+   (<t> ^target-name <tn>
+        ^slant-range-to <srt> >= <erm>
+       -^positioning <pos> << head-to-head head-to-tail >>
+        ^speed <spd> >= <os>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name pursue-target
+        ^target <t>
+        ^actions <a>)
+   (<a> ^pursue-target <command>)
+   (<command> ^pursuit-mode lead
+              ^target-name <tn>)
+}
+
+#sp {evaluate*pursue-target*reject-lead*closing-too-slow
+#   (state <s> ^name RIPR-AIAI
+#              ^operator <o1> +
+#              ^io.input-link.ownship-closing-speed-min <csm>)
+#   (<o1> ^actions.pursue-target.pursuit-mode lead
+#         ^target.closing-speed-of <cso> < <csm>)
+#-->
+#   (<s> ^operator <o1> -)
+#}
+#
+#sp {evaluate*pursue-target*reject-lead*closing-too-fast
+#   (state <s> ^name RIPR-AIAI
+#              ^operator <o1> +
+#              ^io.input-link.ownship-closing-speed-max <csx>)
+#   (<o1> ^actions.pursue-target.pursuit-mode lead
+#         ^target.closing-speed-of <cso> > <csx>)
+#-->
+#   (<s> ^operator <o1> -)
+#}
+
+sp {evaluate*pursue-target*reject-lead*too-close
+   (state <s> ^name check-target
+              ^operator <o1> +
+              ^io.input-link.ownship-engagement-range-max <erx>)
+   (<o1> ^actions.pursue-target.pursuit-mode lead
+         ^target.slant-range-to <srt> < <erx>)
+-->
+   (<s> ^operator <o1> -)
+}

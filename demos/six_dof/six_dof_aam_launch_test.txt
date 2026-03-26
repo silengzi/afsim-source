@@ -1,0 +1,219 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario is intended to provide a rough approximation of level flight
+# range for SixDOF AAM models during model file creation. The is accomplished
+# by controlling the angle of attack (alpha) of the missile to make it fly 
+# level. No autopilot/guidance object is required. When the minimum
+# termination speed is reached, details about flight time and range will be
+# provided.
+#
+# To use this scenario, simply change the included model file path and the
+# PLATFORM_TYPE to the desired model.
+#
+# ******************************************************************************
+
+define_path_variable CASE aam_launch
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 10 min
+
+// -----------------------------------------------------------------------------
+// Change the mover type include file here
+include_once platforms/aam-mr.txt
+# $define PLATFORM_TYPE AAM-MR_PM6
+$define PLATFORM_TYPE AAM-MR_RB6
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// Change these variables to control the test parameters
+script_variables
+   //Recommended not to use 0 here, as it may "impact" the ground and
+   //the model would be marked dead, giving incorrect results
+   double LAUNCH_ALTITUDE_M              = 35000 * MATH.M_PER_FT();
+   double TARGET_SPEED_MPS               = 450 * MATH.MPS_PER_NMPH();
+   double LAUNCH_SPEED_MPS               = 450 * MATH.MPS_PER_NMPH();
+   double TERMINATE_DUE_TO_MIN_SPEED_MPS = 0 * MATH.MPS_PER_NMPH();
+   double TERMINATE_DUE_TO_MIN_G_AVAIL   = 1.0;
+   double ACTIVATION_TIME_SEC            = 5.0;
+   double ACTIVATION_SPEED_MPS           = 1200 * MATH.MPS_PER_NMPH();
+   double DELTA_OUTPUT_DISTANCE_KM       = (0.001 * MATH.M_PER_NM()) * 5.0;
+   double OUTPUT_DISTANCE_KM             = DELTA_OUTPUT_DISTANCE_KM;
+end_script_variables
+// -----------------------------------------------------------------------------
+
+include_once six_dof_types/environment/six_dof_environment.txt
+
+script_variables
+   bool   completed       = false;
+   double maxRange_km     = 0.0;
+   double flightTime_s    = 0.0;
+   double maxSpeed_mps    = 0.0;
+   double maxSpeedTime_s  = 0.0;
+   double maxGAvail       = 0.0;
+   double maxGAvailTime_s = 0.0;
+   bool   activated       = false;
+   double outOfFuelTime_s = 0.0;
+   string terminationReason;
+end_script_variables
+
+platform_type AAM_TEST_PLATFORM $<MOVER_TYPE:AAM-MR_RB6>$
+   spatial_domain  air
+   icon            aim120c
+
+   edit mover 
+      # Include SixDOF event pipe data
+      event_core_data               30 Hz
+      event_kinematic_data          30 Hz  
+   end_mover
+   update_interval 0.01 sec
+
+   six_dof_ned_heading 0 deg
+   six_dof_position 21.4  -158.0
+   six_dof_set_velocity_ned_fps  0 0 0
+
+   include scripts/six_dof_all_scripts.txt
+
+   enable_controls false
+
+   on_initialize2
+      SetMasterNoLagTesting(PLATFORM, true);
+      SetMasterFreezeAltitude(PLATFORM, true);
+      SetMasterFreezeVerticalSpeed(PLATFORM, true);
+      SetMasterFreezePitch(PLATFORM, true);
+      SetMasterFreezeRoll(PLATFORM, true);
+      SetMasterFreezeYaw(PLATFORM, true);
+      SetMasterFreezeFuelBurn(PLATFORM, false);
+   end_on_initialize2
+
+   on_update
+
+   if(!completed)
+   {
+      //First check to see if termination conditions were reached.
+      maxRange_km = GetRangeSinceStart_km(PLATFORM);
+      flightTime_s = TIME_NOW;
+
+      double speed_mps = PLATFORM.VelocityNED().X();
+      if(speed_mps > maxSpeed_mps)
+      {
+         maxSpeed_mps = speed_mps;
+         maxSpeedTime_s = TIME_NOW;
+      }
+
+      if(speed_mps > ACTIVATION_SPEED_MPS && TIME_NOW > ACTIVATION_TIME_SEC )
+      {
+         activated = true;
+      }
+
+      // NOTE: This does not work for solid rocket engines, since
+      // GetTotalFuelRemaining_lbs only returns fuel in tanks.
+      if(GetTotalFuelRemaining_lbs(PLATFORM) <= 0.0)
+      {
+         if(outOfFuelTime_s != 0.0)
+         {
+            outOfFuelTime_s = TIME_NOW;
+         }
+      }
+
+      double currentMaxGAvail = 0;
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(mover.IsValid())
+      {
+         currentMaxGAvail = mover.MaxPotentialManeuverGLoad();
+      }
+
+      if(currentMaxGAvail > maxGAvail)
+      {
+         maxGAvail       = currentMaxGAvail;
+         maxGAvailTime_s = TIME_NOW;
+      }
+
+      if(activated && maxRange_km >= OUTPUT_DISTANCE_KM)
+      {
+         writeln(" ");
+         writeln("TIME=",TIME_NOW," RANGE=", maxRange_km, "km (", maxRange_km*1000.0*MATH.NM_PER_M(), " nm)");
+         writeln("  Speed   =", speed_mps, " m/sec (", speed_mps*MATH.NMPH_PER_MPS(), " KTAS)");
+         writeln("  Avail-G =", currentMaxGAvail);
+         OUTPUT_DISTANCE_KM += DELTA_OUTPUT_DISTANCE_KM;
+      }
+
+      if(activated && speed_mps < TERMINATE_DUE_TO_MIN_SPEED_MPS)
+      {
+         completed = true;
+         terminationReason = "minimum speed";
+      }
+
+      if(activated && currentMaxGAvail < TERMINATE_DUE_TO_MIN_G_AVAIL)
+      {
+         completed = true;
+         terminationReason = "minimum g-available";
+      }
+
+      // Command the platform to fly level
+      // Note: This function does not require a tuned model
+      FlyStraightLevelFullThrottle(PLATFORM);
+   }
+   else
+   {
+      //Test is complete, terminate test
+      WsfSimulation.Terminate();
+   }
+   end_on_update
+
+end_platform_type
+
+//Create the test platforms
+execute at_time .01 sec absolute
+   WsfPlatform platform1 = WsfSimulation.CreatePlatform("AAM_TEST_PLATFORM");
+   double launchSpeed_fps = LAUNCH_SPEED_MPS * MATH.FT_PER_M();
+   double launchAltitude_ft = LAUNCH_ALTITUDE_M * MATH.FT_PER_M();
+   string initString = write_str("six_dof_set_velocity_ned_fps ", launchSpeed_fps, " 0 0  six_dof_alt ", launchAltitude_ft, " ft");
+   platform1.ProcessInput(initString);
+   WsfPlatform platform2 = WsfSimulation.AddPlatform(platform1, "");
+end_execute
+
+script void SimulationComplete()
+   writeln("********************************************");
+   writeln("Shot Information:");
+   writeln("  Altitude     : ", LAUNCH_ALTITUDE_M, " m (", LAUNCH_ALTITUDE_M*MATH.FT_PER_M(), " feet)");
+   writeln("  Launch Speed : ", LAUNCH_SPEED_MPS, " m/sec (", LAUNCH_SPEED_MPS*MATH.NMPH_PER_MPS(), " KTAS)");
+   writeln("  Range        : ", maxRange_km, " km (", maxRange_km*1000.0*MATH.NM_PER_M(), " nm)");
+   writeln("  Flight Time  : ", flightTime_s, " sec");
+   writeln("  Max Speed    : ", maxSpeed_mps*MATH.FT_PER_M(), " fps @ ", maxSpeedTime_s, " sec");
+   writeln("  Max G Avail  : ", maxGAvail, " @ ", maxGAvailTime_s, " sec");
+   writeln(" ");
+   writeln("  Flight terminated due to ", terminationReason);
+   writeln(" ");
+   //If outOfFuelTime_s == 0, assume it is a solid rocket engine, and dont display
+   if(outOfFuelTime_s > 0)
+   {
+      writeln("Out Of Fuel Time : ", outOfFuelTime_s, " sec");
+   }
+   writeln("********************************************");
+   writeln("");
+   writeln("Additional Information:");
+   writeln("  Target Speed           : ", TARGET_SPEED_MPS, " m/sec (", TARGET_SPEED_MPS*MATH.NMPH_PER_MPS(), " KTAS)");
+   double targetDistCovered_km = flightTime_s * TARGET_SPEED_MPS / 1000.0;
+   double tailDist_km = maxRange_km - targetDistCovered_km;
+   double headonDist_km = maxRange_km + targetDistCovered_km;
+   writeln("  Max Range Head-on Shot : ", headonDist_km, " km (", headonDist_km*1000.0*MATH.NM_PER_M(), " nm)");
+   writeln("  Max Range Tail Shot    : ", tailDist_km, " km (", tailDist_km*1000.0*MATH.NM_PER_M(), " nm)");
+   writeln("");
+   writeln("********************************************");
+
+end_script
+
+observer
+   enable SIMULATION_COMPLETE SimulationComplete
+end_observer

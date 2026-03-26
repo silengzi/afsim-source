@@ -1,0 +1,163 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario presents the basic use of formations for platforms with P6DOF
+# movers. This covers both input and scripted creation of formations as well
+# as the formation command system.
+#
+# ******************************************************************************
+
+define_path_variable CASE basic_formation
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 40 min
+
+include_once platforms/fa-lgt.txt
+
+# Define the various platforms for the scenario. The alpha, beta, gamma and delta
+# are separated to begin.
+
+platform_type FormationFlyer FA-LGT
+   update_interval 0.01 sec
+   side blue
+   icon f16
+   follow_vertical_track
+end_platform_type
+
+platform alpha FormationFlyer
+   route
+      position 0.000n 0.000w altitude 10000 ft speed 450.0 knots
+      position 0.010n 0.010w altitude 10000 ft speed 450.0 knots
+      position 0.020n 0.020w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform beta FormationFlyer
+   route
+      position 0.000n 1.000w altitude 10000 ft speed 450.0 knots
+      position 0.010n 1.000w altitude 10000 ft speed 450.0 knots
+      position 0.020n 1.000w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform gamma FormationFlyer
+   route
+      position 0.000n 0.500w altitude 10000 ft speed 450.0 knots
+      position 0.000n 0.490w altitude 10000 ft speed 450.0 knots
+      position 0.000n 0.480w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform delta FormationFlyer
+   route
+      position 0.010s 0.450w altitude 10000 ft speed 450.0 knots
+      position 0.010s 0.440w altitude 10000 ft speed 450.0 knots
+      position 0.010s 0.430w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+# Define an input formation. The wingman will be moved to be in formation at
+# the start of the scenario, and it will be keeping station with its leader.
+formation tango
+   # 'alpha' is the lead unit in the formation 'tango'.
+   lead unit one
+      member_platform alpha
+   end_unit
+
+   # 'beta' is the wingman in the formation 'tango'.
+   unit two
+      member_platform beta
+      offset 20 m 135.0 deg 0 m welded_wing
+   end_unit
+end_formation
+
+# Define another formation via script, and join it to the input formation.
+# Note that the creation of the formation will create the new formations in
+# a detached state. This means that they will not fly to form up with the
+# leader until commanded to do so with an attach command (see below).
+execute at_time 1 min absolute
+   // victor is the second section, and it will contain unit formations with
+   // members gamma (lead) and delta (wing).
+   WsfFormation victor = WsfFormationManager.CreateFormation("victor");
+
+   // Create the unit formation for gamma, and add it to victor.
+   WsfFormation victorOne = WsfFormationManager.CreateUnit("one");
+   victorOne.SetMember("gamma");
+   victor.AddSubFormation(victorOne, WsfFormationOffset.Construct(0, 0, 0, true));
+
+   // Create the unit formation for delta, and add it to victor.
+   WsfFormation victorTwo = WsfFormationManager.CreateUnit("two");
+   victorTwo.SetMember("delta");
+   victor.AddSubFormation(victorTwo, WsfFormationOffset.Construct(20, -135.0, 0, true));
+
+   // Create the top-level formation out of the two sections, tango and victor.
+   WsfFormation yankee = WsfFormationManager.CreateFormation("yankee");
+
+   WsfFormation tango = WsfFormationManager.GetFormation("tango");
+   yankee.AddSubFormation(tango, WsfFormationOffset.Construct(0, 0, 0, true));
+   yankee.AddSubFormation(victor, WsfFormationOffset.Construct(20, -135, 0, true));
+end_execute
+
+# Now give the command to attach yankee.victor. Note that after being made part of
+# the yankee formation, victor will have the fully qualified name yankee.victor.
+execute at_time 1.5 min absolute
+   WsfFormation victor = WsfFormationManager.GetFormation("yankee.victor");
+   WsfFormationAttachCommand cmd = WsfFormationAttachCommand.Construct();
+   victor.ExecuteCommand(cmd);
+end_execute
+
+# Now turn to the west. The close formation will execute a simple turn with the leader
+# turning, and the other formation members keeping station.
+execute at_time 20 min absolute
+   WsfFormationTurnToHeadingCommand cmd = WsfFormationTurnToHeadingCommand.Construct(-90.0);
+   cmd.SetMaxBankAngle(20.0);
+   cmd.SetMaxRollRate(2.0);
+   WsfFormation yankee = WsfFormationManager.GetFormation("yankee");
+   yankee.ExecuteCommand(cmd);
+end_execute
+
+# Now the offset of victor is changed to be much larger, and to be a fixed altitude
+# offset.
+execute at_time 22 min absolute
+   WsfFormationChangeOffsetCommand cmd = WsfFormationChangeOffsetCommand.Construct();
+   cmd.AddOffset(WsfFormationOffset.Construct(3000.0, -90, 0, false));
+   cmd.SetTransitionTime(60.0);
+   WsfFormation yankeeVictor = WsfFormationManager.GetFormation("yankee.victor");
+   yankeeVictor.ExecuteCommand(cmd);
+end_execute
+
+# Now the formation will turn North, and because of the larger separation, the two
+# sections will perform a delayed turn, even though each section individually will
+# perform a plain turn. After the turn, the offset of victor will have swapped sides
+# so that it is at 2000 m at +90 degress relative to the leader.
+execute at_time 24 min absolute
+   WsfFormationTurnToHeadingCommand cmd = WsfFormationTurnToHeadingCommand.Construct(0.0);
+   cmd.SetMaxBankAngle(20.0);
+   cmd.SetMaxRollRate(5.0);
+   WsfFormation yankee = WsfFormationManager.GetFormation("yankee");
+   yankee.ExecuteCommand(cmd);
+end_execute
+
+# Now the leader of the formation executes a turn to heading maneuver. Unlike the
+# TurnToHeadingCommand, the maneuver will only directly affect the behavior of platform
+# alpha. The other platforms will remain in station keeping, but because the commanded
+# turn would imply a speed too great for the victor subformation, the behavior will
+# switch to demonstrate the pursue mode of station keeping. In the pursue mode,
+# some platforms will fall into line behind the lead platform.
+execute at_time 30 min absolute
+   WsfTurnToHeadingManeuver mvr = WsfTurnToHeadingManeuver.Construct(-135.0);
+   WsfPlatform alpha = WsfSimulation.FindPlatform("alpha");
+   WsfP6DOF_Mover mov = (WsfP6DOF_Mover)alpha.Mover();
+   mov.SetBankAngleMax(15.0);
+   mov.ExecuteManeuver(mvr);
+end_execute

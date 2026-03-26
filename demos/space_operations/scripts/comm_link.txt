@@ -1,0 +1,290 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+# A more encapsulated way of maintaining a comm link.
+# A CommLink object is placed on each comm device that maintains a single link.
+# Static methods are prefaced with "CommLink_" and are defined below the scipt_struct.
+# To access a CommLink, call CommLink_Link(<your comm>).  This will create a CommLink object
+# on demand if not already defined, place it on the comm device, and return the Link.
+# Other platforms to which the comm device can potentially communicate should be inserted into 
+# the linkable_targets map.
+script_struct CommLink
+
+   script_variables
+      WsfComm local_comm;
+      WsfComm remote_comm;
+      string local_platform_name = "";
+      string remote_platform_name = "";
+      int    remote_platform_index = 0; // for erasing drawn link lines
+      string remote_comm_name = "";
+      string local_comm_name = "";
+      bool   is_linking  = false;
+      bool   is_linked   = false;
+      bool   is_dedicated = false;
+      Map<string, WsfTrack> linkable_targets = {};
+      static string sDEDICATED = "(DEDICATED)";
+   end_script_variables   
+
+   # Return the list of Potentially linkable targets.
+   script Map<string, WsfTrack> LinkableTargets()
+      return linkable_targets;
+   end_script
+   
+   # Attempt to start acquiring a target comm.  If the acquisition process is successful,
+   # Establish() should subsequently be called.
+   script bool Acquire(string aLinkTarget, string aLinkComm)
+      WsfPlatform target = WsfSimulation.FindPlatform(aLinkTarget);
+      bool success = target.IsValid();
+      if (success)
+      {
+         remote_comm = target.Comm(aLinkComm);
+         success = remote_comm.IsValid();
+         if (success)
+         {
+            remote_platform_name = aLinkTarget;
+            remote_platform_index = target.Index(); 
+            remote_comm_name = remote_comm.Name();
+            is_linking = true; 
+         }
+      }
+      return success;
+   end_script
+   
+   // Establish the communications link for which "Acquire" has previously been called.
+   script bool Establish()
+      extern bool CommLink_MutuallyLinking(WsfComm aLocalComm, WsfComm aRemoteComm);
+      bool established = true;
+      if (WsfSimulation.FindPlatform(remote_platform_name).IsValid() && CommLink_MutuallyLinking(local_comm, remote_comm))
+      {
+          WsfAddress lca = local_comm.GetAddress();
+          WsfAddress rca = WsfSimulation.FindPlatform(remote_platform_name).Comm(remote_comm_name).GetAddress();
+          bool connectedLocal = local_comm.AddConnection(lca, rca);
+          if (connectedLocal)
+          {
+             is_linked = true;
+             
+             extern bool CommLink_Linked(WsfComm aComm);
+             if (!CommLink_Linked(remote_comm))
+             {
+                extern bool CommLink_Establish(WsfComm aComm);
+                bool established = CommLink_Establish(remote_comm);              
+             }
+          }
+      }
+      else
+      {
+         established = false;
+      }
+      
+      return established;
+   end_script
+   
+   # Indicate that this comm link is dedicated (i.e., should not be reassigned dynamically").
+   script void SetDedicated(bool aIsDedicated)
+      if (aIsDedicated)
+      {
+         is_linking = true;
+         is_linked = true;
+         remote_platform_name = sDEDICATED;
+      }
+      else if (is_dedicated)
+      {
+         extern void CommLink_Free(WsfComm aComm);
+         CommLink_Free(local_comm);
+      }
+      is_dedicated = aIsDedicated;
+   end_script
+   
+   # Return whether this link is dedicated.
+   script bool Dedicated()
+      return is_dedicated;
+   end_script
+   
+   # Free a link that has been assigned and established with the Assign and Establish methods above.
+   script void Free()
+   
+      extern void CommLink_FreeP(WsfComm aComm);
+      extern bool CommLink_MutuallyLinked(WsfComm aLocalComm, WsfComm aRemoteComm);
+      if (WsfSimulation.FindPlatform(remote_platform_name).IsValid() && CommLink_MutuallyLinked(local_comm, remote_comm))
+      {
+         string comment = "REMOVE_CONNECTION " + local_platform_name + ":" + local_comm_name + " from " + remote_platform_name + ":" + remote_comm_name;
+         local_comm.Platform().Comment(comment);                         
+         comment = "REMOVE_CONNECTION " + remote_platform_name + ":" + remote_comm_name + " from " + local_platform_name + ":" + local_comm_name;
+         remote_comm.Platform().Comment(comment);                         
+         CommLink_FreeP(remote_comm);
+      }
+      else
+      {
+         string comment = "LINK_ABORTED " + local_platform_name + ":" 
+                          + local_comm_name + " from " + remote_platform_name + ":" + remote_comm_name;
+         local_comm.Platform().Comment(comment);
+      }
+      
+      CommLink_FreeP(local_comm);
+            
+   end_script
+
+   # Return whether we are establishing, or have establised a link. 
+   script bool Linking()
+      return is_linking;
+   end_script
+   
+   # Return whether we have established a link.
+   script bool Linked()
+      return is_linked;
+   end_script
+   
+   # Return the local comm object.
+   script WsfComm LocalComm()
+      return local_comm;
+   end_script
+   
+   # Return the remote comm object if linked to a remote comm device on a valid platform; otherwise the object will be invalid.
+   script WsfComm RemoteComm()
+      WsfComm comm;
+      if (is_linking && WsfSimulation.FindPlatform(remote_platform_name).IsValid())
+      {
+         comm = remote_comm;
+      }
+      return comm;
+   end_script
+   
+   # Return the valid remote platform of a linked comm device; otherwise the object will be invalid. 
+   script WsfPlatform RemotePlatform()
+      return WsfSimulation.FindPlatform(remote_platform_name);
+   end_script
+   
+   script string RemotePlatformName()
+      return remote_platform_name;
+   end_script
+   
+   script string LocalPlatformName()
+      return local_platform_name;
+   end_script
+   
+   script string LocalCommName()
+      return local_comm_name;
+   end_script
+   
+   script string RemoteCommName()
+      return remote_comm_name;
+   end_script
+   
+   script string LocalPlatformCommName()
+      return local_platform_name + ":" + local_comm_name;
+   end_script
+   
+   script string RemotePlatformCommName()
+      if (is_linking && WsfSimulation.FindPlatform(remote_platform_name).IsValid())
+      {
+         return remote_platform_name + ":" + remote_comm_name;
+      }
+      else
+      {
+         return "";
+      }   
+   end_script
+   
+end_script_struct
+
+// Global accessor; create-on-demand.
+script CommLink CommLink_Link(WsfComm aComm)
+   if (!aComm.AuxDataExists("Link"))
+   {
+      CommLink commLink = {};
+      commLink.local_comm = aComm;
+      commLink.local_comm_name = aComm.Name();
+      commLink.local_platform_name = aComm.Platform().Name();
+      aComm.SetAuxData("Link", commLink);      
+   }
+   return ((CommLink)aComm.AuxDataObject("Link")); 
+end_script
+
+// Global free method; used within CommLink->Free().
+script void CommLink_Free(WsfComm aComm)
+   CommLink_Link(aComm).Free();
+end_script
+
+script bool CommLink_Establish(WsfComm aComm)
+   return CommLink_Link(aComm).Establish();
+end_script
+
+script bool CommLink_Linked(WsfComm aComm)
+   return CommLink_Link(aComm).Linked();
+end_script
+
+script string PlatformCommName(WsfComm aComm)
+   return aComm.Platform().Name() + ":" + aComm.Name();
+end_script
+
+script bool CommLink_MutuallyLinked(WsfComm aLocalComm, WsfComm aRemoteComm)
+   CommLink localLink = CommLink_Link(aLocalComm);
+   CommLink remoteLink = CommLink_Link(aRemoteComm);
+   return (localLink.Linked() && 
+           remoteLink.Linked() && 
+          (localLink.RemotePlatformCommName() == PlatformCommName(aRemoteComm)) &&
+          (remoteLink.RemotePlatformCommName() == PlatformCommName(aLocalComm)));
+end_script
+
+script bool CommLink_MutuallyLinking(WsfComm aLocalComm, WsfComm aRemoteComm)
+   CommLink localLink = CommLink_Link(aLocalComm);
+   CommLink remoteLink = CommLink_Link(aRemoteComm);
+#   writeln(localLink.Linking(), " ",
+#           remoteLink.Linking() , " ", 
+#           localLink.RemotePlatformCommName(), " ", PlatformCommName(aRemoteComm) , " ",
+#           remoteLink.RemotePlatformCommName(), " ", PlatformCommName(aLocalComm));
+   return (localLink.Linking() && 
+           remoteLink.Linking() && 
+          (localLink.RemotePlatformCommName() == PlatformCommName(aRemoteComm)) &&
+          (remoteLink.RemotePlatformCommName() == PlatformCommName(aLocalComm)));
+end_script
+
+script void CommLink_FreeP(WsfComm aComm)
+   CommLink localLink = CommLink_Link(aComm);
+   if (localLink.RemotePlatformName() != "") // Hasn't already been freed (as on a track drop)
+   {
+      WsfAddress lca = aComm.GetAddress();
+      WsfPlatform remotePlatform = WsfSimulation.FindPlatform(localLink.RemotePlatformName());
+      if (remotePlatform.IsValid())
+      {
+         string remoteCommName = localLink.RemoteCommName();
+         WsfComm remoteComm = remotePlatform.Comm(remoteCommName);
+         if (remoteComm.IsValid())
+         {
+            WsfAddress rca = remoteComm.GetAddress();
+            localLink.LocalComm().RemoveConnection(lca, rca);
+         }
+         else
+         {
+            writeln("Could not find comm ", remoteCommName);
+         }
+      }
+      else
+      {
+         writeln("Could not find platform ", localLink.RemotePlatformName());
+      }
+      localLink.linkable_targets.Erase(localLink.remote_platform_name);
+      localLink.remote_platform_name = "";
+      localLink.remote_comm_name = "";
+      localLink.is_linking = false;
+      localLink.is_linked = false;
+      if (sDrawLinks)
+      {
+         WsfDraw draw = {};
+         draw.Erase(localLink.local_comm.Platform().Index() * 10000000 + localLink.remote_platform_index);      
+      }
+      localLink.remote_platform_index = 0;
+   }  
+end_script
+
+# Return the list of potentially linkable targets.
+script Map<string, WsfTrack> CommLink_LinkableTargets(WsfComm aComm)
+   return CommLink_Link(aComm).LinkableTargets();
+end_script

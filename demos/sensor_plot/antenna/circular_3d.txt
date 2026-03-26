@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# Generate a 3-D plot for the circular antenna pattern
+###############################################################################
+
+include circular_pattern.txt
+
+antenna_plot
+   pattern_name                        CIRCULAR_PATTERN
+
+   axes                                both
+   azimuth_range                       -180 deg 180 deg
+   azimuth_step                        0.2 deg
+   elevation_range                     -90 deg 90 deg
+   elevation_step                      0.2 deg
+   gnuplot_file                        circular_3d.plt
+   output_file                         circular_3d.ant
+end_antenna_plot

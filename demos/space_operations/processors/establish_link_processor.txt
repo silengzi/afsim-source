@@ -1,0 +1,304 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+script string CommName(WsfPlatform aPlatform, WsfComm aComm)
+   return (aPlatform.Name() + ":" + aComm.Name()); 
+end_script
+
+#script_variables
+#   extern bool sDrawLinks;
+#end_script_variables
+
+# Processor used to establish links with other comm devices.
+# Receive control message to establish link 
+processor ESTABLISH_LINK_PROCESSOR WSF_TASK_PROCESSOR 
+
+   script_variables
+      double mTimeToAcquire = 1.0; // seconds
+      bool mIsGimbaled = true;
+      Map<WsfTrackId, double> mAcquireTime = {};
+      string mTrackProcessorName = "track-proc";
+   end_script_variables
+   
+#   show_state_evaluations 
+#   show_state_transitions
+#   show_uncompleted_tasks
+   
+#   on_initialize
+#   
+#      // Place aux data on each of the laser comm devices to provide a connecting/connected state.
+#      for (int commNum; commNum < PLATFORM.CommCount(); commNum = commNum + 1)
+#      {
+#         WsfComm comm = PLATFORM.CommEntry(commNum);
+#         comm.SetAuxData("link_target", "");   // The name of the target platform to which the comm is currently linked (is_linked must be true).
+#         comm.SetAuxData("link_comm", "");     // The name of the target comm device on the target platform to which the comm is currently linked (is_linked must be true).
+#         comm.SetAuxData("is_linked", false);  // Whether a link has been establised; link_target and link_comm will be valid if this is true.
+#         comm.SetAuxData("is_linking", false); // Whether a link is currently being established; this value will continue to be true if is_linked is true.
+#      }      
+#      
+#   end_on_initialize
+      
+   script WsfComm LocalComm(WsfTrack aTrack)
+      return PLATFORM.Comm(aTrack.AuxDataString("local_comm"));
+   end_script
+   
+   script WsfComm SelectComm(WsfPlatform aTarget)
+   
+      // Pick the first comm that is available and can link to the target.
+      WsfComm availableComm;
+      for (int commNum; commNum < PLATFORM.CommCount(); commNum = commNum + 1)
+      {
+         WsfComm comm = PLATFORM.CommEntry(commNum);
+         CommLink link = CommLink_Link(comm);
+         if (comm.IsTurnedOn() && (!link.Linking()))
+         {
+            if (CommLink_LinkableTargets(comm).Exists(aTarget.Name()))
+            {
+               availableComm = comm;
+               break;
+            }    
+         }
+      }
+      return availableComm;
+   end_script
+   
+   // Receive control messages to potentially initiate acquision of an availble comm device.
+   // The message will be of subtype "link" and contain the name of the sending platform and sending comm device,
+   // separated by a space, in the message's function.
+   on_message type WSF_CONTROL_MESSAGE
+      script
+         WsfControlMessage msg = (WsfControlMessage)(MESSAGE);
+         Array<string> platformComm = msg.Function().Split();
+         WsfPlatform target = WsfSimulation.FindPlatform(platformComm[0]);
+         
+         if (target.IsValid())
+         {
+            WsfComm comm = SelectComm(target);
+            
+            if (comm.IsValid())  // A comm was found.
+            {
+               CommLink link = CommLink_Link(comm);
+               
+               writeln_d(" found comm " , PLATFORM.Name(), ":", comm.Name()); 
+               
+               // Attempt to acquire the link.  The link.Linked() flag will return true until link.Free() is called.  
+               if (link.Acquire(target.Name(), platformComm[1]))
+               {
+                  string comment = "CONNECTION_ATTEMPT " + PLATFORM.Name() + ":" + comm.Name() + " to " + target.Name() + ":" + platformComm[1];
+                  PLATFORM.Comment(comment);
+                  WsfTrack targetTrack = CommLink_LinkableTargets(comm)[target.Name()];
+                  targetTrack.SetAuxData("local_comm", comm.Name());
+               
+                  // The following will kick off a task assignment to acquire the remote comm;
+                  // there is no need to explicitly call AssignTask.
+                  WsfTrackProcessor trackProc = (WsfTrackProcessor)(PLATFORM.Processor(mTrackProcessorName));
+                  WsfLocalTrack lt = trackProc.TrackManager().AddTrackReport(targetTrack);  // track must be in the track list
+               }
+               else
+               {
+                  string comment = "CONNECTION_ATTEMPT_FAILED " + PLATFORM.Name() + ":" + comm.Name() + " to " + target.Name() + ":" + platformComm[1];
+                  PLATFORM.Comment(comment);
+               }
+            }
+         }
+      end_script
+   end_on_message
+   
+   evaluation_interval entry 1.0 s
+   
+   state entry
+      next_state not_linkable
+         return !TRACK.Target().GroupMemberOf("LINKABLE_TARGETS");
+      end_next_state
+      next_state slewing
+         return mIsGimbaled;      
+      end_next_state
+      next_state acquire
+         return true;
+      end_next_state
+   end_state
+   
+   evaluation_interval not_linkable 1e6 s
+   state not_linkable
+   end_state
+   
+   evaluation_interval slewing 0.1 s
+   state slewing
+      on_entry
+         #writeln(LocalComm(TRACK).Name(), " ... slewing to target");
+         #LocalComm(TRACK).EnableArticulationUpdates(1.0);
+         LocalComm(TRACK).CueToTrack(TRACK);
+         TRACK.SetAuxData("begin_slewing", true);
+      end_on_entry
+      next_state acquire
+      
+         WsfComm comm = LocalComm(TRACK);
+         comm.CueToTrack(TRACK);
+         WsfGeoPoint targetLoc = TRACK.Target().Location();
+         static double sTOL = 0.5;
+         double targetAz = comm.RelativeAzimuthOf(targetLoc); 
+         double targetEl = comm.RelativeElevationOf(targetLoc);
+         
+         if (TRACK.AuxDataBool("begin_slewing"))
+         {
+            #writeln(TIME_NOW, ": ", PLATFORM.Name(), ":", comm.Name(), ": begin slew");
+            TRACK.SetAuxData("begin_slewing", false);
+         }
+         else
+         {
+##   Following is valid for AFSIM 2.3+ or custom build only.
+##            if ((comm.CurrentCuedAzimuth() == comm.ActualCuedAzimuth()) &&
+##                (comm.CurrentCuedElevation() == comm.ActualCuedElevation()))
+#            if ((MATH.Fabs(targetAz) < sTOL) &&
+#                (MATH.Fabs(targetEl) < sTOL))
+#            {                
+#               #writeln(TIME_NOW, ": ", PLATFORM.Name(), ":", comm.Name(), ": slew complete");
+#               return true;
+#            }
+#            else
+#            {
+##               writeln("slew limit exceeded");
+##               CancelTask(TRACK.TrackId(), "slew_limit_exceeded");
+#               #writeln( TIME_NOW, ": ", PLATFORM.Name(), ":", comm.Name(), " slewing; az, el: ", targetAz, ", ", targetEl); 
+#            }
+##         }
+##         else
+##         {
+##            writeln( TIME_NOW, ": ", PLATFORM.Name(), ":", comm.Name(), " slewing; az, el: ", targetAz, ", ", targetEl);
+            return true; // todo evaluate 
+         }
+         return false;
+      end_next_state
+   end_state
+   
+   evaluation_interval acquire 0.1 s
+   state acquire      
+      on_entry
+         if (!TRACK.Target().IsValid())
+         {
+            CancelTask(TRACK.TrackId(), "target_invalid");
+         }
+         // Check LOS??
+         mAcquireTime.Set(TRACK.TrackId(), mTimeToAcquire + TIME_NOW);
+         #writeln(TIME_NOW, ":", TRACK.TrackId(), " begin acq");
+      end_on_entry
+      next_state establish
+         // automatically transition after delay     
+         bool complete = TIME_NOW >= mAcquireTime[TRACK.TrackId()];
+         return (complete);
+      end_next_state
+      on_exit
+         mAcquireTime.Remove(TRACK.TrackId());         
+      end_on_exit
+      
+   end_state
+   
+   evaluation_interval establish 1 s
+      state establish
+         next_state complete
+            WsfComm localComm = LocalComm(TRACK);
+            CommLink link = CommLink_Link(localComm);
+            WsfComm remoteComm = link.RemoteComm();
+            if (remoteComm.IsValid())
+            {      
+               return (!CommLink_MutuallyLinking(localComm, remoteComm));
+            }
+            else
+            {
+               return true;
+            }
+         end_next_state
+         next_state maintain
+            #writeln(TIME_NOW, ":", TRACK.TrackId(), " end acq");
+            WsfComm localComm = LocalComm(TRACK);
+            WsfPlatform target = TRACK.Target();
+            bool established = false;     
+            if (target.IsValid())
+            {  
+               CommLink link = CommLink_Link(localComm);
+               WsfComm remoteComm = link.RemoteComm();
+               if (CommLink_MutuallyLinking(localComm, remoteComm))
+               {
+                  // Add the bidirectional link.
+                  established = link.Establish();
+                  if (established)
+                  {
+                     string comment = "ADD_CONNECTION " + PLATFORM.Name() + ":" + localComm.Name()+ " to "+ target.Name() + ":" + remoteComm.Name();
+                     PLATFORM.Comment(comment); 
+                     comment = "ADD_CONNECTION " + target.Name() + ":" + remoteComm.Name()+ " to "+ PLATFORM.Name() + ":" + localComm.Name();
+                     PLATFORM.Comment(comment); 
+                  
+                     if (sDrawLinks)
+                     {
+                        WsfDraw draw = {};
+                        draw.SetLineSize(5);
+                        draw.SetColor(1.0, 0.2, 0.2);
+                        draw.SetId(PLATFORM.Index() * 10000000 + TRACK.TargetIndex());  
+                        draw.BeginLines();
+                        draw.Vertex(PLATFORM);
+                        draw.Vertex(target);
+                        draw.End();            
+                     }                  
+                  }
+                  else
+                  {
+                     if (!link.Linked())
+                     {
+                        string comment = "CONNECTION_FAILED " + PLATFORM.Name() + ":" + localComm.Name()+ " to "+ target.Name() + ":" + remoteComm.Name();
+                        PLATFORM.Comment(comment); 
+                     }
+                     CommLink remoteLink = CommLink_Link(remoteComm);
+                     if (!remoteLink.Linked())
+                     {
+                        string comment = "CONNECTION_FAILED " + target.Name() + ":" + remoteComm.Name()+ " to "+ PLATFORM.Name() + ":" + localComm.Name();
+                        PLATFORM.Comment(comment); 
+                     }
+                     link.Free();
+                  }
+               }
+            }
+            if (!established)
+            {
+               CancelTask(TRACK.TrackId(), "acquire_fail");
+            }
+            return established;
+            
+         end_next_state
+   end_state
+
+   evaluation_interval maintain 2 s
+   state maintain
+      next_state complete
+         WsfComm localComm = LocalComm(TRACK);
+         WsfPlatform target = TRACK.Target();
+         CommLink link = CommLink_Link(localComm);
+         if (!link.Linked() ||
+             !target.IsValid() || 
+             !WithinFieldOfRegard(Comm_Orientation(localComm), target) ||
+             !WithinFieldOfRegard(Comm_Orientation(link.RemoteComm()), PLATFORM))
+         {
+            #writeln(TIME_NOW, " out of for ", TRACK.RawTrack(0).TrackId());
+            link.Free();
+            WsfTrackProcessor trackProc = (WsfTrackProcessor)(PLATFORM.Processor(mTrackProcessorName));
+            trackProc.TrackManager().DropTrack(TRACK.RawTrack(0).TrackId());
+            return true;            
+         }
+         return false;
+      end_next_state      
+   end_state
+   
+   evaluation_interval complete 1e6 s
+   state complete
+      on_entry
+          TaskComplete(TRACK.TrackId(), "link");
+      end_on_entry
+   end_state
+      
+end_processor

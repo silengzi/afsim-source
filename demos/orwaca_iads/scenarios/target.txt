@@ -1,0 +1,81 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+infrared_signature AIR_TARGET_INFRARED_SIGNATURE
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature AIR_TARGET_OPTICAL_SIGNATURE
+   constant 1 m^2
+end_optical_signature
+
+radar_signature AIR_TARGET_RADAR_SIGNATURE
+   constant 100 m^2
+end_radar_signature
+
+platform_type AIR_TARGET WSF_PLATFORM
+   indestructible
+   icon rafale_icon
+   side blue
+   
+   mover WSF_AIR_MOVER
+   end_mover
+   
+   radar_signature AIR_TARGET_RADAR_SIGNATURE
+end_platform_type
+
+platform target1 AIR_TARGET
+   heading 138 deg
+   
+   route
+      position 48:31:34.93n 127:10:24.58w altitude 10000.00 ft speed 400 kts
+      position 40:38:41.35n 118:10:28.56w
+   end_route
+
+end_platform
+
+platform target2 AIR_TARGET
+   side blue
+   heading 147 deg
+  
+   route
+      position 47:43:35.51n 128:05:32.77w altitude 20000.00 ft speed 400 kts
+      position 40:41:38.86n 122:11:49.52w
+      position 32:28:58.20n 115:31:32.19w
+   end_route
+   
+end_platform
+
+platform target4 AIR_TARGET
+   heading 133 deg
+   side blue
+   icon rafale_icon
+   
+   route
+      position 49:38:18.77n 121:58:51.60w altitude 10000.00 ft speed 300 kts
+      position 41:26:02.00n 122:02:19.96w altitude 10000.00 ft
+      position 41:01:38.70n 120:18:02.00w altitude 10000.00 ft
+      position 38:19:24.32n 121:44:46.08w altitude 10000.00 ft
+      position 33:35:35.40n 116:07:53.99w altitude 10000.00 ft
+   end_route
+
+end_platform
+
+platform target3 AIR_TARGET
+   heading 133 deg
+   side blue
+   icon rafale_icon
+   
+   route
+      position 49:33:27.35n 126:12:19.82w altitude 10000.00 ft
+         speed 400 kts
+      position 43:14:08.49n 117:28:12.49w
+   end_route
+
+end_platform

@@ -1,0 +1,141 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior pursue_heading
+
+   script_debug_writes off
+
+   script_variables
+
+      WsfTrack mTargetTrack;
+
+      //specify offset angle to fly at, during f-pole pursuit
+      double DefaultOffsetAngle    =       30.0; // should this be radar-specific?
+      Map<string, double> ThreatTypeOffsetAngle            = Map<string, double>();
+                         #ThreatTypeOffsetAngle["awacs"]   =  15.0;
+                         #ThreatTypeOffsetAngle["unknown"] =  20.0;
+                         #ThreatTypeOffsetAngle["sam"]     =  50.0;
+   end_script_variables
+
+
+   script double GetOffsetAngleOnThreat(WsfTrack threat)
+      WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+      if (plat.IsValid())
+      {
+         foreach( string aCategory : double angle in ThreatTypeOffsetAngle )
+         {
+            if( plat.CategoryMemberOf( aCategory ) )
+            {
+               writeln_d("offset angle for type ", aCategory, " = ", angle);
+               return angle;
+            }
+         }
+      }
+      return DefaultOffsetAngle;
+    end_script
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue_heading, T=", TIME_NOW);
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+      //get target from ripr processor, to be sure
+      mTargetTrack = ((WsfRIPRProcessor)PROCESSOR).GetTarget();
+      if (mTargetTrack.IsNull() || !mTargetTrack.IsValid())
+      {
+         writeln_d("    No valid target track found to pursue!");
+         return Failure("target track not found");
+      }
+      return true;
+   end_precondition
+
+
+   execute
+      string comment = write_str(PLATFORM.Name(), " executing pursue_heading, T=", TIME_NOW);
+      writeln_d(comment);
+      #PLATFORM.Comment(comment);
+
+     extern double mDesiredHeading;
+
+     #extern string   CalculatePositioning(WsfPlatform, WsfTrack, double);
+
+      double slantRangeTo   = PLATFORM.SlantRangeTo(mTargetTrack);
+      string positioning    = CalculatePositioning(PLATFORM, mTargetTrack, 10.0);
+
+      double engageRangeMax = 185200.0;   //100 miles
+      double engageRangeMin =   1852.0;   //  1 mile
+
+      string PursuitMode = "pure";
+      if (((WsfRIPRProcessor)PROCESSOR).WeaponsActive(mTargetTrack) > 0)
+      {
+         PursuitMode = "f-pole";
+      }
+      else if (mTargetTrack.AirDomain())
+      {
+         if (slantRangeTo >= engageRangeMax &&
+             positioning  != "head-to-head" &&
+             positioning  != "head-to-tail" &&
+             mTargetTrack.Speed()  >= PLATFORM.Speed())
+         {
+            PursuitMode = "lead";
+         }
+         else if (slantRangeTo <= engageRangeMax &&
+                  positioning  != "head-to-head" &&
+                  positioning  != "head-to-tail")
+         {
+            PursuitMode = "lag";
+         }
+      }
+      writeln_d("     PursuitMode = ", PursuitMode);
+
+      mDesiredHeading = PLATFORM.Heading();
+
+      double leadOrLagTime = 15.0;  //seconds
+      if (PursuitMode == "lead")
+      {
+         WsfWaypoint wpt = WsfWaypoint();
+         double tti = PLATFORM.InterceptLocation3D(mTargetTrack, wpt);
+         if (tti > 0.0)
+         {
+            mDesiredHeading = PLATFORM.TrueBearingTo(wpt.Location());
+         }
+         else
+         {
+            mDesiredHeading = PLATFORM.TrueBearingTo(mTargetTrack.LocationAtTime(TIME_NOW + leadOrLagTime));
+         }
+      }
+      else if(PursuitMode == "lag")
+      {
+         double usedLagDelay = (slantRangeTo/engageRangeMax) * leadOrLagTime;
+
+         double maxLagDist = 0.35 * slantRangeTo;
+         double maxLagTime = maxLagDist / mTargetTrack.Speed();
+         if (usedLagDelay > maxLagTime)
+         {
+            usedLagDelay = maxLagTime;
+         }
+         mDesiredHeading = PLATFORM.TrueBearingTo(mTargetTrack.LocationAtTime(TIME_NOW - usedLagDelay));
+      }
+      else if (PursuitMode == "f-pole")
+      {
+        #extern double MaximizeFPole(WsfPlatform, WsfTrack, double);
+         mDesiredHeading = MaximizeFPole(PLATFORM, mTargetTrack, GetOffsetAngleOnThreat(mTargetTrack));
+      }
+      else
+      {
+         //PursuitMode == pure
+         mDesiredHeading = PLATFORM.TrueBearingTo(mTargetTrack.CurrentLocation());
+      }
+
+   end_execute
+
+end_behavior

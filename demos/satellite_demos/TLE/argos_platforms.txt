@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform NOAA_15(25338) NOAA
+   orbit
+1 25338U 98030A   14243.51174956  .00000107  00000-0  64349-4 0  3197
+2 25338  98.7578 237.2426 0009419 290.8294 178.9925 14.25460455847578
+   end_orbit
+end_platform
+
+platform NOAA_18(28654) NOAA
+   orbit
+1 28654U 05018A   14243.50474647  .00000199  00000-0  13377-3 0  2222
+2 28654  99.1558 224.5439 0015127  56.1321  56.0594 14.12054514478192
+   end_orbit
+end_platform
+
+platform METOP-A(29499) NOAA
+   orbit
+1 29499U 06044A   14243.81386821  .00000037  00000-0  36810-4 0  4423
+2 29499  98.7187 302.4503 0000057 188.0500 283.6587 14.21485627408175
+   end_orbit
+end_platform
+
+platform NOAA_19(33591) NOAA
+   orbit
+1 33591U 09005A   14243.47861091  .00000227  00000-0  14900-3 0  3627
+2 33591  98.9497 188.3102 0012873 266.8887 201.3998 14.11753379286614
+   end_orbit
+end_platform
+
+platform METOP-B(38771) NOAA
+   orbit
+1 38771U 12049A   14244.12240736  .00000043  00000-0  39664-4 0  5830
+2 38771  98.6776 302.9411 0001190  16.5991  44.6109 14.21499750101359
+   end_orbit
+end_platform
+
+platform SARAL(39086) NOAA
+   orbit
+1 39086U 13009A   14243.87110157  .00000269  00000-0  11606-3 0  6017
+2 39086  98.5491  70.9286 0002426  89.1942 270.9540 14.32250772 79065
+   end_orbit
+end_platform
+

@@ -1,0 +1,77 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/irnss.txt
+
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+platform IRNSS_1A  IRNSS
+edit mover
+orbit
+1 39199U 13034A   17189.36978539 +.00000083 +00000-0 +00000-0 0  9999
+2 39199 028.8529 114.6713 0017946 185.7279 174.1667 01.00273851014909
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1B IRNSS
+edit mover
+orbit
+1 39635U 14017A   17190.86562364 +.00000080 +00000-0 +00000-0 0  9995
+2 39635 029.0451 294.5472 0022836 181.2186 178.8404 01.00271123012079
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1C IRNSS
+edit mover
+orbit
+1 40269U 14061A   17192.65626834 -.00000163 +00000-0 +00000-0 0  9994
+2 40269 002.9759 248.6380 0019486 004.8098 355.5153 01.00275083009971
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1D IRNSS
+edit mover
+orbit
+1 40547U 15018A   17192.70309524 -.00000302 +00000-0 +00000-0 0  9991
+2 40547 029.0272 294.6473 0020902 183.9892 176.0676 01.00275581008282
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1E IRNSS
+edit mover
+orbit
+1 41241U 16003A   17192.20350455 -.00000295 +00000-0 +00000-0 0  9993
+2 41241 028.8212 114.2788 0019512 185.0151 174.9075 01.00267024005377
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1F IRNSS
+edit mover
+orbit
+1 41384U 16015A   17192.83984125 +.00000158 +00000-0 +00000-0 0  9997
+2 41384 004.1075 264.4952 0022116 183.1052 177.1794 01.00277420004983
+end_orbit
+end_mover
+end_platform
+
+platform IRNSS_1G IRNSS
+edit mover
+orbit
+1 41469U 16027A   17193.57274883 -.00000338 +00000-0 +00000-0 0  9990
+2 41469 004.1782 265.8485 0003417 192.3170 167.9538 01.00262504004490
+end_orbit
+end_mover
+end_platform

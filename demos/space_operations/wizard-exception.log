@@ -1,0 +1,68 @@
+########################################################################
+Fri Jun 28 20:02:56 2024
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Wizard threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Read access violation at address 0x0000000000000021.
+Stacktrace:
+     0# 0x7ff831d67b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ff831df2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ff86138bba5 (_C_specific_handler) at ??
+     3# 0x7ff861382bf7 (is_exception_typeof) at ??
+     4# 0x7ff861382b00 (is_exception_typeof) at ??
+     5# 0x7ff8613830df (is_exception_typeof) at ??
+     6# 0x7ff86138c15d (_CxxFrameHandler3) at ??
+     7# 0x7ff82f9c5114 (wizard::Util::StripHtml) at ??
+     8# 0x7ff86e5d504f (_chkstk) at ??
+     9# 0x7ff86e54e866 (RtlFindCharInUnicodeString) at ??
+    10# 0x7ff86e5d403e (KiUserExceptionDispatcher) at ??
+    11# 0x7ff844ea0677 (WsfPProxyValue::Lookup) at ??
+    12# 0x7ff844e6d35b (WsfPProxyNode::GetValue) at ??
+    13# 0x7ff844e6917a (WsfPProxyNode::operator+=) at ??
+    14# 0x7ff844e69039 (WsfPProxyNode::operator+) at ??
+    15# 0x7ff844e3462f (WsfPM_RadarSensor::modes) at ??
+    16# 0x7fffec51f1fc (试图访问无效的地址。) at ??
+    17# 0x7ff801d99ef7 (QMetaObject::activate) at ??
+    18# 0x7ff82f798504 (wizard::ProjectWorkspace::ProxyUpdated) at ??
+    19# 0x7ff82f7fd78e (wizard::Project::ProxyReady) at ??
+    20# 0x7ff82f806e11 (wizard::ProjectWorkspace::customEvent) at ??
+    21# 0x7ff801d9fd12 (QObject::event) at ??
+    22# 0x7ff8031e909d (QApplicationPrivate::notify_helper) at ??
+    23# 0x7ff8031e8037 (QApplication::notify) at ??
+    24# 0x7ff801d79379 (QCoreApplication::notifyInternal2) at ??
+    25# 0x7ff801d7b228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    26# 0x7fffee5ed7ff (qt_plugin_query_metadata) at ??
+    27# 0x7ff801dc32f8 (QEventDispatcherWin32::processEvents) at ??
+    28# 0x7fffee5ed7d9 (qt_plugin_query_metadata) at ??
+    29# 0x7ff82f80664f (wizard::ProjectWorkspace::Update) at ??
+    30# 0x7ff801d99ef7 (QMetaObject::activate) at ??
+    31# 0x7ff801da6b3d (QTimer::timerEvent) at ??
+    32# 0x7ff801d9fad1 (QObject::event) at ??
+    33# 0x7ff8031e909d (QApplicationPrivate::notify_helper) at ??
+    34# 0x7ff8031e8037 (QApplication::notify) at ??
+    35# 0x7ff801d79379 (QCoreApplication::notifyInternal2) at ??
+    36# 0x7ff801dc483c (QEventDispatcherWin32Private::sendTimerEvent) at ??
+    37# 0x7ff801dc2838 (QEventDispatcherWin32::event) at ??
+    38# 0x7ff8031e909d (QApplicationPrivate::notify_helper) at ??
+    39# 0x7ff8031e8037 (QApplication::notify) at ??
+    40# 0x7ff801d79379 (QCoreApplication::notifyInternal2) at ??
+    41# 0x7ff801d7b228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    42# 0x7fffee5ed7ff (qt_plugin_query_metadata) at ??
+    43# 0x7ff801dc3a39 (QEventDispatcherWin32::processEvents) at ??
+    44# 0x7ff86d3589a1 (DispatchMessageW) at ??
+    45# 0x7ff86d358461 (DispatchMessageW) at ??
+    46# 0x7ff801dc322b (QEventDispatcherWin32::processEvents) at ??
+    47# 0x7fffee5ed7d9 (qt_plugin_query_metadata) at ??
+    48# 0x7ff801d756cb (QEventLoop::exec) at ??
+    49# 0x7ff801d782be (QCoreApplication::exec) at ??
+    50# 0x7ff82f7b9a41 (wkf::StartupDialog<QStringList>::exec) at ??
+    51# 0x7ff82f82f39c (wizard_main) at ??
+    52# 0x7ff603b31296 (试图访问无效的地址。) at ??
+    53# 0x7ff603b31404 (试图访问无效的地址。) at ??
+    54# 0x7ff603b3168e (试图访问无效的地址。) at ??
+    55# 0x7ff86db6257d (BaseThreadInitThunk) at ??
+    56# 0x7ff86e58af28 (RtlUserThreadStart) at ??
+
+

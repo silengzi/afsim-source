@@ -1,0 +1,83 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+################################################################################
+#  A contrived example to demonstrate the cueing of a very narrow beam SAR.
+#
+# In this example we have a SAR with a VERY narrow beam that is attempting to
+# take an image at a very long range. With such a narrow beam and long range, it
+# is important to account for atmospheric refraction when cueing the sensor. The
+# script method 'ApparentLocationOf' will be used to compute the location to
+# which the sensor will be used. Without the use of this method the sensor will
+# be unable to detect the target.
+################################################################################
+
+file_path ../base_types
+
+define_path_variable CASE narrow_spot_sar_demo
+log_file output/$(CASE).log
+
+include_once platforms/uav_sar.txt
+include_once platforms/ground_site.txt
+
+platform target GROUND_SITE
+   side red
+   position 34:56:56n 117:49:44w altitude 4000 ft agl heading 90 deg
+end_platform
+
+platform uav UAV
+   side blue
+   route
+      position 34n 116w altitude 80000 ft heading 0 deg speed 250 kts
+   end_route
+
+   # For this case we narrow the field of view down so we can test to make sure
+   # the apparent location computations are actually working. Note that it won't
+   # work at less that 0.01 deg.
+
+   sensor sar_left
+      mode SPOT_HI_RES
+         azimuth_field_of_view   -0.01 deg 0.01 deg
+         elevation_field_of_view -0.01 deg 0.01 deg
+      end_mode
+   end_sensor
+
+   execute at_time 10 sec absolute
+      WsfSensor sensor = Sensor("sar_left");
+      WsfTrack  target = MasterTrackList().Entry(0);
+
+      // Cue to the apparent location of the target.
+      sensor.CueToPoint(sensor.ApparentLocationOf(target.CurrentLocation(), 1.333333));
+
+      // Enabling the next line will result in no detection.
+
+      writeln("True     Location: ", target.CurrentLocation());
+      writeln("Apparent Location: ", sensor.ApparentLocationOf(target.CurrentLocation(), 1.333333));
+      sensor.TurnOn();
+   end_execute
+
+   track
+      platform target
+   end_track
+end_platform
+
+# Specify parameters for a replay file
+event_pipe
+   file output/replay.aer
+end_event_pipe
+
+event_output
+   file output/replay.evt
+   enable SENSOR_TURNED_ON
+   enable SENSOR_TURNED_OFF
+   enable SENSOR_DETECTION_ATTEMPT
+end_event_output
+
+end_time 10 min
+

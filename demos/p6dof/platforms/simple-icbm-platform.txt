@@ -1,0 +1,146 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../p6dof_types/weapons/simple-icbm/simple-icbm.txt
+include_once ../p6dof_types/environment/p6dof_environment.txt
+
+platform_type ICBM_PLATFORM WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    SIMPLE-ICBM
+   end_mover
+end_platform_type
+
+platform_type ICBM_STAGE1 WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Stage1
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE12A WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage12A
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE12B WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage12B
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE12C WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage12C
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE12D WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage12D
+   end_mover
+end_platform_type
+
+platform_type ICBM_STAGE2 WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Stage2
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE23A WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage23A
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE23B WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage23B
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE23C WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage23C
+   end_mover
+end_platform_type
+
+platform_type ICBM_INTERSTAGE23D WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Interstage23D
+   end_mover
+end_platform_type
+
+platform_type ICBM_STAGE3 WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Stage3
+   end_mover
+end_platform_type
+
+platform_type ICBM_NOSECONE WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_Nosecone
+   end_mover
+end_platform_type
+
+platform_type ICBM_PBV WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_PBV
+   end_mover
+end_platform_type
+
+platform_type ICBM_RV WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_RV
+   end_mover
+end_platform_type
+
+platform_type ICBM_DECOY_BALLOON WSF_PLATFORM
+   spatial_domain          air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type    ICBM_DecoyBalloon
+   end_mover
+end_platform_type
+
+
+# Map object and platform types
+# This list maps P6DOF object types to WSF platform types. It allows P6DOF subobjects
+# to be mapped to an WSF platform once they are jettisoned. If any of these are multiply
+# defined, the last one to be defined is used.
+p6dof_object_types
+   map_p6dof_object_to_platform    ICBM_Stage1          ICBM_STAGE1
+   map_p6dof_object_to_platform    ICBM_Interstage12A   ICBM_INTERSTAGE12A
+   map_p6dof_object_to_platform    ICBM_Interstage12B   ICBM_INTERSTAGE12B
+   map_p6dof_object_to_platform    ICBM_Interstage12C   ICBM_INTERSTAGE12C
+   map_p6dof_object_to_platform    ICBM_Interstage12D   ICBM_INTERSTAGE12D
+   map_p6dof_object_to_platform    ICBM_Stage2          ICBM_STAGE2
+   map_p6dof_object_to_platform    ICBM_Interstage23A   ICBM_INTERSTAGE23A
+   map_p6dof_object_to_platform    ICBM_Interstage23B   ICBM_INTERSTAGE23B
+   map_p6dof_object_to_platform    ICBM_Interstage23C   ICBM_INTERSTAGE23C
+   map_p6dof_object_to_platform    ICBM_Interstage23D   ICBM_INTERSTAGE23D
+   map_p6dof_object_to_platform    ICBM_Stage3          ICBM_STAGE3
+   map_p6dof_object_to_platform    ICBM_Nosecone        ICBM_NOSECONE
+   map_p6dof_object_to_platform    ICBM_PBV             ICBM_PBV
+   map_p6dof_object_to_platform    ICBM_RV              ICBM_RV
+   map_p6dof_object_to_platform    ICBM_DecoyBalloon    ICBM_DECOY_BALLOON
+end_p6dof_object_types

@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# AUTHOR: Michael Williams (michael.x.williams@boeing.com)
+
+sp {apply*operator*create-action-command
+   (state <s> ^name RIPR-AIAI
+              ^operator <o>
+              ^io.output-link <ol>)
+   (<o> ^actions <act>)
+   (<act> ^<command-name> <command>)
+   (<o> ^name <oname>)
+-->
+   (<ol> ^<command-name> <command>)
+   (write (crlf) |Outputting | <oname> | | <command-name>)
+}
+
+
+sp {apply*operator*remove-command
+   (state <s> ^operator.actions
+              ^io.output-link <ol>)
+   (<ol> ^<att> <value>)
+   (<value> ^status complete)
+-->
+   (<ol> ^<att> <value> -)
+   (write (crlf) |Completed | <value>)
+}

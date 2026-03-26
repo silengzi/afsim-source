@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# A ESA-based circular pattern that approximates the 'circular_pattern'
+###############################################################################
+
+antenna_pattern ESA_CIRCULAR_PATTERN
+   steered_array_pattern
+#      minimum_gain                     -100.0 db
+      amplitude_quantization_bits      8
+      phase_quantization_bits          8
+      element_spacing_x                0.1499 m
+      number_elements_x                10
+      edge_angle_x                     0.0 degrees    # rectangular array if 0.0 degrees
+      element_spacing_y                0.1499 m
+      number_elements_y                10
+      edge_angle_y                     90.0 degrees   # rectangular array if 90.0 degrees
+      distribution_type taylor
+         sidelobe_level_x              18 dB
+         sidelobe_level_y              18 dB
+         n_bar_x                       5
+         n_bar_y                       5
+end_antenna_pattern

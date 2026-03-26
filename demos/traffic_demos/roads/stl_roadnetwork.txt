@@ -1,0 +1,870 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+route_network stl_roadnetwork
+  route
+    # zone roadl_0
+    position 40:00:00.000n 91:22:36.125w
+      node_id 24_/f/j/l/f/
+    position 39:59:08.268n 91:23:33.254w
+    position 39:58:45.815n 91:23:41.219w
+    position 39:57:23.898n 91:23:42.592w
+    position 39:56:48.289n 91:23:37.236w
+    position 39:56:15.824n 91:23:32.347w
+      node_id 62/f/j/l/f/
+    position 39:55:19.670n 91:24:03.109w
+    position 39:54:43.099n 91:24:00.363w
+    position 39:52:51.835n 91:23:23.009w
+    position 39:51:39.683n 91:22:35.136w
+    position 39:50:12.204n 91:21:06.971w
+    position 39:48:38.271n 91:19:49.655w
+    position 39:48:12.563n 91:19:19.195w
+    position 39:47:42.323n 91:18:43.407w
+    position 39:47:10.833n 91:17:56.440w
+      node_id 158/f/j/l/f/
+    position 39:46:02.567n 91:16:14.734w
+    position 39:43:45.252n 91:11:36.121w
+      node_id 301/f/j/l/f/
+    position 39:43:02.021n 91:10:28.226w
+      node_id 321/f/j/l/f/
+    position 39:42:38.524n 91:09:53.481w
+      node_id 329/f/j/l/f/
+    position 39:42:10.000n 91:09:14.260w
+    position 39:42:04.136n 91:09:06.213w
+    position 39:41:35.229n 91:09:00.417w
+    position 39:41:05.346n 91:08:41.851w
+    position 39:40:40.146n 91:08:05.046w
+    position 39:39:34.654n 91:07:33.406w
+    position 39:38:09.166n 91:05:42.252w
+    position 39:37:24.315n 91:05:15.527w
+    position 39:36:36.620n 91:04:24.441w
+    position 39:35:21.432n 91:03:03.994w
+    position 39:32:56.248n 91:00:50.977w
+    position 39:32:19.389n 91:00:09.229w
+    position 39:31:03.885n 90:57:55.003w
+    position 39:30:56.346n 90:57:41.627w
+    position 39:30:15.862n 90:59:15.698w
+    position 39:29:37.917n 91:00:11.920w
+    position 39:28:05.989n 91:01:34.922w
+    position 39:27:56.390n 91:01:55.356w
+    position 39:27:56.665n 91:03:15.145w
+    position 39:27:48.439n 91:03:42.226w
+      node_id 513/f/j/l/f/
+    position 39:27:36.697n 91:04:01.342w
+    position 39:27:36.422n 91:04:01.507w
+    position 39:26:59.069n 91:04:22.381w
+    position 39:26:13.160n 91:04:39.355w
+    position 39:24:53.056n 91:06:29.575w
+    position 39:24:03.686n 91:06:50.367w
+    position 39:23:59.786n 91:06:52.015w
+    position 39:23:57.520n 91:06:55.448w
+    position 39:23:33.927n 91:07:30.824w
+    position 39:23:04.387n 91:08:43.746w
+    position 39:22:38.940n 91:10:07.324w
+    position 39:22:27.226n 91:10:45.667w
+    position 39:21:44.311n 91:11:46.064w
+    position 39:21:16.653n 91:12:14.244w
+      node_id 623_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_1
+    position 40:00:00.000n 91:30:53.366w
+      node_id 22_/f/j/l/f/
+    position 39:57:41.229n 91:30:30.322w
+    position 39:57:01.774n 91:30:36.337w
+    position 39:56:12.954n 91:30:59.711w
+    position 39:56:08.504n 91:31:01.826w
+      node_id 66/f/j/l/f/
+    position 39:55:07.654n 91:31:12.180w
+      node_id 78/f/j/l/f/
+    position 39:53:47.783n 91:31:11.658w
+    position 39:52:22.776n 91:30:51.691w
+    position 39:50:30.084n 91:31:05.314w
+    position 39:48:56.549n 91:30:17.715w
+    position 39:48:51.633n 91:30:17.825w
+    position 39:47:43.696n 91:30:19.226w
+    position 39:44:37.162n 91:30:23.099w
+    position 39:44:29.609n 91:30:09.366w
+      node_id 263/f/j/l/f/
+    position 39:44:28.016n 91:26:15.577w
+    position 39:44:22.344n 91:25:07.324w
+    position 39:43:51.912n 91:23:55.281w
+    position 39:43:13.007n 91:23:33.501w
+    position 39:42:46.393n 91:23:08.699w
+      node_id 325/f/j/l/f/
+    position 39:42:14.628n 91:22:31.675w
+      node_id 337/f/j/l/f/
+    position 39:42:10.948n 91:22:09.181w
+    position 39:42:02.777n 91:21:19.276w
+    position 39:42:02.269n 91:21:16.144w
+    position 39:41:59.055n 91:21:12.931w
+    position 39:41:36.492n 91:20:50.244w
+    position 39:40:31.425n 91:19:45.040w
+    position 39:40:22.362n 91:19:45.205w
+    position 39:39:30.959n 91:20:26.706w
+    position 39:39:15.153n 91:20:14.209w
+    position 39:38:55.446n 91:17:57.017w
+    position 39:38:31.235n 91:17:29.771w
+    position 39:37:34.930n 91:17:06.370w
+    position 39:37:20.662n 91:16:43.189w
+    position 39:36:59.939n 91:15:29.526w
+    position 39:36:50.545n 91:14:56.127w
+    position 39:36:14.565n 91:14:11.028w
+    position 39:35:34.547n 91:13:32.411w
+    position 39:34:40.728n 91:12:05.070w
+    position 39:34:08.140n 91:11:27.387w
+    position 39:33:44.959n 91:11:06.843w
+    position 39:33:16.477n 91:10:41.602w
+    position 39:32:57.333n 91:10:32.510w
+    position 39:32:45.193n 91:10:43.332w
+    position 39:32:34.907n 91:11:17.637w
+    position 39:32:15.352n 91:11:34.006w
+    position 39:31:38.383n 91:11:43.290w
+    position 39:31:32.134n 91:11:50.074w
+    position 39:31:08.307n 91:12:15.864w
+    position 39:30:47.777n 91:12:20.533w
+    position 39:29:49.865n 91:12:02.571w
+    position 39:29:37.341n 91:11:49.003w
+    position 39:29:33.688n 91:11:20.356w
+    position 39:29:44.702n 91:10:39.679w
+    position 39:29:40.966n 91:10:04.633w
+    position 39:29:24.720n 91:09:19.204w
+    position 39:29:08.886n 91:09:05.718w
+    position 39:28:31.176n 91:09:20.358w
+    position 39:28:18.692n 91:09:11.047w
+    position 39:28:11.043n 91:06:46.522w
+    position 39:28:17.099n 91:06:24.247w
+    position 39:28:26.754n 91:05:48.734w
+    position 39:28:24.721n 91:05:20.059w
+    position 39:28:07.335n 91:04:41.799w
+    position 39:28:06.044n 91:04:38.970w
+    position 39:27:48.439n 91:03:42.226w
+      node_id 513/f/j/l/f/
+    position 39:27:40.899n 91:03:28.026w
+    position 39:27:27.647n 91:03:03.032w
+    position 39:26:52.711n 91:02:43.531w
+    position 39:26:38.373n 91:02:35.539w
+    position 39:25:51.009n 91:01:46.540w
+      node_id 567/f/j/l/f/
+    position 39:25:34.982n 91:01:26.572w
+    position 39:25:15.784n 91:01:02.677w
+    position 39:24:30.204n 90:59:46.130w
+    position 39:24:19.273n 90:59:04.464w
+      node_id 591_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_2
+    position 40:00:00.000n 91:08:44.377w
+      node_id 27_/f/j/l/f/
+    position 39:55:49.155n 91:08:46.382w
+      node_id 70_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_3
+    position 39:56:08.504n 91:31:01.826w
+      node_id 66_/f/j/l/f/
+    position 39:55:47.864n 91:26:54.935w
+    position 39:55:47.974n 91:26:33.594w
+    position 39:55:48.386n 91:25:18.146w
+    position 39:55:56.186n 91:24:57.025w
+    position 39:56:11.690n 91:24:15.029w
+    position 39:56:15.824n 91:23:32.347w
+      node_id 62/f/j/l/f/
+    position 39:56:13.668n 91:22:15.086w
+    position 39:56:08.202n 91:21:52.344w
+    position 39:56:06.637n 91:17:56.166w
+    position 39:56:00.745n 91:16:39.207w
+    position 39:56:08.037n 91:15:19.858w
+    position 39:56:02.984n 91:10:42.728w
+    position 39:55:59.358n 91:09:12.887w
+    position 39:55:49.155n 91:08:46.382w
+    position 39:55:39.761n 91:08:21.910w
+    position 39:54:13.986n 91:07:07.808w
+    position 39:52:42.717n 91:06:16.309w
+    position 39:52:37.196n 91:04:32.681w
+    position 39:50:34.602n 91:02:42.241w
+    position 39:49:08.854n 91:01:25.062w
+      node_id 122_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_4
+    position 39:56:15.824n 91:23:32.347w
+      node_id 62_/f/j/l/f/
+    position 39:55:36.919n 91:22:43.596w
+    position 39:55:30.959n 91:22:22.035w
+    position 39:55:28.816n 91:21:40.616w
+    position 39:54:12.818n 91:21:20.621w
+    position 39:53:52.892n 91:21:04.938w
+    position 39:53:02.506n 91:19:59.844w
+      node_id 99/f/j/l/f/
+    position 39:52:44.351n 91:19:36.389w
+    position 39:52:22.172n 91:18:29.427w
+    position 39:51:23.107n 91:17:38.176w
+    position 39:50:22.916n 91:16:21.326w
+    position 39:50:01.630n 91:15:24.005w
+    position 39:49:08.250n 91:14:29.513w
+    position 39:48:52.855n 91:13:41.722w
+    position 39:48:16.326n 91:12:42.039w
+    position 39:47:10.312n 91:10:54.291w
+      node_id 161/f/j/l/f/
+    position 39:45:57.211n 91:09:03.329w
+    position 39:45:08.267n 91:08:36.632w
+    position 39:44:59.725n 91:08:13.314w
+    position 39:45:06.166n 91:06:58.414w
+    position 39:45:02.403n 91:06:23.258w
+    position 39:44:07.636n 91:04:51.605w
+    position 39:43:05.825n 91:03:52.416w
+      node_id 319/f/j/l/f/
+    position 39:42:48.109n 91:03:17.314w
+    position 39:42:21.371n 91:02:49.107w
+    position 39:41:56.460n 91:02:34.742w
+    position 39:41:44.416n 91:02:04.036w
+    position 39:41:41.106n 91:01:55.604w
+    position 39:41:19.738n 91:00:01.923w
+    position 39:40:36.589n 90:58:41.860w
+    position 39:40:00.018n 90:58:19.255w
+    position 39:39:29.902n 90:56:50.376w
+    position 39:39:02.903n 90:56:05.909w
+    position 39:38:40.107n 90:55:28.391w
+    position 39:38:35.341n 90:54:44.802w
+    position 39:37:56.724n 90:53:56.710w
+    position 39:37:41.687n 90:52:47.770w
+    position 39:36:45.986n 90:52:11.763w
+      node_id 420_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_5
+    position 40:00:00.000n 91:54:40.545w
+      node_id 18_/f/j/l/f/
+    position 39:59:40.486n 91:54:40.902w
+    position 39:59:34.883n 91:53:05.651w
+    position 39:59:31.944n 91:53:04.717w
+    position 39:58:35.474n 91:52:47.056w
+    position 39:58:11.441n 91:52:27.006w
+    position 39:58:01.416n 91:52:05.693w
+    position 39:57:39.869n 91:51:45.615w
+    position 39:57:27.249n 91:51:09.360w
+    position 39:56:55.842n 91:50:52.606w
+    position 39:56:43.647n 91:49:21.777w
+    position 39:55:37.550n 91:47:06.672w
+    position 39:55:14.149n 91:45:52.405w
+    position 39:55:09.686n 91:45:38.205w
+      node_id 77/f/j/l/f/
+    position 39:54:47.782n 91:44:37.505w
+    position 39:54:50.062n 91:44:13.940w
+    position 39:55:15.495n 91:44:02.899w
+    position 39:56:19.820n 91:44:15.917w
+    position 39:56:46.929n 91:44:08.062w
+    position 39:57:04.933n 91:43:53.890w
+    position 39:57:33.703n 91:43:48.149w
+    position 39:58:17.113n 91:43:18.624w
+    position 39:59:33.564n 91:43:06.868w
+    position 39:59:53.985n 91:42:47.285w
+    position 40:00:00.000n 91:42:47.093w
+      node_id 19_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_6
+    position 40:00:00.000n 91:42:16.578w
+      node_id 20_/f/j/l/f/
+    position 39:58:51.253n 91:40:51.434w
+    position 39:58:12.101n 91:39:42.742w
+    position 39:57:23.445n 91:38:17.433w
+    position 39:56:52.711n 91:37:47.935w
+    position 39:56:44.265n 91:37:24.507w
+    position 39:56:41.271n 91:36:27.817w
+    position 39:56:17.115n 91:35:59.280w
+    position 39:55:33.472n 91:34:28.973w
+    position 39:55:08.354n 91:32:22.026w
+    position 39:55:07.654n 91:31:12.180w
+      node_id 78_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_7
+    position 39:55:09.686n 91:45:38.205w
+      node_id 77_/f/j/l/f/
+    position 39:54:09.495n 91:45:29.388w
+    position 39:53:51.889n 91:44:50.030w
+    position 39:52:54.994n 91:44:40.115w
+    position 39:51:42.621n 91:44:52.859w
+    position 39:51:07.987n 91:44:46.899w
+    position 39:50:30.016n 91:44:31.133w
+      node_id 111_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_8
+    position 39:48:30.622n 92:02:15.159w
+      node_id 131_/f/j/l/f/
+    position 39:48:16.147n 91:58:40.541w
+    position 39:48:16.381n 91:55:04.688w
+    position 39:48:21.572n 91:53:43.416w
+    position 39:48:14.678n 91:52:58.619w
+    position 39:48:02.428n 91:52:34.257w
+    position 39:47:55.465n 91:52:20.387w
+    position 39:47:54.449n 91:51:16.721w
+    position 39:49:07.810n 91:50:10.226w
+    position 39:49:28.781n 91:49:11.175w
+    position 39:50:12.135n 91:48:33.217w
+    position 39:50:20.100n 91:47:58.912w
+    position 39:50:18.562n 91:46:25.941w
+    position 39:50:31.485n 91:45:54.739w
+    position 39:50:32.281n 91:45:16.260w
+      node_id 110/f/j/l/f/
+    position 39:50:30.016n 91:44:31.133w
+    position 39:50:25.429n 91:41:59.659w
+    position 39:50:14.429n 91:41:26.673w
+    position 39:49:51.110n 91:40:55.994w
+    position 39:49:48.776n 91:36:36.277w
+    position 39:49:52.525n 91:34:58.938w
+    position 39:49:52.758n 91:34:52.538w
+    position 39:49:24.455n 91:34:19.854w
+    position 39:47:50.934n 91:33:32.201w
+    position 39:47:49.395n 91:32:24.031w
+    position 39:47:48.365n 91:31:38.520w
+    position 39:47:45.440n 91:31:11.246w
+      node_id 141_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_9
+    position 39:47:10.833n 91:17:56.440w
+      node_id 158_/f/j/l/f/
+    position 39:47:39.233n 91:17:51.112w
+    position 39:48:09.034n 91:18:03.334w
+    position 39:49:43.955n 91:19:32.351w
+    position 39:50:46.138n 91:20:08.578w
+    position 39:52:10.389n 91:20:30.524w
+    position 39:52:53.030n 91:20:14.731w
+    position 39:53:02.506n 91:19:59.844w
+      node_id 99/f/j/l/f/
+    position 39:53:54.512n 91:18:38.353w
+    position 39:54:33.734n 91:18:12.975w
+    position 39:55:26.276n 91:17:58.033w
+    position 39:56:06.637n 91:17:56.166w
+    position 39:59:48.396n 91:17:44.163w
+    position 40:00:00.000n 91:17:43.531w
+      node_id 25_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_10
+    position 39:43:45.252n 91:11:36.121w
+      node_id 301_/f/j/l/f/
+    position 39:44:39.099n 91:11:23.817w
+    position 39:44:56.127n 91:11:02.119w
+    position 39:47:10.312n 91:10:54.291w
+      node_id 161/f/j/l/f/
+    position 39:48:54.750n 91:10:43.195w
+    position 39:48:53.830n 91:07:24.424w
+    position 39:49:03.910n 91:05:34.122w
+    position 39:49:01.466n 91:03:12.288w
+    position 39:49:00.189n 91:02:01.509w
+    position 39:49:08.854n 91:01:25.062w
+    position 39:49:30.827n 91:00:13.925w
+    position 39:49:33.450n 90:59:25.750w
+    position 39:49:18.563n 90:58:25.188w
+    position 39:49:15.212n 90:56:25.547w
+    position 39:48:49.092n 90:55:45.557w
+    position 39:48:42.748n 90:53:15.016w
+    position 39:48:44.382n 90:51:58.716w
+    position 39:48:45.165n 90:51:21.665w
+    position 39:48:30.017n 90:48:20.363w
+    position 39:48:24.634n 90:45:16.699w
+    position 39:48:37.021n 90:44:27.206w
+      node_id 129_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_11
+    position 39:43:29.459n 91:21:07.053w
+      node_id 311_/f/j/l/f/
+    position 39:43:26.300n 91:20:07.315w
+    position 39:43:12.499n 91:19:13.152w
+    position 39:43:08.887n 91:17:35.017w
+    position 39:42:52.339n 91:15:10.190w
+    position 39:42:47.793n 91:12:20.588w
+    position 39:42:49.620n 91:11:24.970w
+    position 39:42:50.773n 91:10:49.786w
+    position 39:43:02.021n 91:10:28.226w
+      node_id 321_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_12
+    position 39:42:38.524n 91:09:53.481w
+      node_id 329_/f/j/l/f/
+    position 39:42:32.536n 91:08:32.512w
+    position 39:42:38.263n 91:07:26.210w
+    position 39:43:10.508n 91:05:30.222w
+    position 39:43:05.825n 91:03:52.416w
+      node_id 319_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_13
+    position 39:42:14.628n 91:22:31.675w
+      node_id 337_/f/j/l/f/
+    position 39:41:47.918n 91:22:43.129w
+    position 39:41:43.468n 91:22:45.051w
+    position 39:41:41.765n 91:22:52.220w
+    position 39:41:32.455n 91:23:31.139w
+    position 39:41:31.122n 91:23:59.978w
+    position 39:41:24.531n 91:24:06.378w
+    position 39:41:02.338n 91:24:27.966w
+    position 39:40:51.997n 91:24:38.018w
+    position 39:40:16.800n 91:24:58.920w
+    position 39:39:29.943n 91:25:08.286w
+    position 39:38:06.639n 91:24:58.041w
+    position 39:36:15.883n 91:24:23.791w
+    position 39:34:55.175n 91:24:26.318w
+    position 39:34:19.621n 91:24:06.460w
+      node_id 446/f/j/l/f/
+    position 39:33:29.578n 91:23:19.686w
+    position 39:32:41.485n 91:22:10.609w
+    position 39:31:10.134n 91:20:34.039w
+    position 39:30:19.006n 91:19:18.371w
+    position 39:29:19.186n 91:18:34.810w
+    position 39:27:18.007n 91:16:10.367w
+    position 39:26:57.503n 91:15:55.261w
+    position 39:26:18.969n 91:15:26.862w
+    position 39:24:20.536n 91:14:37.148w
+    position 39:23:08.658n 91:13:14.641w
+    position 39:22:34.642n 91:12:55.140w
+    position 39:21:40.877n 91:12:40.309w
+    position 39:21:16.653n 91:12:14.244w
+      node_id 623/f/j/l/f/
+    position 39:21:09.113n 91:12:10.591w
+    position 39:20:57.591n 91:12:05.043w
+      node_id 634/f/j/l/f/
+    position 39:20:28.326n 91:11:32.770w
+      node_id 649/f/j/l/f/
+    position 39:20:25.745n 91:11:26.069w
+    position 39:18:53.775n 91:07:33.708w
+    position 39:18:10.269n 91:06:44.764w
+    position 39:17:14.528n 91:06:05.652w
+    position 39:16:43.011n 91:05:17.725w
+    position 39:16:05.286n 91:04:01.974w
+    position 39:16:02.526n 91:03:41.869w
+    position 39:15:49.974n 91:03:27.285w
+    position 39:15:30.611n 91:01:58.625w
+    position 39:15:16.425n 91:01:46.210w
+    position 39:15:05.397n 91:01:23.112w
+    position 39:14:16.700n 91:00:23.154w
+      node_id 763_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_14
+    position 39:41:39.747n 91:30:08.981w
+      node_id 360_/f/j/l/f/
+    position 39:44:14.050n 91:30:17.084w
+    position 39:44:29.609n 91:30:09.366w
+      node_id 263_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_15
+    position 39:42:00.181n 92:01:56.565w
+      node_id 349_/f/j/l/f/
+    position 39:40:21.964n 91:55:03.616w
+    position 39:40:18.489n 91:54:37.002w
+    position 39:40:40.352n 91:53:42.345w
+    position 39:40:39.885n 91:52:36.345w
+    position 39:40:39.803n 91:52:24.479w
+    position 39:39:53.770n 91:48:53.844w
+    position 39:39:32.635n 91:46:00.287w
+    position 39:39:34.475n 91:44:42.422w
+    position 39:39:29.710n 91:44:27.865w
+    position 39:39:22.665n 91:44:06.304w
+    position 39:39:27.087n 91:43:51.281w
+    position 39:39:27.677n 91:43:49.276w
+      node_id 383/f/j/l/f/
+    position 39:40:12.282n 91:41:18.186w
+    position 39:40:32.401n 91:40:21.359w
+    position 39:40:59.908n 91:39:24.423w
+    position 39:41:00.045n 91:38:58.797w
+    position 39:41:00.814n 91:36:32.651w
+    position 39:41:24.558n 91:34:48.776w
+    position 39:41:25.396n 91:34:33.697w
+    position 39:41:39.747n 91:30:08.981w
+      node_id 360/f/j/l/f/
+    position 39:41:47.822n 91:28:14.696w
+    position 39:42:53.602n 91:26:46.036w
+    position 39:42:52.421n 91:23:44.432w
+    position 39:42:46.393n 91:23:08.699w
+      node_id 325_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_16
+    position 39:31:00.411n 91:59:01.910w
+      node_id 479_/f/j/l/f/
+    position 39:31:20.228n 91:57:52.559w
+    position 39:31:31.846n 91:55:59.592w
+    position 39:32:10.971n 91:54:58.480w
+    position 39:32:36.898n 91:53:55.364w
+    position 39:32:48.022n 91:52:57.740w
+    position 39:33:28.479n 91:51:16.089w
+    position 39:33:36.183n 91:50:47.745w
+    position 39:33:45.330n 91:50:14.099w
+    position 39:33:49.807n 91:50:09.293w
+    position 39:34:16.380n 91:49:40.701w
+    position 39:34:17.094n 91:49:26.858w
+      node_id 447_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_17
+    position 39:33:59.049n 92:01:51.594w
+      node_id 454_/f/j/l/f/
+    position 39:33:59.955n 91:59:45.910w
+    position 39:33:42.514n 91:59:24.789w
+    position 39:33:00.505n 91:59:26.272w
+    position 39:31:30.527n 91:58:56.334w
+    position 39:31:00.411n 91:59:01.910w
+      node_id 479/f/j/l/f/
+    position 39:30:32.300n 91:59:39.510w
+    position 39:29:49.549n 91:59:53.765w
+    position 39:29:20.161n 91:59:52.831w
+    position 39:28:54.988n 91:59:52.886w
+    position 39:28:10.631n 91:59:52.969w
+    position 39:28:02.803n 91:59:53.106w
+      node_id 511/f/j/l/f/
+    position 39:23:53.633n 91:59:57.363w
+    position 39:19:04.281n 92:00:07.663w
+    position 39:19:04.872n 91:56:51.310w
+    position 39:18:56.440n 91:56:21.674w
+    position 39:18:58.197n 91:54:39.749w
+    position 39:18:47.719n 91:54:39.144w
+    position 39:18:27.710n 91:54:37.963w
+    position 39:16:47.281n 91:54:53.948w
+    position 39:15:03.461n 91:54:55.102w
+    position 39:14:12.882n 91:54:11.157w
+    position 39:13:32.329n 91:53:48.278w
+    position 39:12:43.564n 91:53:27.623w
+    position 39:11:33.045n 91:53:13.039w
+    position 39:10:49.924n 91:53:10.100w
+      node_id 844/f/j/l/f/
+    position 39:10:31.920n 91:53:08.644w
+    position 39:09:25.727n 91:53:03.261w
+    position 39:07:56.656n 91:53:13.973w
+    position 39:06:45.066n 91:53:31.743w
+    position 39:04:58.814n 91:53:15.154w
+      node_id 1002/f/j/l/f/
+    position 39:03:34.481n 91:53:06.420w
+    position 39:01:11.123n 91:53:17.598w
+    position 38:59:37.917n 91:53:08.095w
+    position 38:59:02.528n 91:53:14.852w
+      node_id 1130_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_18
+    position 39:28:51.720n 92:08:18.505w
+      node_id 499_/f/j/l/f/
+    position 39:28:44.950n 92:06:02.521w
+    position 39:28:32.178n 92:04:47.100w
+    position 39:28:14.614n 92:04:00.463w
+    position 39:28:20.533n 92:02:03.404w
+    position 39:28:17.237n 92:02:03.431w
+    position 39:28:02.803n 91:59:53.106w
+      node_id 511/f/j/l/f/
+    position 39:27:58.848n 91:59:04.904w
+    position 39:27:50.320n 91:58:21.370w
+    position 39:27:35.255n 91:57:45.363w
+    position 39:27:29.144n 91:56:52.244w
+    position 39:27:30.325n 91:50:15.335w
+    position 39:27:30.352n 91:49:53.665w
+    position 39:27:29.336n 91:47:43.422w
+    position 39:27:35.722n 91:47:18.895w
+      node_id 517/f/j/l/f/
+    position 39:28:02.776n 91:47:01.509w
+    position 39:28:38.523n 91:46:56.592w
+    position 39:28:43.947n 91:46:58.845w
+    position 39:29:19.090n 91:48:07.564w
+    position 39:29:38.384n 91:48:20.967w
+    position 39:30:47.955n 91:47:54.710w
+    position 39:31:44.219n 91:48:24.868w
+    position 39:32:37.338n 91:49:16.366w
+    position 39:34:17.094n 91:49:26.858w
+      node_id 447/f/j/l/f/
+    position 39:34:26.171n 91:49:27.792w
+    position 39:34:57.867n 91:48:32.009w
+    position 39:36:04.925n 91:45:43.863w
+    position 39:35:59.459n 91:44:38.934w
+    position 39:36:20.621n 91:44:07.733w
+    position 39:36:58.359n 91:43:51.226w
+    position 39:37:51.931n 91:43:52.626w
+    position 39:38:39.859n 91:43:45.568w
+    position 39:38:55.117n 91:43:46.749w
+    position 39:39:07.504n 91:43:47.710w
+    position 39:39:27.677n 91:43:49.276w
+    position 39:41:03.918n 91:43:59.603w
+    position 39:41:04.124n 91:44:25.201w
+    position 39:43:08.654n 91:44:43.768w
+    position 39:43:36.655n 91:44:43.411w
+    position 39:43:43.109n 91:44:27.316w
+    position 39:46:19.362n 91:43:59.548w
+    position 39:46:22.535n 91:44:13.857w
+    position 39:46:33.040n 91:45:01.318w
+    position 39:47:00.259n 91:45:05.219w
+    position 39:47:24.910n 91:44:56.347w
+    position 39:47:44.012n 91:45:18.512w
+    position 39:50:32.281n 91:45:16.260w
+      node_id 110_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_19
+    position 39:34:19.621n 91:24:06.460w
+      node_id 446_/f/j/l/f/
+    position 39:33:29.798n 91:24:54.470w
+    position 39:33:16.889n 91:25:20.261w
+    position 39:32:58.596n 91:26:21.290w
+    position 39:32:18.991n 91:27:35.447w
+    position 39:30:36.955n 91:31:48.408w
+    position 39:30:21.643n 91:32:15.736w
+    position 39:29:00.578n 91:34:40.234w
+    position 39:26:47.245n 91:37:53.758w
+    position 39:25:55.348n 91:37:56.807w
+      node_id 560/f/j/l/f/
+    position 39:25:10.922n 91:37:59.443w
+    position 39:24:58.672n 91:38:13.451w
+    position 39:18:26.612n 91:38:28.585w
+    position 39:16:48.229n 91:38:32.375w
+      node_id 724/f/j/l/f/
+    position 39:15:08.899n 91:38:43.993w
+      node_id 748/f/j/l/f/
+    position 39:14:52.955n 91:38:43.279w
+    position 39:12:35.571n 91:38:37.209w
+    position 39:07:36.015n 91:38:51.464w
+    position 39:06:59.252n 91:38:53.221w
+    position 39:06:41.303n 91:38:54.073w
+    position 39:06:03.771n 91:36:31.910w
+    position 39:06:02.878n 91:36:28.559w
+    position 39:05:13.866n 91:34:22.299w
+    position 39:05:12.424n 91:34:21.282w
+    position 39:04:43.159n 91:34:00.546w
+      node_id 1012/f/j/l/f/
+    position 39:04:26.405n 91:33:33.300w
+    position 39:04:16.064n 91:32:46.882w
+    position 39:02:32.133n 91:32:39.027w
+    position 39:01:37.490n 91:32:16.642w
+    position 38:59:05.041n 91:30:06.702w
+    position 38:58:57.708n 91:28:28.786w
+    position 38:59:03.269n 91:28:08.626w
+    position 38:58:57.721n 91:27:10.563w
+    position 38:59:02.088n 91:26:16.593w
+    position 38:59:29.005n 91:25:50.748w
+    position 38:59:45.910n 91:25:11.334w
+    position 38:59:39.057n 91:21:07.245w
+    position 38:59:51.856n 91:21:05.598w
+    position 38:59:57.995n 91:21:04.801w
+    position 39:00:03.378n 91:21:05.543w
+    position 39:01:46.979n 91:21:19.688w
+    position 39:02:26.489n 91:21:14.716w
+    position 39:03:12.302n 91:20:43.185w
+    position 39:04:20.596n 91:20:31.320w
+    position 39:04:25.443n 91:20:23.849w
+    position 39:04:29.934n 91:18:34.755w
+    position 39:04:33.999n 91:18:28.328w
+    position 39:05:06.889n 91:18:21.324w
+    position 39:05:29.178n 91:17:31.941w
+    position 39:05:38.214n 91:17:11.918w
+    position 39:05:36.292n 91:14:32.122w
+    position 39:06:04.142n 91:14:17.785w
+    position 39:06:09.031n 91:12:01.115w
+    position 39:06:27.735n 91:11:40.626w
+    position 39:06:32.679n 91:09:32.415w
+      node_id 960/f/j/l/f/
+    position 39:06:34.890n 91:07:06.242w
+    position 39:06:23.409n 91:05:06.848w
+    position 39:07:17.503n 91:04:44.464w
+    position 39:07:31.813n 91:04:06.039w
+    position 39:07:56.559n 91:02:07.908w
+    position 39:07:45.326n 91:00:51.416w
+    position 39:07:41.989n 91:00:28.674w
+    position 39:07:44.900n 91:00:01.071w
+    position 39:07:57.534n 90:59:22.646w
+    position 39:07:58.331n 90:58:23.320w
+    position 39:08:06.667n 90:57:37.837w
+    position 39:08:38.829n 90:57:33.635w
+    position 39:09:59.222n 90:58:03.517w
+    position 39:11:09.864n 90:58:43.178w
+    position 39:11:24.984n 90:59:02.953w
+    position 39:12:12.445n 90:59:35.775w
+    position 39:12:36.450n 90:59:43.685w
+    position 39:13:01.458n 91:00:02.197w
+    position 39:14:03.585n 91:00:25.131w
+    position 39:14:16.700n 91:00:23.154w
+      node_id 763/f/j/l/f/
+    position 39:15:30.075n 91:00:21.011w
+    position 39:16:06.797n 90:59:55.770w
+    position 39:18:40.660n 90:59:38.384w
+    position 39:18:47.252n 90:59:43.054w
+    position 39:20:01.424n 91:00:35.953w
+    position 39:22:08.563n 91:00:51.059w
+    position 39:22:57.864n 91:01:39.866w
+    position 39:23:44.748n 91:01:33.494w
+    position 39:24:32.896n 91:01:58.954w
+    position 39:24:59.290n 91:02:00.465w
+    position 39:25:49.883n 91:01:46.842w
+    position 39:25:51.009n 91:01:46.540w
+      node_id 567_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_20
+    position 39:25:55.348n 91:37:56.807w
+      node_id 560_/f/j/l/f/
+    position 39:26:05.620n 91:40:09.412w
+    position 39:26:23.528n 91:41:18.268w
+    position 39:26:50.376n 91:42:15.315w
+    position 39:26:55.938n 91:43:26.479w
+    position 39:27:12.005n 91:44:16.247w
+    position 39:27:27.057n 91:44:43.713w
+    position 39:27:26.768n 91:45:49.658w
+    position 39:27:22.044n 91:46:16.300w
+    position 39:27:25.697n 91:47:02.003w
+    position 39:27:32.220n 91:47:12.990w
+    position 39:27:35.722n 91:47:18.895w
+      node_id 517_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_21
+    position 39:18:52.635n 91:29:23.828w
+      node_id 671_/f/j/l/f/
+    position 39:18:51.248n 91:29:21.520w
+    position 39:18:32.517n 91:28:50.209w
+    position 39:18:01.480n 91:28:42.464w
+    position 39:12:34.857n 91:28:53.066w
+    position 39:12:29.652n 91:26:10.578w
+    position 39:12:27.455n 91:25:03.149w
+    position 39:12:33.909n 91:23:32.924w
+    position 39:09:55.734n 91:23:38.967w
+    position 39:09:27.828n 91:23:51.107w
+    position 39:08:38.857n 91:24:35.409w
+    position 39:07:47.949n 91:24:49.032w
+      node_id 909_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_22
+    position 39:15:08.899n 91:38:43.993w
+      node_id 748_/f/j/l/f/
+    position 39:16:39.921n 91:35:01.465w
+      node_id 729_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_23
+    position 39:12:54.907n 92:06:12.958w
+      node_id 801_/f/j/l/f/
+    position 39:11:54.207n 91:59:52.969w
+    position 39:11:42.754n 91:56:38.511w
+    position 39:11:36.588n 91:54:54.250w
+    position 39:11:10.221n 91:53:35.506w
+    position 39:10:49.924n 91:53:10.100w
+      node_id 844_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_24
+    position 39:10:49.924n 91:53:10.100w
+      node_id 844_/f/j/l/f/
+    position 39:10:54.510n 91:52:50.737w
+    position 39:11:08.930n 91:52:32.829w
+    position 39:12:52.394n 91:51:00.159w
+    position 39:13:53.107n 91:50:24.426w
+    position 39:14:06.181n 91:50:09.430w
+    position 39:15:54.739n 91:49:37.322w
+    position 39:16:09.255n 91:48:57.909w
+    position 39:16:28.948n 91:48:45.989w
+    position 39:16:28.921n 91:47:08.348w
+    position 39:16:28.921n 91:46:56.702w
+    position 39:16:44.384n 91:46:33.164w
+    position 39:16:42.695n 91:43:05.193w
+    position 39:16:49.726n 91:40:46.106w
+    position 39:16:48.229n 91:38:32.375w
+      node_id 724/f/j/l/f/
+    position 39:16:39.921n 91:35:01.465w
+    position 39:18:48.873n 91:29:58.380w
+    position 39:18:52.635n 91:29:23.828w
+    position 39:19:06.712n 91:29:06.277w
+    position 39:19:21.104n 91:28:48.314w
+    position 39:21:02.453n 91:24:53.976w
+    position 39:21:11.063n 91:22:56.999w
+    position 39:21:10.528n 91:20:04.514w
+    position 39:21:08.921n 91:12:54.756w
+    position 39:21:05.392n 91:12:39.265w
+    position 39:21:00.695n 91:12:18.638w
+    position 39:20:57.591n 91:12:05.043w
+      node_id 634_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_25
+    position 39:04:43.159n 91:34:00.546w
+      node_id 1012_/f/j/l/f/
+    position 39:04:57.441n 91:33:41.759w
+    position 39:05:28.738n 91:33:00.560w
+    position 39:05:33.257n 91:32:18.126w
+    position 39:06:00.324n 91:32:03.926w
+    position 39:06:03.963n 91:29:53.655w
+    position 39:06:19.330n 91:29:24.816w
+    position 39:06:52.743n 91:28:48.259w
+    position 39:07:03.811n 91:26:45.240w
+    position 39:07:24.548n 91:25:39.240w
+    position 39:07:47.949n 91:24:49.032w
+      node_id 909/f/j/l/f/
+    position 39:07:51.931n 91:24:40.490w
+    position 39:07:51.533n 91:24:03.439w
+    position 39:07:40.286n 91:23:15.978w
+    position 39:07:46.589n 91:22:50.462w
+    position 39:08:33.103n 91:22:08.302w
+    position 39:09:05.979n 91:20:48.239w
+    position 39:09:47.961n 91:19:30.099w
+    position 39:11:11.690n 91:17:51.002w
+    position 39:11:15.357n 91:17:12.770w
+    position 39:11:23.226n 91:17:00.685w
+    position 39:11:35.586n 91:16:41.651w
+    position 39:13:28.168n 91:15:05.054w
+    position 39:14:36.091n 91:14:25.530w
+    position 39:15:11.646n 91:13:27.523w
+    position 39:15:56.525n 91:12:49.482w
+    position 39:17:46.182n 91:12:14.766w
+    position 39:19:42.253n 91:11:37.961w
+    position 39:20:16.530n 91:11:34.089w
+    position 39:20:28.326n 91:11:32.770w
+      node_id 649_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_26
+    position 39:12:03.189n 92:07:50.599w
+      node_id 816_/f/j/l/f/
+    position 39:05:57.591n 92:07:55.021w
+    position 39:05:48.926n 92:06:03.071w
+    position 39:05:45.190n 92:05:15.308w
+    position 39:05:18.755n 92:05:03.882w
+    position 39:05:15.184n 92:01:51.292w
+    position 39:05:10.199n 92:01:43.931w
+    position 39:04:04.212n 92:01:38.218w
+    position 39:03:58.898n 92:00:36.914w
+    position 39:04:00.903n 91:58:07.775w
+    position 39:04:01.136n 91:57:49.702w
+    position 39:04:28.932n 91:57:13.420w
+    position 39:04:25.251n 91:56:15.247w
+    position 39:04:28.286n 91:55:37.125w
+    position 39:04:41.909n 91:54:40.902w
+    position 39:04:36.746n 91:54:10.250w
+    position 39:04:37.446n 91:54:08.492w
+    position 39:04:58.814n 91:53:15.154w
+      node_id 1002_/f/j/l/f/
+  end_route
+  route
+    # zone roadl_27
+    position 38:58:36.161n 91:07:25.056w
+      node_id 1144_/f/j/l/f/
+    position 38:59:11.646n 91:07:27.446w
+    position 38:59:24.734n 91:07:19.783w
+    position 38:59:26.190n 91:07:04.951w
+    position 38:59:35.899n 91:06:52.042w
+    position 39:00:11.824n 91:07:27.226w
+    position 39:02:32.902n 91:07:34.752w
+    position 39:02:35.690n 91:07:59.031w
+    position 39:03:22.986n 91:08:21.279w
+    position 39:03:23.879n 91:09:30.053w
+    position 39:04:32.104n 91:09:30.905w
+    position 39:06:32.679n 91:09:32.415w
+      node_id 960_/f/j/l/f/
+  end_route
+end_route_network

@@ -1,0 +1,122 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+#this should be used to evade a threatening enemy when you have an energy advantage
+
+
+behavior unload
+
+   script_variables
+
+      double   cDIVE_ALTITUDE          =        304.8;            # 1000 feet
+      double   cDEFAULT_SPEED          =        200.0;            # m/s
+      double   cMAX_SPEED              = 9999999999.99;           # m/s
+      double   cGRAVITY_ACCEL          =          9.80665;        # 1 G
+      double   cDEFAULT_ACCEL          = (cGRAVITY_ACCEL * 7.5);  # m/s^2  ~7.5 Gs
+      double cANGLE_TOLERANCE          =         45.0;            # degrees
+
+      double   mLastProcTime           = -1.0;
+      double   mLastClimbRate          = 0.0;
+   end_script_variables
+
+
+   script bool RanLastTick()
+      if ((TIME_NOW-mLastProcTime) < 1.5*PROCESSOR.UpdateInterval())
+      {
+         return true;
+      }
+      else return false;
+   end_script
+
+
+   precondition
+      writeln("precondition unload");
+
+      //see if I have the energy advantage against my threat
+     #extern WsfTrack mBiggestThreat;
+      if (mBiggestThreat.IsValid())
+      {
+         double modifier = 1.0;
+         if (RanLastTick())
+         {
+            modifier = 1.10;
+         }
+
+         //otherwise, IF we have an energy advantage, get out -> unload
+      ###double altDiff = PLATFORM.RelativeAltitudeOf(mBiggestThreat);              #positive value means track is higher than you
+
+         double altDiff = mBiggestThreat.Altitude() - PLATFORM.Altitude()*modifier; #positive value means track is higher than you
+         double velDiff = mBiggestThreat.Speed() - PLATFORM.Speed()*modifier;       #positive value means track is faster than you
+         double altEnergy = MATH.Sqrt(2*MATH.Fabs(altDiff)*cGRAVITY_ACCEL);         #convert potential energy into kinetic energy (mass excluded -> just convert to velocity)
+         if (altDiff<0)
+         {
+            altEnergy = -altEnergy;
+         }
+         if ((velDiff + altEnergy) < 0)  # if I have an energy advantage, unload
+         {
+            mLastProcTime = TIME_NOW;
+            return true;
+         }
+         else
+         {
+            writeln("   do not unload, no energy advantage!");
+         }
+      }
+      mLastProcTime = -1.0;
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing unload");
+
+      //calculate an average heading to incoming platforms weighted by distance
+      double y = 0;
+      double x = 0;
+      foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+      {
+         if (t.IsValid() && (!t.SideValid() || t.Side() != PLATFORM.Side()))
+         {
+            double distMod = 1 / PLATFORM.SlantRangeTo(t);
+            double bearingMod = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(t));
+            x = x + MATH.Sin(bearingMod) * distMod;
+            y = y + MATH.Cos(bearingMod) * distMod;
+            writeln_d("    Incoming ", t.TargetName(), " at distance: ", 1 / distMod, ", bearing: ", bearingMod);
+         }
+      }
+
+      if (x!=0 || y!=0) //if there is something to run from
+      {
+         double evadeHeading = MATH.NormalizeAngle0_360(MATH.ATan2(x, y) - 180);
+         writeln_d("    x: ", x, ", y: ", y, ", evade at: ", evadeHeading);
+
+         ####extern bool FlyHold( WsfPlatform, double, double, double);
+         ### FlyHold( PLATFORM, evadeHeading, cDIVE_ALTITUDE, cMAX_SPEED);
+
+         if (!RanLastTick())
+         {
+            mLastClimbRate = 0.0;
+         }
+         double climbRate = mLastClimbRate - (cGRAVITY_ACCEL * PROCESSOR.UpdateInterval());
+         mLastClimbRate = climbRate;
+
+         PLATFORM.GoToSpeed(cMAX_SPEED);
+         PLATFORM.TurnToHeading(evadeHeading);
+         PLATFORM.GoToAltitude(cDIVE_ALTITUDE, climbRate);
+
+        #PLATFORM.Comment("unload");
+         PLATFORM.Comment(write_str("unload to heading: ", evadeHeading));
+      }
+
+   end_execute
+
+end_behavior
+

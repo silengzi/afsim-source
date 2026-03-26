@@ -1,0 +1,82 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+##############################################################################
+#                    Suppressor Bomb Demo example
+##############################################################################
+file_path .
+include_once platforms/target.txt
+include_once platforms/bomber.txt
+include_once platforms/sam_regiment.txt
+include_once platforms/sam_battery.txt
+
+# Define the network message sizes to so they generate the corresponding
+# transmission times.
+#
+# The message sizes are based on a 1kbps transfer rate (see the definition
+# of COMM_RADIO in platforms/sam_regiment.txt)
+
+/*
+NET TYPE broadcast  MODE: INTERMITTENT CHANGE FREQ DELAY: 10.5 (SEC)
+  MSG ASGN-STAT    TRANSMIT-TIME:  3.6 (SEC) 1-WAY PRIORITY: 7
+  MSG CNCL-ASGN    TRANSMIT-TIME:  2.7 (SEC) 1-WAY PRIORITY: 8
+  MSG ENG-STAT     TRANSMIT-TIME:  3.6 (SEC) 1-WAY PRIORITY: 6
+  MSG WPN-ASGN     TRANSMIT-TIME:  4.5 (SEC) 1-WAY PRIORITY: 9
+  MSG MOC-CHANGE   TRANSMIT-TIME:  4.5 (SEC) 1-WAY PRIORITY: 9
+  MSG DEATH        TRANSMIT-TIME:  2.7 (SEC) 1-WAY PRIORITY: 5
+  MSG INTELL       TRANSMIT-TIME:  2.5 (SEC) 1-WAY PRIORITY: 3
+  MSG MOVE-ORDER   TRANSMIT-TIME:  2.5 (SEC) 1-WAY PRIORITY: 4
+*/
+
+message_table
+  default_comm_type
+    type WSF_TASK_ASSIGN_MESSAGE 3600 bits          // 3.6 sec
+    type WSF_TASK_CANCEL_MESSAGE 2700 bits          // 2.7 sec
+    type WSF_TASK_STATUS_MESSAGE 3600 bits          // 3.6 sec
+    default                      2500 bits          // 2.5 sec
+end_message_table
+
+include_once bomb_demo_laydown.txt
+
+include event_pipe.txt
+
+event_output
+   file replay.evt
+   time_format h:m:s.3
+   enable all
+   disable LOCAL_TRACK_UPDATED
+   disable LOCAL_TRACK_CORRELATION
+   disable LOCAL_TRACK_DECORRELATION
+   disable SENSOR_DETECTION_ATTEMPT
+   disable SENSOR_TRACK_UPDATED
+
+   enable SENSOR_DETECTION_ATTEMPT
+   print_failed_sensor_detection_attempts true
+   print_failed_message_delivery_attempts false
+end_event_output
+
+
+// Uncomment the following for Monte-Carlo runs.
+/*
+event_pipe
+   file replay_%d.aer
+end_event_pipe
+
+event_output
+   file replay_%d.evt
+end_event_output
+
+initial_run_number 1
+final_run_number   50
+generate_random_seeds 842904567
+*/
+
+random_seed 842904567
+
+end_time 0.5 hr

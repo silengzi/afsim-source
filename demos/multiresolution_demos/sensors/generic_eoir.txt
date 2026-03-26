@@ -1,0 +1,37 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Copied from demos/signature_demos/sensors
+
+sensor GENERIC_EOIR WSF_EOIR_SENSOR
+   frame_time                          10 sec     # sample rate
+   slew_mode                           azimuth_and_elevation
+   azimuth_slew_limits                 -45 deg 45 deg    
+   elevation_slew_limits               -45 deg 45 deg    
+   azimuth_slew_rate                   5 deg/s
+   elevation_slew_rate                 5 deg/s 
+   selection_mode single
+   ignore_same_side
+
+   atmospheric_attenuation 0.005 per m
+   band visual
+
+   azimuth_field_of_view               -45.0 deg 45.0 deg  
+   elevation_field_of_view             -45.0 deg 45.0 deg  
+   maximum_range                       50 nm
+   pixel_count  1000  1000             
+   detection_threshold 3   
+   track_quality .5
+   azimuth_error_sigma 0.45 deg
+   elevation_error_sigma  0.45 deg
+   reports_other 
+   #reports_bearing
+   #reports_elevation
+   #reports_location
+end_sensor

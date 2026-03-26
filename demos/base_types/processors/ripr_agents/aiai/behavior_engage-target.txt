@@ -1,0 +1,629 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+##############################################################################
+### assumes exists: #extern string GetWeaponForThreat(WsfPlatform, WsfTrack);
+##############################################################################
+
+behavior engage-target
+
+   script_debug_writes off
+
+   script_variables
+
+      //**********************************************************************//
+      //** platform / agent specific shooting parameters                    **//
+      //**********************************************************************//
+      bool    mCoopEngageOne       = false;
+      bool    mCoopEngageOneFlightOnly  = false;
+
+      //specify any targets here that you will always shoot at...
+      //even disregarding other targets to do so.  (use types or names)
+      Array<string> mMustShootAtCategories    = Array<string>();
+                    mMustShootAtCategories[0] = "sam";
+                    mMustShootAtCategories[1] = "FIRE_CONTROL";
+
+      double  mDegradedFiringAngle  = 55.0;   //negative if not valid
+      double  mDegradedPercentRange = 0.50;   //range constraint if past degraded firing angle
+
+      //specify orientation limits for shooting
+      double  mMaxFiringRollAngle   =  10.0;   //dont shoot if rolled more/less than this
+      double  mMaxFiringPitchAngle  =  15.0;   //dont shoot if pitched more than this
+      double  mMinFiringPitchAngle  = -10.0;   //dont shoot if pitched less than this
+
+
+      //**********************************************************************//
+      //** threat specific shooting parameters                              **//
+      //**********************************************************************//
+
+      //require different track qualities to fire on different kinds of threats
+      double DefaultRequiredTrackQuality                 =  0.49;
+      Map<string, double> ThreatTypeRequiredTrackQuality = Map<string, double>();
+      ThreatTypeRequiredTrackQuality["bomber"]           =  0.49;
+      ThreatTypeRequiredTrackQuality["fighter"]          =  0.49;
+
+      //fire off different salvos at different types of threats
+      int            DefaultAirSalvo      = 1;
+      int            DefaultGndSalvo      = 1;
+      Map<string, int> ThreatTypeSalvo    = Map<string, int>();
+      ThreatTypeSalvo["sam"]              = 2;
+      ThreatTypeSalvo["ship"]             = 2;
+      ThreatTypeSalvo["bomber"]           = 2;
+      ThreatTypeSalvo["fighter"]          = 1;
+      ThreatTypeSalvo["FIRE_CONTROL"]     = 1;
+      ThreatTypeSalvo["primary_target"]   = 2;
+      ThreatTypeSalvo["secondary_target"] = 2;
+
+      //force a specific weapon for use against given threat type
+      Map<string, string> ThreatTypeWeapon = Map<string, string>();
+      //ThreatTypeWeapon["uav"]       =  "srm";
+      //ThreatTypeWeapon["fighter"]   =  "lrm";
+
+
+      //**********************************************************************//
+      //** weapon + threat specific shooting parameters                     **//
+      //**********************************************************************//
+
+      //specify an Rmax based on which weapon used and which threat engaged
+      double  DefaultPercentRangeMax  = 0.80; // don't launch unless within this percent of Rmax
+      double  DefaultPercentRangeMin  = 1.20; // don't launch unless beyond this percent of Rmin
+      Map<string, Map<string, double>> WeaponThreatRmaxMap = Map<string, Map<string, double>>();
+      WeaponThreatRmaxMap["base_weapon"] = Map<string, double>();
+      WeaponThreatRmaxMap["base_weapon"].Set("fighter", 0.80);
+
+      //specify max firing angles based on weapon used and threat engaged
+      double       DefaultMaxFiringAngle               = 45.0;
+      Map<string, Map<string, double>> WeaponThreatAngleMap = Map<string, Map<string, double>>();
+      WeaponThreatAngleMap["base_weapon"] = Map<string, double>();
+      WeaponThreatAngleMap["base_weapon"].Set("fighter", 45.0);
+      WeaponThreatAngleMap["base_weapon"].Set("missile", 30.0);
+
+
+      //**********************************************************************//
+      //********* VARIABLES BELOW THIS LINE ARE NOT FOR USER EDITING *********//
+      //**********************************************************************//
+      double mInactiveLaunchDelay = 1.0;  // wait 1 seconds after your last missile detonated.
+                                          // hacky, useful for weapons that dont show active
+      Map<string,double> mTrackWeaponActiveMap = Map<string,double>();
+      Map<WsfTrack, double>  mRoundsFiredAtMap = Map<WsfTrack, double>();  //useful when weapons don't show as active
+
+   end_script_variables
+
+
+   script bool MustShootAt(WsfTrack track)
+      WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+      if (plat.IsValid())
+      {
+         foreach( string aCategory in mMustShootAtCategories )
+         {
+            if( plat.CategoryMemberOf( aCategory ) )
+            {
+               return true;
+            }
+         }
+      }
+      return false;
+   end_script
+
+
+    script int GetSalvoForThreat(WsfTrack track)
+
+        #writeln_d("checking salvo size for category: ", category);
+
+        #WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetIndex() );
+        WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : int salvo in ThreatTypeSalvo )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+                    writeln_d("salvo for type ", aCategory, " = ", salvo);
+                    return salvo;
+                }
+            }
+        }
+       #extern string GetTargetDomain(WsfTrack);
+        string sTargetDomain = GetTargetDomain(track);
+        if ( (sTargetDomain == "LAND") || (sTargetDomain == "SURFACE") )
+        {
+          return DefaultGndSalvo;
+        }
+        return DefaultAirSalvo;
+    end_script
+
+
+
+    script double GetRequiredTrackQualityForThreat(WsfTrack threat)
+        writeln_d("checking required TQ for track: ", threat.TargetName());
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : double quality in ThreatTypeRequiredTrackQuality )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+                   writeln_d("TQ for type ", aCategory, " = ", quality);
+                    return quality;
+                }
+            }
+        }
+        return DefaultRequiredTrackQuality;
+    end_script
+
+
+    script double GetLaunchPercentRangeMaxOnThreat(string weaponName, WsfTrack threat)
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+          if (WeaponThreatRmaxMap.Exists(weaponName))
+          {
+            Map<string, double> categoryRangeMap = WeaponThreatRmaxMap.Get(weaponName);
+            foreach (string aCategory : double percent in categoryRangeMap)
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+                    return percent;
+                }
+            }
+          }
+        }
+        return DefaultPercentRangeMax;
+    end_script
+
+
+   script double GetMaxFiringAngleForWeapon(string weaponName, WsfTrack threat)
+      WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+      if (plat.IsValid())
+      {
+         if (WeaponThreatAngleMap.Exists(weaponName))
+         {
+            Map<string, double> threatAngleMap = WeaponThreatAngleMap.Get(weaponName);
+            foreach (string aCategory : double angle in threatAngleMap)
+            {
+               if( plat.CategoryMemberOf( aCategory ) )
+               {
+                  return angle;
+               }
+            }
+         }
+      }
+      return DefaultMaxFiringAngle;
+   end_script
+
+
+   script string GetWeaponForThreat(WsfPlatform platform, WsfTrack track)
+      bool checkName = false;
+      string name = "";
+     #extern bool IsWeaponDomainCapable(WsfTrack, Map<string, Object>);
+
+      WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+      if (plat.IsValid())
+      {
+         foreach( string aCategory : string wpnStr in ThreatTypeWeapon )
+         {
+            writeln_d("checking if ", plat.Name(), " is category: ", aCategory);
+            if( wpnStr.Length()>0 && plat.CategoryMemberOf( aCategory ) )
+            {
+               checkName = true;
+               name = wpnStr;
+               writeln_d("   Time= ", TIME_NOW, "     ", PLATFORM.Name(), " searching only for weapon category: ", name, " (for use against ", plat.Name(), ")");
+               break;
+            }
+         }
+      }
+      else
+      {
+         writeln_d("platform for target ", track.TargetName()," is not valid!");
+      }
+
+      extern Array<Map<string, Object>> mWeaponArray;
+      foreach (Map<string, Object> curWeapon in mWeaponArray)
+      {
+         string weaponName = (string)curWeapon["name"];
+         WsfWeapon weapon = (WsfWeapon)curWeapon["weapon"];
+
+         writeln_d("        checking weapon ", weaponName, " valid=", weapon.IsValid());
+
+         if (checkName && weaponName != name)
+         {
+            continue;
+         }
+         if (weapon.QuantityRemaining() <= 0)
+         {
+            continue;
+         }
+         if (!IsWeaponDomainCapable(track,curWeapon))
+         {
+            continue;
+         }
+
+         WsfLaunchComputer lcPtr = weapon.LaunchComputer();
+
+         if (lcPtr.IsValid() &&
+             lcPtr.IsA_TypeOf("WSF_AIR_TO_AIR_LAUNCH_COMPUTER"))
+         {
+            writeln_d("            using air-to-air launch computer");
+
+            // The returned array contains:  Rmax, RmaxTOF, Rne, RneTOF, Rmin, RminTOF
+            // in that order.  -1.0 means "not valid".
+
+            Array<double> returnedValues = lcPtr.LookupResult(track);
+
+            // Now have to consider whether we have enough information to continue with a weapon shot:
+            double theRmax    = returnedValues[0]; //"Rmax";
+            double theRmaxTOF = returnedValues[1]; //"RmaxTOF";
+            double theRne     = returnedValues[2]; //"Rne";
+            double theRneTOF  = returnedValues[3]; //"RneTOF";
+            double theRmin    = returnedValues[4]; //"Rmin";
+            double theRminTOF = returnedValues[5]; //"RminTOF";
+
+            double range = 0.0;
+            if (track.RangeValid())
+            {
+               range = track.Range();  #is this the range from you to the track, or the range from the sensor to the track?
+            }
+            else
+            {
+               range = track.GroundRangeTo(PLATFORM);
+            }
+
+            // Check for track range less than Rmin * scaleFactor, if not, return.
+            // But do not check for min range constraint at all unless we are likely to be needing it.
+            if (range < 5000)
+            {
+               if (theRmin == -1.0)
+               {
+                  writeln_d("    Engagement did not shoot since Rmin was not valid.");
+                  continue;
+                  #return;
+               }
+               double RminConstraint = theRmin * DefaultPercentRangeMin;
+               if (range < RminConstraint)
+               {
+                  writeln_d("    Engagement did not shoot since inside the k * Rmin constraint distance.");
+                  writeln_d("    Range versus Rmin constraint = ", range, ", ", RminConstraint);
+                  continue;
+                  #return;
+               }
+            }
+
+            // Check for track range less than Rne, if so, FORCE a weapon fire.
+            bool forceWeaponFire = false;
+            if (range < theRne)
+            {
+               writeln_d("    Engagement is forcing a weapon fire due to inside Rne.");
+               writeln_d("    Range versus Rne constraint = ", range, ", ", theRne);
+               forceWeaponFire = true;
+            }
+
+            if (forceWeaponFire == false)
+            {
+               ######################################TRY THIS######################################
+               WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+               if (plat.IsValid() && plat.CategoryMemberOf("fighter"))
+               {
+                  #theRmax = theRne;
+                  theRmax = (theRmax + theRne)/2.0;  //for highly maneuverable fighter targets
+               }
+               ####################################END TRY THIS####################################
+               // Check for track range less than k * Rmax, if not, return.
+               if (theRmax == -1.0)
+               {
+                  writeln_d("    Engagement did not shoot since Rmax was not valid.");
+                  continue;
+                  #return;
+               }
+               //double RmaxConstraint = theRmax * DefaultPercentRangeMax;
+               double percentRMax = GetLaunchPercentRangeMaxOnThreat(weaponName, track);
+               double RmaxConstraint = theRmax * percentRMax;
+               if (range > RmaxConstraint)
+               {
+                  writeln_d("    Engagement did not shoot since outside the k * Rmax constraint distance.");
+                  writeln_d("    Range versus Rne constraint = ", range, ", ", theRne);
+                  continue;
+                  #return;
+               }
+            }
+
+            writeln_d("    Engagement meets constraints for firing a weapon (continue).");
+         }
+         else if (lcPtr.IsValid() &&
+                  lcPtr.IsA_TypeOf("WSF_ATG_LAUNCH_COMPUTER"))
+         {
+            writeln_d("            using air-to-ground launch computer");
+            if (lcPtr.CanIntercept(track))
+            {
+               //intercept works, this weapon is a candidate
+            }
+            else
+            {
+               continue;
+            }
+         }
+         else
+         {
+            writeln_d("            using script input mWeaponArray array range values");
+
+            //check our own ranges & angles --> hacky!!!
+
+           #extern double               EffectiveRange(WsfPlatform, WsfTrack);
+            double effectiveRange     = EffectiveRange(platform,    track);
+            double absRelativeBearing = MATH.Fabs(PLATFORM.RelativeBearingTo( track ));
+            double rangeScale         = GetLaunchPercentRangeMaxOnThreat(weaponName, track);
+            if (absRelativeBearing > mDegradedFiringAngle)
+            {
+               rangeScale = MATH.Min(mDegradedPercentRange, rangeScale);
+            }
+
+            if ((double)curWeapon["rangeMin"] > effectiveRange)
+            {
+               writeln_d("            target too close");
+               continue;
+            }
+            if (absRelativeBearing > GetMaxFiringAngleForWeapon(weaponName, track))
+            {
+               writeln_d("            target firing angle too large");
+               continue;
+            }
+            if ((double)curWeapon["rangeMax"] * rangeScale < effectiveRange)
+            {
+               writeln_d("            target too far away");
+               continue;
+            }
+            double TOF = 180;
+            double missileAvgSpeed = 1000;
+            if (curWeapon.Exists("avgSpeed"))
+            {
+              missileAvgSpeed = (double)curWeapon["avgSpeed"];
+            }
+            if (curWeapon.Exists("TOF"))
+            {
+              TOF = (double)curWeapon["TOF"];
+            }
+            double range = PLATFORM.SlantRangeTo(track);
+            //double closingSpeed = PLATFORM.ClosingSpeedOf(track);
+            double relBearing = track.RelativeBearingTo(PLATFORM);
+            if (relBearing > 90.0)
+            {
+              if (track.Speed() > missileAvgSpeed)
+              {
+                continue;
+              }
+              double speedDiff = missileAvgSpeed - track.Speed();
+              if ((range/speedDiff) > TOF)
+              {
+                continue;
+              }
+            }
+         }
+
+         return (string)curWeapon["name"];
+      }
+        return "";
+    end_script
+
+
+   #on_init
+   #end_on_init
+
+
+   precondition
+      writeln_d("precondition engage-target");
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }
+
+     #extern WsfTrack GetTrackByName(WsfPlatform, string);
+
+      double pitch = PLATFORM.Pitch();
+      if (MATH.Fabs(PLATFORM.Roll()) > mMaxFiringRollAngle ||
+          pitch > mMaxFiringPitchAngle                     ||
+          pitch < mMinFiringPitchAngle)
+      {
+        string msgStr = write_str("    ", PLATFORM.Name(), " orientation too far off to fire!  (roll or pitch)");
+        writeln_d(msgStr);
+      //PLATFORM.Comment(msgStr);
+        return Failure(msgStr);
+      }
+
+      WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+      if (commander.IsValid())
+      {
+         #check all job channels, not just the main target
+         for (int channel = 0; channel < ((WsfRIPRProcessor)PROCESSOR).GetNumJobChannels(); channel = channel + 1)
+         {
+           WsfRIPRJob aJob = commander.GetJobFor(((WsfRIPRProcessor)PROCESSOR), channel);
+           if (aJob.IsValid() &&
+               aJob.Name() == "pursue-target")
+           {
+             string   targetName  = (string)aJob.GetData("targetTrackName");
+             WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+             if (!targetTrack.IsNull() &&
+                 targetTrack.IsValid())
+             {
+              #extern bool TestTrackCategory( WsfTrack, string );
+               if (!TestTrackCategory(targetTrack, "unknown") &&
+                   targetTrack.BelievedAlive())
+               {
+                 return true;
+               }
+             }
+           }
+         }
+      }
+      return Failure("no acceptable target to shoot at!");
+   end_precondition
+
+
+   script bool FireWeapon(WsfTrack targetTrack)
+      bool launched = false;
+
+      writeln_d("   Time= ", TIME_NOW, "   Attempting a shot against: ", targetTrack.TargetName(), " Index: ", targetTrack.TargetIndex(), " Type: ", targetTrack.TargetType());
+
+     #extern bool TestTrackCategory(WsfTrack, string);
+      if (!TestTrackCategory(targetTrack, "unknown") &&
+          targetTrack.BelievedAlive())
+      {
+         if ((((WsfRIPRProcessor)PROCESSOR).WeaponsActive(targetTrack) > 0) ||
+             (((WsfRIPRProcessor)PROCESSOR).PeersWeaponsActive(targetTrack) > 0))
+         {
+            mTrackWeaponActiveMap[targetTrack.TargetName()] = TIME_NOW;
+            writeln_d("         FAIL: Weapons already active against ", targetTrack.TargetName());
+            return launched;
+         }
+         else
+         {
+            writeln_d("no weapons active against target ", targetTrack.TargetName());
+         }
+
+         if ((TIME_NOW - mTrackWeaponActiveMap[targetTrack.TargetName()]) < mInactiveLaunchDelay)
+         {
+            writeln_d("         FAIL: Waiting to see what last active weapon did, score a kill?");
+            return launched;
+         }
+
+         // if this is a ttr, it should ignore the check for coop engage one
+         if (targetTrack.CheckAuxData("notlocal") == false)
+         {
+            if (mCoopEngageOne == false)
+            {
+               WsfLocalTrack targetLocalTrack = (WsfLocalTrack)targetTrack;
+               if (targetLocalTrack.IsValid())
+               {
+                  if(!targetLocalTrack.ContributorOf(PLATFORM) &&
+                     !targetLocalTrack.IsPredefined())
+                  {
+                     writeln_d("         FAIL: Not able to coop engage! ", PLATFORM.Name(), " targeting ",targetTrack.TargetName(), ".  NumContributors: ", targetLocalTrack.NumContributors()  );
+                     return launched;
+                  }
+               }
+            }
+            else if (mCoopEngageOneFlightOnly == true)
+            {
+               //check if this platform needs somebody in his flight to have track on the target
+               WsfLocalTrack targetLocalTrack = (WsfLocalTrack)targetTrack;
+               if (targetLocalTrack.IsValid())
+               {
+                  if (targetLocalTrack.IsPredefined())
+                  {
+                     //its fine, go ahead & shoot
+                  }
+                  else
+                  {
+                     bool OkToShoot = false;
+                     Array<WsfPlatform> peers = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().SubordinatePlatforms();
+                     foreach (WsfPlatform peer in peers)
+                     {
+                        if(targetLocalTrack.ContributorOf(peer))
+                        {
+                           OkToShoot = true;
+                           break;
+                        }
+                     }
+                     if (!OkToShoot)
+                     {
+                        writeln_d("         FAIL: Cant engage tracks not supported by flight group! ", PLATFORM.Name(), " targeting ", targetTrack.TargetName(), ".");
+                        return launched;
+                     }
+                  }
+               }
+            }
+         }
+
+         // We can launch once we have a target-quality track.
+         //TODO probably need something to test for failure to lockon
+         writeln_d ("    targetTrack.TrackQuality == ", targetTrack.TrackQuality());
+
+         if (targetTrack.TrackQuality() < GetRequiredTrackQualityForThreat(targetTrack))
+         {
+            writeln_d("         FAIL: track quality not good enough to fire on target");
+            return launched;
+         }
+
+         string selectedWeapon = GetWeaponForThreat(PLATFORM, targetTrack);    #checks domain & kinematic capability, & valid quantity remaining
+
+         if (selectedWeapon == "")
+         {
+               writeln_d("         FAIL: No domain capable weapon within range available!");
+               return launched;
+         }
+
+         WsfWeapon weaponToLaunch = PLATFORM.Weapon(selectedWeapon);
+
+         //writeln_d("         using a conventional weapon!");
+        #extern Array<Map<string, Object>> mWeaponArray;
+        #extern int GetWeaponNumberActiveMax(string, Array<Map<string, Object>>);
+         int maxActiveOfType = GetWeaponNumberActiveMax(selectedWeapon,mWeaponArray);
+         int curActiveOfType = ((WsfRIPRProcessor)PROCESSOR).WeaponsActiveOfType(weaponToLaunch);
+         if (MustShootAt(targetTrack))
+         {
+            curActiveOfType = maxActiveOfType - 1;
+         }
+         if (curActiveOfType >= maxActiveOfType)
+         {
+               writeln_d("         FAIL: Max number(", maxActiveOfType,") of ", selectedWeapon, " weapon type are already active! (", curActiveOfType,")");
+               return launched;
+         }
+
+         int salvoCount = GetSalvoForThreat(targetTrack);
+         writeln_d("         salvo count for ", targetTrack, " is: ", salvoCount);
+
+        #extern bool            LaunchWeapon(WsfPlatform, WsfTrack,    WsfWeapon,      int);
+         launched = LaunchWeapon(PLATFORM,    targetTrack, weaponToLaunch, salvoCount);
+
+         writeln_d("    launched == ", launched, ", weapon: ", selectedWeapon);
+         if (launched == true)
+         {
+            double dPreviousRoundsFiredAt = mRoundsFiredAtMap.Get(targetTrack);
+            mRoundsFiredAtMap.Set(targetTrack,dPreviousRoundsFiredAt + salvoCount);
+            string msg = "Shot at: " + targetTrack.TargetName();
+            PLATFORM.Comment(msg);
+            writeln_d("         SUCCESS: ", PLATFORM.Name(), " ", msg);
+         }
+         return launched;
+      }
+
+      return launched;
+   end_script
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing engage-target, T=", TIME_NOW);
+     #extern WsfTrack GetTrackByName(WsfPlatform, string);
+      #check all possible targets on all channels
+      ########################################################################
+      ###   fire on any pursue-target jobs we are assigned to
+      ########################################################################
+      WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+      for (int channel = 0; channel < ((WsfRIPRProcessor)PROCESSOR).GetNumJobChannels(); channel = channel + 1)
+      {
+         WsfRIPRJob aJob = commander.GetJobFor(((WsfRIPRProcessor)PROCESSOR), channel);
+         if (aJob.IsValid() &&
+             aJob.Name() == "pursue-target")
+         {
+            string   targetName  = (string)aJob.GetData("targetTrackName");
+            WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+            if (!targetTrack.IsNull() &&
+                targetTrack.IsValid())
+            {
+               writeln_d("   ", PLATFORM.Name(), " trying to shoot at job track: ", targetName, " at time: ", TIME_NOW);
+               if(FireWeapon(targetTrack) == false)
+               {
+                  writeln_d("   ", PLATFORM.Name(), " could NOT fire at track: ", targetTrack.TargetName(), " at time: ", TIME_NOW);
+               }
+            }
+         }
+      }
+   end_execute
+
+end_behavior

@@ -1,0 +1,327 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once scripts/schedule.txt
+
+# The TAPSolver struct contains most of the code to implement the Traveling
+# Astronaut Problem solution. Further, it collects the temporary and auxiliary
+# data into a single object to avoid polluting the global namespace.
+script_struct TAPSolver
+   script_variables
+      # computed values
+      double deltaVMin            = MATH.DOUBLE_MAX();   // delta v of minimum schedule
+      double deltaTMin            = MATH.DOUBLE_MAX();   // delta t of minimum schedule
+      Schedule scheduleMin        = { };                 // the minimum schedule
+      Array<Schedule> searchStack = { };                 // the search stack
+      WsfPlatform chaserProxy;                           // an object used to compute rendezvous
+      WsfPlatform targetProxy;                           // an object used to compute rendezvous
+      int rendezvousComputed      = 0;                   // counter to track efficiency of search
+
+      # Basic parameters for tuning behavior
+      double timeOfComputation    = 0.0;                 // the sim time at which the TAP was called
+      Array<WsfPlatform> targets  = { };                 // the initial target positions  (ECI)
+
+      # Operation parameters
+      double operationTime        = 0.0;                 // the time that the central object spends at each target
+      string operationAtTarget    = "";
+
+      # Search parameters
+      double searchMaxDt          = 7200.0;
+      double searchMaxDv          = 10000.0;
+
+      # Actually schedule the best route. If false, only the computation is performed.
+      bool   doSchedule           = true;
+
+      # Skip bounding routes. If true, all possible routes will be computed.
+      bool   skipBound            = false;
+   end_script_variables
+
+   script void DeleteProxies()
+      WsfSimulation.DeletePlatform(chaserProxy.Name());
+      WsfSimulation.DeletePlatform(targetProxy.Name());
+   end_script
+
+   script int NumTargets()
+      return targets.Size();
+   end_script
+
+   script WsfPlatform GetTarget(int aIndex)
+      return targets[aIndex];
+   end_script
+
+   script void AddTarget(WsfPlatform aPlatform)
+      targets.PushBack(aPlatform);
+   end_script
+
+   script bool SearchDone()
+      return searchStack.Size() == 0;
+   end_script
+
+   script bool HasTargetOperation()
+      return operationAtTarget.Length() > 0;
+   end_script
+
+   script void PushSearchRoute(Schedule aSchedule)
+      searchStack.PushBack(aSchedule);
+   end_script
+
+   script Schedule PopSearchRoute()
+      Schedule retval = searchStack.Back();
+      searchStack.PopBack();
+      return retval;
+   end_script
+
+   script void UpdateTargetProxy(int aIndex, double aTime)
+      WsfPlatform target = GetTarget(aIndex);
+      WsfSpaceMover mov = (WsfSpaceMover)target.Mover();
+      Vec3 locTarget = mov.LocationECI_AtTime(aTime);
+      Vec3 velTarget = mov.VelocityECI_AtTime(aTime);
+      ResetSatellite(targetProxy, locTarget, velTarget);
+   end_script
+
+   script void UpdateChaserProxy(Schedule aSchedule)
+      ResetSatellite(chaserProxy, aSchedule->Location(), aSchedule->Velocity());
+   end_script
+
+   script void UpdateSchedule(Schedule aSchedule, double aDeltaT, double aDeltaV, int aIndex)
+      aSchedule->UpdateFromComputation(aDeltaT + operationTime, aDeltaV, timeOfComputation);
+
+      WsfPlatform target = GetTarget(aIndex);
+      WsfSpaceMover tmov = (WsfSpaceMover)target.Mover();
+      double forwardTime = timeOfComputation + aSchedule->DeltaT();
+      Vec3 forwardLocation = tmov.LocationECI_AtTime(forwardTime);
+      Vec3 forwardVelocity = tmov.VelocityECI_AtTime(forwardTime);
+      aSchedule->SetRV(forwardLocation, forwardVelocity);
+   end_script
+
+   script Array<double> ComputeCurrentRendezvous(double aDVUsed)
+      chaserProxy.TrackManager().AddTrackReport(targetProxy.MakeTrack());
+      WsfLocalTrack trk = chaserProxy.MasterTrackList().TrackEntry(0);
+
+      WsfSpaceMover mov = (WsfSpaceMover)chaserProxy.Mover();
+      Array<double> rendezvous = mov.ComputeRendezvous(trk.TrackId(), searchMaxDt, searchMaxDv - aDVUsed, true);
+      rendezvousComputed += 1;
+
+      chaserProxy.TrackManager().DropTrack(trk.TrackId());
+
+      return rendezvous;
+   end_script
+
+   script bool ComputeRouteStep(Schedule aSchedule)
+      int tIndex = aSchedule->FinalTarget();
+      UpdateTargetProxy(tIndex, timeOfComputation + aSchedule->DeltaT());
+      UpdateChaserProxy(aSchedule);
+      Array<double> rendezvous = ComputeCurrentRendezvous(aSchedule->DeltaV());
+      if (!rendezvous.Empty())
+      {
+         UpdateSchedule(aSchedule, rendezvous[0], rendezvous[1], tIndex);
+         return true;
+      }
+      return false;
+   end_script
+
+   script int WorstCaseComputations(int aSize)
+      int retval = 1;
+      for (int i = 2; i <= aSize; i += 1)
+      {
+         retval = i + i * retval;
+      }
+      return retval;
+   end_script
+
+   #################################################################################
+   # The methods below this line define the user interface to the TAPSolver struct.
+   #################################################################################
+
+   script void Initialize(WsfPlatform aCenter, Array<string> aTargets, double aCurrTime)
+      // Basic options
+      timeOfComputation = aCurrTime;
+      for (int i = 0; i < aTargets.Size(); i += 1)
+      {
+         WsfPlatform plat = WsfSimulation.FindPlatform(aTargets[i]);
+         if (plat.IsValid())
+         {
+            AddTarget(plat);
+         }
+      }
+
+      // Search option defaults
+      WsfSpaceMover cMov = (WsfSpaceMover)aCenter.Mover();
+      searchMaxDt = 360.0 / cMov.MeanMotion();   // One full orbit per target
+      searchMaxDv = cMov.AvailableDeltaV();
+
+      // Operation option defaults
+      operationTime = 0.0;
+      operationAtTarget = "";
+
+      // Scheduling options defaults
+      doSchedule = true;
+
+      // Bound options defaults
+      skipBound = false;
+
+      // create proxies
+      Vec3 centerPosition = aCenter.LocationECI();
+      Vec3 centerVelocity = aCenter.VelocityECI();
+      targetProxy = CreateSatellite(centerPosition, centerVelocity, "targetProxy");
+      chaserProxy = CreateSatellite(centerPosition, centerVelocity, "chaserProxy");
+
+      // Set defaults
+      deltaVMin = MATH.DOUBLE_MAX();
+      deltaTMin = MATH.DOUBLE_MAX();
+      rendezvousComputed = 0;
+      Schedule initial = {};
+      initial->Init(targets.Size(), aCenter);
+      PushSearchRoute(initial);
+   end_script
+
+   script void ScheduleBest(bool aSched)
+      doSchedule = aSched;
+   end_script
+
+   script void SkipBounding(bool aSkip)
+      skipBound = aSkip;
+   end_script
+
+   script void InitializeOperation(double aTime, string aOperation)
+      operationTime = aTime;
+      operationAtTarget = aOperation;
+   end_script
+
+   # This method drives the solution of the TAP. This is a simple branch and bound
+   # algorithm that will explore all possible routes while keeping track of the current
+   # best complete route. If a given route ever is found to be worse than the current
+   # best, further exploration of that route will be dropped. Lacking a good estimate
+   # before hand for an upper bound, the search is depth first to quickly generate
+   # at least one complete path to bound future searches.
+   script bool FindMinimum()
+      bool hasMin = false;
+      bool first = true;
+
+      if (skipBound)
+      {
+         writeln("{");
+         writeln("  \"routes\": [");
+      }
+
+      while (!SearchDone())
+      {
+         Schedule P = PopSearchRoute();
+         Array<Schedule> branches = BranchSchedule(P);
+
+         for (int i = 0; i < branches.Size(); i += 1)
+         {
+            if (!skipBound)
+            {
+              writeln("I am computing the delta for: ", branches[i]->RouteText());
+            }
+            bool hasSolution = ComputeRouteStep(branches[i]);
+
+            // If this branch is not above the bound, add it to consideration
+            if (hasSolution && (skipBound || branches[i]->DeltaV() < deltaVMin))
+            {
+               PushSearchRoute(branches[i]);
+
+               // Further, if is a complete path, it must be the new minimum
+               if (branches[i]->Complete())
+               {
+                  if (skipBound)
+                  {
+                     branches[i]->DetailedOutput(first);
+                     first = false;
+                  }
+                  else
+                  {
+                     writeln("Complete path: ", branches[i]->RouteText(),
+                             " has values: (", branches[i]->DeltaV(), ", ", branches[i]->DeltaT(), ")");
+                  }
+
+                  if (branches[i]->DeltaV() < deltaVMin)
+                  {
+                     deltaVMin = branches[i]->DeltaV();
+                     deltaTMin = branches[i]->DeltaT();
+                     scheduleMin = branches[i];                        // save the new min
+                     hasMin = true;
+                     if (!skipBound)
+                     {
+                        writeln("Found a new minimum: ", deltaVMin);
+                     }
+                  }
+               }
+            }
+            else
+            {
+               writeln("Dropping branch.");
+            }
+         }
+      }
+
+      DeleteProxies();
+
+      if (skipBound)
+      {
+         writeln("  ]");
+         writeln("}");
+      }
+
+      return hasMin;
+   end_script
+
+   script void ReportOptimalPath()
+      writeln("Found optimal path: ", scheduleMin->RouteText());
+      writeln("  ", scheduleMin->OperationTimes());
+      writeln("  ", scheduleMin->InterceptTimes());
+      writeln("Optimal path uses delta-v of:  ", scheduleMin->DeltaV());
+      writeln("Optimal path takes delta-t of: ", scheduleMin->DeltaT());
+
+      int worstCase = WorstCaseComputations(targets.Size());
+      writeln("Search computed ", rendezvousComputed,
+              " operations out of a worst case count of ", worstCase,
+              " (", (double)rendezvousComputed / worstCase, ")");
+   end_script
+
+   script void PerformSchedule(WsfPlatform aCenter)
+      if (doSchedule)
+      {
+         WsfOrbitalMissionSequence seq = WsfOrbitalMissionSequence.Construct();
+         for (int i = 0; i < NumTargets(); i += 1)
+         {
+            int which = scheduleMin->Get(i);
+            WsfPlatform plat = GetTarget(which);
+            aCenter.TrackManager().AddTrackReport(plat.MakeTrack());
+            WsfLocalTrack ltrk = aCenter.MasterTrackList().TrackEntry(i);
+
+            // The -1.0 in the last argument is due to slight numerical difference between the precomputed route and the
+            // maneuver as computed here.
+            WsfRendezvousManeuver ren = WsfRendezvousManeuver.Construct(WsfOrbitalEventCondition.AT_RELATIVE_TIME(operationTime),
+                                                                        WsfTargetPoint.ConstructFromTrack(ltrk.TrackId()),
+                                                                        WsfRendezvousManeuver.LEAST_DELTA_V(),
+                                                                        searchMaxDt,
+                                                                        searchMaxDv - scheduleMin->StepDeltaV(i) - 1.0);
+
+            seq.AddManeuver(ren);
+            aCenter.TrackManager().DropTrack(ltrk.TrackId());
+         }
+
+         WsfSpaceMover mov = (WsfSpaceMover)aCenter.Mover();
+         mov.ExecuteManeuverSequence(seq);
+
+         if (HasTargetOperation())
+         {
+            for (int i = 0; i < NumTargets(); i += 1)
+            {
+               int which = scheduleMin->Get(i);
+               WsfPlatform plat = GetTarget(which);
+               WsfSimulation.ExecuteAtTime(scheduleMin->OperationTime(i), operationAtTarget, {plat.Name()});
+            }
+         }
+      }
+   end_script
+
+end_script_struct

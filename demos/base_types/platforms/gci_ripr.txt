@@ -1,0 +1,22 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#for AIGCI-thinker
+include_once processors/ripr_agents/aigci/aigci_processor.txt
+
+#for gci base
+include_once platforms/gci_base.txt
+
+platform_type GCI GCI_BASE
+
+   processor gci-thinker AIGCI-thinker
+   end_processor
+
+end_platform_type
+

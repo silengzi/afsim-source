@@ -1,0 +1,77 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates the hierarchical maneuver capability now available
+# for P6DOF movers. A maneuver can be formed of other more elementary maneuvers
+# which put together can lead to complex behaviors. This demonstrates the
+# technique of using a library of maneuvers that can then be used in many
+# different situations.
+#
+# ******************************************************************************
+
+define_path_variable CASE hierarchical_maneuvers
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 7 min
+
+include_once platforms/fa-lgt.txt
+
+include_once scripts/maneuvers_library.txt
+
+platform_type TEST_AIRCRAFT FA-LGT
+   update_interval 0.01 sec
+   side green
+   icon mig29_nk
+   follow_vertical_track
+end_platform_type
+
+platform test TEST_AIRCRAFT
+   route
+      position 30.000n 60.000w altitude 10000 ft speed 450.0 knots
+      position 30.010n 60.010w altitude 10000 ft speed 450.0 knots
+      position 30.020n 60.020w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+
+execute at_time 0.1 s absolute
+
+   WsfPlatform plat = WsfSimulation.FindPlatform("test");
+   WsfP6DOF_Mover mover = (WsfP6DOF_Mover)plat.Mover();
+   mover.SetBankAngleMax(180.0);
+   mover.SetPitchGLoadMax(8.0);
+
+end_execute
+
+execute at_time 10 s absolute
+
+   WsfManeuverSequence sqn = WsfManeuverSequence.Construct();
+   sqn.Append(Immelmann());
+
+   WsfManeuver sliceBack = SliceBack();
+   sliceBack.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(30.0));
+   sqn.Append(sliceBack);
+
+   WsfManeuver scissors = FlatScissors(2, 60.0, 15.0);
+   scissors.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(15.0));
+   sqn.Append(scissors);
+
+   WsfRollAngleManeuver turn = WsfRollAngleManeuver.Construct(-60.0);
+   turn.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(20.0));
+   sqn.Append(turn);
+
+   WsfPlatform plat = WsfSimulation.FindPlatform("test");
+   WsfP6DOF_Mover mover = (WsfP6DOF_Mover)plat.Mover();
+   mover.ExecuteManeuver(sqn);
+
+end_execute

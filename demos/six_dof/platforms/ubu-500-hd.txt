@@ -1,0 +1,76 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../six_dof_types/environment/six_dof_environment.txt
+include_once ../six_dof_types/weapons/ubu-500/ubu-500-hd.txt
+
+# ------------------------------------------------------------------------------
+
+weapon_effects BOMB_500LB_HD_LETHALITY WSF_SPHERICAL_LETHALITY
+   maximum_radius 500.0 ft
+   # allow_incidental_damage
+end_weapon_effects
+
+# ------------------------------------------------------------------------------
+
+weapon UBU-500-HD_RB6-WEAPON WSF_EXPLICIT_WEAPON
+   launched_platform_type UBU-500-HD_RB6
+   weapon_effects BOMB_500LB_HD_LETHALITY
+end_weapon
+
+weapon UBU-500-HD_PM6-WEAPON WSF_EXPLICIT_WEAPON
+   launched_platform_type UBU-500-HD_PM6
+   weapon_effects BOMB_500LB_HD_LETHALITY
+end_weapon
+
+# ------------------------------------------------------------------------------
+
+platform_type  UBU-500-HD_RB6  UBU-500-HD
+
+   # Setup the RB6 mover
+   mover WSF_RIGID_BODY_SIX_DOF_MOVER
+      vehicle_type     UBU-500-HD_RB6
+      update_interval  0.01 sec
+   end_mover
+   
+end_platform_type
+
+platform_type  UBU-500-HD_PM6  UBU-500-HD
+
+   # Setup the PM6 mover
+   mover WSF_POINT_MASS_SIX_DOF_MOVER
+      vehicle_type     UBU-500-HD_PM6
+      update_interval  0.05 sec
+   end_mover
+   
+end_platform_type
+
+platform_type  UBU-500-HD  WSF_PLATFORM
+
+   spatial_domain  air
+   side            green
+   icon            mk82_hd_ballute
+
+   processor fuse WSF_WEAPON_FUSE
+      on
+      gross_update_interval        0.02 sec
+      fine_update_interval         0.01 sec
+      time_of_flight_to_arm        0.5 sec
+      gross_proximity_range      500.00 ft
+      maximum_time_of_flight    3600.00 sec
+      detonate_below_height_agl   40.00 ft
+      detonate_below_height_msl   50.00 ft
+   end_processor
+
+end_platform_type
+
+six_dof_object_types
+   map_vehicle_to_platform UBU-500-HD_RB6 UBU-500-HD_RB6
+   map_vehicle_to_platform UBU-500-HD_PM6 UBU-500-HD_PM6
+end_six_dof_object_types

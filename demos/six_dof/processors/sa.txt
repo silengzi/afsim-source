@@ -1,0 +1,63 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+//
+processor GENERAL_ASSESSMENT WSF_SA_PROCESSOR
+   on
+   
+   update_interval 0.05 sec
+   
+   # Joker/Bingo Fuel States
+   joker_fuel 4000 lbs      
+   bingo_fuel 3000 lbs      
+   
+   # Data collection rates
+   behavior_calculation_update_interval         3.00 sec
+   report_interval                              1.00 sec
+   engagement_data_update_interval              0.10 sec
+   flight_data_update_interval                  0.05 sec
+   fuel_data_update_interval                    1.00 sec
+   nav_data_update_interval                     1.00 sec
+   flight_controls_data_update_interval         0.10 sec
+   weapons_data_update_interval                 0.50 sec
+   track_data_update_interval                   0.10 sec
+   asset_data_update_interval                   0.50 sec
+   perceived_item_data_update_interval          0.20 sec
+   prioritized_item_data_update_interval        1.00 sec      
+   perceived_item_calculation_update_interval   0.20 sec
+   prioritized_item_calculation_update_interval 1.00 sec      
+   
+   max_range_for_perceived_assets              2000 nm
+   max_range_for_perceived_bogies_and_bandits  2000 nm
+   max_range_for_engagement_data               2000 nm
+   assumed_range_for_angle_only_targets        1400 nm      
+   
+   filter_requires_air_domain              true
+   filter_requires_sa_processor            true
+
+   # Assets/friends settings
+   asset_perception           truth commander:peers:subordinates
+   #asset_perception          status_messages
+   perceive_self              false
+   reporting_self             true
+   reporting_others           true
+   max_asset_load             100
+
+   # Bogie and bandit/threat settings
+   max_threat_load            100
+   
+end_processor
+
+processor RED_ASSESSMENT GENERAL_ASSESSMENT
+   enemy_side     blue
+end_processor
+
+processor BLUE_ASSESSMENT GENERAL_ASSESSMENT
+   enemy_side     red
+end_processor

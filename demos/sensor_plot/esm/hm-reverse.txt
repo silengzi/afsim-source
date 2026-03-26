@@ -1,0 +1,68 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include ../../base_types/sensors/radar/blue_fcr_radar_1.txt
+include ../../base_types/sensors/radar/blue_abm_ttr.txt
+
+antenna_pattern  constAntenna
+   constant 3 db
+end_antenna_pattern
+
+sensor ESM WSF_ESM_SENSOR
+   frame_time    0.5 sec
+   azimuth_field_of_view     -180 deg 180 deg
+   elevation_field_of_view   -90 deg 90 deg
+   frequency_band   1.0 ghz  100.0 ghz
+
+   receiver
+     antenna_pattern constAntenna
+     noise_power   -120 dbm
+   end_receiver
+
+   reports_location
+end_sensor
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   sensor esm ESM
+      on
+   end_sensor
+end_platform_type
+
+platform emitter WSF_PLATFORM
+   position 0n 0e altitude 1 m heading 90 deg
+   add sensor radar BLUE_ABM_TTR
+      on
+   end_sensor
+end_platform
+
+horizontal_map
+   platform_to_detect_name emitter
+   exclude sensor_type BLUE_FCR_RADAR_1
+   exclude sensor_type BLUE_ABM_TTR
+
+   gnuplot_file hm-reverse.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+
+   variable signal_power
+   header_line_1 "Received signal power"
+
+   down_range_limits  -200 nm 200 nm
+   down_range_step     1 nm
+   cross_range_limits  -200 nm 200 nm
+   cross_range_step    1 nm
+   cross_range_limits 0 nm 0 nm
+
+   target_heading  270 deg
+   target_altitude 30000 ft
+   target_speed    0 kts
+   target_pitch    0 deg
+   target_roll     0 deg
+end_horizontal_map

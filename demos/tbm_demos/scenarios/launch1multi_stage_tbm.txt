@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Define a platform that is sitting at the target location.
+
+platform target-4 TARGET
+   side blue
+   position 37:31n 127e
+end_platform
+
+platform tbm2-launcher TBM2_LAUNCHER
+   side red
+   position 36:01n 120e
+
+   # Declare how many missiles we have
+   weapon tbm2-missile
+      quantity 1
+      # The following are the 'pre-computed' launch angles to hit target-1.
+      # If you comment out the track definition then it will use these to
+      # to define the initial conditions.
+      yaw   75.3303928 deg
+      pitch 85.67082852 deg
+   end_weapon
+
+   # Add a script processor that will launch the weapon.
+   add processor script WSF_SCRIPT_PROCESSOR
+      update_interval 45.0 sec
+      on_update
+         if (TIME_NOW > 1.0)
+         {
+            static int trackIndex = 0;
+            writeln("TIME_NOW ", TIME_NOW);
+            WsfWeapon tbm = PLATFORM.Weapon("tbm2-missile");
+            if (tbm.IsValid() &&
+                (tbm.QuantityRemaining() > 0))
+            {
+               WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+               if (trackIndex < trackList.TrackCount())
+               {
+                  tbm.Fire(trackList.TrackEntry(trackIndex));
+                  trackIndex = trackIndex + 1;
+               }
+               else
+               {
+                  tbm.Fire();
+               }
+            }
+            else
+            {
+               PROCESSOR.TurnOff();
+            }
+         }
+      end_on_update
+   end_processor
+
+   # Define a 'pre-brief' track that indicates the target location
+   track
+      platform target-4
+      position 37:31n 127e
+   end_track
+
+end_platform
+
+

@@ -1,0 +1,60 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+// Launch/engagement computer for the MR_SAM (50 NM)
+// Using same missile as the LR_SAM...
+
+script bool MR_SAM_LaunchComputer(WsfTrack aTrack,
+                                     WsfPlatform aLauncher,
+                                     string aEnvelopeName,
+                                     double aLaunchDelay)
+
+   bool canIntercept = false;
+
+   // TODO assuming launcher at 0 alt.  need AGL of target
+   double tgtAlt = aLauncher.RelativeAltitudeOf(aTrack);
+   double RngToTgt = aLauncher.GroundRangeTo(aTrack);
+
+   double maxTOF = 90.0; // This limits the range to about 50 nm
+   double avgSpd = 0.0;
+   double maxRng = 0.0;
+   double shootDelay = 0.0;
+   // Max range check to 60 nautical miles.
+   if (RngToTgt > 111120) { return canIntercept; } // If too far...
+
+
+   // Determine maxRng by target altitude
+   if (tgtAlt      < 152  ) { maxRng =  55560 ; }
+   else if (tgtAlt < 457  ) { maxRng =  92600 ; }
+   else if (tgtAlt >= 762  ) { maxRng =  111120;  }
+
+
+   // Determine avgSpd by range to target
+
+   if ( RngToTgt      < 37040 ) { avgSpd = 1125;}
+   else if ( RngToTgt < 55560 ) { avgSpd = 1189;}
+   else if ( RngToTgt < 74080 ) { avgSpd = 1192;}
+   else if ( RngToTgt < 111120 ) { avgSpd = 1161;}
+
+   WsfWaypoint intercept = WsfWaypoint();
+   double tti = aLauncher.InterceptLocation3D(aTrack, intercept, avgSpd, aLaunchDelay + shootDelay);
+   if ((tti > 0.0) && (tti < maxTOF))
+   {
+      double lat = intercept.Latitude();
+      double lon = intercept.Longitude();
+      WsfGeoPoint point;
+      point = point.Construct(lat, lon, tgtAlt);
+      canIntercept = point.WithinZoneOf(aLauncher, aEnvelopeName);
+   }
+   return canIntercept;
+end_script

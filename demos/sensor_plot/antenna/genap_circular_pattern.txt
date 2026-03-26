@@ -1,0 +1,24 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# A GENAP-based circular pattern that approximates the base 'circular_pattern'
+###############################################################################
+
+antenna_pattern GENAP_CIRCULAR_PATTERN
+   genap_pattern
+      peak_gain                        35 db
+      minimum_gain                     -50 db
+      aperture_shape                   circular
+      azimuth_distribution             bw/sll
+      azimuth_beamwidth                2 deg
+      azimuth_side_lobe_level          18 db
+      elevation_distribution           bw/sll
+      elevation_beamwidth              2 deg
+      elevation_side_lobe_level        18 db
+end_antenna_pattern

@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/gps_handheld.txt
+
+# Example GPS Handheld sites
+
+platform PARIS_HANDHELD GPS_HANDHELD
+  position  48.846788n   2.365011e altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform BOSTON_HANDHELD GPS_HANDHELD
+  position   42.339923n   71.059874w altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform SINGAPORE_HANDHELD GPS_HANDHELD
+  position     1.283345n   103.859047e altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform SEOUL_HANDHELD GPS_HANDHELD
+  position   37.617509n   127.044403e altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform HANOI_HANDHELD GPS_HANDHELD
+  position  21.047019n   105.868938e altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform HONOLULU_HANDHELD GPS_HANDHELD
+  position  21.309159n  157.851871w altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform
+
+platform MOUNT_PLEASANT GPS_HANDHELD
+  position  51.82097077s  58.44847316w altitude 1.0 m agl
+  commander SELF
+  side green
+end_platform

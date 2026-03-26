@@ -1,0 +1,140 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# GPS SATELLITE COMMUNICATIONS DEFINITIONS
+
+include_once ../../patterns/SATCOM_nadir.txt
+
+# COMM TYPES
+#1) Satellite link to handheld users (1227.6 MHz)
+
+# References:
+# 1) http://www.gps.gov/governance/advisory/meetings/2015-06/bauer.pdf
+# 2) http://web.ics.purdue.edu/~ecalais/teaching/geodesy/GPS_observables.pdf
+# 3) http://www.gps.gov/technical/ps/2008-SPS-performance-standard.pdf
+# 4) http://www.navtechgps.com/gnss_facts/
+# 5) http://ascelibrary.org/doi/pdfplus/10.1061/9780784411506.ap02
+# 6) http://www.insidegnss.com/special/elib/Septentrio_white_paper_062012_01_GNSS_Interference.pdf
+# 7) http://www.emergentspace.com/assets/1/7/SSVP-v1.07-2column.pdf
+# 8) https://en.wikipedia.org/wiki/Global_Positioning_System
+
+comm GPS_DOWNLINKL1_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg    180 deg
+   elevation_field_of_view                 -90 deg    -68.7 deg   # ref 2
+   transmit_mode continuous
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1575.42 mhz  # ref 2
+      wavelength                          19.05 cm     # ref 2
+      bandwidth                           24 mhz       # ref 3
+      power                               12.75 dBW   # ref 4  this is the average between C/A and PY codes
+      polarization                        right_circular  # ref 3
+      pulse_repetition_interval           1.0 msecs    # ref 4  chipping rate of 1.023 Mbps with code of 1 ms
+   end_transmitter
+
+end_comm
+
+comm GPS_DOWNLINKL2_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg    180 deg
+   elevation_field_of_view                 -90 deg   -66.6 deg   # ref 2
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1227.6 mhz  # ref 2
+      wavelength                          24.45 cm    # ref 2
+      bandwidth                           20 mhz      # guess
+      power                               6.35 dBW    # ref 4
+      polarization                        right_circular  # ref 3
+      pulse_width                         15.0 usec   # guess
+      pulse_repetition_interval           150.0 usec  # guess
+   end_transmitter
+
+end_comm
+
+# L3 frequency used by the United States Nuclear Detonation Detection System to detect, locate, and report nuclear detonations in the Earths's atmosphere and near space.
+
+comm GPS_DOWNLINKL3_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg    180 deg
+   elevation_field_of_view                 -90 deg   -66.6 deg
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1381.05 mhz  # ref 8
+      wavelength                          22 cm       # guess
+      bandwidth                           22 mhz      # guess
+      power                               13 dBW      # guess
+      polarization                        right_circular  # guess
+      pulse_width                         15.0 usec   # guess
+      pulse_repetition_interval           1.0 usec  # guess
+   end_transmitter
+
+end_comm
+
+#  New III satellites will have L5 frequencies transmitting in 2018
+
+comm GPS_DOWNLINKL5_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   -64.0 deg  # ref 7
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1176.45 mhz  # ref 5
+      wavelength                          25.48 cm    # ref 5
+      bandwidth                           12 mhz      # ref 4
+      power                               24.2 dBW    # ref 4
+      pulse_width                         3.5 usec   # ref 6
+      pulse_repetition_interval           12.0 usec   # ref 6
+   end_transmitter
+
+end_comm
+
+comm GPS_UPLINKL1_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   90.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1575.42 mhz   # ref 2
+      bandwidth                           24 mhz        # ref 2
+      noise_power                         -163.5 dBW    # ref 4    average receiver power, min. guaranteed power is -158.5 dBW
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm GPS_UPLINKL2_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   90.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1227.6 mhz
+   end_receiver
+
+end_comm
+
+comm GPS_UPLINKL5_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   90.0 deg
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1176.45 mhz  # ref 5
+   end_receiver
+
+end_comm

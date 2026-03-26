@@ -1,0 +1,80 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform APRIZESAT_2(28366) X-COMM
+   orbit
+1 28366U 04025A   14243.76645054  .00000049  00000-0  29976-4 0  8367
+2 28366  98.3063 174.6633 0107620 222.8231 136.4536 14.36249448533095
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_1(28369) X-COMM
+   orbit
+1 28369U 04025D   14243.46376173  .00000238  00000-0  69789-4 0  9165
+2 28369  98.0491 212.5968 0032541 294.5304  65.2500 14.51705230538659
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_2(28370) X-COMM
+   orbit
+1 28370U 04025E   14243.94116813  .00000281  00000-0  87824-4 0  9149
+2 28370  98.1656 200.3369 0058666  25.4605 334.9457 14.46721404536915
+   end_orbit
+end_platform
+
+platform APRIZESAT_1(28372) X-COMM
+   orbit
+1 28372U 04025G   14243.79662012  .00000153  00000-0  51212-4 0  9028
+2 28372  98.1123 205.6410 0046035 340.8794  83.8796 14.49013609537776
+   end_orbit
+end_platform
+
+platform NANOSAT-1(28493) X-COMM
+   orbit
+1 28493U 04049B   14243.13084225  .00000405  00000-0  72443-4 0  9445
+2 28493  98.3430 277.8359 0004539  24.3556   7.5916 14.72308391520634
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_7(31119) X-COMM
+   orbit
+1 31119U 07012C   14244.05649975  .00000468  00000-0  10255-3 0  2295
+2 31119  97.8306 238.9328 0061625  38.7267 321.8328 14.60754212392977
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_6(31121) X-COMM
+   orbit
+1 31121U 07012E   14243.49146559  .00000373  00000-0  88063-4 0  2259
+2 31121  97.8782 228.1220 0079151  82.5321  41.5443 14.57583057392068
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_3(31125) X-COMM
+   orbit
+1 31125U 07012J   14243.64991429  .00000372  00000-0  78593-4 0  2474
+2 31125  97.7910 250.9999 0043725 359.2946   0.8189 14.64032438393768
+   end_orbit
+end_platform
+
+platform SAUDICOMSAT_4(31127) X-COMM
+   orbit
+1 31127U 07012L   14243.56570449  .00000391  00000-0  89359-4 0  2352
+2 31127  97.8528 233.5751 0070182  60.1827 300.6327 14.59271192392515
+   end_orbit
+end_platform
+
+platform AISSAT_1(36797) X-COMM
+   orbit
+1 36797U 10035C   14244.16175707  .00001299  00000-0  16366-3 0  5150
+2 36797  98.0156 335.2572 0013275  84.1136 276.1614 14.83694884223910
+   end_orbit
+end_platform
+

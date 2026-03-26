@@ -1,0 +1,197 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#include_once processors/quantum_agents/aiai/behavior_engage_weapon_task_target.txt
+include_once processors/quantum_agents/aiai/behavior_escort.txt
+include_once processors/quantum_agents/aiai/behavior_evade.txt
+include_once processors/quantum_agents/aiai/behavior_go_home.txt
+include_once processors/quantum_agents/aiai/behavior_planned_route.txt
+#include_once processors/quantum_agents/aiai/behavior_pursue-target_route_finder.txt
+include_once processors/quantum_agents/aiai/behavior_pursue_weapon_task_target.txt
+
+include_once behavior_fly_timeline.txt
+include_once behavior_engage_on_timeline.txt
+include_once air_combat_maneuvers.txt
+include_once common_timeline_scripts.txt
+
+processor  TIMELINE_FLYER_PROC  WSF_QUANTUM_TASKER_PROCESSOR
+  #show_task_messages
+   script_debug_writes  off
+   update_interval 5 sec
+
+   script_variables
+      bool stallForSupport = true;
+      WsfDraw draw = WsfDraw();
+   end_script_variables
+
+
+   state COMMIT   #should this be "SEARCH" or "MISSION"? meh...
+      on_entry
+         PLATFORM.Comment("COMMIT");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade   #YES, evade will likely be in every state
+            behavior_node  planned_route
+         end_selector
+      end_behavior_tree
+      next_state APPROACH
+#         #NAC+ at this point the fighter has committed to the target and received a timeline?
+#         double curDist = GetTargetDistance(PLATFORM, PROCESSOR);
+#         string distStr = (string)curDist;
+#        #string distStr = (string)tgtDist;
+#         string timelineStr = "COMMIT " + distStr;
+#         PLATFORM.Comment(timelineStr);
+#         double timelineVal = GetTimeLineValueForKey(PROCESSOR,"FSR");
+#         writeln_d("timelineVal = ", timelineVal);
+#         if (curDist != -1 && curDist <= GetTimeLineValueForKey(PROCESSOR,"FSR"))
+#         {
+#            return true;
+#         }
+         return GetTimelineTask(PROCESSOR).IsValid();
+      end_next_state
+   end_state
+
+
+   state APPROACH
+      on_entry
+         PLATFORM.Comment("APPROACH");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade
+	         behavior_node  fly_timeline
+         end_selector
+      end_behavior_tree
+      next_state SHOOT_MANEUVER
+         #Engage(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         double curDist = GetTargetDistance(PLATFORM, PROCESSOR);
+#         string distStr = (string)curDist;
+#         string timelineStr = "APPROACH " + distStr;
+#         PLATFORM.Comment(timelineStr);
+         if (curDist != -1 && curDist <= GetTimeLineValueForKey(PROCESSOR,"DOR") && !stallForSupport)
+         {
+            #Take the shot
+            WsfTrack targetTrack = GetNearestTimelineTarget(PLATFORM, PROCESSOR);
+            if (targetTrack.IsValid() && PLATFORM.WeaponCount() > 0)
+            {
+               WsfWeapon myWeap = PLATFORM.WeaponEntry(0);
+               if (myWeap.IsValid())
+               {
+                  myWeap.Fire(targetTrack);
+                  PLATFORM.Comment("Fired Shot!");
+               }
+            }
+            return true;
+         }
+         return false;
+      end_next_state
+      #NAC+ : Branch state here to maneuver if outside of OSR and need to slow down engagement or do something else
+      next_state DELAY_MANEUVER
+         double curDist = GetTargetDistance(PLATFORM, PROCESSOR);
+#         string distStr = (string)curDist;
+#         string timelineStr = "APPROACH delay" + distStr;
+#         PLATFORM.Comment(timelineStr);
+         if (curDist != -1 && curDist <= GetTimeLineValueForKey(PROCESSOR,"DOR") && stallForSupport)
+         {
+            #perform a delaying maneuver
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+
+   state SHOOT_MANEUVER
+      on_entry
+         PLATFORM.Comment("SHOOT_MANEUVER");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade
+	         behavior_node  fly_timeline
+            behavior_node  planned_route
+         end_selector
+	     #behavior_node  engage_weapon_task_target
+      end_behavior_tree
+      next_state FLY_TO_DOR
+         #Engage(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         #Beam(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         #Crank(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         Drag(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         #PostHole(PLATFORM, "right");
+         double curDist = GetTargetDistance(PLATFORM, PROCESSOR);
+#         string distStr = (string)curDist;
+#         string timelineStr = "Shoot Maneuver " + distStr;
+#         PLATFORM.Comment(timelineStr);
+         if (curDist != -1 && curDist <= GetTimeLineValueForKey(PROCESSOR,"MAR"))
+         {
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+
+   state DELAY_MANEUVER
+      on_entry
+         PLATFORM.Comment("DELAY_MANEUVER");
+      end_on_entry
+      next_state APPROACH
+         #Engage(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         #Beam(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         #Crank(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         Drag(PLATFORM, GetNearestTimelineTarget(PLATFORM, PROCESSOR));
+         stallForSupport = false;
+         #PostHole(PLATFORM, "right");
+         #PLATFORM.Comment("Stall Maneuver!");
+         return true;
+      end_next_state
+   end_state
+
+
+   state FLY_TO_DOR
+      on_entry
+         PLATFORM.Comment("FLY_TO_DOR");
+      end_on_entry
+      behavior_tree
+           #behavior_node  pursue_weapon_task_target
+	         behavior_node  fly_timeline
+      end_behavior_tree
+      next_state GO_HOME
+         double curDist = GetTargetDistance(PLATFORM, PROCESSOR);
+#         string distStr = (string)curDist;
+#         string timelineStr = "FLY_TO_DOR " + distStr;
+#         PLATFORM.Comment(timelineStr);
+         if (curDist <= GetTimeLineValueForKey(PROCESSOR,"MAR"))
+         {
+            #PLATFORM.Comment("Reached MAR");
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+
+   state GO_HOME
+      on_entry
+         PLATFORM.Comment("GO_HOME");
+      end_on_entry
+      behavior_tree
+            behavior_node  planned_route
+         end_behavior_tree
+      next_state COMMIT
+         WsfWaypoint waypt = PLATFORM.Mover().Route().Front();
+         PLATFORM.GoToLocation(waypt);
+#         PLATFORM.Comment("Flying Home");
+         return false;
+      end_next_state
+   end_state
+
+end_processor

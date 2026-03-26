@@ -1,0 +1,290 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+
+//pursue-target_pathing
+
+
+
+behavior pursue-target_pathing
+
+   script_variables
+
+      double                 cBUCKET_BASE              = 1.2;
+      double                 cINTERCEPT_SPEED          = 1000;    # m/s
+      double                 cWAIT_SPEED               = 200;     # m/s
+
+      double ownshipEngagementRangeMin = 0; // set later GetWeaponRangeMin(PLATFORM, mWeaponArray);
+      double ownshipEngagementRangeMax = 0; // set later GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+     #bool                   mUseMoverDuringPursuit = true;     #set to false to force aiai to follow route during pursuit of target
+
+      //use this offset angle if a category specific offset isn't found
+      double                 mFPoleAngle = 45.0; // this should be radar-specific
+      //fly different offset angles, depending on the type or category of threat
+      Map<string, double> ThreatTypeOffsetAngle = Map<string, double>();
+      ThreatTypeOffsetAngle["unknown"]          =  45.0;
+      ThreatTypeOffsetAngle["sam"]              =  50.0;
+      ThreatTypeOffsetAngle["awacs"]            =  15.0;
+      ThreatTypeOffsetAngle["fighter"]          =  35.0;
+
+   end_script_variables
+
+
+   precondition
+      writeln("precondition pursue-target_pathing");
+
+      extern WsfTrack GetTrackByName        (WsfPlatform, string);
+      extern bool     TestTrackCategory     (WsfTrack, string);
+
+      if (!PLATFORM.GetPathFinder().IsValid())
+      {
+         writeln("no path-finder available");
+         return false;
+      }
+
+      // Clear the variables we'll use to store the agent's output
+      PROCESSOR.ClearTarget();
+
+      WsfRIPRJob currentJob = null;
+      if (PROCESSOR.GetRIPRCommanderProcessor().IsValid())
+      {
+         currentJob = PROCESSOR.GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR);
+      }
+
+      if (!currentJob.IsValid() || currentJob.Name() != "pursue-target")
+      {
+         writeln_d("    job not valid pursue-target job from board!");
+         return false;
+      }
+
+      string   targetName  = (string)currentJob.GetData("targetTrackName");
+      WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+
+      if (!targetTrack.IsValid() || TestTrackCategory(targetTrack, "unknown"))
+      {
+         writeln_d("    No known category track found for target ", targetName);
+         return false;
+      }
+
+      PROCESSOR.SetTarget(targetTrack);
+
+      return true;
+
+   end_precondition
+
+
+
+   on_init
+      extern double GetWeaponRangeMax (WsfPlatform, Array<Map<string, Object>>);
+      extern double GetWeaponRangeMin (WsfPlatform, Array<Map<string, Object>>);
+      extern Array<Map<string, Object>> mWeaponArray;
+      ownshipEngagementRangeMin = GetWeaponRangeMin(PLATFORM, mWeaponArray);
+      ownshipEngagementRangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+   end_on_init
+
+
+    script double GetOffsetAngleOnThreat(WsfTrack threat)
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : double angle in ThreatTypeOffsetAngle )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+                    writeln_d("offset angle for type ", aCategory, " = ", angle);
+                    return angle;
+                }
+            }
+        }
+        return mFPoleAngle;
+    end_script
+
+
+   execute
+      writeln("executing pursue-target_pathing.");
+
+      extern int      GetBucket             (double, double);
+      extern string   CalculatePositioning  (WsfPlatform, WsfTrack, double);
+
+      //get target from ripr processor, to be sure
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+
+      double ownSpeed       = GetBucket(PLATFORM.Speed(), cBUCKET_BASE);
+      double engageRangeMin = GetBucket(ownshipEngagementRangeMin, cBUCKET_BASE);
+      double engageRangeMax = GetBucket(ownshipEngagementRangeMax, cBUCKET_BASE);
+      double slantRangeTo   = GetBucket(PLATFORM.SlantRangeTo(targetTrack), cBUCKET_BASE);
+      double targetSpeed    = GetBucket(targetTrack.Speed(), cBUCKET_BASE);
+      string positioning    = CalculatePositioning(PLATFORM, targetTrack, GetOffsetAngleOnThreat(targetTrack));
+      int    weaponsActive  = PROCESSOR.WeaponsActive(targetTrack);
+
+      string mPursuitMode = "pure";
+
+      if (weaponsActive > 0)
+      {
+         mPursuitMode = "f-pole";
+      }
+      else if (targetTrack.AirDomain())
+      {
+         if (slantRangeTo >= engageRangeMax &&
+                positioning  != "head-to-head" &&
+                positioning  != "head-to-tail" &&
+                targetSpeed  >= ownSpeed)
+         {
+            mPursuitMode = "lead";
+         }
+         else if (slantRangeTo <= engageRangeMax &&
+                positioning  != "head-to-head" &&
+                positioning  != "head-to-tail")
+         {
+            mPursuitMode = "lag";
+         }
+         else if (slantRangeTo  > engageRangeMax ||
+                (slantRangeTo <= engageRangeMax &&
+                 (positioning  == "head-to-head" ||
+                  positioning  == "head-to-tail")))
+         {
+            mPursuitMode = "pure";
+         }
+      }
+
+
+      #TransitionToINTERCEPT( targetTrack, mPursuitMode );
+
+      #PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+      #if (mUseMoverDuringPursuit)
+      #{
+      #   #nothing
+      #   PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200);
+      #}
+      #else
+      #{
+      #  #TransitionToWAIT(true);     #FAIL
+      #  #PLATFORM.FollowRoute("DEFAULT_ROUTE", "CLOSEST_POINT"); #better
+      #  PLATFORM.ReturnToRoute();
+      #  PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200, true);
+      #}
+      #PROCESSOR.SetUpdateInterval(cFAST_UPDATE_RATE);
+      #writeln_d("    Transition to INTERCEPT due to pursuing ", targetTrack.TargetName(), " mode ", mPursuitMode);
+      #end_script
+      #CheckAndFire(targetTrack);  #do this in the weapon management behavior???
+
+
+      // Our track quality (or target range) may not be good enough yet, so keep moving towards the target.
+
+      if (targetTrack.IsNull())
+      {
+         writeln_d("behavior pursue-target_pathing, targetTrack is null");
+         return;
+      }
+
+
+      writeln_d("      ", mPursuitMode, " pursuit");
+
+      // If we got the altitude from the TRACK, match it
+      extern double cDEFAULT_ALTITUDE;
+      double interceptAltitude = cDEFAULT_ALTITUDE;
+      //double interceptAltitude = PLATFORM.Altitude();
+      double interceptHeading  = PLATFORM.Heading();
+      double distanceToTarget  = PLATFORM.SlantRangeTo(targetTrack);
+      bool useIntercept = false;
+
+      double desiredSpeed = cINTERCEPT_SPEED;
+      if (targetTrack.VelocityValid() && targetTrack.AirDomain())
+      {
+         extern double EffectiveRange(WsfPlatform, WsfTrack);
+
+         extern double GetWeaponRangeMax (WsfPlatform, Array<Map<string, Object>>);
+         extern double GetWeaponRangeMin (WsfPlatform, Array<Map<string, Object>>);
+
+         double rangeMin = GetWeaponRangeMin(PLATFORM, mWeaponArray);
+         double rangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+         double speedOfTarget = targetTrack.Speed();
+         double effRange      = EffectiveRange(PLATFORM, targetTrack);
+         double missileWindow = rangeMax - rangeMin;
+         double speedWindow   = cINTERCEPT_SPEED - speedOfTarget;
+
+
+         if(effRange < rangeMax &&  effRange > rangeMin)
+         {
+            double rangeScale = (effRange - rangeMin) / missileWindow;
+            desiredSpeed = speedOfTarget + (speedWindow * rangeScale);
+         }
+         else if (effRange <= rangeMin)
+         {
+            desiredSpeed = speedOfTarget;
+         }
+
+         if (desiredSpeed < cWAIT_SPEED)
+         {
+            desiredSpeed = cWAIT_SPEED;
+         }
+      }
+      PLATFORM.GoToSpeed(desiredSpeed);
+
+      WsfGeoPoint startGeoPoint = PLATFORM.Location();
+      WsfGeoPoint endGeoPoint = targetTrack.ReportedLocation();
+
+      if (mPursuitMode == "lead")
+      {
+         double timeToIntercept = 0.0;
+         WsfWaypoint interceptPoint = WsfWaypoint();
+
+         timeToIntercept = PLATFORM.InterceptLocation3D(targetTrack, interceptPoint);
+         // If timeToIntercept is positive then we know intercept is possible
+         if (timeToIntercept > 0.0)
+         {
+            endGeoPoint = targetTrack.ReportedLocation();
+
+            #writeln_d("    T=", TIME_NOW, " TTI=", timeToIntercept, " range: ", PLATFORM.SlantRangeTo(targetTrack), " true-bearing: ", interceptPoint.Heading());
+            #writeln_d("      lead pursuit: ", interceptPoint.Latitude(), ", ", interceptPoint.Longitude(), ", ", interceptPoint.Altitude());
+         }
+         else
+         {
+            writeln_d("    lead pursuit attempt with timeToIntercept < 0");
+         }
+      }
+      else if (mPursuitMode == "f-pole")
+      {
+         extern double MaximizeFPole(WsfPlatform, WsfTrack, double);
+         interceptHeading = MaximizeFPole(PLATFORM, targetTrack, GetOffsetAngleOnThreat(targetTrack));
+         endGeoPoint   = PLATFORM.Location();
+         //f-pole towards a point 30 miles away in the correct direction
+         endGeoPoint.Extrapolate(interceptHeading, 55560);
+
+         #writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(targetTrack), " true-bearing: ", PLATFORM.TrueBearingTo(targetTrack));
+      }
+      else
+      {
+         //otherwise... just fly at the target
+         endGeoPoint = targetTrack.ReportedLocation();
+
+         #writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(targetTrack), " true-bearing: ", PLATFORM.TrueBearingTo(targetTrack),
+         #   " (", endGeoPoint.Latitude(), "/", targetTrack.Latitude(), ",", endGeoPoint.Longitude(), "/", targetTrack.Longitude(), ")");
+      }
+
+      //make sure we don't dive, staying above the target is fine
+      if (endGeoPoint.Altitude() < interceptAltitude)
+      {
+         endGeoPoint.Set(endGeoPoint.Latitude(), endGeoPoint.Longitude(), interceptAltitude);
+      }
+
+      if (!PLATFORM.FindAndSetPath(startGeoPoint, endGeoPoint))
+      {
+         PLATFORM.FollowRoute("DEFAULT_ROUTE","CLOSEST_POINT");
+        #PLATFORM.Comment("Route: DEFAULT");
+      }
+
+   end_execute
+
+end_behavior

@@ -1,0 +1,99 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# common terrain configuration
+
+terrain
+  #dted 1  c:/AFSIM/dted1/dted115
+end_terrain
+/*
+terrain
+   dted 1  c:/AFSIM/dted1/dted101
+   dted 1  c:/AFSIM/dted1/dted102
+   dted 1  c:/AFSIM/dted1/dted103
+   dted 1  c:/AFSIM/dted1/dted104
+   dted 1  c:/AFSIM/dted1/dted105
+   dted 1  c:/AFSIM/dted1/dted106
+   dted 1  c:/AFSIM/dted1/dted107
+   dted 1  c:/AFSIM/dted1/dted108
+   dted 1  c:/AFSIM/dted1/dted109
+   dted 1  c:/AFSIM/dted1/dted110
+   dted 1  c:/AFSIM/dted1/dted111
+   dted 1  c:/AFSIM/dted1/dted112
+   dted 1  c:/AFSIM/dted1/dted113
+   dted 1  c:/AFSIM/dted1/dted114
+   dted 1  c:/AFSIM/dted1/dted115
+   dted 1  c:/AFSIM/dted1/dted116
+   dted 1  c:/AFSIM/dted1/dted117
+   dted 1  c:/AFSIM/dted1/dted118
+   dted 1  c:/AFSIM/dted1/dted119
+   dted 1  c:/AFSIM/dted1/dted120
+   dted 1  c:/AFSIM/dted1/dted121
+   dted 1  c:/AFSIM/dted1/dted122
+   dted 1  c:/AFSIM/dted1/dted123
+   dted 1  c:/AFSIM/dted1/dted124
+   dted 1  c:/AFSIM/dted1/dted125
+   dted 1  c:/AFSIM/dted1/dted126
+   dted 1  c:/AFSIM/dted1/dted127
+   dted 1  c:/AFSIM/dted1/dted128
+   dted 1  c:/AFSIM/dted1/dted129
+   dted 1  c:/AFSIM/dted1/dted130
+   dted 1  c:/AFSIM/dted1/dted131
+   dted 1  c:/AFSIM/dted1/dted132
+   dted 1  c:/AFSIM/dted1/dted133
+   dted 1  c:/AFSIM/dted1/dted134
+   dted 1  c:/AFSIM/dted1/dted135
+   dted 1  c:/AFSIM/dted1/dted136
+   dted 1  c:/AFSIM/dted1/dted137
+   dted 1  c:/AFSIM/dted1/dted138
+   dted 1  c:/AFSIM/dted1/dted139
+   dted 1  c:/AFSIM/dted1/dted140
+   dted 1  c:/AFSIM/dted1/dted141
+   dted 1  c:/AFSIM/dted1/dted142
+   dted 1  c:/AFSIM/dted1/dted143
+   dted 1  c:/AFSIM/dted1/dted144
+   dted 1  c:/AFSIM/dted1/dted145
+   dted 1  c:/AFSIM/dted1/dted146
+   dted 1  c:/AFSIM/dted1/dted147
+   dted 1  c:/AFSIM/dted1/dted148
+   dted 1  c:/AFSIM/dted1/dted149
+   dted 1  c:/AFSIM/dted1/dted150
+   dted 1  c:/AFSIM/dted1/dted151
+   dted 1  c:/AFSIM/dted1/dted152
+   dted 1  c:/AFSIM/dted1/dted153
+   dted 1  c:/AFSIM/dted1/dted154
+   dted 1  c:/AFSIM/dted1/dted155
+   dted 1  c:/AFSIM/dted1/dted156
+   dted 1  c:/AFSIM/dted1/dted157
+   dted 1  c:/AFSIM/dted1/dted158
+   dted 1  c:/AFSIM/dted1/dted159
+   dted 1  c:/AFSIM/dted1/dted160
+   dted 1  c:/AFSIM/dted1/dted161
+   dted 1  c:/AFSIM/dted1/dted163
+   dted 1  c:/AFSIM/dted1/dted164
+   dted 1  c:/AFSIM/dted1/dted165
+   dted 1  c:/AFSIM/dted1/dted166
+   dted 1  c:/AFSIM/dted1/dted167
+   dted 1  c:/AFSIM/dted1/dted168
+   dted 1  c:/AFSIM/dted1/dted169
+   dted 1  c:/AFSIM/dted1/dted170
+   dted 1  c:/AFSIM/dted1/dted171
+   dted 1  c:/AFSIM/dted1/dted172
+   dted 1  c:/AFSIM/dted1/dted174
+   dted 1  c:/AFSIM/dted1/dted175
+   dted 1  c:/AFSIM/dted1/dted176
+   dted 1  c:/AFSIM/dted1/dted177
+   dted 1  c:/AFSIM/dted1/dted178
+   dted 1  c:/AFSIM/dted1/dted179
+   dted 1  c:/AFSIM/dted1/dted180
+   dted 1  c:/AFSIM/dted1/dted181
+   dted 1  c:/AFSIM/dted1/dted182
+   dted 1  c:/AFSIM/dted1/dted183
+   dted 1  c:/AFSIM/dted1/dted184
+end_terrain
+*/

@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Generate a plot file for comparison with the example.
+#
+# This is a simple exercise of the blackbody target model.
+#
+# The resulting plot file is 'simple_target.plt'. It can be plotted with GNUPLOT
+# using the command 'load "simple_target.gnu"'.
+# ==============================================================================
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+   show_status          true
+   load_atmosphere      DEFAULT     from ../../modtran/us_std_day.txt
+   load_sensor          MWIR_SENSOR from simple_mwir_sensor.txt
+   load_sensor          LWIR_SENSOR from simple_lwir_sensor.txt
+   load_target          TARGET      from simple_target.txt
+
+   test simple_target_plot
+end_sosm_interface

@@ -1,0 +1,118 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates the hierarchical maneuver capability available for
+# P6DOF movers. A maneuver can be formed of other more elementary maneuvers
+# which, put together, can lead to complex behaviors. This demonstrates the
+# technique of using a library of maneuvers that can then be used in many
+# different situations.
+#
+# ******************************************************************************
+
+define_path_variable CASE relative_maneuvers
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 11 min
+
+include_once platforms/fa-lgt.txt
+include_once platforms/fa-hvy.txt
+
+include_once scripts/maneuvers_library.txt
+
+platform_type ManeuveringBlueFlyer FA-LGT
+   update_interval 0.01 sec
+   icon f16
+   follow_vertical_track
+end_platform_type
+
+platform_type ManeuveringRedFlyer FA-HVY
+   update_interval 0.01 sec
+   icon mig29_rus
+   follow_vertical_track
+end_platform_type
+
+platform red ManeuveringRedFlyer
+   side red
+
+   route
+      position 30.000n 60.000w altitude 10000 ft speed 450.0 knots
+      position 30.010n 60.010w altitude 10000 ft speed 450.0 knots
+      position 30.020n 60.020w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform blue ManeuveringBlueFlyer
+   side blue
+
+   route
+      position 30:01:05.520n 60:02:03.480w altitude 10000 ft speed 450.0 knots
+      position 30:01:01.600n 60:01:42.600w altitude 10000 ft speed 450.0 knots
+      position 30:00:57.4n 60:01:17.5w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+execute at_time 0.1 s absolute
+   WsfPlatform blue = WsfSimulation.FindPlatform("blue");
+   WsfP6DOF_Mover moverBlue = (WsfP6DOF_Mover)blue.Mover();
+   moverBlue.SetBankAngleMax(180.0);
+   moverBlue.SetPitchGLoadMax(8.0);
+
+   WsfPlatform red = WsfSimulation.FindPlatform("red");
+   WsfP6DOF_Mover moverRed = (WsfP6DOF_Mover)red.Mover();
+   moverRed.SetBankAngleMax(180.0);
+   moverRed.SetPitchGLoadMax(8.0);
+end_execute
+
+# Give 'red' a sequence of maneuvers to perform.
+execute at_time 10 s absolute
+   WsfManeuverSequence sqn = WsfManeuverSequence.Construct();
+
+   WsfRollAngleManeuver turnOne = WsfRollAngleManeuver.Construct(60.0);
+   turnOne.SetExitConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(100.0));
+   sqn.Append(turnOne);
+   
+   WsfRollAngleManeuver flatten = WsfRollAngleManeuver.Construct(0.0);
+   flatten.SetExitConstraint(WsfManeuverConstraint.AT_ROLL_ANGLE(0.0));
+   sqn.Append(flatten);
+   
+   sqn.Append(Immelmann());
+
+   WsfManeuver sliceBack = SliceBack();
+   sliceBack.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(50.0));
+   sqn.Append(sliceBack);
+
+   WsfManeuver scissors = FlatScissors(2, 60.0, 15.0);
+   scissors.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(15.0));
+   sqn.Append(scissors);
+
+   WsfRollAngleManeuver turn = WsfRollAngleManeuver.Construct(-60.0);
+   turn.SetEntryConstraint(WsfManeuverConstraint.AT_RELATIVE_TIME(20.0));
+   sqn.Append(turn);
+
+   WsfPlatform red = WsfSimulation.FindPlatform("red");
+   WsfP6DOF_Mover moverRed = (WsfP6DOF_Mover)red.Mover();
+   moverRed.ExecuteManeuver(sqn);
+end_execute
+
+execute at_time 15 s absolute
+   // Create a pursue maneuver targeting 'red' with the intent of ending 
+   // 300 meters behind the target.
+   WsfPursueManeuver mvr = WsfPursueManeuver.Construct("red", -300.0);
+   mvr.SetG_LoadMax(8.0);
+   mvr.SetG_LoadMin(0.0);
+   mvr.SetSpeedKTAS_Max(500.0);
+   mvr.SetSpeedKTAS_Min(400.0);
+   WsfPlatform blue = WsfSimulation.FindPlatform("blue");
+   WsfP6DOF_Mover moverBlue = (WsfP6DOF_Mover)blue.Mover();
+   moverBlue.ExecuteManeuver(mvr);
+end_execute

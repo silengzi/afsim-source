@@ -1,0 +1,319 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#with commander:
+#bids on "zone" jobs
+#creates "pursue-target" jobs
+#does not perform any jobs
+#without commander:
+#creates "pursue-target" jobs from threats in tracklist
+
+
+    processor AISC-thinker WSF_RIPR_PROCESSOR
+
+      #debug
+      #script_debug_writes on
+      script_debug_writes off
+
+      update_interval 5.0 seconds
+
+      script_variables
+        Map<string, int> mTargetNameJobIdMap = Map<string, int>();
+        Map<int, string> mJobIdTargetNameMap = Map<int, string>();
+        int mMaxJobWinners = 1;
+        int mNumJobChannels = 3;
+      end_script_variables
+
+
+      on_initialize
+         //SetJobAllocationMode(2);
+         SetNumJobChannels(mNumJobChannels);
+         SetJobStickiness(1.0);
+      end_on_initialize
+
+
+
+      on_update
+         writeln_d( "AISC on_update" );
+
+        #extern WsfTrack GetTrackByName(WsfPlatform, string);
+
+        //this agent acts slightly different if it has a commander
+        //it bids on its commander's jobs based on other bids from its subordinates
+
+        Map<string, int> updatedJobs = Map<string, int>();
+
+        if( GetRIPRCommanderProcessor().IsValid() )
+        {
+          writeln_d("   ", PLATFORM.Name(), "  update with commander.");
+
+          Array<WsfRIPRJob> jobs = GetRIPRCommanderProcessor().GetJobs();
+
+          //this agent is special, he'll use a different channel to bid on each of his commander's jobs
+          //this is done so that he can potentially win each and every job
+
+          writeln_d("AISC update - number of jobs to bid on: ", jobs.Size());
+
+          //bid on all the commander's jobs
+          foreach (WsfRIPRJob aJob in jobs)
+          {
+            for( int channel = 0; channel < GetNumJobChannels(); channel = channel + 1 )
+            {
+               double bidValue = QueryBid(aJob);
+               if( bidValue > -MATH.DOUBLE_MAX() )
+               {
+                  //bidValue = bidValue * MATH.Pow(0.97,(double)channel);
+                  aJob.BidJob( PROCESSOR, channel, bidValue );
+                  writeln_d( "AISC update - channel ", channel, " bid ", bidValue, " on job ", aJob.GetDescription() );
+               }
+            }
+          }
+
+          //find out which jobs this agent has won, and create/update local jobs based on them
+          Map<string, int> updatedTargetJobs = Map<string, int>();
+          for (int i = 0; i < GetNumJobChannels(); i = i+1 )
+          {
+            WsfRIPRJob aJob = GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR, i);
+            if (aJob.IsValid())
+            {
+               // we won this job, remove all other bids from our other channels
+               for( int otherChannel = 0; otherChannel < GetNumJobChannels(); otherChannel = otherChannel + 1 )
+               {
+                  if( otherChannel != i )
+                  {
+                     aJob.UnbidJob( PROCESSOR, otherChannel );
+                  }
+               }
+
+              string NewComment = "AISC update - channel " + (string)i + " won job: " + aJob.GetDescription();
+              PLATFORM.Comment(NewComment);
+              writeln_d( NewComment );
+
+              //break up each job of many targets into single-target jobs
+             #extern WsfTrack GetTrackByName(WsfPlatform, string);
+
+              Array<string> arr = (Array<string>)aJob.GetData("ZoneThreatNameArray");
+              foreach (string targetName in arr)
+              {
+                // if the track doesnt exist or is dead, dont create or update a job for it
+                WsfTrack target = GetTrackByName(PLATFORM, targetName);
+                if( !target.IsValid() || target.BelievedDead() )
+                {
+                  continue;
+                }
+
+                if (mTargetNameJobIdMap.Exists(targetName))
+                {
+                  //job exists, just update it
+                  //not much updating done here, could probably leave this out, just a stub for now
+                  int jobId = mTargetNameJobIdMap.Get(targetName);
+                  WsfRIPRJob eJob = GetJobById(jobId);
+                  double currentPriority = 1.0;
+                  eJob.Priority(currentPriority);
+                }
+                else
+                {
+                  //job doesn't exist yet, create it
+                  //make sure there is a job on this agent's board for this target
+                  double Priority = 1.0 / PLATFORM.SlantRangeTo( GetTrackByName(PLATFORM, targetName) ); // base priority on distance?
+                  WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                                       "pursue-target",
+                                                       "pursue-target-" + targetName,
+                                                       Priority,
+                                                       mMaxJobWinners );
+
+                  temp.SetData("targetTrackName", targetName);
+                  mTargetNameJobIdMap.Set(targetName, temp.GetId());
+                  AddJob(temp);
+                }
+
+                //either way the job was updated or created, record that fact
+                updatedJobs.Set(targetName,1 );
+              }
+            }
+          }
+        }
+        else
+        {
+          //no ripr commander was found for this agent
+          //continue to function as if he doesn't exist or is dead
+          //simply create jobs for each threat we know about
+          //this agent considers itself the highest level commander for any of it's subordinates
+
+          writeln_d("   ", PLATFORM.Name(), "  update WITHOUT commander, stand-alone.");
+          WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+          //writeln_d("AISC update - ",PLATFORM.Name()," track count: ",localTracks.Count());
+
+          foreach (WsfTrack track in localTracks)
+          {
+            if ( mTargetNameJobIdMap.Exists( track.TargetName() ) )
+            {
+              //update existing job
+              double currentPriority = 1.0;
+              int jobId = mTargetNameJobIdMap.Get(track.TargetName());
+              WsfRIPRJob job = GetJobById(jobId);
+
+              job.Priority( currentPriority );
+              job.SetData("TrackId", track.TrackId() );           //redundant, this shouldn't change anything
+              job.SetData("targetTrackName", track.TargetName()); //redundant, this shouldn't change anything
+
+              if (track.WithinZoneOf(PLATFORM,"MEZ"))
+              {
+                job.SetData( "for_air",    0 );
+                job.SetData( "for_ground", 1 );
+              }
+              else if (track.WithinZoneOf(PLATFORM,"FEZ"))
+              {
+                job.SetData( "for_air",    1 );
+                job.SetData( "for_ground", 0 );
+              }
+              else
+              {
+                job.SetData( "for_air",    1 );
+                job.SetData( "for_ground", 1 );
+              }
+            }
+            else
+            {
+              //create new job
+              double initialPriority = 1.0;
+              WsfRIPRJob temp;
+              temp = temp.Create( PROCESSOR,
+                                  "pursue-target",
+                                  "pursue-target-" + track.TargetName(),
+                                  initialPriority,
+                                  mMaxJobWinners );
+              //temp.SetData("TrackId", track.TrackId() );
+              temp.SetData("targetTrackName", track.TargetName());
+
+              if ( track.WithinZoneOf(PLATFORM,"MEZ") )
+              {
+                temp.SetData( "for_air",    0 );
+                temp.SetData( "for_ground", 1 );
+              }
+              else if ( track.WithinZoneOf(PLATFORM,"FEZ") )
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 0 );
+              }
+              else
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 1 );
+              }
+
+              AddJob(temp);
+              mTargetNameJobIdMap.Set(track.TargetName(), temp.GetId());
+              mJobIdTargetNameMap.Set(temp.GetId(), track.TargetName());
+              writeln_d("~~~ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+              //double bidValue = QueryBid(temp);
+              //writeln_d("QueryBid(job) returned: ", bidValue);
+            }
+
+            //either way the job was updated or created, record that fact
+            updatedJobs.Set( track.TargetName(), 1 );
+          }
+        }
+
+        //now make sure the right jobs are removed
+
+        DeleteCompletedJobs();
+
+        //this agent might have created jobs depending on other jobs from its commander
+        //or the targets for previous jobs might not exist anymore
+
+        //remove any jobs that are for non-existent tracks
+        Array<WsfRIPRJob> jobs = GetJobs();
+        foreach (WsfRIPRJob x in jobs)
+        {
+          string name = (string)x.GetData("targetTrackName");
+          if (updatedJobs[name] != 1)
+          {
+            int jid = x.GetId();
+            writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", x.GetDescription());
+            string tName = mJobIdTargetNameMap[jid];  //this should match the job's data: "targetTrackName"
+            mTargetNameJobIdMap.Erase(name);
+            mJobIdTargetNameMap.Erase(jid);
+            RemoveJob(x);
+          }
+        }
+
+        writeln_d( "AISC update - ", PLATFORM.Name(), " job count: ", jobs.Size() );
+
+      end_on_update
+
+
+      query_bid_type pursue-target
+        if (!JOB.IsValid())
+        {
+          writeln_d("aisc query_bid, job invalid!!");
+          return -MATH.DOUBLE_MAX();
+        }
+
+        //only bid on jobs that ground platforms can perform
+        if (((int)JOB.GetData("for_ground")) != 1)
+        {
+          writeln_d("aisc query_bid, job NOT for ground!");
+          return -MATH.DOUBLE_MAX();
+        }
+        return QuerySubordinatesMaxBid(JOB);
+      end_query_bid_type
+
+
+      query_bid_type zone
+
+        if (!JOB.IsValid())
+        {
+          writeln_d("aisc query_bid, job invalid!!");
+          return -MATH.DOUBLE_MAX();
+        }
+
+        //only bid on jobs that ground platforms can perform
+        if (((int)JOB.GetData("for_ground")) != 1)
+        {
+          writeln_d("aisc query_bid, job NOT for ground!");
+          return -MATH.DOUBLE_MAX();
+        }
+
+        double current_bid = 0;
+        writeln_d("aisc query_bid, bidding on ", JOB.Name(), ", desc: ", JOB.GetDescription());
+        double maxBid = -MATH.DOUBLE_MAX();
+
+        //iterate over all targets in the zone cluster
+        //find out what my subordinates would bid on each of these targets
+        //return the best bid from my subordinate on one target as my own bid on the whole cluster of targets
+        WsfRIPRJob tempJob = WsfRIPRJob.Create(  PROCESSOR,
+                                                 "pursue-zone",
+                                                 "pursue-" + JOB.GetDescription(),
+                                                 1.0,
+                                                 mMaxJobWinners);
+
+        if( !tempJob.IsValid() )
+        {
+          writeln_d( "AISC query_bid - job, pursue-zone, could not be created" );
+          return -MATH.DOUBLE_MAX();
+        }
+
+        Array<string> targetNames = (Array<string>)JOB.GetData("ZoneThreatNameArray");
+        foreach(string targetName in targetNames)
+        {
+          tempJob.SetData("targetTrackName", targetName);
+          //by default this expands through job-pass-through agents to get all bids
+          double curBid = QuerySubordinatesMaxBid(tempJob);
+          writeln_d("aisc query_bid, max bid on ", targetName," from subordinates: ", curBid);
+          if (curBid > maxBid)
+          {
+            maxBid = curBid;
+          }
+        }
+        return maxBid;
+      end_query_bid_type
+
+  end_processor

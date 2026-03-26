@@ -1,0 +1,215 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+# This air to air missile boilerplate is an example
+# to create air to air missiles.
+# For the baseline, it is loosly modeled after the R-77 / AA-12 ADDER
+# All sources came from the internet:
+# Janes / wikipedia / sinodefence / globalsecurity / fas / deagel etc.
+# Even aviation.ru provided spec information.
+# The missile is similiar to the AIM-120 AMRAAM and has been
+# nicknamed "amraamski".  It is a launch and forget type missile
+# such that it has its own inertial system and terminal guidance radar.
+
+# From global security:
+# Length 3.60 m
+# Body diameter 200 mm
+# Wingspan 0.35 m
+# Launch weight 175 kg
+# Warhead 30 kg HE fragmentation
+# Fuze Active radar
+# Guidance Inertial, command and active radar
+# Propulsion Solid propellant
+# Range 50 km
+
+# From aviation.ru/missiles.htm:
+# launch mass = 175 kg.
+# warhead mass = 21 kg.
+# max hit range = 50 km.
+# min hit range = 300 m.
+# max target overload = 12.
+# hit probability = 0.7.
+# length = 3600 mm.
+# body diameter = 200 mm.
+# wing span = 750 mm.
+# max target speed = 3600 km/h.
+# altitude range = 20m..25km.
+# max altitude difference = 10 km (can only climb 10 km from launch).
+# no carrier overload limitation.
+# can be loaded in conform mode or in an internal weapon bay.
+# active radar self-guidance head and inertial navigation system with radio correction.
+# "fire-and-forget" mode.
+
+# From deagel.com
+# Dimensions: Diameter 200 mm, Length 3.6 m, Width 350 mm
+# Weights: Max Weight 175 kg (386 lb), Warhead 30 kg (66.1 lb)
+# Performance: Ceiling 25,000 m (82,021 ft), Max Range 90,000 m (295,276 ft), Top Speed 1,328 mps (Mach 4)
+# Inertial nav / optional inflight midcourse updates / Radar turn on 20km from target
+
+# From enemysources.com
+# Range against closing target 150 km
+# Range against receding target 50 - 90 km
+# Weight 175 kg
+# Weight of warhead 30 kg
+# Type of warhead expanding rod
+# Speed Mach 4+
+# Guidance active radarhoming
+# Length 3.6 m
+# Diameter 0.2 m
+
+# From fas.org
+# Length 3.60 m
+# Body diameter 200 mm
+# Wingspan 0.35 m
+# Launch weight 175 kg
+# Warhead 30 kg HE fragmentation
+# Fuze Active radar
+# Guidance Inertial, command and active radar
+# Propulsion Solid propellant
+# Range 50 km
+
+# From sinodefense
+# Length: 3.60m
+# Diameter: 0.200m
+# Wingspan: 0.350m
+# Launch weight: 175kg
+# Propellant: Solid fuel rocket motor
+# Guidance: Inertial + mid-course command + terminal active radar
+# Range: 50~80km
+# Warhead: 30kg HE-fragment
+# Fuse: Laser proximity fuse
+
+# From Australian Defence Annual Report 2002-3  dated July 4, 2004
+# A more recent development is the Vympel R-77 RVV-AE, dubbed the
+# "Amraamski" by Western observers94. The Vympel R-77 (AA-12 Adder) is an active
+# radar guided BVR AAM and is designed to engage 12 G targets. It employs fuselage
+# strakes for enhanced body lift at an AoA in excess of 40°, and unique electrically actuated
+# "grid" control surfaces to achieve additional control force at high AoA. This is
+# claimed to provide a 150°/sec turn rate. The R-77 weighs in at 386 lb and Vympel quote
+# an A-pole range at altitude of up to 54 NMI, with a minimum range of about 1000 ft. A
+# 48.5 lb continuous rod warhead is initiated by a laser proximity fuse.
+# This missile, like the US AIM-120, uses digital datalink/inertial midcourse
+# guidance and active terminal homing, supports an LOBL off-the-rail active launch mode
+# and is claimed to have a Home-On-Jam (HOJ) capability. Carried by the Flanker and Fulcrum,
+# the missile requires the APU-170 pylon adaptor, and a late model AI radar such as
+# the Phazotron Zhuk or N-011.
+# AGAT 9B-1103M/9B-1348E(R-77 Seeker) 25 NMI 1 squared meter detection track range
+# AGAT 9B-1103M/9B-1348E(R-77 Seeker) 7 NMI 1 squared meter detection lock range
+
+
+include sensors/radar/aa_mrm_radar.txt  # For now, just put a simple x-band radar on it
+
+aero AA_MRM_AERO WSF_AERO
+  # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic    0.30
+   cd_zero_supersonic  0.50
+   mach_begin_cd_rise  0.95
+   mach_end_cd_rise    1.3
+   mach_max_supersonic 4.0       # Ref
+   reference_area      0.125 m2  #  200mm body dia
+   cl_max              3.5
+
+end_aero
+
+platform_type AA_MRM WSF_PLATFORM
+   icon Missile
+
+   mover WSF_GUIDED_MOVER
+      total_mass       175 kg  # all of the sources say this
+      fuel_mass        80 kg # guess - 30 kg warhead, sensor weight, and body weight
+      thrust           6500 lbf # to make it go 1300 mps as stated above
+      thrust_duration  95 sec # sources say several seconds
+      update_interval  0.05 sec
+      aero             AA_MRM_AERO
+   end_mover
+
+   comm uplink WSF_COMM_TRANSCEIVER
+      internal_link data_mgr
+      internal_link task_mgr
+   end_comm
+
+   processor data_mgr WSF_WEAPON_TRACK_PROCESSOR
+   end_processor
+
+   processor task_mgr WSF_TASK_PROCESSOR
+   end_processor
+
+   processor computer WSF_GUIDANCE_COMPUTER
+      proportional_navigation_gain  455.0
+#      velocity_pursuit_gain         1.0
+      g_bias                        1.1
+      maximum_commanded_g           12.0 g
+      update_interval               0.05 s
+   end_processor
+
+   processor fuse WSF_AIR_TARGET_FUSE
+      max_time_of_flight_to_detonate  100.0 sec
+   end_processor
+
+   sensor seeker  AA_MRM_RADAR
+#         on   # testing only - it gets turned on by the Weapon Track Processor
+         ignore_same_side
+         processor data_mgr
+         internal_link task_mgr
+   end_sensor
+
+   script_variables
+      bool mTrackFromE2C    = false;
+      bool mTrackFromE2CSet = false;
+   end_script_variables
+
+   processor seeker_turn_on WSF_WEAPON_TRACK_PROCESSOR
+      # turn_on_sensor seeker 20.0 sec after_launch
+      turn_on_sensor seeker at_range 20000.0 m before_intercept
+      update_interval 1 sec
+      on_update
+         extern bool mTrackFromE2CSet;
+         extern bool mTrackFromE2C;
+         if (! mTrackFromE2CSet)
+	 {
+            if (PLATFORM.Sensor("seeker").IsTurnedOn())
+	    {
+               WsfTrack extTrack = PLATFORM.CurrentTargetTrack();
+	       if (extTrack.IsValid() && (extTrack.OriginatorType() == "e2c"))
+	       {
+	          mTrackFromE2C = true;
+	       }
+	       mTrackFromE2CSet = true;
+	    }
+	 }
+      end_on_update
+   end_processor
+
+   script void on_weapon_target_engagement(WsfWeaponEngagement aEngagement, WsfPlatform aTarget)
+      writeln_d("*********** on_weapon_target_engagement");
+      if (mTrackFromE2C)
+      {
+         aEngagement.SetPkDegrade(0.6);
+      }
+   end_script
+end_platform_type
+
+
+weapon_effects AA_MRM_EFFECT WSF_GRADUATED_LETHALITY      # unknown
+   radius_and_pk 100.0 m 0.7 #radius is unknown pk of .7 documented
+end_weapon_effects
+
+weapon AA_MRM WSF_EXPLICIT_WEAPON
+   launched_platform_type      AA_MRM
+   weapon_effects              AA_MRM_EFFECT
+   automatic_target_cueing     true
+   quantity                    1
+   firing_delay                0.2 sec   # unknown
+   salvo_interval              5.0 sec   # unknown
+   firing_interval             15.0 sec   # unknown
+   slew_mode                   azimuth_and_elevation
+   azimuth_slew_limits         -15.0 deg 15.0 deg  # allows for off boresight target slewing
+   elevation_slew_limits       -35.0 deg 15.0 deg  # allow some super-elevation for low-alt targets
+
+end_weapon

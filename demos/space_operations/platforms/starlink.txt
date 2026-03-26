@@ -1,0 +1,108 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM Wizard
+include_once ../comms/crosslink.txt
+include_once ../comms/downlink.txt
+
+radar_signature STARLINK_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+group DEDICATED_COMM WSF_GROUP 
+end_group
+
+# The comm devices for the platform type are added to this network
+# by default. Most of the time, the assignments of the comm devices
+# to this network would be overridden.
+network starlink_default WSF_COMM_NETWORK_GENERIC
+   network_address 192.168.1.1/21
+end_network
+
+platform_type STARLINK WSF_PLATFORM
+   
+   include platforms/starlink_linkable.txt
+   
+   icon cubesat
+   radar_signature STARLINK_RADAR_SIG
+   side blue
+   
+   commander commander1
+   
+   group_join DOWNLINK
+   group_join CROSSLINK
+   
+   mover WSF_SPACE_MOVER
+      semi_major_axis 7178 km
+      inclination 72 deg
+   end_mover
+   
+   router default WSF_COMM_ROUTER
+      automated_interface_linking true
+   end_router
+   
+   comm crosslink1 CROSSLINK
+      yaw 0 deg      
+      group_join DEDICATED_COMM  // links only to forward satellite
+      network_name starlink_default
+   end_comm
+   
+   visual_part crosslink1 WSF_VISUAL_PART
+      yaw 0 deg
+      azimuth_slew_limits -80 deg 80 deg
+      elevation_slew_limits -80 deg 80 deg
+   end_visual_part
+   
+   comm crosslink2 CROSSLINK 
+      yaw 180 deg
+      group_join DEDICATED_COMM  // links only to rearward satellite
+      network_name starlink_default
+   end_comm
+   
+   visual_part crosslink2 WSF_VISUAL_PART
+      yaw 180 deg
+      azimuth_slew_limits -80 deg 80 deg
+      elevation_slew_limits -80 deg 80 deg
+   end_visual_part
+
+   comm crosslink3 CROSSLINK 
+      yaw -90 deg
+      network_name starlink_default
+   end_comm
+   
+   visual_part crosslink3 WSF_VISUAL_PART
+      yaw -90 deg
+      azimuth_slew_limits -80 deg 80 deg
+      elevation_slew_limits -80 deg 80 deg      
+   end_visual_part
+
+   comm crosslink4 CROSSLINK
+      yaw 90 deg
+      network_name starlink_default
+   end_comm
+
+   visual_part crosslink4 WSF_VISUAL_PART
+      yaw 90 deg
+      azimuth_slew_limits -80 deg 80 deg
+      elevation_slew_limits -80 deg 80 deg
+   end_visual_part
+
+   comm downlink DOWNLINK
+      pitch -90 deg           
+      group_join DOWNLINK
+      network_name starlink_default
+   end_comm
+   
+   visual_part downlink WSF_VISUAL_PART
+      pitch -90 deg
+      azimuth_slew_limits -80 deg 80 deg
+      elevation_slew_limits -80 deg 45 deg
+   end_visual_part
+
+end_platform_type

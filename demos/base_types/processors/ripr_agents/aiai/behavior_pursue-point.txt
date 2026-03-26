@@ -1,0 +1,108 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior pursue-point
+
+   script_debug_writes  off
+
+   script_variables
+      bool tempVariable;
+
+      bool mConsiderFuel                                 = false;
+
+      WsfGeoPoint mCurrentPointIntercept;
+     #double                 cSLOW_UPDATE_RATE           = 3.0;
+      double                 cINTERCEPT_SPEED            = 1000;    # m/s
+      string                 mOldPointStr                = "no point";
+   end_script_variables
+
+
+
+   precondition
+      writeln_d("precondition pursue-point");
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }
+
+      string anOldPointStr = mOldPointStr;
+      mOldPointStr = "no point";
+
+      if (((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid())
+      {
+         WsfRIPRJob currentJob = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+         if (currentJob.IsValid())
+         {
+            // If we're supposed to fly towards a point, go for it!
+            if (currentJob.Name() == "pursue-point")
+            {
+               mCurrentPointIntercept = (WsfGeoPoint)currentJob.GetData("targetPoint");
+               if (mCurrentPointIntercept.IsValid())
+               {
+                  ########################################################################
+                  ###   print output / comments for any point change
+                  ########################################################################
+                  mOldPointStr = "Job: " + currentJob.Name() + ", " + currentJob.GetDescription();
+                  writeln_d("    - ", mOldPointStr);
+                  if (mOldPointStr != anOldPointStr)
+                  {
+                     PLATFORM.Comment(mOldPointStr);
+                  }
+
+                  return true;
+               }
+            }
+         }
+      }
+      return Failure("current job not a valid pursue-point job");
+   end_precondition
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing pursue-point, T=", TIME_NOW);
+
+     #PROCESSOR.SetUpdateInterval(cSLOW_UPDATE_RATE);
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+      extern double cDEFAULT_ALTITUDE;
+      PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200);
+
+      if (!mCurrentPointIntercept.IsValid())
+      {
+         #PLATFORM.Comment("ignoring invalid point");
+         return;
+      }
+      double interceptAltitude = mCurrentPointIntercept.Altitude();
+      if (interceptAltitude < 0)
+      {
+         #PLATFORM.Comment("ignoring invalid point");
+         return;
+      }
+
+      double interceptRange = PLATFORM.SlantRangeTo(mCurrentPointIntercept);
+      double interceptHeading = PLATFORM.TrueBearingTo(mCurrentPointIntercept);
+      PLATFORM.TurnToHeading(interceptHeading);
+
+      writeln_d("    T=", TIME_NOW, ", range: ", interceptRange, " true-bearing: ", interceptHeading);
+
+      ##if ( (interceptAltitude - PLATFORM.Altitude()) > 5)
+      #if ( (interceptAltitude - PLATFORM.Altitude()) > 10000*MATH.M_PER_FT())
+      #{
+      #   writeln_d("GoToAltitude: ",interceptAltitude);
+      #   #PLATFORM.GoToAltitude(interceptAltitude);
+      #}
+
+   end_execute
+
+end_behavior
+
+

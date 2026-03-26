@@ -1,0 +1,98 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario tests the system performance as SixDOF entities run in order to
+# estimate the maximum number of SixDOF entities that the system can handle
+# while maintaining real-time performance.
+#
+# ******************************************************************************
+
+define_path_variable CASE rb_performance_test
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+include_once platforms/fa-lgt.txt
+
+# ------------------------------------------------------------------------------
+#These variables control the length of the scenario and the number of platforms.
+$define SCENARIO_LENGTH_SEC 60
+script_variables
+   double NUMBER_OF_PLATFORMS = 100;
+   double SCENARIO_LENGTH_SEC = $<SCENARIO_LENGTH_SEC:60>$;
+end_script_variables
+# ------------------------------------------------------------------------------
+
+end_time $<SCENARIO_LENGTH_SEC:60>$ sec
+
+platform_type MY_PLATFORM_TYPE FA-LGT_RB6
+   # Force updates on the platform to test "worst-case" operation
+   update_interval 0.01 sec
+   
+   # Remove the SA Processor for the performance tests
+   delete processor sa_processor   
+end_platform_type
+
+script_variables
+   double simStartTime = 0;
+end_script_variables
+
+script void SimulationStarting()
+   simStartTime = System.Time();
+end_script
+
+script void SimulationComplete()
+   double endTime = System.Time();
+   double runTime = endTime - simStartTime;
+   
+   /*
+   if(runTime > SCENARIO_LENGTH_SEC)
+   {
+      writeln("Can not run realtime with ", NUMBER_OF_PLATFORMS, " platforms.");
+   }
+   else
+   {
+      writeln("Can run realtime with ", NUMBER_OF_PLATFORMS, " platforms.");
+   }
+   writeln("Total Run Time for: ", runTime);
+   */
+   
+   double calculatedValue = NUMBER_OF_PLATFORMS * SCENARIO_LENGTH_SEC / runTime;
+   writeln("Estimated max number of platform for realtime : ", calculatedValue);
+
+end_script
+
+observer
+   enable SIMULATION_STARTING SimulationStarting
+   enable SIMULATION_COMPLETE SimulationComplete
+end_observer
+
+execute at_time .01 sec absolute
+
+   string route1 = "route ";
+   string route2 = "position 21.4n  158.0w  altitude 2000.0 m speed 450.0 kts ";
+   string route3 = "label LoopToHere ";
+   string route4 = "position 21.48n 158.0w  altitude 2500.0 m speed 450.0 kts ";
+   string route5 = "position 21.48n 157.92w altitude 2500.0 m speed 450.0 kts ";
+   string route6 = "position 21.4n  157.92w altitude 2000.0 m speed 450.0 kts ";
+   string route7 = "position 21.4n  158.0w  altitude 2000.0 m speed 450.0 kts ";
+   string route8 = "goto LoopToHere end_route";
+
+   for(int i = 0; i < NUMBER_OF_PLATFORMS; i = i + 1)
+   {
+      WsfPlatform platform1 = WsfSimulation.CreatePlatform("MY_PLATFORM_TYPE");
+      string startPosition = write_str("position ", 21.4 - ((double)(i+10) / 1000.0), "n 158.0w altitude 2000.0 m speed 450.0 kts ");
+      string fullRoute = write_str(route1, startPosition, route2, route3, route4, route5, route6, route7, route8);
+      platform1.ProcessInput(fullRoute);
+      WsfPlatform platform2 = WsfSimulation.AddPlatform(platform1, "");
+   }
+
+end_execute

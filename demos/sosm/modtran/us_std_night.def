@@ -1,0 +1,61 @@
+Common IR Bands (1.5um - 40.0um) MODTRAN Atmosphere
+1976 U.S. Standard Atmosphere, Night, No Moon, Clear Sky
+
+#===============================================================================
+# The Near IR (NIR) band (0.75um-1.5um) was omitted because it doubles the sizes
+# of the resulting tables.
+#===============================================================================
+#===============================================================================
+# The lists of altitudes, elevations and ranges (meters and degrees).
+#===============================================================================
+
+#debug                        # save tp5 and tp6
+
+# MODTRAN has problems altitudes of 0 and 100000. We go 10 meters inside.
+altitude_list
+      10    500   1500   3000   6000   9000  12000  15000  20000  25000  30000
+   99990
+end_altitude_list
+
+elevation_list
+  -90 -80 -70 -60 -50 -40 -30 -20 -10  -8  -6  -5  -4  -3  -2  -1   0
+   90  80  70  60  50  40  30  20  10   8   6   5   4   3   2   1
+end_elevation_list
+
+# MODTRAN can sometimes have problems at very short ranges (< 5m),
+# so don't use values less than than.
+range_list
+       10    100    200    500   1000   2000   3000   4000   5000
+     7500  10000  12500  15000  20000  30000  40000  50000  75000
+   100000 150000 200000 300000 400000 500000
+end_range_list
+
+#===============================================================================
+# MODTRAN input. Only MODTRAN input should follow...
+#
+# The input must be setup to run in radiance mode (IEMSCT=1, 2, or 3). The value
+# will be internally changed to 0 when running the transmittance mode.
+#===============================================================================
+
+%CARD 1
+MS  6    3    2    1    0    0    0    0    0    0    0    0    1     0.0LAMBER 
+%CARD 1A
+ff  8f   0   365.000       0.0       0.0 f f f f         0.0
+%CARD 2
+    1    0    0    3    0    0       0.0       0.0       0.0       0.0       0.0
+%CARD 3
+     0.000     0.000     0.000      .000      .000      .000    0        0.00000
+# CARD 3A1 and 3A2 set observer position, source type and position/phase
+%CARD 3A1
+    2    2  181    1
+%CARD 3A2
+       0.0       0.0                                             180.0       0.0
+%CARD 4
+       240      6680        20        20TW
+# CARD 4A, 4L1 and 4L2 are needed for Lambertian surfaces (CARD 1)
+%CARD 4A
+1      0.0
+%CARD 4L1
+DATA/spec_alb.dat
+%CARD 4L2
+farm

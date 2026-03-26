@@ -1,0 +1,48 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This file sets up a scenario to intercept launch telemetry
+# and set up a subsequent track. A launch vehicle reports telemetry back
+# to the launch facility while a ship intercepts the messages off the
+# coast. It then sends the data to radars on its own communication
+# "network" to use the data to create a track of the launch vehicle.
+
+#########################################################################
+# To get the most out of the event_pipe file in Mystic:
+#    Turn on communications and track lines OR Turn on comment bubbles
+#########################################################################
+file_path .
+
+# Platforms
+include_once platforms/satellite.txt
+include_once launch_vehicles/delta_iv_m/delta_iv_m.txt
+include_once platforms/interceptor.txt
+include_once platforms/intercept_radar.txt
+include_once platforms/launch_facility.txt
+
+# Scenarios
+include_once scenarios/launch_with_telemetry.txt # Launch scenario - red side
+include_once scenarios/telemetry_intercept.txt # Launch scenario - blue side
+
+event_pipe
+   file output/launch_telemetry.aer
+end_event_pipe
+
+event_output
+   file output/launch_telemetry.evt #STDOUT
+   enable MOVER_BURNED_OUT
+   enable MOVER_STAGED
+   enable PLATFORM_ADDED
+   enable PLATFORM_DELETED
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_DROPPED
+#   enable MESSAGE_TRANSMITTED
+#   enable MESSAGE_RECEIVED
+end_event_output
+
+end_time 6 hr

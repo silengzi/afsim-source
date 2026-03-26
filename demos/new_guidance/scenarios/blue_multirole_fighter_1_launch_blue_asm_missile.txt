@@ -1,0 +1,51 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once weapons/agm/blue_asm_missile.txt
+
+platform_type FIGHTER WSF_PLATFORM
+   icon F-18E
+   mover WSF_AIR_MOVER
+      default_radial_acceleration 2 g
+   end_mover
+   weapon blue_asm_missile BLUE_ASM_MISSILE
+      quantity 1
+   end_weapon
+end_platform_type
+
+platform_type TARGET WSF_PLATFORM
+   icon C4I
+end_platform_type
+
+# -----------------------------------------------------------------------------
+
+platform target TARGET
+   side red
+   position 38.6n 90.3w altitude 1 m agl
+end_platform
+
+platform fighter FIGHTER
+   side blue
+   route
+      position 39.5n 89.3w altitude 25000 ft speed 450 kts heading 270 deg
+   end_route
+
+   track
+      position 38.6n 90.3w altitude 1 m agl
+      platform target
+   end_track
+
+   execute at_time 0.1 sec relative
+      WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+      WsfLocalTrack track = trackList.Entry(0);
+      PLATFORM.Weapon("blue_asm_missile").Fire(track);
+      PLATFORM.TurnToRelativeHeading(179.0, 0.25 * 9.8);
+   end_execute
+
+end_platform
+

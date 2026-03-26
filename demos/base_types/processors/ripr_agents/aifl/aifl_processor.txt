@@ -1,0 +1,281 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+
+include_once   processors/ripr_agents/aiai/behavior_bid_on_jobs.txt
+include_once   processors/ripr_agents/aifl/behavior_interpret_zone_jobs.txt
+include_once   processors/ripr_agents/aifl/behavior_create_target_jobs_self.txt
+include_once   processors/ripr_agents/aifl/behavior_interpret_flank_jobs.txt
+include_once   processors/ripr_agents/aifl/behavior_create_point_job.txt
+include_once   processors/ripr_agents/aifl/behavior_create_cap-routes.txt
+#include_once   processors/ripr_agents/aifl/behavior_create_sar_jobs.txt
+include_once   processors/ripr_agents/aifl/behavior_manage-pincer.txt
+include_once   processors/ripr_agents/aifl/behavior_manage-uplinks.txt
+include_once   processors/ripr_agents/aiai/behavior_debug_job_board.txt
+include_once   processors/ripr_agents/aifl/behavior_toggle_windows.txt
+
+
+processor AIFL-thinker WSF_RIPR_PROCESSOR
+
+  script_debug_writes off
+  update_interval     3.0 sec
+
+   script_variables
+      bool windowToggle = false;
+      // We need to keep references to all the jobs we create so they don't get
+      // garbage collected when they go out of scope
+      int maxJobWinnersForWeaponUplink = 1;
+      double cPursuePointPriority  = 0.00001;
+      double cFlankPointPriority   = 25000.0;
+      double cPursueTargetPriority = 10000.0;
+      double cPincerPriority       = 10000.0;
+      WsfRIPRJob      mCurrentJob;
+      WsfRIPRJob      mLastJob;
+      double          mJobStickiness       =  1.25;
+      int             mJobAllocationMode   =  3;
+      bool            mFastAndDirtyBidding  = false;
+      Map<string, string> ThreatTypeEngageZone = Map<string, string>();
+      string          cPreferredFlank   = "auto";  //or "left" or "right"
+      Map<int, WsfGeoPoint> mFlankJobIdToFlankPointMap = Map<int, WsfGeoPoint>();
+
+   end_script_variables
+
+
+   behavior_tree
+      behavior_node  bid_on_jobs
+      behavior_node  toggle_windows
+      selector
+         behavior_node  interpret_zone_jobs
+         behavior_node  create_target_jobs_self
+      end_selector
+      behavior_node  create_point_job
+      behavior_node  create_cap-routes
+     #behavior_node  create_sar_jobs
+     #behavior_node  interpret_flank_jobs
+      behavior_node  manage-uplinks
+      behavior_node  manage-pincer
+     #behavior_node  debug_job_board
+   end_behavior_tree
+
+   ##deprecated
+   #query_bid
+   #   return -MATH.DOUBLE_MAX();
+   #end_query_bid
+
+   on_initialize
+      # job allocation mode enumerations:
+      # 0 --> spread (Default -- every subordinate is given the highest priority job that he has the highest bid for. If there are more subordinates than jobs, some subordinates will be left idle. )
+      # 1 --> greedy (Every subordinate is given the job he bids highest on with the highest priority, without regard for the maximum number of winners that the job allows. Every subordinate will get a job. (Disregards Job Stickiness value) )
+      # 2 --> coverthengreedy (Like spread, but remaining unassigned subordinates will be given the job they bid highest on with the highest priority, even if that results in the job having more winners that the maximum specified. )
+      # 3 --> coverthenspread (Like spread, but remaining unassigned subordinates will be spread out over the pool of jobs with no job getting two extra winners before all jobs have one extra winner. )
+      # 4 --> strictpriority (Like spread, awards the highest priority job to the highest bidder regardless of the bidder's highest overall bid. )
+      PROCESSOR.SetJobAllocationMode(mJobAllocationMode);
+      PROCESSOR.SetJobStickiness(mJobStickiness);
+   end_on_initialize
+
+
+
+   query_bid_type    zone
+
+      if (PLATFORM.Subordinates().Count() <= 0 || PROCESSOR.GetRIPRSubordinateProcessors().Size() <= 0)
+      {
+        writeln_d("behavior interpret_zone_jobs: not enough subordinates");
+        return -MATH.DOUBLE_MAX();
+      }
+      ########################################################################
+      ##  bid on the cluster is based on subordinate bids on their members
+      ########################################################################
+      WsfRIPRJob tempJob = WsfRIPRJob.Create(PROCESSOR,"pursue-target","job description",1.0,1);
+      Array<string> targetNames = (Array<string>)JOB.GetData("ZoneThreatNameArray");
+      writeln_d("job ", JOB.GetDescription(),  " -> number of target names considering: ", targetNames.Size());
+      double maxBid = -MATH.DOUBLE_MAX();
+
+      foreach(string targetName in targetNames)
+      {
+          bool inZone   = true;
+          WsfPlatform target = WsfSimulation.FindPlatform(targetName);
+          if (target.IsValid())
+          {
+           #extern string DeterminePlatformCategory(WsfPlatform);
+            string category = DeterminePlatformCategory(target);
+            if (ThreatTypeEngageZone.Exists(category) && ThreatTypeEngageZone[category].Length()>0)
+            {
+              if ( ! target.Location().WithinZone(ThreatTypeEngageZone[category]))
+              {
+                inZone   = false;
+                writeln_d("aifl ", PLATFORM.Name(),", target ", targetName, " outside of category ", category," zone ", ThreatTypeEngageZone[category], ".  bid = -DOUBLE_MAX.");
+              }
+              else
+              {
+                writeln_d("aifl ", PLATFORM.Name(),", target ", targetName, " inside category ", category," zone ", ThreatTypeEngageZone[category], ".  bid as usual!!!");
+              }
+            }
+            foreach ( string aZone in PLATFORM.ZoneNames())
+            {
+              if ( !target.WithinZoneOf(PLATFORM, aZone) )
+              {
+                inZone   = false;
+                writeln_d("ai flight lead, target ", targetName, " outside of defined zone ", aZone, " curBid from subordinate set to -DOUBLE_MAX.");
+              }
+              else
+              {
+                writeln_d("ai flight lead, target ", targetName, " inside of defined zone ", aZone, " curBid unchanged.");
+              }
+            }
+         }
+         if (inZone == true)
+         {
+         tempJob.SetData("targetTrackName", targetName);
+         if (mFastAndDirtyBidding)
+         {
+            maxBid = PROCESSOR.GetRIPRSubordinateProcessors().Get(0).QueryBid(tempJob);
+            writeln_d("ai flight lead, fast dirty bid on ", JOB.Description()," = ", maxBid);
+            break;
+         }
+         else
+         {
+            //by default this expands through job-pass-through agents to get all bids
+            double curBid = PROCESSOR.QuerySubordinatesMaxBid(tempJob);
+
+            writeln_d("ai flight lead, max bid on ", targetName," from subordinates: ", curBid);
+            if (curBid > maxBid)
+            {
+               maxBid = curBid;
+            }
+            }
+         }
+         else
+         {
+            maxBid = -MATH.DOUBLE_MAX();
+         }
+      }
+      return maxBid;
+
+   end_query_bid_type
+
+
+
+   query_bid_type    flank
+
+      if (PLATFORM.Subordinates().Count() <= 0)
+      {
+         writeln_d("no subordinates to carry out flank job");
+         return -MATH.DOUBLE_MAX();
+      }
+
+      WsfGeoPoint zonePoint    = (WsfGeoPoint)JOB.GetData("ZonePoint");
+      double      zoneBearing  = (double)     JOB.GetData("ZoneBearing");
+      WsfZone     flankZone    = (WsfZone)    JOB.GetData("FlankZone");
+      double      flankDist    = (double)     JOB.GetData("FlankDistance");
+      bool        bearingValid = (bool)       JOB.GetData("ZoneBearingValid");
+
+      //determine which side to flank on, based on subordinate that is closest to flank point
+      //find closest subordinate & then calculate relative geometry
+
+      WsfPlatform ClosestFlanker;
+
+      if( zonePoint.IsValid() )
+      {
+         double MinRange = MATH.DOUBLE_MAX();
+         double NumSubordinates = (double)(PLATFORM.Subordinates().Count());
+         foreach (WsfPlatform sub in PLATFORM.Subordinates())
+         {
+            double range = sub.SlantRangeTo( zonePoint );
+            if( range < MinRange )
+            {
+               MinRange = range;
+               ClosestFlanker = sub;
+            }
+         }
+         if (!ClosestFlanker.IsValid())
+         {
+            writeln_d("!!!   no valid subordinates to compare to flank point!");
+            return -MATH.DOUBLE_MAX();
+         }
+
+         double clusterBearingTrue = 0.0;
+         if (bearingValid)
+         {
+            //cluster heading is with reference to east (instead of north), so subtract 90 degrees
+            #clusterBearingTrue = MATH.NormalizeAngle0_360( zoneBearing - 90.0 );
+            clusterBearingTrue = MATH.NormalizeAngle0_360( zoneBearing );
+         }
+         else
+         {
+            writeln_d("cluster bearing invalid, bearing: ", zoneBearing);
+            //assume cluster is flying straight at me, flank to side I'm already oriented towards
+            clusterBearingTrue = ClosestFlanker.TrueBearingTo( zonePoint ) - 180.0;
+         }
+
+        //don't need to normalize it here, the next line catches it
+        double angle = ClosestFlanker.TrueBearingTo( zonePoint ) - 180.0;
+        double relativeFlankBearing = MATH.NormalizeAngle0_360( angle - clusterBearingTrue );
+        double flankAngle = 90.0;
+        if( relativeFlankBearing > 180.0 )
+        {
+          flankAngle = 270.0;
+        }
+
+        if (cPreferredFlank == "left")
+        {
+          flankAngle = 90.0;
+        }
+        else if(cPreferredFlank == "right")
+        {
+          flankAngle = 270.0;
+        }
+
+        double flankBearing = MATH.NormalizeAngle0_360( clusterBearingTrue + flankAngle );
+        WsfGeoPoint ePoint = WsfGeoPoint(zonePoint);
+        ePoint.Extrapolate( flankBearing, flankDist );
+
+        //save off the flank point, in case we win this job
+        mFlankJobIdToFlankPointMap.Set( JOB.GetId(), ePoint );
+
+        //find the range to the place we will fly so as to flank the target
+        MinRange = ClosestFlanker.SlantRangeTo( ePoint );
+
+        double JobBidValue = 100000 + NumSubordinates * flankDist / MinRange;
+        return JobBidValue;
+      }
+      else
+      {
+        writeln_d("!!!   Invalid point in flank job");
+        return -MATH.DOUBLE_MAX();
+      }
+
+   end_query_bid_type
+
+
+   on_update
+
+      writeln_d("--- aifl_update Platform: ", PLATFORM.Name(), ", Time: ", TIME_NOW);
+
+      WsfRIPRProcessor commander = PROCESSOR.GetRIPRCommanderProcessor();
+      if (commander.IsValid())
+      {
+         // print any job changes, so check the board to see what we've won
+         mCurrentJob = commander.GetJobFor(TIME_NOW, PROCESSOR);
+         if( mCurrentJob.IsValid() )
+         {
+            if( (!mLastJob.IsValid()) || mCurrentJob.GetId() != mLastJob.GetId() )
+            {
+               string NewComment = "AIFL - Won new job: " + mCurrentJob.Name() + " - " + mCurrentJob.GetDescription();
+               PLATFORM.Comment(NewComment);
+            }
+            mLastJob = mCurrentJob;
+         }
+      }
+
+  end_on_update
+
+
+end_processor

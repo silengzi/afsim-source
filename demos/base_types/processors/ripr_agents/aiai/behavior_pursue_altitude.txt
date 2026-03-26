@@ -1,0 +1,105 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior pursue_altitude
+
+   script_debug_writes off
+
+   script_variables
+
+      WsfTrack mTargetTrack;
+
+      double mMinAltitude           = 4572;    # ~15000 feet
+
+      //switch for matching threat's altitude during pursuit
+      bool DefaultMatchThreatAltitude            = false;
+      Map<string, bool> mThreatTypeMatchAltitude = Map<string, bool>();
+      mThreatTypeMatchAltitude["unknown"]        = false;
+      mThreatTypeMatchAltitude["uav"]            = false;
+      mThreatTypeMatchAltitude["sam"]            = false;
+      mThreatTypeMatchAltitude["ship"]           = false;
+      mThreatTypeMatchAltitude["jammer"]         = false;
+      mThreatTypeMatchAltitude["missile"]        = false;
+      //mThreatTypeMatchAltitude["missile_fast"]   = true;
+      //mThreatTypeMatchAltitude["awacs"]          = true;
+      //mThreatTypeMatchAltitude["bomber"]         = true;
+      //mThreatTypeMatchAltitude["fighter"]        = true;
+
+   end_script_variables
+
+
+
+    script bool MatchAltitudeForThreat(WsfTrack track)
+        WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach (string aCategory : bool match in mThreatTypeMatchAltitude)
+            {
+                if (plat.CategoryMemberOf(aCategory))
+                {
+                    return match;
+                }
+            }
+        }
+      return DefaultMatchThreatAltitude;
+    end_script
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue_altitude, T=", TIME_NOW);
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+      //get target from ripr processor, to be sure
+      mTargetTrack = ((WsfRIPRProcessor)PROCESSOR).GetTarget();
+      if (mTargetTrack.IsNull() || !mTargetTrack.IsValid())
+      {
+         writeln_d("    No valid target track found to pursue!");
+         return Failure("target track not found");
+      }
+      return true;
+   end_precondition
+
+
+   execute
+      string comment = write_str(PLATFORM.Name(), " executing pursue_altitude, T=", TIME_NOW);
+      writeln_d(comment);
+      #PLATFORM.Comment(comment);
+
+      extern double mDesiredAltitude;
+
+      // If we got the altitude from the TRACK, match it
+      extern double cDEFAULT_ALTITUDE;
+      mDesiredAltitude = cDEFAULT_ALTITUDE;
+
+      //check for targets altitude, and whether or not we should match it
+      if (mTargetTrack.ElevationValid() ||
+          mTargetTrack.LocationValid())
+      {
+         if (mTargetTrack.Altitude() > mDesiredAltitude)         //always climb up to target
+         {
+            mDesiredAltitude = mTargetTrack.Altitude();
+         }
+         else if (MatchAltitudeForThreat(mTargetTrack) == true)   //just useful for diving down to threat lower level
+         {
+            mDesiredAltitude = mTargetTrack.Altitude();
+         }
+      }
+      //always bound the altitude by the min & max restrictions (in case mover is not setup to do it)
+      if (mDesiredAltitude < mMinAltitude)
+      {
+         mDesiredAltitude = mMinAltitude;
+      }
+      writeln_d("desired intercept altitude: ", mDesiredAltitude);
+
+   end_execute
+
+end_behavior

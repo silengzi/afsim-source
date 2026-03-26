@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once platforms/tapsatellite.txt
+
+# Set any platform with a space mover to have a certain location and velocity. Future
+# propagation will proceed from this modified kinematics.
+script void ResetSatellite(WsfPlatform aPlatform, Vec3 aLocationECI, Vec3 aVelocityECI)
+   WsfSpaceMover mov = (WsfSpaceMover)aPlatform.Mover();
+   mov.SetOrbit(aLocationECI, aVelocityECI);
+end_script
+
+# Create a new SATELLITE with the given position and velocity, and with the given name.
+script WsfPlatform CreateSatellite(Vec3 aLocationECI, Vec3 aVelocityECI, string name)
+   WsfPlatform proto = WsfSimulation.CreatePlatform("TAPSATELLITE");
+   ResetSatellite(proto, aLocationECI, aVelocityECI);
+   WsfPlatform retval = WsfSimulation.AddPlatform(proto, name);
+   return retval;
+end_script

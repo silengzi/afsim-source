@@ -1,0 +1,64 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by AFSIM Wizard
+
+noise_cloud cloud_layer WSF_NOISE_CLOUD
+   noise_frequency 4
+   noise_octaves 4
+   sensor_modifier cloud_mod .05
+   comm_modifier comm_mod .003
+   constant_height 10000 ft
+   scalar 5000 km
+   threshold 0.55
+#   use_global_wind
+#   origin 40s 90e
+end_noise_cloud
+
+#==================Uncomment this and run with Sensor_plot to create an analysis map as a visual for clouds==========================
+#
+#script  double NoiseCloudOcclusion(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aWhatever)
+#   WsfGeoPoint platformLoc = aTarget.Location();
+#   WsfGeoPoint groundLoc = WsfGeoPoint(platformLoc);
+#   groundLoc.SetAltitudeAGL(0.0);
+#   bool occluded = WsfSimulation.NoiseCloudIntersection(platformLoc, groundLoc);
+#   if (occluded)
+#   {
+#      return 1.0;
+#   }
+#   else
+#   {
+#      return 0.0;
+#   }
+#end_script
+#
+#horizontal_map
+#   target_platform_type GPS
+#   target_altitude 30000 ft
+#   script_variable NoiseCloudOcclusion 1.0
+#   variable pd
+##   longitude_range 60w 130w     # The United States
+##   latitude_range 25n 55n       # The United States
+#   longitude_range 179.5w 179.5e
+#   latitude_range 85s 85n
+#   longitude_step .5
+#   latitude_step .5
+#   pd_map_file output\output.pd
+#   gnuplot_file output\output.plt
+#   analysis_map
+#      file output\output.dat
+#      color_range 0 to 1 float .92 .904 1 1
+#   end_analysis_map
+#end_horizontal_map
+#
+#=====================================================================================================================
+
+global_environment
+wind_speed 10 m/s
+wind_direction 270 deg
+end_global_environment

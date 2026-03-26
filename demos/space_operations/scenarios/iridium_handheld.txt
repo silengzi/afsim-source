@@ -1,0 +1,214 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# references
+# 1) file:///C:/Users/Ablecher/Downloads/EngineeringStatement%20(1).pdf
+
+
+# Commander ###################################################################
+platform commander1 HANDHELD
+  commander SELF
+  side green
+  icon cmd_post
+  position 17:57:41.24n 20:28:25.87e
+
+  add comm commander1 WSF_RADIO_TRANSCEIVER
+
+     on
+     default_gateway
+     network_name commander1
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      polarization                        right_circular  # ref 1
+      power                               50 dbw
+   end_transmitter
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+   end_receiver
+
+  end_comm
+
+  add processor commander_router WSF_COMM_ROUTER
+     interface commander1
+  end_processor
+
+end_platform
+
+platform commander2 HANDHELD
+  commander SELF
+  side green
+  icon cmd_post
+  position 23:21:14.50s 60:03:45.76w
+
+  add comm commander2 WSF_RADIO_TRANSCEIVER
+
+     on
+     default_gateway
+     network_name commander2
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      propagation_model                   none
+      polarization                        right_circular  # ref 1
+      power                               50 dbw
+   end_transmitter
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+  end_comm
+
+  add processor commander_router WSF_COMM_ROUTER
+     interface commander2
+  end_processor
+
+end_platform
+
+# Test-sender ###################################################################
+# This platform is used to test the iridium communications.
+platform sender1 WSF_PLATFORM
+
+  commander SELF
+  side blue
+  icon cmd_post
+  position 20n 80e altitude 100 ft
+
+  add comm sender1 WSF_RADIO_TRANSCEIVER
+
+     on
+     default_gateway
+     network_name sender1
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      propagation_model                   none
+      polarization                        right_circular  # ref 1
+      power                               50 dbw
+   end_transmitter
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+  end_comm
+
+
+  add processor sender_router WSF_COMM_ROUTER
+     interface sender1
+  end_processor
+
+   add sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+   end_sensor
+
+   // test script
+   execute at_interval_of 1 s
+      if (TIME_NOW > 10.0)
+      {
+         WsfControlMessage msg = WsfControlMessage();
+         msg.SetFunction("blah blah blah");
+#         WsfPlatform commander1 = WsfSimulation.FindPlatform("commander1");
+#         PLATFORM.Comm("sender1").SendUnicastMessage(msg, commander1);
+         WsfPlatform commander2 = WsfSimulation.FindPlatform("commander2");
+         PLATFORM.Comm("sender1").SendUnicastMessage(msg, commander2);
+      }
+   end_execute
+
+end_platform
+
+platform sender2 WSF_PLATFORM
+
+  commander SELF
+  side blue
+  icon cmd_post
+  position 35n 99w altitude 100 ft
+
+  add comm sender2 WSF_RADIO_TRANSCEIVER
+
+     on
+     default_gateway
+
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      propagation_model                   none
+      polarization                        right_circular  # ref 1
+      power                               50 dbw
+   end_transmitter
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1621 mhz  # ref 1
+      bandwidth                           10.5 mhz  # ref 1
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+  end_comm
+
+  add processor sender_router WSF_COMM_ROUTER
+     interface sender2
+  end_processor
+
+   add sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+   end_sensor
+
+   // test script
+   execute at_interval_of 1 s
+      if (TIME_NOW > 10.0)
+      {
+         WsfControlMessage msg = WsfControlMessage();
+         msg.SetFunction("blah blah blah");
+         WsfPlatform commander1 = WsfSimulation.FindPlatform("commander1");
+         PLATFORM.Comm("sender2").SendUnicastMessage(msg, commander1);
+#         WsfPlatform commander2 = WsfSimulation.FindPlatform("commander2");
+#         PLATFORM.Comm("sender2").SendUnicastMessage(msg, commander2);
+      }
+   end_execute
+
+end_platform
+
+
+antenna_pattern UNIFORM_0DBI_PATTERN
+  uniform_pattern
+    peak_gain 35.0 dB
+  end_uniform_pattern
+end_antenna_pattern

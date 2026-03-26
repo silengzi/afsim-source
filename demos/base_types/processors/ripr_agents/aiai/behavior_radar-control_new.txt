@@ -1,0 +1,213 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior radar-control
+
+   script_debug_writes off
+
+   script_variables
+      bool                   mTurnOnFiringRadarInRange  = false;
+      string                 mFiringRadarName           = "radar";   // replace with sensor name on platform
+      double                 mFiringRadarRange          = 1852 * 50; // 50 nautical miles (units: meters)
+      bool                   mTurnOnFiringRadarIfRWR    = true;
+      double                 cWEIGHT_SLANT_RANGE_TO     =     -3.0;
+      double                 cBASE_SLANT_RANGE_CONSTANT = 600000.0;  //over 300 nm away
+      double                 cWEIGHT_SEPERATION_ANGLE   =     20.0;
+      double                 cWEIGHT_RADARS_ON          =     50.0;
+      double                 cMIN_JOB_BID               = -MATH.DOUBLE_MAX();
+      int                    mRadarJobId                = -1;
+   end_script_variables
+
+
+   script bool AmEmittingAnything()
+      for (int i=0; i<PLATFORM.SensorCount(); i=i+1)
+      {
+         WsfSensor s = PLATFORM.SensorEntry(i);
+         if (s.IsTurnedOn() && s.IsA_TypeOf("WSF_RADAR_SENSOR"))
+         {
+            return true;
+         }
+      }
+   end_script
+
+
+   query_bid_type    radar-control
+
+      if (!JOB.IsValid())
+      {
+         return cMIN_JOB_BID;
+      }
+      Array<string> targetNames = (Array<string>)JOB.GetData("RadarTargetsArray");
+      WsfGeoPoint point         =   (WsfGeoPoint)JOB.GetData("RadarPointOfInterest");
+      string mode               =        (string)JOB.GetData("RadarMode");
+      string strategy           =        (string)JOB.GetData("RadarStrategy");
+
+      bool emitting = AmEmittingAnything();
+      if (mode=="silent" && emitting==true)
+      {
+         return cMIN_JOB_BID;
+      }
+
+      double weightSlantRange = cWEIGHT_SLANT_RANGE_TO;
+      if (strategy=="distributed" && mode=="support")
+      {
+         weightSlantRange = MATH.Fabs(weightSlantRange);
+      }
+
+      double current_bid = 10000.0;
+     #extern int GetBucket(double, double);
+     #extern double cBUCKET_BASE;
+      current_bid = current_bid + MATH.Fabs(cWEIGHT_SLANT_RANGE_TO) * GetBucket(cBASE_SLANT_RANGE_CONSTANT, cBUCKET_BASE);
+      current_bid = current_bid + weightSlantRange * GetBucket(PLATFORM.SlantRangeTo(point), cBUCKET_BASE);
+
+      WsfRIPRJob otherJob;
+      Set<int> deps = JOB.DependenciesForJob();
+      if (deps.Size()>0)
+      {
+         int dep = (int)deps.GetIterator().Data();   //just grab first one
+         WsfRIPRJob otherJob = PROCESSOR.GetJobById(dep);
+      }
+
+      if (mode=="support" && emitting==true)
+      {
+         current_bid = current_bid + cWEIGHT_RADARS_ON;
+      }
+
+      if (strategy=="passive" && otherJob.IsValid() && otherJob.Name()=="radar-control")
+      {
+         Array<WsfPlatform> others = otherJob.Winners();
+         double angle1 = point.TrueBearingTo(PLATFORM.Location());
+         double maxAngle = 0;
+         foreach(WsfPlatform other in others)
+         {
+            double seperation = MATH.NormalizeAngleMinus180_180(angle1 - point.TrueBearingTo(other.Location()));
+            maxAngle = MATH.Max(maxAngle, MATH.Fabs(seperation));
+         }
+         current_bid = current_bid + cWEIGHT_SEPERATION_ANGLE * GetBucket(maxAngle, cBUCKET_BASE);
+      }
+      return current_bid;
+   end_query_bid_type
+
+
+   precondition
+      writeln_d("precondition radar-control");
+
+      WsfRIPRJob currentJob = null;
+      WsfRIPRProcessor commander = PROCESSOR.GetRIPRCommanderProcessor();
+      if (commander.IsValid())
+      {
+         Array<int> channels = PROCESSOR.JobTypeChannels("radar-control");
+         if (channels.Size()>0)
+         {
+            foreach(int c in channels)
+            {
+               currentJob = commander.GetJobFor(TIME_NOW, PROCESSOR, c);
+               if (!currentJob.IsNull() && currentJob.IsValid() && currentJob.Name() == "radar-control")
+               {
+                  mRadarJobId = currentJob.Id();
+                  return true;
+               }
+            }
+         }
+         else
+         {
+            currentJob = PROCESSOR.GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR);
+            if (!currentJob.IsNull() && currentJob.IsValid() && currentJob.Name() == "radar-control")
+            {
+               mRadarJobId = currentJob.Id();
+               return true;
+            }
+         }
+      }
+      mRadarJobId = -1;
+
+      WsfTrack curTarget = PROCESSOR.GetTarget();
+      if ((mTurnOnFiringRadarInRange && !curTarget.IsNull() && curTarget.IsValid()) || mTurnOnFiringRadarIfRWR)
+      {
+         return true;
+      }
+
+      return Failure("no radar-control job and no radar plan set!");
+   end_precondition
+
+
+
+
+   script bool RWR_ShowsBeingTracked()
+      for (int i=0; i < PLATFORM.SensorCount(); i=i+1)
+      {
+         WsfSensor sensor = PLATFORM.SensorEntry(i);
+         if (sensor.IsA_TypeOf("WSF_ESM_SENSOR"))
+         {
+            foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+            {
+               if (t.ContributorOf(PLATFORM, sensor))
+               {
+                  return true;
+               }
+            }
+         }
+      }
+      return false;
+   end_script
+
+
+   execute
+      writeln_d("executing radar-control.");
+
+      WsfTrack curTarget = PROCESSOR.GetTarget();
+
+      bool turnOnFiringRadar = false;
+      //turn on firing radar if in range
+      if (mTurnOnFiringRadarInRange && !curTarget.IsNull() && curTarget.IsValid())
+      {
+         //check range against radar range
+         if (PLATFORM.SlantRangeTo(curTarget) < mFiringRadarRange)
+         {
+            #writeln_d(PLATFORM.Name()," within range of curTarget!");
+
+            turnOnFiringRadar = true;
+         }
+         else
+         {
+            #writeln_d(PLATFORM.Name()," NOT within range of curTarget!");
+         }
+      }
+
+      //turn on firing radar if being tracked
+      if (mTurnOnFiringRadarIfRWR && !turnOnFiringRadar)
+      {
+         turnOnFiringRadar = RWR_ShowsBeingTracked();
+      }
+
+      if (turnOnFiringRadar)
+      {
+         //make sure radar is on
+         WsfSensor firingRadar = PLATFORM.Sensor(mFiringRadarName);
+         if (firingRadar.IsValid())
+         {
+            if (!firingRadar.IsTurnedOn())
+            {
+               firingRadar.TurnOn();
+               writeln_d(PLATFORM.Name(), " turned on active radar ", mFiringRadarName);
+            }
+            else
+            {
+               writeln_d("radar already turned on");
+            }
+         }
+      }
+
+   end_execute
+
+end_behavior
+

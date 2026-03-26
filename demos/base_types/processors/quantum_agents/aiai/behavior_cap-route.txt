@@ -1,0 +1,167 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior cap-route
+
+   script_debug_writes off
+
+   script_variables
+
+      bool     mDrawRoute              = true;
+      WsfDraw  mDraw                   = WsfDraw();
+
+      string mOldRouteStr              = "no route";
+      bool   mNewRoute                 = false;
+
+      WsfGeoPoint mPoint;
+      double      mHeading;
+      string      mRouteName;
+      WsfRoute    mRoute;
+
+      WsfRIPRJob  mCurrentJob           =     null;
+
+   end_script_variables
+
+
+   precondition
+      writeln_d("precondition cap-route");
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }
+
+      string anOldRouteStr = mOldRouteStr;
+      mOldRouteStr = "no route";
+      mNewRoute = false;
+
+      extern WsfTrack GetTrackByName        (WsfPlatform, string);
+      extern bool     TestTrackCategory     (WsfTrack, string);
+
+      if (((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid() &&
+          ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsJobWindowOpen())
+      {
+         mCurrentJob = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+      }
+
+      if (mCurrentJob.IsNull() ||
+          !mCurrentJob.IsValid() ||
+          mCurrentJob.Name() != "cap-route")
+      {
+         writeln_d("cap-route -> job not a valid cap-route job");
+         return Failure("job is not a valid cap-route job");
+      }
+
+      mPoint         = (WsfGeoPoint)mCurrentJob.GetData("location");
+      mHeading       =      (double)mCurrentJob.GetData("heading");
+      mRouteName     =      (string)mCurrentJob.GetData("route name");
+      WsfRoute route = WsfRoute.FindGlobal(mRouteName);
+
+      if (!mPoint.IsValid())
+      {
+        writeln("!!! Invalid point for cap-route job: ", mCurrentJob.GetDescription() );
+        return Failure("cap-route job does not have valid point");
+      }
+      if (!route.IsValid())
+      {
+        writeln("!!! Invalid route for cap-route job: ", mCurrentJob.GetDescription() );
+        return Failure("cap-route job does not have route named");
+      }
+
+      mHeading = MATH.NormalizeAngleMinus180_180(mHeading);
+
+      ########################################################################
+      ###   print output / comments for any tartet change
+      ########################################################################
+      mOldRouteStr = "Job: " + ", " + mCurrentJob.GetDescription();
+      writeln_d("    - ", mOldRouteStr);
+      if (mOldRouteStr != anOldRouteStr)
+      {
+         PLATFORM.Comment(mOldRouteStr);
+         mNewRoute = true;
+
+         mRoute = WsfRoute.CopyGlobal(mRouteName);
+         mRoute.Transform(mPoint.Latitude(), mPoint.Longitude(), mHeading);
+      }
+
+      mDraw.SetDuration(((WsfRIPRProcessor)PROCESSOR).UpdateInterval());
+      return true;
+
+   end_precondition
+
+
+  #on_init
+  #end_on_init
+
+
+   execute
+
+      writeln_d(PLATFORM.Name(), " executing cap-route, T=", TIME_NOW);
+      //PLATFORM.Comment("cap-route");
+
+      bool onCap = false;
+
+#      WsfRoute myRoute = PLATFORM.Route();
+#      if(myRoute.IsValid() && myRoute.Name() == "cap_route")
+#      {
+#        int routeIndex = PLATFORM.RoutePointIndex();
+#        if (routeIndex < 0 || routeIndex >= myRoute.Size())
+#        {
+#          routeIndex = 0;
+#        }
+#
+#        double distThreshold = 4.0*185.2;  ## 4/10th nm
+#        if (myRoute.Waypoint(routeIndex).Location().GroundRangeTo(PLATFORM.Location()) < distThreshold)
+#        {
+#          routeIndex = routeIndex + 1;
+#          if (routeIndex >= myRoute.Size())
+#          {
+#            routeIndex = 0;
+#          }
+#        }
+#        //onCap = PLATFORM.FollowRoute(myRoute, routeIndex);
+#
+#        WsfWaypoint wpt = myRoute.Waypoint(routeIndex);
+#        extern bool   FlyTarget(WsfPlatform, WsfGeoPoint,    double);
+#        onCap = FlyTarget(PLATFORM,    wpt.Location(), wpt.Speed());
+#      }
+
+      onCap = ( ! PLATFORM.Mover().IsExtrapolating() );
+
+      if (!onCap || mNewRoute)
+      {
+        WsfRoute capRoute = WsfRoute.Create("cap_route");
+        WsfRoute givenRoute = WsfRoute.CopyGlobal(mRouteName);
+        givenRoute.Transform(mPoint.Latitude(), mPoint.Longitude(), mHeading);
+        capRoute.Append(givenRoute);
+        PLATFORM.FollowRoute(capRoute);
+      }
+
+      if (mDrawRoute == true)
+      {
+          WsfRoute currRoute = PLATFORM.Route();
+          if (currRoute.IsValid())
+          {
+            mDraw.SetLayer("behavior_cap-route");
+            mDraw.Erase(PLATFORM.Name());
+            mDraw.SetId(PLATFORM.Name());
+            mDraw.SetColor(1,0,1);
+            mDraw.SetLineSize(1);
+            mDraw.SetLineStyle("dashed");
+            mDraw.BeginPolyline();
+                for (int i=0; i<currRoute.Size(); i=i+1)
+                  mDraw.Vertex(currRoute.Waypoint(i).Location());
+            mDraw.End();
+          }
+      }
+
+   end_execute
+
+end_behavior

@@ -1,0 +1,106 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# AUTHOR: Michael Williams michael.x.williams@boeing.com
+
+#LBM - for debug
+#sp {all*monitor*output-link
+#   (state <s> ^name RIPR-AIAI
+#              ^io.output-link <out>)
+#   (<out> ^<attr> <link>)
+#   (<link> ^{ <> status <attr2> } <value>)
+#    -->
+#   (write (crlf) | Output Command: | <attr> |.| <attr2> | | <value>)
+#}
+
+
+
+
+
+#sp {default*top-goal*halt*operator*failure
+#   "Halt if no operator can be selected for the top goal."
+#   :default
+#   (state <s> ^superstate nil)
+#   (state <ss> ^impasse conflict ^superstate <s>)
+#-->
+#   (write (crlf) |Operator conflict.| )
+#   (write (crlf) |Soar must halt.| )
+#   (halt) 
+#}
+
+#sp {default*select*reject-and-reconsider*conflict
+#   "Reject an object if it leads to a conflict that can not be solved."
+#   :default
+#   (state <s2> ^impasse conflict
+#         ^attribute operator
+#         ^superstate <s1>
+#         ^item <obj>
+#         ^quiescence t)
+#   (state <s3> ^attribute state
+#         ^choices none
+#         ^superstate <s2>
+#         ^quiescence t)
+#   (state <s1> ^operator <obj> +)
+#   -->
+#   (<s1> ^operator <obj> -)
+#}
+                           
+#sp {default*top-goal*halt*operator*failure
+#   "Halt if no operator can be selected for the top goal."
+#   :default
+#   (state <s> ^superstate nil)
+#   (state <ss> ^impasse constraint-failure ^superstate <s>)
+#-->
+#   (write (crlf) |No operator can be selected for top goal.| )
+#   (write (crlf) |Soar must halt.| )
+#   (halt) 
+#}
+
+#sp {impasse-conflict*resolve*prefer-closest
+#   (state <s> ^impasse conflict
+#              ^item <i1>
+#              ^item { <i2> <> <i1> } )
+#   (<i1> ^name pursue-target
+#         ^target.currently-targeted 1)
+#   (<i2> ^name pursue-target
+#         ^target.currently-targeted 0)
+#-->
+#   (write (crlf) | prefer-closest: Operator conflict between | <name1> | & | <name2>)
+#   (<s> 
+#}
+
+#### Monitor impasses I don't expect to get
+
+#sp {all*monitor*impasse*state-no-change
+#   (state <s> ^attribute state
+#              ^choices none)
+#-->
+#   (write (crlf) | State no-change impasse detected.|)
+#   (cmd |stop-soar --self|)
+#}
+
+#sp {all*monitor*operator*tie*impasse
+#   (state <s> ^attribute operator
+#              ^impasse tie
+#              ^item <i1> ^item {<i2> <> <i1> })
+#   (<i1> ^name <name1>)
+#   (<i2> ^name <name2>)
+#-->
+#   (write (crlf) | Operator tie between | <name1> | & | <name2>)
+#   (cmd |stop-soar --self|)}
+#
+#sp {all*operator*impasse*tie*break
+#   (state <s> ^attribute operator
+#              ^impasse tie
+#              ^item <o> 
+#              ^superstate <ss>)
+#-->
+#   (write (crlf) | Make tied operators indifferent.|)
+#   (<ss> ^operator <o> =)}
+#
+

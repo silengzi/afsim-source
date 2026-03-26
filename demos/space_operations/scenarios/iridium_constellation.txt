@@ -1,0 +1,873 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Info from https://pdfs.semanticscholar.org/47f7/716a11c8cd932c1d270753c33cbde89c45c4.pdf
+# Model of iridium satellites to establish communication network
+
+# RAAN 0 ############################################################################
+platform iridium11 IRIDIUM_SATELLITE
+   edit mover
+      raan 0 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium11
+   end_comm
+
+end_platform
+
+platform iridium12 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium12
+   end_comm
+
+end_platform
+
+platform iridium13 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium13
+   end_comm
+
+end_platform
+
+platform iridium14 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 98.182 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium14
+   end_comm
+
+end_platform
+
+platform iridium15 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium15
+   end_comm
+
+end_platform
+
+platform iridium16 IRIDIUM_SATELLITE
+
+   edit mover
+      raan 0 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium16
+   end_comm
+
+end_platform
+
+platform iridium17 IRIDIUM_SATELLITE
+
+   edit mover
+      raan 0 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium17
+   end_comm
+
+end_platform
+
+platform iridium18 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium18
+   end_comm
+
+end_platform
+
+platform iridium19 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium19
+   end_comm
+
+end_platform
+
+platform iridium110 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium110
+   end_comm
+
+end_platform
+
+platform iridium111 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium111
+   end_comm
+
+end_platform
+
+# RAAN 30 ############################################################################
+platform iridium21 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium21
+   end_comm
+
+end_platform
+
+
+platform iridium22 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium22
+   end_comm
+
+end_platform
+
+platform iridium23 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium23
+   end_comm
+
+end_platform
+
+platform iridium24 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium24
+   end_comm
+
+end_platform
+
+platform iridium25 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium25
+   end_comm
+
+end_platform
+
+platform iridium26 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 179.986 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium26
+   end_comm
+
+end_platform
+
+platform iridium27 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium27
+   end_comm
+
+end_platform
+
+platform iridium28 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium28
+   end_comm
+
+end_platform
+
+platform iridium29 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium29
+   end_comm
+
+end_platform
+
+platform iridium210 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium210
+   end_comm
+
+end_platform
+
+platform iridium211 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium211
+   end_comm
+
+end_platform
+
+# RAAN 60 ############################################################################
+platform iridium31 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium31
+   end_comm
+
+end_platform
+
+
+platform iridium32 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium32
+   end_comm
+
+end_platform
+
+platform iridium33 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium33
+   end_comm
+
+end_platform
+
+platform iridium34 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 98.182 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium34
+   end_comm
+
+end_platform
+
+platform iridium35 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium35
+   end_comm
+
+end_platform
+
+platform iridium36 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium36
+   end_comm
+
+end_platform
+
+platform iridium37 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium37
+   end_comm
+
+end_platform
+
+platform iridium38 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium38
+   end_comm
+
+end_platform
+
+platform iridium39 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium39
+   end_comm
+
+end_platform
+
+platform iridium310 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium310
+   end_comm
+
+end_platform
+
+platform iridium311 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium311
+   end_comm
+
+end_platform
+
+## RAAN 180 ############################################################################
+platform iridium41 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium41
+   end_comm
+
+end_platform
+
+platform iridium42 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium42
+   end_comm
+
+end_platform
+
+platform iridium43 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium43
+   end_comm
+
+end_platform
+
+platform iridium44 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium44
+   end_comm
+
+end_platform
+
+platform iridium45 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium45
+   end_comm
+
+end_platform
+
+platform iridium46 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 179.986 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium46
+   end_comm
+
+end_platform
+
+platform iridium47 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium47
+   end_comm
+
+end_platform
+
+platform iridium48 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium48
+   end_comm
+
+end_platform
+
+platform iridium49 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium49
+   end_comm
+
+end_platform
+
+platform iridium410 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium410
+   end_comm
+
+end_platform
+
+platform iridium411 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium411
+   end_comm
+
+end_platform
+
+# RAAN 120 ############################################################################
+platform iridium51 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium51
+   end_comm
+
+end_platform
+
+
+platform iridium52 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium52
+   end_comm
+
+end_platform
+
+platform iridium53 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium53
+   end_comm
+
+end_platform
+
+platform iridium54 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 98.182 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium54
+   end_comm
+
+end_platform
+
+platform iridium55 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium55
+   end_comm
+
+end_platform
+
+platform iridium56 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium56
+   end_comm
+
+end_platform
+
+platform iridium57 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium57
+   end_comm
+
+end_platform
+
+platform iridium58 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium58
+   end_comm
+
+end_platform
+
+platform iridium59 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium59
+   end_comm
+
+end_platform
+
+platform iridium510 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium510
+   end_comm
+
+end_platform
+
+platform iridium511 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium511
+   end_comm
+
+end_platform
+
+# RAAN 150 ############################################################################
+platform iridium61 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium61
+   end_comm
+
+end_platform
+
+
+platform iridium62 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium62
+   end_comm
+
+end_platform
+
+platform iridium63 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium63
+   end_comm
+
+end_platform
+
+platform iridium64 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium64
+   end_comm
+
+end_platform
+
+platform iridium65 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium65
+   end_comm
+
+end_platform
+
+platform iridium66 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 179.986 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium66
+   end_comm
+
+end_platform
+
+platform iridium67 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium67
+   end_comm
+
+end_platform
+
+platform iridium68 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium68
+   end_comm
+end_platform
+
+platform iridium69 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium69
+   end_comm
+end_platform
+
+platform iridium610 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium610
+   end_comm
+end_platform
+
+platform iridium611 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_comm
+      network_name iridium611
+   end_comm
+end_platform

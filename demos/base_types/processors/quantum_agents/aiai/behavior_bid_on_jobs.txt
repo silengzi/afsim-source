@@ -1,0 +1,122 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior bid_on_jobs
+
+   script_debug_writes off
+
+   script_variables
+      bool  mBidOnOwnJobs = false;
+   end_script_variables
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition bid_on_jobs, T=", TIME_NOW);
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+
+      if (mBidOnOwnJobs == false)
+      {
+         WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+         if (!commander.IsValid())
+         {
+            writeln_d("does not have a valid commander");
+            return Failure("does not have a valid commander");
+         }
+         else if (commander.GetJobs().Size() <= 0)
+         {
+            writeln_d("commander does not have any jobs");
+            return Failure("commander does not have any jobs");
+         }
+         else
+         {
+            return true;
+         }
+      }
+      else
+      {
+         if (((WsfRIPRProcessor)PROCESSOR).GetJobs().Size() <= 0)
+         {
+            writeln_d("agent does not have any jobs on its own job board");
+            return Failure("agent does not have any jobs on its own job board");
+         }
+         else
+         {
+            return true;
+         }
+      }
+   end_precondition
+
+
+   #on_init
+   #end_on_init
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing bid_on_jobs, T=", TIME_NOW);
+      Array<WsfRIPRJob> jobs;
+      WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+
+      if (mBidOnOwnJobs == false)
+      {
+         if (commander.IsBidWindowOpen())
+         {
+            jobs = commander.GetJobs();
+         }
+         else
+         {
+            writeln_d("commanders bidding window not open");
+            return;
+         }
+      }
+      else
+      {
+         if (((WsfRIPRProcessor)PROCESSOR).IsBidWindowOpen())
+         {
+            jobs = ((WsfRIPRProcessor)PROCESSOR).GetJobs();
+         }
+         else
+         {
+            writeln_d("my bidding window not open");
+            return;
+         }
+      }
+
+      foreach (WsfRIPRJob job in jobs)
+      {
+         double bid = ((WsfRIPRProcessor)PROCESSOR).QueryBid(job);
+         if ((bid < 0) && (job.GetProgress(((WsfRIPRProcessor)PROCESSOR)) < 1))
+         {
+            writeln_d("bid_on_jobs: job.UnbidJob() for job: ", job.GetDescription());
+            job.UnbidJob( ((WsfRIPRProcessor)PROCESSOR) );
+         }
+         else
+         {
+            job.BidJob(((WsfRIPRProcessor)PROCESSOR), bid);
+            writeln_d(PLATFORM.Name(), " bid for ", job.GetDescription(), " = ", bid, ", priority = ", job.GetPriority());
+            for (int channel = 1; channel < ((WsfRIPRProcessor)PROCESSOR).GetNumJobChannels(); channel = channel + 1)
+            {
+              double scaledBid = bid * 0.25;
+              if (bid < 0.0)
+              {
+                  scaledBid = bid * 2.5;
+              }
+              job.BidJob( ((WsfRIPRProcessor)PROCESSOR), channel, scaledBid, 0.0 );
+            }
+         }
+      }
+   end_execute
+
+
+end_behavior

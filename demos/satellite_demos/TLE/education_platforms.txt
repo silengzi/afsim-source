@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform SAUDISAT_1C(27607) EDUCATION
+   orbit
+1 27607U 02058C   14243.47059065  .00000324  00000-0  69221-4 0  4872
+2 27607  64.5584   2.8334 0056959 350.0704   9.9266 14.73878587628577
+   end_orbit
+end_platform
+
+platform SAUDISAT_2(28371) EDUCATION
+   orbit
+1 28371U 04025F   14244.16090882  .00000299  00000-0  81339-4 0  3689
+2 28371  97.9868 219.9719 0024448 262.0019  97.8403 14.53754602539601
+   end_orbit
+end_platform
+
+platform UNISAT_3(28373) EDUCATION
+   orbit
+1 28373U 04025H   14243.81495928  .00000308  00000-0  98346-4 0  8976
+2 28373  98.2111 195.4026 0071014  71.0108 346.9945 14.44644876536534
+   end_orbit
+end_platform
+
+platform SAUDISAT_3(31118) EDUCATION
+   orbit
+1 31118U 07012B   14244.14477868  .00000195  00000-0  41324-4 0  9829
+2 31118  97.7624 276.4933 0014068 300.0298  59.9517 14.68669220395261
+   end_orbit
+end_platform
+

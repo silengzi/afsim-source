@@ -1,0 +1,30 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM Wizard
+
+platform_type SATELLITE WSF_PLATFORM
+   icon Satellite
+
+   # NOTE: It would seem to be natural to use of the space movers here, but neither of them seem to
+   #       inherit the conditions from the parent.
+   #
+   #       So for now we will just use the (un)guided mover and use the stage 4 parameters from the
+   #       DELTA_IV_M (stage 4 represents the payload on the DELTA_IV_M)
+#   mover WSF_UNGUIDED_MOVER
+#      coordinate_frame eci
+#      integration_timestep 0.01 sec
+#      #update_interval 0.01 sec
+#      aero DELTA_IV_M_PAYLOAD_AERO
+#      total_mass 9180 kg
+#   end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+end_platform_type

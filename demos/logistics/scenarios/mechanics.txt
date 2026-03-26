@@ -1,0 +1,22 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform Mechanic_1 MECHANIC
+   position 24.5520n 81.7596w # Slightly south of Key West Intl Airport
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+end_platform
+
+platform Mechanic_2 MECHANIC
+   position 24.5520n 81.7598w # Slightly south of Key West Intl Airport
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+end_platform

@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior debug_job_board
+
+   script_variables
+      Array<WsfRIPRProcessor>  mSubs         =  Array<WsfRIPRProcessor>();
+      Array<WsfRIPRJob>        mJobs         =  Array<WsfRIPRJob>();
+      bool                     mHideMinBids  =  true;
+      double                   mMinBid       =  -MATH.DOUBLE_MAX();
+   end_script_variables
+
+
+   on_init
+   end_on_init
+
+
+   precondition
+      writeln_d("precondition debug_job_board");
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+
+      mSubs = ((WsfRIPRProcessor)PROCESSOR).GetRIPRSubordinateProcessors();
+      mSubs.PushBack(((WsfRIPRProcessor)PROCESSOR));
+      mJobs = ((WsfRIPRProcessor)PROCESSOR).GetJobs();
+      if( (mSubs.Size() > 0) && (mJobs.Size() > 0))
+      {
+         return true;
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln_d("executing debug_job_board");
+
+      writeln("Job Board for ", PLATFORM.Name(), " at Time = ", TIME_NOW);
+      #write top row (bidder names)
+      string topRow = "                        job name,        priority, ";
+      foreach (WsfRIPRProcessor sub in mSubs)
+      {
+         string subName = sub.Platform().Name();
+         while (subName.Length() < 16)
+         {
+            subName = " " + subName;
+         }
+         if (subName.Length() > 16)
+         {
+            subName = subName.Substring(-16);
+         }
+         topRow = topRow + subName + ", "; #each column is 18 spaces wide
+      }
+      ###topRow = topRow.Substring(0,-2);   #clip off the last comma & space
+      topRow = topRow + "          winner";
+
+      string lines = "-";
+      while (lines.Length() < topRow.Length())
+      {
+         lines = lines + "-";
+      }
+      writeln(lines);
+      writeln(topRow);
+
+      foreach (WsfRIPRJob job in mJobs)
+      {
+         string jobDesc = job.GetDescription();
+         while (jobDesc.Length() < 32)
+         {
+            jobDesc = " " + jobDesc;
+         }
+         if (jobDesc.Length() > 32)
+         {
+            jobDesc = jobDesc.Substring(-32);
+         }
+         string row = jobDesc + " ";   #this should be 33 spaces, at this point
+
+
+         string pString = (string)job.Priority();
+         while( pString.Contains(".") && pString.Substring(-1)=="0")   #take off all trailing zeros
+         {
+            pString = pString.Substring(0,-1);
+         }
+         if (pString.Length() > 16)
+         {
+            pString = pString.Substring(0,15);
+         }
+         pString = pString + ", ";
+         while (pString.Length() < 18)
+         {
+            pString = " " + pString;
+         }
+         row = row + pString;
+
+         foreach (WsfRIPRProcessor sub in mSubs)
+         {
+            double bidValue = job.GetBid(sub);
+            string bidValStr = (string)bidValue;
+            if (mHideMinBids == true && bidValue <= mMinBid)
+            {
+               bidValStr = "-";
+            }
+
+            while( bidValStr.Contains(".") && bidValStr.Substring(-1)=="0")   #take off all trailing zeros
+            {
+               bidValStr = bidValStr.Substring(0,-1);
+            }
+            if (bidValStr.Length() > 16)
+            {
+               bidValStr = bidValStr.Substring(0,15);
+            }
+            bidValStr = bidValStr + ", ";
+            while (bidValStr.Length() < 18)
+            {
+               bidValStr = " " + bidValStr;
+            }
+            row = row + bidValStr;
+         }
+
+         ###row = row.Substring(0,-2);   #clip off the last comma & space
+
+         Array<WsfPlatform> winners = job.Winners();
+         string winner;
+         if (winners.Empty())
+         {
+            winner = "-";
+         }
+         else if (winners.Size() > 1)
+         {
+            winner = (string)winners.Size() + " winners";
+         }
+         else
+         {
+            winner = winners[0].Name();
+         }
+         while (winner.Length() < 16)
+         {
+            winner = " " + winner;
+         }
+         if (winner.Length() > 16)
+         {
+            winner = winner.Substring(-16);
+         }
+         row = row + winner;
+         writeln(row);
+      }
+      writeln(lines);
+      writeln("");
+   end_execute
+
+end_behavior

@@ -1,0 +1,57 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+fuel LOW_FIDELITY_FUEL WSF_FUEL
+   maximum_quantity 10000 kg
+   initial_quantity 1000 kg
+   consumption_rate 1 kg/sec
+end_fuel
+
+fuel HIGH_FIDELITY_FUEL WSF_TABULAR_RATE_FUEL
+   maximum_quantity 10000 kg
+   reserve_quantity 1500  kg
+   initial_quantity 1000 kg
+   
+   mode TEST_MODE
+  
+   # Values from fuel_table_demo
+   fuel_table
+      mode TEST_MODE
+      altitudes
+         units m
+         0 5000 10000
+      end_altitudes
+      mach
+        0.25 0.5 0.75 1.0
+      end_mach
+      rates
+         units kg/s
+      #  0.25 0.5  0.75 1.0    mach
+         3.0  4.5  5.5  7.0  # Sea Level
+         2.0  3.5  4.5  6.0  # 5000 m
+         1.0  2.5  3.5  5.0  # 10000 m
+      end_rates
+   end_fuel_table
+end_fuel
+
+multiresolution_fuel MR_FUEL WSF_MULTIRESOLUTION_FUEL     
+  model high_fidelity_fuel
+     fidelity_range 0.5 1.0
+     fuel HIGH_FIDELITY_FUEL
+     end_fuel
+  end_model
+ 
+  add model low_fidelity_fuel
+     fidelity_range 0.0 0.5 
+     fuel LOW_FIDELITY_FUEL
+     end_fuel
+  end_model
+end_multiresolution_fuel

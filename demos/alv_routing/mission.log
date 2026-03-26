@@ -1,0 +1,17 @@
+2024-04-22 13:52:48 file alv_demo.txt
+2024-04-22 13:52:48 version wsf 2.9.0
+2024-04-22 13:52:48 file alv_demo.txt
+2024-04-22 13:52:48 file setup.txt
+2024-04-22 13:52:48 file platforms/alv.txt
+2024-04-22 13:52:48 file ./processors/alv_task_mgr.txt
+2024-04-22 13:52:48 file ./sensors/alv_esm.txt
+2024-04-22 13:52:48 file ./weapons/alv_jammer.txt
+2024-04-22 13:52:48 file platforms/awacs.txt
+2024-04-22 13:52:48 file platforms/ew_radar_site.txt
+2024-04-22 13:52:48 file ./sensors/ew_radar.txt
+2024-04-22 13:52:48 file platforms/fighter_bomber.txt
+2024-04-22 13:52:48 file weapons/alv_weapon.txt
+2024-04-22 13:52:48 AER output file: output/alv_demo.aer
+2024-04-22 13:52:48 Event output file: output/alv_demo.evt
+2024-04-22 13:52:48 start 1
+2024-04-22 13:52:50 complete 7200.001 1.726 0.609

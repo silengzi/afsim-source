@@ -1,0 +1,35 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+
+platform target WSF_PLATFORM
+   icon bullseye
+   position 46.50729448n 98.86678352w altitude 0 m msl
+end_platform
+
+platform launcher WSF_PLATFORM
+   icon wedge
+   position 25.6n 80.7w altitude 0 m msl heading -30 deg
+
+   add weapon launcher WSF_EXPLICIT_WEAPON
+      launched_platform_type ROCKET
+      location 0.0 0.0 -5.15 m
+      tilt 89.9 degrees
+      quantity 1
+
+      launch_computer WSF_LAUNCH_COMPUTER
+         commanded_loft_angle 83.3555 deg    # This just about hits 'target' 
+      end_launch_computer
+   end_weapon
+
+   execute at_time 1 sec relative
+      WeaponEntry(0).Fire();
+   end_execute
+end_platform

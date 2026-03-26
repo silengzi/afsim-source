@@ -1,0 +1,231 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This demo generates a fuel burn table for a SixDOF model, given a starting
+# fuel load. Fuel load is specified in loadout percentage. Burn is output in
+# pounds/hour.
+#
+# This test uses internal testing functions to output the data. The output data
+# will be 0.0 for any flight condition where the vehicle cannot sustain steady
+# level flight. This can happen if the condition is below the vehicle's stall
+# speed or above Vmax for a given altitude.
+
+# This test is set up to use the rigid-body FA-LGT model, but can be easily
+# changed to use another aircraft model by changing the included vehicle type
+# and the PLATFORM_TYPE variable.
+#
+# This test will generate a 2D CSV file, named according to the vehicle and the
+# fuel fraction requested. For example, using the FA-LGT_RB6 at 50% fuel
+# produces FA-LGT_RB6_50percent_FuelBurn.csv. Columns are defined by airspeed
+# in the specified units, and rows are defined by altitude (ft MSL).
+#
+# ******************************************************************************
+
+define_path_variable CASE fuel_burn
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 2 sec
+
+# ------------------------------------------------------------------------------
+# Change the include file path and the MOVER_TYPE here to execute the
+# FuelBurnTest on a different SixDOF model
+# ------------------------------------------------------------------------------
+include_once platforms/fa-lgt.txt
+$define PLATFORM_TYPE FA-LGT_RB6
+
+# Don't modify this
+$define PLATFORM_TYPE_STRING "$<PLATFORM_TYPE>$"
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once scripts/six_dof_flight_envelope.txt
+
+script_struct FuelData
+   script_variables
+      double altitude_ft = 0.0;
+      double velocity_fps = 0.0;
+      int fuel_percent = 0.0;
+      int iAlt = -1;
+      int iVel = -1;
+      int iFuel = -1;
+      double fuelBurnRate_kgps = -1.0;
+   end_script_variables
+end_script_struct
+
+script_variables
+
+   # --------------------------------------------------------------------
+   # These parameters control the bounds of the fuel burn flight envelope
+   # --------------------------------------------------------------------
+
+   Array<int> fuelPercentage = {0, 50, 100};
+
+   double initialAltitude_ft  = 5000;
+   double maximumAltitude_ft  = 50000;
+   double altitudeStep_ft     = 10000;
+
+   double initialVelocity = 100;
+   double maximumVelocity = 1500;
+   double velocityStep    = 5;
+
+   # Options are "KCAS", "KTAS", "FPS", "Mach"
+   string speedMode = "KTAS";
+
+   # Placeholder for invalid data
+   # Examples are "N/A", " ", "-1", etc.
+   string nullDataString = "0";
+
+   Array<FuelData> mFuelFlowData = Array<FuelData>();   
+   Array<double> mAltitudes = Array<double>();   
+   Array<double> mVelocities = Array<double>();
+   string mMoverType = $<PLATFORM_TYPE_STRING:"">$;
+end_script_variables
+
+platform TEST_PLATFORM $<PLATFORM_TYPE:FA-LGT_RB6>$
+
+   six_dof_position 0.0 0.0
+   six_dof_alt 10000.0 feet   
+
+   execute at_time 0.1 s absolute
+      int iFuel = 0;   
+      foreach (double fuelLoad in fuelPercentage)
+      {
+         WsfSixDOF_Mover mover = (WsfSixDOF_Mover) Mover();
+         double minWeight = mover.GetEmptyWeight();
+         double fuelWeight = mover.GetTotalFuelCapacity();
+
+         double testingWeight_kg = minWeight + (fuelLoad / 100.0) * fuelWeight;
+
+         int iAlt = 0;
+         for(double alt = initialAltitude_ft; alt <= maximumAltitude_ft; alt = alt + altitudeStep_ft)
+         {
+            if (iFuel == 0) { mAltitudes.PushBack(alt); }               
+
+            double altitude_m = alt * Math.M_PER_FT();
+
+            int iVel = 0;
+            for(double vel = initialVelocity; vel <= maximumVelocity; vel = vel + velocityStep)
+            {
+               if (iAlt == 0 && iFuel == 0) { mVelocities.PushBack(vel); }               
+
+               double mach = 0.0;
+               if (speedMode.Lower() == "mach")
+               {
+                  mach = vel;
+               }
+               if (speedMode.Lower() == "fps")
+               {
+                  mach = mover.CalcMachFromFps(altitude_m, vel);
+               }
+               else if (speedMode.Lower() == "ktas")
+               {
+                  mach = mover.CalcMachFromKtas(altitude_m, vel);
+               }
+               else if (speedMode.Lower() == "kcas")
+               {
+                  mach = mover.CalcMachFromKcas(altitude_m, vel);
+               }
+
+               double fuelFlow_kgps = mover.__getTestObject().GetLevelFlightFuelBurnRate(altitude_m,
+                                                                                         mach,
+                                                                                         testingWeight_kg);               
+
+               FuelData data = FuelData();
+
+               data.iAlt = iAlt;
+               data.iVel = iVel;
+               data.iFuel = iFuel;               
+
+               data.altitude_ft = alt;
+               data.velocity_fps = vel;
+               data.fuel_percent = fuelLoad;
+               data.fuelBurnRate_kgps = fuelFlow_kgps;
+
+               mFuelFlowData.PushBack(data);
+
+               iVel = iVel + 1;
+            }
+            iAlt = iAlt + 1;
+         }
+         iFuel = iFuel + 1;
+      }
+   end_execute
+
+end_platform
+
+execute at_time 1 sec absolute
+   FileIO output = FileIO();
+
+   int iFuel = 0;
+   foreach (double fuelLoad in fuelPercentage)
+   {   
+      string path = write_str("output/", mMoverType, "_", (string) fuelLoad, "percent_FuelBurn.csv");
+      if(output.Open(path, "out"))
+      {
+         # First pass to collect unique flight conditions
+         Array<double> altitudes_ft = Array<double>();
+         Array<double> velocities_ft = Array<double>();
+
+         Array<string> headerRow = Array<string>();
+         string headerLabel = write_str("Fuel Burn Rate (pph) vs Airspeed (", speedMode, ") and Altitude (ft)");
+         headerRow.PushBack(headerLabel);
+         foreach (double velocity_fps in mVelocities)
+         {
+            headerRow.PushBack((string) velocity_fps);
+         }
+         output.Writeln(",".Join(headerRow));
+
+         int iAlt = 0;
+         foreach (double altitude_ft in mAltitudes)
+         {
+            Array<string> dataRow = Array<string>();
+            dataRow.PushBack((string) altitude_ft);
+
+            int iVel = 0;
+            foreach (double velocity_fps in mVelocities)
+            {
+               foreach (FuelData test in mFuelFlowData)
+               {
+                  if (test.iAlt == iAlt &&
+                      test.iVel == iVel &&
+                      test.iFuel == iFuel)
+                  {
+                     double burn_kgps = test.fuelBurnRate_kgps;
+                     if (burn_kgps == 0.0)
+                     {
+                        dataRow.PushBack(nullDataString);
+                     }
+                     else
+                     {
+                        double burn_pph = 3600.0 * burn_kgps * MATH.LB_PER_KG();
+                        dataRow.PushBack((string) burn_pph);
+                     }
+                     break;
+                  }
+               }
+
+               iVel = iVel + 1;
+            }
+            output.Writeln(",".Join(dataRow));         
+            iAlt = iAlt + 1;
+         }
+
+         output.Close();
+      }
+      else
+      {
+         writeln("File: ", path, " failed to open for writing.");
+      }
+
+      iFuel = iFuel + 1;
+   }
+end_execute

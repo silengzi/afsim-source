@@ -1,0 +1,858 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#always requires a commander
+#bids on & performs "jam-target" jobs
+#does not create any jobs
+#attempts to jam the target
+#assumes jammers aren't destroyed
+
+
+include_once ../common/common_platform_script.txt
+
+processor AIJAM-thinker WSF_RIPR_PROCESSOR
+
+  #debug
+  #script_debug_writes on
+
+  //1 Hz update
+  //update_interval 0.5 sec
+  update_interval 1.0 sec
+
+  //num_job_channels 3  // very important for bidding on and receiving multiple jobs, this is the
+  //                    // number of targets the jammer can engage (jam) simultaneously
+  //                    // depends on number of jamming arrays, will be updated on_initialize
+
+  script_variables
+
+    string mTaskManagerName = "task_mgr";
+    WsfTaskManager mTaskMgr;
+
+    int CHANNEL = 0;
+
+    double rangeBiddingScale      = 2.0;
+    double targetPriorityBidScale = 4.1;
+    double bandPriorityBidScale   = 1.0;
+    double powerBidScale          = 5.3;
+
+    //Map<int, string>    mJobCurrentState       = Map<int, string>(); //keeps each jobs current engagement state
+    //Map<int, double>    mJobStateTimes         = Map<int, double>(); //records when each job entered its current state
+
+    WsfTrackId          emptyTrackId             = WsfTrackId();
+    Array<WsfTrackId>   mChannelTargets          = Array<WsfTrackId>();    //array index is job channel, array value is target track id (from job that channel is performing)
+
+    ///////////////////////////////////////////////////////////////////////////
+    // mChannelJammers and mChannelBeams are to be used in conjunction with one another
+    // mChannelJammers stores that channel's jammer weapon
+    // mChannelBeams stores that channel's jammer's beam to be used
+    //
+    //array index is channel, value is jamming weapons name
+    Array<string>             mChannelJammers  = Array<string>();
+    //array index is channel, value is jamming weapons beam
+    Array<int>                mChannelBeams    = Array<int>();
+    //array index is channel, value is jamming weapons pod (category)
+    Array<string>             mChannelPods     = Array<string>();
+    //map key is jammer weapons pod (category), value is array of channels that use the pod
+    Map< string, Array<int> > mPodToChannels   = Map< string, Array<int> >();
+
+    //map key is pod of interest, value is related pod
+    Map< string, string> mPodToPod             = Map< string, string>();
+    ///////////////////////////////////////////////////////////////////////////
+
+    double RESOURCE_ROLL_ANGLE = 75.0;   // degrees
+    double DISTANCE_3D         = 500000.0;   // meters
+
+    double SPOT_SIZE_DEFAULT = 5000000.0;   // hz
+
+    //double TRACK_PURGE_INTERVAL = 10.0;   //seconds
+
+    string JAM_TASK_STR = "Jam";
+
+    //string techniqueCountFile = "DRFM_Technique_Count.txt";
+    //FileIO techFile = FileIO();
+
+    // If USE_PRIORITY_LIST is 'true' then the priority lists is used to get the specified
+    // jammer types to be used for the given target type/name of interest. If one is not found
+    // and USE_BAND_BREAKS is also 'true' then the band breaks will be searched and used also.
+
+    //bool USE_PRIORITY_LIST = true;
+    //bool USE_BAND_BREAKS   = false;
+
+    bool USE_PRIORITY_LIST = false;
+    bool USE_BAND_BREAKS   = true;
+
+    // used when time modulation is done with a beam and more than one target is given to that beam
+    //each beam can have a few spots (or time slots)
+    //bool ADD_SPOTS_FIRST = true;  # "true" does time commutation before splitting the arrays.
+
+    // If set to true when a new assignment comes in and cannot be allocated to a jammer in the
+    // priority list, the dropping of lower priority tracks for the given jammer group (category)
+    // will begin and with each cancellation of the assignmnet will be tried again until it can be
+    // assigned or all assignments with a lower priority are cancelled.
+    // WARNING: this may cause some weird effects as assignments can be dropped and other
+    //         ones re-assigned in their place later, plus some other strange things.
+    //bool ALLOW_RE_QUEUEING = true;
+
+    //Map< string, Array< double > > BANDLIST = Map< string, Array< double > >();
+
+    // Radar Sensor type to jammer spot size mapping
+    Map< string, double > mSpotSize = Map< string, double >();
+
+    // Map of the target type/name to the preferred band(s)
+    Map< string, Array< string > > mTargetBandList = Map< string, Array< string > >();
+
+    Map< string, int > mPriorityList = Map< string, int >();
+
+    // Radar Sensor Type to jammer technique mapping (note mapping integer based for now).
+    Map< string, int > mTechniqueId = Map< string, int >();
+
+    double time1 = 0.0;
+    double time2 = 0.0;
+    double time3 = 0.0;
+    double time4 = 0.0;
+
+  end_script_variables
+
+
+
+   // ----------------------------------------
+   // return the task manager object
+   script WsfTaskManager GetTaskManager()
+      static WsfTaskManager taskMgr;
+      if( !taskMgr.IsValid() )
+      {
+         taskMgr = (WsfTaskManager)PLATFORM.Processor(mTaskManagerName);
+      }
+      return taskMgr;
+   end_script
+
+   // -------------------------------------------------------------------------
+   script void SetThreatDataItem(string aThreatString, Array< string > aBands, double aSpotSize, int aTechniqueId, int aPriority)
+      mTargetBandList[aThreatString] = aBands;
+      mSpotSize[aThreatString]       = aSpotSize;
+      mTechniqueId[aThreatString]    = aTechniqueId;
+      mPriorityList[aThreatString]   = aPriority;
+   end_script
+
+
+include platforms/soj_threat_data.txt
+
+
+/*
+   // -------------------------------------------------------------------------
+   script void SetBandList(string aBandTypeName, double aLowFreq, double aUpperFreq)
+      Array< double > Bands = Array< double >();
+      Bands.PushBack(aLowFreq);
+      Bands.PushBack(aUpperFreq);
+      BANDLIST[aBandTypeName] = Bands;
+   end_script
+*/
+
+
+   // -------------------------------------------------------------------------
+   // A sensor detected a threat so determine the spot size to use to jam the threat.
+  script double SpotSize(WsfTrack aTrack)
+    double spotSize = SPOT_SIZE_DEFAULT;
+
+    if (mSpotSize.Exists(aTrack.TargetName()))
+    {
+      spotSize = mSpotSize[aTrack.TargetName()];
+    }
+    else if (mSpotSize.Exists(aTrack.TargetType()))
+    {
+      spotSize = mSpotSize[aTrack.TargetType()];
+    }
+    return spotSize;
+  end_script
+
+
+
+  script int TargetPriority(WsfTrack aTrack)
+    int priority = 0;
+    if (mPriorityList.Exists(aTrack.TargetName()))
+    {
+        priority = mPriorityList[aTrack.TargetName()];
+    }
+    else if (mPriorityList.Exists(aTrack.TargetType()))
+    {
+        priority = mPriorityList[aTrack.TargetType()];
+    }
+    return priority;
+  end_script
+
+
+  script int BandPriority(string aJammerType, WsfTrack aTrack)
+    int priority = 0;
+    Array<string> jammerTypes = Array<string>();
+
+    if (mTargetBandList.Exists(aTrack.TargetName()))
+    {
+      jammerTypes = mTargetBandList[aTrack.TargetName()];
+    }
+    else if (mTargetBandList.Exists(aTrack.TargetType()))
+    {
+      jammerTypes = mTargetBandList[aTrack.TargetType()];
+    }
+
+    int N = jammerTypes.Size();
+    int i = 0;
+    for (i=0; i<N; i = i + 1)
+    {
+      if (jammerTypes[i] == aJammerType)
+      {
+        break;
+      }
+    }
+    return (N-i);
+  end_script
+
+
+
+
+   // -------------------------------------------------------------------------
+   //  Script to determine the appropriate technique to use based on target type
+   script string TechniqueType(WsfTrack aTrack)
+      string techniqueType = "noise_jamming";  // default technique
+      if (aTrack.IsValid())
+      {
+         if (aTrack.TargetType() == "EW_RADAR")
+         {
+            techniqueType = "false_targets";
+         }
+         else if (aTrack.TargetType() == "ACQ_RADAR")
+         {
+            techniqueType = "random_pulse_jamming";
+         }
+      }
+      return techniqueType ;
+   end_script
+
+
+
+
+  // -------------------------------------------------------------------------
+  // Script to determine the appropriate jammer type(s)
+
+  script bool IsJammerBandCapable(WsfWeapon aJammer, WsfTrack aTrack)
+    string aJammerType = aJammer.Type();
+    if (USE_PRIORITY_LIST)
+    {
+      string lookup = "nothing nada nein";
+      if (mTargetBandList.Exists(aTrack.TargetName()))
+      {
+        lookup = aTrack.TargetName();
+      }
+      else if (mTargetBandList.Exists(aTrack.TargetType()))
+      {
+        lookup = aTrack.TargetType();
+      }
+      else
+      {
+        writeln_d("target ", aTrack.TargetName(), " ", aTrack.TargetType(), " has no matches with ", aJammerType);
+        return false;
+      }
+      foreach(string jType in mTargetBandList[lookup])
+      {
+        if (aJammerType == jType)
+        {
+          return true;
+        }
+      }
+    }
+    else if (aTrack.FrequencyValid() && USE_BAND_BREAKS)
+    {
+      writeln_d("track for ", aTrack.TargetName(), " has frequency ", aTrack.Frequency());
+      if (aJammer.WithinFrequencyBand(aTrack.Frequency()))
+      {
+        return true;
+      }
+
+//      if (BANDLIST.Exists(aJammerType))
+//      {
+//        Array< double > Freq = BANDLIST.Get(aJammerType);
+//        if ((aTrack.Frequency() > Freq[0]) &&
+//            (aTrack.Frequency() < Freq[1]))
+//        {
+//          return true;
+//        }
+//      }
+
+    }
+    writeln_d("target ", aTrack.TargetName(), " ", aTrack.TargetType(), " has no matches with ", aJammerType);
+    return false;
+  end_script
+
+
+
+  script WsfTrack GetJobsTrack(WsfRIPRJob aJob)
+
+    string name = (string)aJob.GetData("targetTrackName");
+
+    //WsfTrack jobsTrack = PLATFORM.MasterTrackList().Find(name);
+    //return jobsTrack;
+
+   #extern WsfTrack GetTrackByName(WsfPlatform, string);
+    WsfTrack track = GetTrackByName(PLATFORM, name);
+    return track;
+
+  end_script
+
+
+
+  script double CalculateJamTargetBidValue( WsfTrack aTrack, string aJammerName)
+
+    WsfWeapon jammer = PLATFORM.Weapon(aJammerName);
+    if (!jammer.IsValid())
+    {
+      writeln_d("no bid, jammer not found:  ", aJammerName);
+      return -MATH.DOUBLE_MAX();
+    }
+
+    if (!PLATFORM.WithinFieldOfView(aTrack, aJammerName))
+    {
+      writeln_d("target track outside of jammers field of view, no bid!  ", aTrack.TargetName(),
+                " outside FOV of ", aJammerName);
+      return -MATH.DOUBLE_MAX();
+    }
+
+    if (!IsJammerBandCapable(jammer, aTrack))
+    {
+      writeln_d("jammer of this type is not band capable for target, no bid! ", aJammerName,
+                " has no bands for ", aTrack.TargetName());
+      return -MATH.DOUBLE_MAX();
+    }
+
+    ############################################################################
+    ##should we hold off on this test?  we've already checked frequency
+    ##so effectively, this just checks if any spots are available
+    #if (!jammer.CanJam(aTrack.Frequency()))
+    #{
+    #  writeln_d("jammer already full, no more jamming requests please, no bid!");
+    #  return -MATH.DOUBLE_MAX();
+    #}
+    ############################################################################
+
+    ############################################################################
+    ##should we hold off on this test?  we might let the job board make assignments
+    ##and not worry so much about pods and beam counts
+    ##the job board should dynamically reassign jamming targets when necessary or optimal
+    #if (CanAssign(jammer, 1))
+    #{
+    #  writeln_d("jammer failed frequency availability check, no bid.");
+    #  return -MATH.DOUBLE_MAX();
+    #}
+    ############################################################################
+
+    double JobBidValue = 0.0;
+
+    #add value based on range to target
+    JobBidValue = JobBidValue +      rangeBiddingScale * 100.0 / MATH.Sqrt(PLATFORM.SlantRangeTo(aTrack));
+
+    #add value based on target priority from mission data load
+    JobBidValue = JobBidValue + targetPriorityBidScale * TargetPriority(aTrack);
+
+    #add value based on band ordering from mission data load
+    JobBidValue = JobBidValue +   bandPriorityBidScale * BandPriority(jammer.Type(), aTrack);
+
+    #add value based on power the jammer is able to put on target
+    #JobBidValue = JobBidValue +         powerBidScale * JammerPower(jammer,aTrack);
+
+    return JobBidValue;
+
+  end_script
+
+
+
+  query_bid_type jam-target
+
+    if (!JOB.IsValid())
+    {
+      writeln_d("job not valid, can not process, no bid!");
+      return -MATH.DOUBLE_MAX();
+    }
+
+    if (mChannelJammers.Size() <= 0)
+    {
+      writeln_d("no jammer weapons found, impossible, no bid!");
+      return -MATH.DOUBLE_MAX();
+    }
+
+    WsfTrack track = GetJobsTrack(JOB);
+    if (!track.IsValid())
+    {
+      writeln_d("track not valid for job: ", JOB.Name(), " - ", JOB.GetDescription(), ", no bid.");
+      return -MATH.DOUBLE_MAX();
+    }
+
+    string jammerName = mChannelJammers.Get(CHANNEL);
+    if(!jammerName.IsValid())
+    {
+      jammerName = mChannelJammers.Get(0);
+    }
+
+    if (MATH.Fabs(PLATFORM.Roll()) >= RESOURCE_ROLL_ANGLE)
+    {
+      writeln_d("platform is rolled beyond the resource limit!");
+      return -MATH.DOUBLE_MAX();
+    }
+
+    if (PLATFORM.SlantRangeTo(track) >= DISTANCE_3D)
+    {
+      writeln_d("jamming target is too far away!");
+      return -MATH.DOUBLE_MAX();
+    }
+
+    double jobBidValue = CalculateJamTargetBidValue( track, jammerName);
+    return jobBidValue;
+
+  end_query_bid_type
+
+
+  script bool DoStartJamming(int aChannel, WsfTrack aTarget)
+
+    string comment = "start jamming: " + aTarget.TrackId().ToString();
+    PLATFORM.Comment(comment);
+
+    string     jammerName = mChannelJammers.Get(aChannel);
+    WsfWeapon  jammer     = PLATFORM.Weapon(jammerName);
+    int        beam       = mChannelBeams.Get(aChannel);
+
+    if (jammer.IsValid() && aTarget.FrequencyValid())
+    {
+      #should already have passed these checks, when bidding
+      #if (jammer.CanJam(aTarget.Frequency(), TechniqueType(aTarget)) && (CanAssign(jammer, 1)))
+      #{
+
+      int beamNumber = beam;
+
+      mTaskMgr = GetTaskManager();
+      if (!mTaskMgr.IsValid())
+      {
+        writeln("ERROR: invalid task manager for jamming control!");
+        return false;
+      }
+
+
+      //StartJamming(TRACK, "Jam", jammer, TRACK.Frequency(), 5.e6, TechniqueType());
+
+      if (mTaskMgr.StartJamming(aTarget, JAM_TASK_STR, jammer, aTarget.Frequency(),
+                                SpotSize(aTarget), beamNumber, TechniqueType(aTarget)))
+      {
+        writeln("T=", TIME_NOW, " START JAMMING: ", jammer.Name(), " : ",
+                PLATFORM.Name(), " - ", aTarget.TargetName(), " : ", aTarget.TargetType(),
+                "  ", aTarget.Frequency(), " : ", SpotSize(aTarget), " : ", TechniqueType(aTarget),
+                " Beam: ", beamNumber, " Assignments: ", jammer.ActiveRequestCount());
+        return true;
+      }
+      else
+      {
+        writeln("CANT START JAMMING: ", jammer.Name(), ":", PLATFORM.Name(), " - ",
+                aTarget.TargetName(), ":", aTarget.TargetType(), " ", aTarget.Frequency(),
+                ":", SpotSize(aTarget), ":", TechniqueType(aTarget), " RequestCount=",
+                jammer.ActiveRequestCount(), ":", jammer.MaximumRequestCount());
+      }
+
+      #}
+      #else if (jammer.ActiveRequestCount() < jammer.MaximumRequestCount())
+
+      if (jammer.ActiveRequestCount() < jammer.MaximumRequestCount())
+      {
+        writeln("CANT JAM THE TARGET: ", jammer.Name(), ":", PLATFORM.Name(),
+                " - ", aTarget.TargetName(), ":", aTarget.TargetType(), " ",
+                aTarget.Frequency(), ":", SpotSize(aTarget), ":", TechniqueType(aTarget),
+                " RequestCount=", jammer.ActiveRequestCount(), ":", jammer.MaximumRequestCount());
+      }
+    }
+    return false;
+  end_script
+
+
+
+
+  script bool DoStopJamming( int aChannel, WsfTrackId aTargetId )
+
+    string comment = "stop jamming: " + aTargetId.ToString();
+    PLATFORM.Comment(comment);
+
+    string    jammerName = mChannelJammers.Get(aChannel);
+    int       beam       = mChannelBeams.Get(aChannel);
+    WsfWeapon jammer     = PLATFORM.Weapon(jammerName);
+
+    if (jammer.IsValid())
+    {
+      WsfTrack    track  = PLATFORM.MasterTrackList().Find(aTargetId);
+
+      mTaskMgr = GetTaskManager();
+      if (!mTaskMgr.IsValid())
+      {
+        writeln("ERROR: invalid task manager for jamming control!");
+        return false;
+      }
+
+      //this should return a task list with one or none tasks in it
+      WsfTaskList taskList = mTaskMgr.AssignedTaskList(aTargetId, JAM_TASK_STR);
+
+      foreach (WsfTask task in taskList)
+      {
+        if (!task.IsValid())
+        {
+          writeln("do stop jamming: task invalid!");
+          continue;
+        }
+        if (task.ResourceName() == jammerName)
+        {
+          double freq = task.ResourceFrequency();
+          double bw   = task.ResourceBandwidth();
+
+          //if (mTaskMgr.StopJamming(aTargetId, JAM_TASK_STR, jammerName, freq, bw))
+
+          if (mTaskMgr.StopJamming(aTargetId, JAM_TASK_STR, jammerName, freq, bw, beam))
+          {
+            //do stuff?
+            writeln("T=", TIME_NOW, "  STOP JAMMING: ", jammerName, " : ",PLATFORM.Name(),
+                    " - ", track.TargetName(), " : ", track.TargetType(), "  ", freq, " Hz, ", bw, " Hz");
+            return true;
+          }
+          else
+          {
+            writeln("T=", TIME_NOW, " CANT STOP JAMMING: ", jammerName, ":", PLATFORM.Name(), " - ",
+                    track.TargetName(), ":", track.TargetType(), " ", freq, " Hz, ", bw, " Hz");
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  end_script
+
+
+
+  script void DoJob(WsfRIPRJob aJob, int aChannel)
+
+#    double timeMark1 = GetWallClockTime();
+#    double timeMark2 = timeMark1;
+
+
+    WsfTrack track;
+    if (aJob.IsValid())
+    {
+      track = GetJobsTrack(aJob);
+    }
+    else
+    {
+      //stop performing previous jamming job
+      if (mChannelTargets.Size() > aChannel)
+      {
+        WsfTrackId oldTargetId = mChannelTargets.Get(aChannel);
+        if (oldTargetId != emptyTrackId)
+        {
+          if (DoStopJamming(aChannel, oldTargetId))
+          {
+            mChannelTargets.Set(aChannel, emptyTrackId);
+            writeln("successfully stopped jamming old target");
+          }
+          else
+          {
+            writeln("error: still jamming old target, will try to stop next update!");
+          }
+        }
+      }
+      return;
+    }
+
+    //string comment = "doing job: " + aJob.GetDescription();
+    //PLATFORM.Comment(comment);
+
+    WsfTrackId previousTargetId = mChannelTargets.Get(aChannel);
+    string     jammerName       = mChannelJammers.Get(aChannel);
+    int        beam             = mChannelBeams.Get(aChannel);
+    bool       targetChanged    = (!track.IsValid() || (track.TrackId() != previousTargetId));
+
+    // if this channel had a previous target, and the new target is different
+    // (or invalid, and thus different), then stop jamming the previous target
+    // and make room for the new one
+    if ( targetChanged && (previousTargetId != emptyTrackId) )
+    {
+      if (DoStopJamming(aChannel, previousTargetId))
+      {
+        mChannelTargets.Set(aChannel, emptyTrackId);
+        previousTargetId = mChannelTargets.Get(aChannel);
+      }
+    }
+
+    //if the new target is valid & different, and the previous target has stopped being jammed, then
+    //start jamming the new target
+    if (track.IsValid() && targetChanged && (previousTargetId == emptyTrackId))
+    {
+      if (DoStartJamming(aChannel, track))
+      {
+        mChannelTargets.Set(aChannel, track.TrackId());
+      }
+    }
+
+  end_script
+
+
+
+  script void final_initialize()
+
+    WsfWeapon jammer;
+    int numWeapons = PLATFORM.WeaponCount();
+
+    for (int j = 0; j < numWeapons; j = j + 1)
+    {
+      jammer = PLATFORM.WeaponEntry(j);
+      if (jammer.IsValid())
+      {
+        string jammerPod = "none";
+        if (      jammer.CategoryMemberOf("left_front_pod" ))
+        {
+          jammerPod = "left_front_pod";
+        }
+        else if (jammer.CategoryMemberOf("left_rear_pod"  ))
+        {
+          jammerPod = "left_rear_pod";
+        }
+        else if (jammer.CategoryMemberOf("right_front_pod"))
+        {
+          jammerPod = "right_front_pod";
+        }
+        else if (jammer.CategoryMemberOf("right_rear_pod" ))
+        {
+          jammerPod = "right_rear_pod";
+        }
+        else if (jammer.CategoryMemberOf("left_pod_lbt"   ))
+        {
+          jammerPod = "left_pod_lbt";
+        }
+        else if (jammer.CategoryMemberOf("right_pod_lbt"  ))
+        {
+          jammerPod = "right_pod_lbt";
+        }
+
+        string jType = jammer.Type();
+        if (jType == "SOJ_VHF_JAMMER"   ||
+            jType == "SOJ_SBAND_JAMMER" ||
+            jType == "SOJ_XBAND_JAMMER"   )
+        {
+          //map these N beams with the next N channels
+          int numBeams = jammer.MaximumBeams();
+          for (int k = 1; k <= numBeams; k = k + 1)
+          {
+            mChannelBeams.PushBack(k);                //this next channel is to use beam k...
+            mChannelJammers.PushBack(jammer.Name());  //...of this jammer
+            mChannelPods.PushBack(jammerPod);         //...on this pod
+
+            Array<int> channels = Array<int>();
+            if (mPodToChannels.Exists(jammerPod))
+            {
+              channels = mPodToChannels.Get(jammerPod);
+            }
+            int currentChannel = mChannelBeams.Size() - 1;  //channels use zero-based indexing
+            channels.PushBack(currentChannel);
+            mPodToChannels[jammerPod] = channels;
+          }
+          if (numBeams <= 0)
+          {
+            writeln("*** WARNING: no beams on Jammer: ", jammer.Name());
+          }
+        }
+        else
+        {
+          writeln("*** WARNING: Jammer type: ", jType,
+                  " not recognized. Couldn\'t map jammer weapon beams to channels.");
+        }
+      }
+      else
+      {
+        writeln("*** WARNING: Jammer weapon entry not valid: ", j);
+      }
+    }
+    if (numWeapons <= 0)
+    {
+      writeln("*** WARNING: no weapons!!!");
+    }
+
+    SetNumJobChannels( mChannelJammers.Size() );
+    string comment = "num job channels: " + (string)GetNumJobChannels();
+    PLATFORM.Comment(comment);
+
+    writeln_d("channels: ", GetNumJobChannels(), " pods arr: ", mChannelPods.Size(),
+              " jammers arr: ", mChannelJammers.Size(), " beams arr: ", mChannelBeams.Size());
+
+    int N = GetNumJobChannels();
+    for (int i = 0; i < N; i = i + 1)
+    {
+      string channelDescription = "channel " + (string)i + ", pod: " + mChannelPods[i] +
+                                  ", jammer: " + mChannelJammers[i] + ", beam: " + (string)mChannelBeams[i];
+      writeln_d(channelDescription);
+      PLATFORM.Comment(channelDescription);
+    }
+
+    writeln("Starting multi channel jammer agent for ", PLATFORM.Name());
+    for (int i = 0; i < GetNumJobChannels(); i = i + 1)
+    {
+      mChannelTargets.Set(i, emptyTrackId);
+    }
+
+  end_script
+
+
+
+  on_initialize
+
+    //writeln("aijam_processor on initialize");
+
+    mTaskMgr = GetTaskManager();
+    if (!mTaskMgr.IsValid())
+    {
+      return;
+    }
+
+    ExecuteScriptAtTime(TIME_NOW + 0.01, "final_initialize");
+
+    ExecuteScript("LoadThreatData");
+
+    //writeln("aijam_processor end on initialize");
+
+   end_on_initialize
+
+
+  script void UnBidAllJobsAllChannels(WsfRIPRProcessor commander)
+    for (int i = 0; i < GetNumJobChannels(); i = i + 1)
+    {
+      commander.ClearBidsFor(PROCESSOR, i);
+    }
+  end_script
+
+  script void UnBidOneJobAllChannels(WsfRIPRJob aJob)
+    for (int i = 0; i < GetNumJobChannels(); i = i + 1)
+    {
+      aJob.UnbidJob(PROCESSOR, i);
+    }
+  end_script
+
+
+  on_update
+
+    double duration = 0.0;
+    double lStartTime = GetWallClockTime();
+
+    string comment = "num tracks: " + (string)PLATFORM.MasterTrackList().Count();
+    //PLATFORM.Comment(comment);
+
+    WsfRIPRProcessor cmdr = GetRIPRCommanderProcessor();
+    if (!cmdr.IsValid())
+    {
+      return;
+    }
+
+    Array<WsfRIPRJob> jobs = cmdr.GetJobs();
+
+    comment = "num jobs: " + (string)jobs.Size();
+    //PLATFORM.Comment(comment);
+
+    writeln_d("--- on_update Platform: ", PLATFORM.Name(), ",  num jobs: ", jobs.Size(),
+              ",  num channels: ", GetNumJobChannels());
+
+    time1 = 0.0;
+    time2 = 0.0;
+    time3 = 0.0;
+    time4 = 0.0;
+
+    //do pruning at the highest level possible, check for jammers and the roll angle first
+
+    if (mChannelJammers.Size() <= 0)
+    {
+      writeln_d("no recognized jammer weapons on platform!");
+      UnBidAllJobsAllChannels(cmdr);  //unbid job on all channels
+      jobs.Clear();                   //remove jobs from array, so no bids are attempted
+    }
+
+    if (MATH.Fabs(PLATFORM.Roll()) >= RESOURCE_ROLL_ANGLE)
+    {
+      writeln_d("platform is rolled beyond the resource limit!");
+      UnBidAllJobsAllChannels(cmdr);  //unbid job on all channels
+      jobs.Clear();                   //remove jobs from array, so no bids are attempted
+    }
+
+    //bid on each job from our commander
+    foreach (WsfRIPRJob aJob in jobs)
+    {
+      if(aJob.IsValid() && aJob.Name() == "jam-target")
+      {
+        double BID = -MATH.DOUBLE_MAX();
+        WsfTrack track = GetJobsTrack(aJob);
+        if (track.IsValid())
+        {
+          if (PLATFORM.SlantRangeTo(track) >= DISTANCE_3D)
+          {
+            writeln_d("jamming target is too far away: ", track.TargetName());
+            UnBidOneJobAllChannels(aJob); //unbid job on all channels
+          }
+          else
+          {
+            string lastJammer = "";
+            for (CHANNEL = 0; CHANNEL < GetNumJobChannels(); CHANNEL = CHANNEL + 1)
+            {
+              string curJammer = mChannelJammers[CHANNEL];
+              //if its the same jammer weapon, bid the same, two beams aren't different
+              if (curJammer == lastJammer)
+              {
+                BID = BID;  //same bid for this beam as last beam (same jammer)
+              }
+              else
+              {
+                //BID = QueryBid(aJob);
+                BID = CalculateJamTargetBidValue( track, curJammer);
+                lastJammer = curJammer; //update last jammer to calculate bid
+              }
+              aJob.BidJob(PROCESSOR, CHANNEL, BID);
+            }
+          }
+        }
+        else
+        {
+          writeln_d("track not valid for job: ", aJob.Name(), " - ", aJob.GetDescription(), ", no bid.");
+          UnBidOneJobAllChannels(aJob); //unbid job on all channels
+        }
+
+        comment = "one bid was: " + (string)BID;
+        writeln_d(comment);
+        //PLATFORM.Comment(comment);
+      }
+    }
+
+    double midTime = GetWallClockTime();
+
+    //iterate over the channels (beams) for each pod
+    //take the most important jobs for that pod (greedy) and then clear the
+    //bids for other channels (beams) when the power is gone (spent on other beams)
+
+    for (int i = 0; i < GetNumJobChannels(); i = i + 1)
+    {
+      WsfRIPRJob job = cmdr.GetJobFor(TIME_NOW, PROCESSOR, i);
+      DoJob(job, i);
+    }
+
+    //extra debug stuff
+    //WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+    //writeln("multi channel guy ",PLATFORM.Name()," track count: ",localTracks.Count());
+    //writeln("multi channel guy ",PLATFORM.Name()," job count: ",jobs.Size());
+
+    double endTime = GetWallClockTime();
+    //writeln("--- on_update Platform: ", PLATFORM.Name(), ", Bidding Time: ", (midTime - lStartTime));
+    //writeln("--- on_update Platform: ", PLATFORM.Name(), ", Do Job Time:  ", (endTime - midTime));
+    //writeln("--- on_update Platform: ", PLATFORM.Name(), ", Whole Time:   ", (endTime - lStartTime));
+
+  end_on_update
+
+
+end_processor

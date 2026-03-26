@@ -1,0 +1,129 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM Wizard
+
+# Define the capability to communicate with
+# the starlink constellation.
+# This file should be "include"-ed directy in platform_type definitions.  For example:
+#
+#   platform_type 
+#      include platforms/starlink_linkable.txt
+#   end_platform_type
+#
+# This definition uses 
+#   processors/establish_link_processor.txt
+# and 
+#   processors/linkable_targets_processor.txt
+# these must be included elsewhere in the scenario, or:
+#
+#   include_once starlink_linkable_setup.txt
+#
+   
+   group_join LINKABLE_TARGETS
+   
+   // Provide a sensor that detects potential targets/comms to link with.
+   // These are refined in link-proc
+   sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      maximum_range 1500 km
+      frame_time 20 sec
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+      processor link-proc
+   end_sensor
+   
+   // From an initial list of potential linkable targets, refine these to 
+   // only those candidates that match requirements.
+   processor link-proc LINKABLE_TARGETS_PROCESSOR 
+   end_processor
+   
+   processor track-proc WSF_TRACK_PROCESSOR
+      non_master_track_processor
+      uncorrelated_track_drops enable
+   end_processor
+   
+   // Provide the means to Establish, maintain, and drop a point-to-point duplex link.
+   processor establish-link-processor ESTABLISH_LINK_PROCESSOR 
+      track_processor track-proc
+   end_processor
+   
+   processor establish-link-injector WSF_SCRIPT_PROCESSOR
+      internal_link establish-link-processor
+   end_processor
+   
+   script bool RequestLink(WsfComm aLocalComm, WsfComm aTargetComm)
+      Map<string, WsfTrack> targetLinkableTargets = CommLink_LinkableTargets(aTargetComm);
+      bool linkable = targetLinkableTargets.Exists(PLATFORM.Name());
+      bool isLinking = CommLink_Link(aTargetComm).Linking();
+      if (linkable && !isLinking)
+      {
+          WsfControlMessage msg = {};
+          msg.SetSubType("link");
+          WsfPlatform target = aTargetComm.Platform();
+          
+          CommLink link = CommLink_Link(aLocalComm);
+          link.Acquire(target.Name(), aTargetComm.Name());
+          
+          msg.SetFunction(PLATFORM.Name() + " " + aLocalComm.Name()); // These are retrieved in the saved message
+          writeln_d("linking commm ", PLATFORM.Name(), ":", aLocalComm.Name(), " to ", target.Name(), ":", aTargetComm.Name());
+          target.Processor("establish-link-injector").SendMessage(msg);
+       }
+       return linkable;
+   end_script
+   
+   // Automatically attempt to link a comm with a comm on a target platform.
+   script bool AttemptLinks(WsfComm aComm)
+      bool found = false;
+      CommLink link = CommLink_Link(aComm);
+      if (!link.Linking())
+      {
+         Map<string, WsfTrack> linkableTargets = CommLink_LinkableTargets(aComm);
+         foreach(string name: WsfTrack track in linkableTargets)
+         {
+            WsfPlatform target = WsfSimulation.FindPlatform(name);
+            if (target.IsValid())
+            {
+               for (int commNum = 0; commNum < target.CommCount(); commNum = commNum + 1)
+               {
+                  // This is an optimization.
+                  WsfComm targetComm = target.CommEntry(commNum);
+                  CommLink targetLink = CommLink_Link(targetComm);
+                  if (!targetLink.Linking())
+                  {
+                     if (RequestLink(aComm, targetComm))
+                     {
+                        break;
+                     }
+                  }
+               }
+            }
+         }
+      }
+      return found;
+   end_script
+
+   processor establish-ad-hoc-connections WSF_SCRIPT_PROCESSOR
+      on_initialize
+         SetUpdateInterval(10.0 + MATH.RandomUniform() - 0.5);  // introduce some randomness in update times
+      end_on_initialize
+      
+      on_update
+         for (int commNum = 0; commNum < PLATFORM.CommCount(); commNum += 1)
+         {
+            WsfComm comm = PLATFORM.CommEntry(commNum);
+            if (!comm.GroupMemberOf("DEDICATED_COMM"))
+            {
+               AttemptLinks(comm);
+            }
+         }         
+      end_on_update
+   end_processor
+   

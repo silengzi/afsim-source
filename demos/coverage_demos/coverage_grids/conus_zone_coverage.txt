@@ -1,0 +1,57 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: coverage_grids/conus_zone_coverage.txt
+
+
+# Define grid type and properties
+grid conusgrid WSF_ZONE_BASED_GRID 
+   zone UNITED_STATES
+   asset WSF_PLATFORM none
+   spacing 4 deg
+   grid_data_file output/conus_grid_data.txt
+end_grid
+
+coverage conus_coverage WSF_SENSOR_COVERAGE
+
+   # Specify grid to be used
+   grid conusgrid
+   
+   # Specify platform and sensor on which coverage will be based
+   assets
+      platform_type SAT sat_geosensor
+   end_assets
+   
+   # Specify start and stop time for coverage to be computed
+   start_epoch jul 07 2020 00:00:00.00       
+   end_epoch jul 07 2020 02:00:00.00
+   
+   # Specify where output data is written   
+   output_dir ./coverage_data
+   raw_data_file raw_intervals_conus.csv
+   
+   # Define measures of effectiveness
+   moe simple_conus WSF_SIMPLE_COVERAGE_MOE
+      output data end_output
+      output grid_stats end_output
+   end_moe 
+   
+   moe revisit_conus_max WSF_REVISIT_TIME_MOE 
+      subtype maximum
+      output data end_output
+   end_moe
+   
+   moe revisit_conus_mean WSF_REVISIT_TIME_MOE 
+      subtype mean
+      output data end_output
+   end_moe
+   
+   # Create heatmap to visualize coverage results.
+   # Load this file using the Coverage Overlay view in Wizard, Warlock, or Mystic.
+   overlay_file overlay_conus
+end_coverage

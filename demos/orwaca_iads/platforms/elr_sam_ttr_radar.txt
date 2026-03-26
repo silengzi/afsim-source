@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+include_once sensors/radar/elr_sam_ttr_radar_sensor.txt
+
+platform_type ELR_SAM_TTR_RADAR WSF_PLATFORM
+   icon elr_sam_ttr_radar_icon
+   category FIRE_CONTROL
+   category Radar
+
+   comm datalink RED_DATALINK
+      network_name <local:slave>
+      internal_link task_mgr
+   end_comm
+
+   sensor elr_sam_ttr_radar_sensor ELR_SAM_TTR_RADAR_SENSOR
+      off
+      internal_link data_mgr
+      ignore_same_side
+   end_sensor
+
+   processor data_mgr WSF_LINKED_PROCESSOR
+      report_to commander via datalink to sub_net
+   end_processor
+
+   processor task_mgr WSF_TASK_PROCESSOR
+   end_processor
+
+   aux_data
+      double max_range = 324100 # meters = 175 nm
+      double pk = .7
+   end_aux_data
+end_platform_type

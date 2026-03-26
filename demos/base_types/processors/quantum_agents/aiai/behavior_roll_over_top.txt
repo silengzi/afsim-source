@@ -1,0 +1,85 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+#assumes the aircraft's mover is either a WSF_AIR_MOVER or a WSF_6DOF_MOVER
+#assumes the mover's definition includes a max climb rate and max radial acceleration
+
+
+
+behavior roll_over_top
+
+   script_variables
+      double cACCEL_GRAVITY    = 9.80665; // m/s^2
+      double cMAX_RADIAL_ACCEL = 100 * cACCEL_GRAVITY;         //larger than possible, make the aircraft limit the turn
+      double cMAX_CLIMB_RATE   = 5000 * MATH.MPS_PER_NMPH();   //larger than possible, make the aircraft limit the climb
+      double cINTERCEPT_SPEED  = 1260;    # m/s
+   end_script_variables
+
+   precondition
+      writeln("precondition roll_over_top");
+
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      WsfMover mover = PLATFORM.Mover();
+
+      if (targetTrack.IsNull() || !targetTrack.IsValid() || mover.IsNull() || !mover.IsValid())
+      {
+         writeln("target or mover not valid for executing roll_over_top");
+      }
+      else if (!mover.IsA_TypeOf("WSF_AIR_MOVER" ) && !mover.IsA_TypeOf("WSF_6DOF_MOVER"))
+      {
+         writeln("mover is not valid type for executing roll_over_top: WSF_AIR_MOVER or WSF_6DOF_MOVER");
+      }
+      else
+      {
+         //distance versus turn radius
+         double turnRadius = mover.TurnRadius();
+         double range      = PLATFORM.SlantRangeTo(targetTrack);
+         writeln("turn radius = ", turnRadius, ", my range = ", range, ", for executing roll_over_top");
+
+         #double maxVelocityAllowed = mover.CornerVelocity(targetTrack.CurrentLocation());
+         #writeln("max corner speed = ", maxVelocityAllowed, ", my speed = ", PLATFORM.Speed(), ", for executing roll_over_top");
+         #if (PLATFORM.Speed() > maxVelocityAllowed)
+         #{
+         #   return true;
+         #}
+
+         if ((2*turnRadius) > range)
+         {
+            return true;
+         }
+
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing roll_over_top");
+
+      PLATFORM.Comment("roll_over_top");
+
+      //climb to decrease velocity (to below corner speed), while preserving energy
+
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+
+      extern bool FlyTarget( WsfPlatform, WsfGeoPoint, double);
+
+      //turn to a higher altitude (5 nm above for now)
+      WsfGeoPoint pt = WsfGeoPoint.Construct(targetTrack.Latitude(), targetTrack.Longitude(), PLATFORM.Altitude() + 1852*5);
+      FlyTarget( PLATFORM, pt, cINTERCEPT_SPEED);
+
+      #Vec3 accelVec = PLATFORM.AccelerationWCS();
+      #double accel = accelVec.Magnitude();
+      #writeln("acceleration during ROT: ", accel, " m/s^2");
+   end_execute
+
+end_behavior
+

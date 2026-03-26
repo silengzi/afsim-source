@@ -1,0 +1,173 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE scenario_test_launch_computer
+
+log_file $(CASE).log
+
+file_path .
+file_path ..
+file_path ../..
+
+#include_once event_pipe.txt
+#include_once event_output.txt
+#include_once terrain.txt
+#include_once dis_network.txt
+#include_once platforms/common.txt
+#include_once platforms/striker.txt
+#include_once platforms/flight_lead.txt
+
+event_output
+   file   $(CASE).evt
+end_event_output
+
+event_pipe
+   file $(CASE).aer
+end_event_pipe
+
+random_seed 731165679
+
+end_time  3.0 sec
+
+include_once blue_lr_a2a_rf_missile_with_launch_computer.txt
+
+platform_type  STRIKER  WSF_PLATFORM
+   category fighter
+   #radar_signature SIG_RADAR_ONE_M_SQUARED
+
+   comm sub_net WSF_COMM_TRANSCEIVER
+      network_name <local:slave>
+      internal_link track_manager
+   end_comm
+
+   mover WSF_AIR_MOVER
+      roll_rate_limit               1 rad/sec
+      default_linear_acceleration   1.0 g
+      default_radial_acceleration   6.5 g
+      default_climb_rate            400 fps
+      maximum_climb_rate            400 fps
+      maximum_speed                 600.0 knots
+      minimum_speed                 150.0 knots
+      maximum_altitude              50000 ft
+      minimum_altitude              50 ft
+      maximum_linear_acceleration   9 g
+      at_end_of_path extrapolate
+      turn_rate_limit               4.0 deg/sec
+   end_mover
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      purge_interval             60 sec
+      report_interval            1 sec
+      fused_track_reporting      off
+      raw_track_reporting        on
+      report_to commander        via   sub_net
+      circular_report_rejection  true
+   end_processor
+
+   weapon  blue_lr_a2a_rf_missile  BLUE_LR_A2A_RF_MISSILE_WITH_LAUNCH_COMPUTER
+      quantity 999
+   end_weapon
+
+   sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      on
+      azimuth_field_of_view   -180.0 degrees  180.0 degrees
+      elevation_field_of_view  -90.0 degrees   90.0 degrees
+      minimum_range 0 m
+      maximum_range 277800 m     //about 150 nm
+      frame_time    0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      track_quality 1.0
+      internal_link track_manager
+      ignore_same_side
+   end_sensor
+
+end_platform_type
+
+
+platform Shooter STRIKER
+   indestructible
+   icon        F-22
+   side        blue
+   commander   blue-FL
+   route
+      position 0.6n 4.12e altitude 30000 ft msl speed 500 kts
+      position 1.6n 4.12e altitude 30000 ft msl speed 500 kts
+   end_route
+   heading 0 deg
+end_platform
+
+
+platform Target STRIKER
+   indestructible
+   side red
+   icon SU-27
+   heading 300 deg
+   commander   SELF
+   route
+      position 0.70n 4.12e altitude 30000 ft msl speed 500 kts
+      position 1.70n 4.12e altitude 30000 ft msl speed 500 kts
+   end_route
+   heading 0 deg
+end_platform
+
+
+#         WsfLaunchComputer lcPtr = weapon.LaunchComputer();
+#
+#         if (lcPtr.IsValid() && lcPtr.IsA_TypeOf("WSF_AIR_TO_AIR_LAUNCH_COMPUTER"))
+#         {
+#            // The returned array contains:  Rmax, RmaxTOF, Rne, RneTOF, Rmin, RminTOF
+#            // in that order.  -1.0 means "not valid".
+#
+#            Array<double> returnedValues = lcPtr.LookupResult(track);
+#
+#            // Now have to consider whether we have enough information to continue with a weapon shot:
+#            double theRmax    = returnedValues[0]; //"Rmax";
+#            double theRmaxTOF = returnedValues[1]; //"RmaxTOF";
+#            double theRne     = returnedValues[2]; //"Rne";
+#            double theRneTOF  = returnedValues[3]; //"RneTOF";
+#            double theRmin    = returnedValues[4]; //"Rmin";
+#            double theRminTOF = returnedValues[5]; //"RminTOF";
+#
+
+
+execute at_time 1 sec absolute
+
+   Array<double> leadAngles = Array<double>();
+   leadAngles[0] =  45.0;
+   leadAngles[1] = -45.0;
+
+   Array<double> aspectAngles = Array<double>();
+   aspectAngles[0] =  45.0;
+   aspectAngles[1] = -45.0;
+
+   WsfPlatform       shooter = WsfSimulation.FindPlatform("Shooter");
+   WsfPlatform       target  = WsfSimulation.FindPlatform("Target");
+   WsfGeoPoint       origin  = shooter.Location();
+   WsfWeapon         weapon  = shooter.Weapon("blue_lr_a2a_rf_missile");
+   WsfLaunchComputer launch  = weapon.LaunchComputer();        //IsA_TypeOf("WSF_AIR_TO_AIR_LAUNCH_COMPUTER")
+
+   foreach(double lead in leadAngles)
+   {
+      foreach(double aspect in aspectAngles)
+      {
+         origin = shooter.Location();
+         origin.Extrapolate(lead, 18520); //10 miles out, orientation is all that matters
+         target.SetLocation(origin);
+         double targetheading = MATH.NormalizeAngle0_360(lead + 180 + aspect);
+         target.SetOrientationNED(targetheading, 0, 0);
+         target.SetVelocityECS(257.2222, 0, 0);          //257.2222 (met/sec) == 500 kts
+         WsfTrack targetTrack = target.MakeTrack();
+         Array<double> launchRanges = launch.LookupResult(targetTrack);
+         writeln("lead = ", lead, ", aspect = ", aspect, ", max = ", launchRanges[0], ", min = ", launchRanges[4], ", nesc = ", launchRanges[2]);
+      }
+   }
+
+end_execute

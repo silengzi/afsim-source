@@ -1,0 +1,64 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# IRNSS SATELLITE DEFINITION
+
+include ../avionics/comm/IRNSSCommDef.txt
+
+# references
+# 1) http://www.sciencedirect.com/science/article/pii/S0273117715004378
+
+radar_signature GALILEO_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+platform_type IRNSS WSF_PLATFORM
+  icon satellite
+  radar_signature GALILEO_RADAR_SIG
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+
+  comm IRNSS_DOWNLINKL5_TX IRNSS_DOWNLINKL5_TX
+     location  1280.8 -11.4 -1.1 mm   # ref 1, used values for FOC satellites
+   on
+  end_comm
+
+  comm IRNSS_DOWNLINKSBAND_TX IRNSS_DOWNLINKSBAND_TX
+     location  1280.8 -11.4 -1.1 mm   # ref 1, used values for FOC satellites
+   on
+  end_comm
+
+  comm IRNSS_UPLINK_RX IRNSS_UPLINK_RX
+   on
+  end_comm
+
+#=======================Uncomment this to send a test message to ground stations=================================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#              if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                  if (myPlatform.Type() == "IRNSS_GS")
+#                  {
+#                  PLATFORM.Comm("IRNSS_DOWNLINKL5_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+##                  if (myPlatform.Type() == "IRNSS_GS")
+##                  {
+##                  PLATFORM.Comm("IRNSS_DOWNLINKSBAND_TX").SendUnicastMessage(myMessage, myPlatform);
+##                  }
+#              }
+#          }
+# end_execute
+#====================================================================================================================================
+
+ end_platform_type

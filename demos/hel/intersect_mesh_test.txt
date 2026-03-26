@@ -1,0 +1,364 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#---------------------------------------------
+# HEL and intersection mesh test.
+#
+# BLUE_MULTIROLE_FIGHTER_1EF W/HEL engages an air target
+# A HEL-equipped blue player chases a red
+# player, intending to shoot the IRST (default
+# region on the mesh).
+# The script continually checks the
+# target to see if the IRST is occluded.
+# Initially it is occluded. so
+# there is no shot until the red player maneuvers
+# and the IRST becomes visible.
+#
+#---------------------------------------------
+define_path_variable CASE intersect_mesh_test
+log_file output/$(CASE).log
+
+platform_type BLUE_MULTIROLE_FIGHTER_1EF WSF_PLATFORM
+
+  mover WSF_AIR_MOVER
+     default_climb_rate          400 fps
+     default_linear_acceleration 4.0 g
+     default_radial_acceleration 4.0 g
+  end_mover
+
+  spatial_domain air
+
+  icon F-18E
+
+  side blue
+
+end_platform_type
+
+include_once ./atmosphere/coefficients.txt
+
+weapon_effects hel_lethality WSF_HEL_LETHALITY
+
+   region RED_ADV_FIGHTER_2 CANOPY
+      minimum_energy 5 kj
+   end_region
+
+   region RED_ADV_FIGHTER_2 IRST
+      minimum_energy 2 kj
+      damage_radius 5 cm
+   end_region
+
+   #debug
+end_weapon_effects
+
+processor auto_fire_computer WSF_SCRIPT_PROCESSOR
+   on
+   update_interval 1.0 s
+
+   script_variables
+      double fire_duration = 10.0;
+      double fire_complete_time = 0.0;
+      string weapon_name = "hel";
+      WsfTrack mActiveTrack;
+      WsfLaserWeapon weapon_system;
+      double minimum_range = 20000.0; # 10 km
+      double minimum_target_speed = 350.0; #350 m/s
+   end_script_variables
+
+   on_initialize
+      weapon_system = (WsfLaserWeapon)PLATFORM.Weapon(weapon_name);
+   end_on_initialize
+
+   # Logic to determine if a track is a missile
+   script bool IsOK(WsfTrack aTrack)
+      WsfPlatform targetPlatform = WsfSimulation.FindPlatform(aTrack.TargetIndex());
+      bool isOk = targetPlatform.IsValid() && (targetPlatform.Side() != PLATFORM.Side());
+      return isOk;
+   end_script
+
+   script bool IsOccluded()
+      bool occluded = true;
+      if (mActiveTrack.IsValid())
+      {
+         string offset = mActiveTrack.AuxDataString("TARGET_OFFSET");
+         if (WsfSimulation.FindPlatform(mActiveTrack.TargetIndex()).IsValid())
+         {
+            occluded = weapon_system.TargetOccluded(mActiveTrack.TargetName(), offset);
+            if (occluded)
+            {
+               writeln(mActiveTrack.TargetName(), ": ", offset, " occluded.");
+            }
+            else
+            {
+               writeln(mActiveTrack.TargetName(), ": ", offset, " not occluded.");
+            }
+         }
+      }
+      return occluded;
+   end_script
+
+
+   script WsfTrack FindBestTarget()
+      double bestDistance = 1.0E20;
+      WsfTrack missileTrack = null;
+      WsfLocalTrackList tracks = PLATFORM.MasterTrackList();
+      for (int i = 0; i < tracks.Count(); i=i+1)
+      {
+         WsfLocalTrack track = tracks.Entry(i);
+         //writeln("Examining track, name ", track.TargetName());
+         if (IsOK(track))
+         {
+            double dist = track.SlantRangeTo(PLATFORM);
+            if (dist < bestDistance && dist < minimum_range)
+            {
+               bestDistance = dist;
+               missileTrack = track;
+            }
+         }
+      }
+      if (missileTrack.IsValid())
+      {
+         writeln("found ", missileTrack.TargetName());
+      }
+      return missileTrack;
+   end_script
+
+   on_update
+      if (!weapon_system.IsTurnedOn())
+      {
+         writeln("Not turned on...");
+         return;
+      }
+      if (!weapon_system.IsValid())
+      {
+         writeln("Not valid...");
+         return;
+      }
+
+      if (fire_complete_time > TIME_NOW)
+      {
+         if (mActiveTrack.IsValid())
+         {
+            string offset = mActiveTrack.AuxDataString("TARGET_OFFSET");
+            if (! WsfSimulation.FindPlatform(mActiveTrack.TargetIndex()).IsValid())
+            {
+               fire_complete_time = TIME_NOW;
+               weapon_system.CeaseFire();
+               writeln("...Target ", mActiveTrack.TargetName(), " destroyed...");
+            }
+            else if (IsOccluded())
+            {
+               fire_complete_time = TIME_NOW;
+               weapon_system.CeaseFire();
+               writeln("...Target ", mActiveTrack.TargetName(), ":", offset, " occluded...");
+            }
+         }
+         return;
+      }
+      if (weapon_system.IsFiring())
+      {
+         writeln(TIME_NOW, " ", PLATFORM.Name(), ": (cease fire).");
+         weapon_system.CeaseFire();
+      }
+      WsfTrack target = FindBestTarget();
+      if (target.IsValid())
+      {
+         mActiveTrack = target;
+         //string offset = "CANOPY";
+         string offset = "IRST";
+         mActiveTrack.SetAuxData("TARGET_OFFSET", offset);
+         if (! IsOccluded())
+         {
+            writeln(TIME_NOW, ": firing at target: ", mActiveTrack.TargetName(), offset);
+            weapon_system.Fire(mActiveTrack.TargetName(), offset);
+            fire_complete_time = TIME_NOW + fire_duration;
+         }
+      }
+      else
+      {
+         //writeln("Target not valid!");
+      }
+   end_on_update
+
+end_processor
+
+weapon HEL WSF_LASER_WEAPON
+
+   aux_data
+      bool auto_mode = false
+   end_aux_data
+
+   #debug
+   comments enabled
+
+   // The firing time per shot.
+   firing_time 5.0 sec
+
+   // The lethalitiy model used by this HEL.
+   weapon_effects hel_lethality
+
+   //-------------------------------------------------------------------
+   //  The following begins the hel-specific block of data.
+   //-------------------------------------------------------------------
+
+   fluence_model default
+
+      // The aperture for the HEL beam.
+      // The beam diffraction is inversely proportional to the aperture diameter.
+      aperture_diameter 0.2 meters
+
+      // The laser power (typically, expressed in kw).
+      power 20 kw
+
+      // The characteristic wavelength for the measurement.
+      //wavelength 1.064 microns
+
+      wavelength 1064e-9 meter
+      //atmosphere_model 1
+      //haze_model 1
+
+      // The total jitter of the beam on target.
+      // More jitter gives a larger spot size and less power/area.
+      jitter 2e-6 radians
+
+      // A measure of how close the beam is to a perfect gaussian.
+      // Valid values are >= 1.0, where 1.0 is best.
+      beam_quality 1.2
+
+   end_fluence_model
+
+end_weapon
+
+
+script_interface
+  //debug
+end_script_interface
+
+platform_type BLUE_MULTIROLE_FIGHTER_1EF-HEL BLUE_MULTIROLE_FIGHTER_1EF
+
+   add processor auto_fire auto_fire_computer
+      on
+   end_processor
+
+   add weapon hel HEL
+      #debug
+   end_weapon
+
+   processor fuser WSF_TRACK_PROCESSOR
+     raw_track_reporting on
+     fused_track_reporting off
+     purge_interval 60.0 seconds
+     report_interval 5.0 seconds
+     //debug
+   end_processor
+
+   sensor all-seeing WSF_GEOMETRIC_SENSOR
+      on
+      processor fuser
+      reports_location
+      reports_velocity
+      frame_time 1.0 second
+   end_sensor
+
+end_platform_type
+
+platform redeye BLUE_MULTIROLE_FIGHTER_1EF-HEL
+
+   route
+      position 0.0383s 0.0383e speed 400 kts altitude 3000 meters
+   end_route
+
+end_platform
+
+/*
+platform threat WSF_PLATFORM
+   side red
+   category SA
+   icon SA_TEMPLATE
+   position 0n 0e altitude 1 m
+end_platform
+
+platform threat2 WSF_PLATFORM
+   side red
+   category SA
+   icon SA_TEMPLATE
+   position 0:01:00n 0e altitude 1 m
+end_platform
+*/
+
+platform_type RED_ADV_FIGHTER_2 WSF_PLATFORM
+   side red
+   icon SU-27
+   category RED_ADV_FIGHTER_2
+   mover WSF_AIR_MOVER end_mover
+
+   // Very Important:  The intersect processor must
+   // be defined on targets to get a good result
+   // for the "Occluded" script method.
+   processor RED_ADV_FIGHTER_2isector WSF_INTERSECT_PROCESSOR
+     define_offset CANOPY
+         3.461642 m
+         0.000184 m
+        -0.943480 m
+     define_offset IRST
+         5.138014 m
+         0.000005 m
+        -0.629733 m
+     intersect_mesh ./mesh/red_adv_fighter_2.imesh
+   end_processor
+
+end_platform_type
+
+platform red_adv_fighter_2 RED_ADV_FIGHTER_2
+   add processor turn-proc WSF_SCRIPT_PROCESSOR
+      script void turn()
+         static double heading = 180.0;
+         if (heading == 180.0)
+         {
+            heading = 0.0;
+         }
+         else
+         {
+            heading = 180.0;
+         }
+         PLATFORM.TurnToHeading(heading);
+      end_script
+      on_update
+         turn();
+      end_on_update
+      update_interval 30.0 seconds
+   end_processor
+
+   route
+      position 0:10:00n 0.0383e speed 200 kts altitude 2000 meters heading 180 degrees
+   end_route
+
+end_platform
+
+start_date Jan 21 2008
+start_time 14:00:00
+
+event_pipe
+  file output/$(CASE).aer
+end_event_pipe
+
+event_output
+  file output/$(CASE).evt
+  enable DIRECTED_ENERGY_WEAPON_BEGIN_SHOT
+  enable DIRECTED_ENERGY_WEAPON_END_SHOT
+  enable IMPLICIT_WEAPON_BEGIN_ENGAGEMENT
+  enable IMPLICIT_WEAPON_END_ENGAGEMENT
+  enable DIRECTED_ENERGY_WEAPON_UPDATE_SHOT
+  enable DIRECTED_ENERGY_WEAPON_COOLDOWN_COMPLETE
+  //enable WEAPON_FIRED
+  //enable WEAPON_HIT
+  enable WEAPON_TERMINATED
+  enable PLATFORM_DELETED
+  enable COMMENT
+end_event_output
+
+end_time 2000.0 seconds

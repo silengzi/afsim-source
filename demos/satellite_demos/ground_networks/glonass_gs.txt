@@ -1,0 +1,57 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/glonass_gs.txt
+
+# Example GLONASS sites
+
+platform SHCHYOLKOVO_GLONASS GLONASS_GS
+  position  55.915891n  38.031921e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform KOMSOMOLSK_GLONASS GLONASS_GS
+  position   50.567033n  136.965895e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform ST_PETE_GLONASS GLONASS_GS
+  position    59.861536n   30.346296e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform USSURIYSK_GLONASS GLONASS_GS
+  position  43.802313n 131.963089e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform YENISEYSK_GLONASS GLONASS_GS
+  position  58.450100n  92.186769e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform TARTUS_GLONASS GLONASS_GS
+  position   34.883581n   35.887070e altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+platform MANAGUA_GLONASS GLONASS_GS
+  position  12.136342n 86.247832w altitude 1.0 m agl
+  commander SELF
+  side red
+end_platform
+
+

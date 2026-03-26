@@ -1,0 +1,33 @@
+########################################################################
+Fri Apr 26 13:07:07 2024
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Mission threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Read access violation at address 0x0000000000000010.
+Stacktrace:
+     0# 0x7ffe21457b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ffe214e2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ffe56edbba5 (_C_specific_handler) at ??
+     3# 0x7ffe56ed2bf7 (is_exception_typeof) at ??
+     4# 0x7ffe56ed2b00 (is_exception_typeof) at ??
+     5# 0x7ffe56ed30df (is_exception_typeof) at ??
+     6# 0x7ffe56edc15d (_CxxFrameHandler3) at ??
+     7# 0x7ff603624118 (试图访问无效的地址。) at ??
+     8# 0x7ffe6a0b440f (_chkstk) at ??
+     9# 0x7ffe6a02e466 (RtlFindCharInUnicodeString) at ??
+    10# 0x7ffe6a0b33fe (KiUserExceptionDispatcher) at ??
+    11# 0x7ffe2154695a (UtStringId::GetString) at ??
+    12# 0x7ffe4aaea79a (wsf::coverage::Coverage::Initialize) at ??
+    13# 0x7ffe4ab1b892 (wsf::coverage::RevisitTime::SubtypeHasParameter) at ??
+    14# 0x7ffdc46a08a8 (WsfSimulation::Initialize) at ??
+    15# 0x7ffdc462b7cb (WsfEventStepSimulation::Initialize) at ??
+    16# 0x7ffdc46a8d5b (WsfStandardApplication::InitializeSimulation) at ??
+    17# 0x7ff603622367 (试图访问无效的地址。) at ??
+    18# 0x7ff603623c02 (试图访问无效的地址。) at ??
+    19# 0x7ff603624364 (试图访问无效的地址。) at ??
+    20# 0x7ffe67ec257d (BaseThreadInitThunk) at ??
+    21# 0x7ffe6a06aa48 (RtlUserThreadStart) at ??
+
+

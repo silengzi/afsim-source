@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Horizontal map driver (included by hmapf.txt and hmaps.txt)
+# ==============================================================================
+
+include_once ../common_types.txt
+
+# ==============================================================================
+
+platform sensor-1 WSF_PLATFORM
+   position 0n 0e altitude 40000 ft heading 0 deg
+   add sensor irst IRST
+   end_sensor
+end_platform
+
+# ==============================================================================
+
+horizontal_map
+   gnuplot_file              $(GNUPLOT_FILE)
+   variable                  contrast_radiant_intensity
+   variable                  background_radiant_intensity
+   variable                  infrared_signature
+   variable                  optical_signature
+   variable                  pd
+
+   down_range_limits         -200 nm 200 nm
+   down_range_step           1 nm
+   cross_range_limits        -200 nm 200 nm
+   cross_range_step          1 nm
+
+   target_altitude           30000 ft
+   target_heading            180 deg
+   target_mach               1.2
+end_horizontal_map

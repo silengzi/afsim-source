@@ -1,0 +1,24 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+atmospheric_coefficients
+
+wavelength xxxx nanometers  // wavelength in nm for which table is valid
+atmosphere_model  // 1-6; see explanation
+haze_model  // 1-6; see explanation
+
+altitude
+end_altitude
+
+attenuation
+end_attenuation
+
+scattering
+end_scattering
+
+end_atmospheric_coefficients

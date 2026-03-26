@@ -1,0 +1,159 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/intelsat_gs.txt
+
+# IRIDIUM CONSTELLATION GROUND SITES
+
+# References:
+# 1) https://www.iho.int/mtg_docs/com_wg/CPRNW/WWNWS1/WWNWS1-3-5-3.pdf
+# 2) https://en.wikipedia.org/wiki/Iridium_Communications
+# 3) http://www.spacewar.com/news/iridium-98p.html
+# 4) http://www.itweb.co.za/index.php?option=com_content&view=article&id=111042
+
+# Locations
+
+# Tempe, Arizona          # ref 1
+# Wahiawa, Hawaii         # ref 1
+# Fairbanks, Alaska       # ref 1
+# Svalbard, Norway        # ref 1
+# Moscow , Russia         # ref 2
+# Rome, Italy             # ref 3
+# Jeddah, Saudi Arabia    # ref 2
+# Izhevsk, Russia         # ref 2
+# Pune, India             # ref 2
+# Beijing                 # ref 2
+# Nagano, Japan           # ref 2
+# Seoul, South Korea      # ref 2
+# Taipei, Taiwan          # ref 2
+# Rio de Janeiro, Brazil  # ref 2
+# Mumbai, India           # ref 3
+# Bangkok, Tailand        # ref 3
+# Capetown, South Africa  # ref 4
+
+
+platform TEMPE INTELSAT_GS
+  side blue
+  position  33.339518n 111.901086w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform WAHIAWA INTELSAT_GS
+  side blue
+  position   21.519404n 157.995435w altitude 1.0 m agl
+  commander TEMPE
+  category ground_station
+end_platform
+
+platform MOSCOW INTELSAT_GS  # approximate location
+  side blue
+  position    55.754519n  37.483726e altitude 1.0 m agl
+  commander TEMPE
+  category ground_station
+end_platform
+
+platform ROME INTELSAT_GS  # approximate location
+  side blue
+  position     41.979302n   13.600227e altitude 1.0 m agl
+  commander TEMPE
+  category ground_station
+end_platform
+
+platform JEDDAH INTELSAT_GS  # approximate location
+  side blue
+  position   21.396688n  39.383799e altitude 1.0 m agl
+  commander TEMPE
+  category ground_station
+end_platform
+
+platform RIO_DE_JANEIRO INTELSAT_GS
+  side blue
+  position  22.9s 43.22w altitude 0.01 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform FAIREBANKS INTELSAT_GS
+  side blue
+  position  64.83593683n 147.70956354w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SVALBARD INTELSAT_GS
+  side blue
+  position  78.57379583n  16.25594092e altitude 0.23 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform IZHEVSK INTELSAT_GS
+  side blue
+  position  56.85970101n 53.23045778e altitude 0.76 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform BEIJING INTELSAT_GS
+  side blue
+  position  39.9n 116.47e altitude 0.18 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform PUNE INTELSAT_GS
+  side blue
+  position  18.51985855n 73.85867843e altitude 0.03 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform CAPETOWN INTELSAT_GS
+  side blue
+  position  33.93s 18.37e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform NAGANO INTELSAT_GS
+  side blue
+  position  36.65036882n  138.20031899e altitude 0.23 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SEOUL INTELSAT_GS
+  side blue
+  position  37.56601161n 126.97754858e altitude 0.76 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform TAIPEI INTELSAT_GS
+  side blue
+  position  25.03263679n 121.56319014e altitude 0.18 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MUMBAI INTELSAT_GS
+  side blue
+  position  19.07617493n 72.88118317e altitude 0.03 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform BANGKOK INTELSAT_GS
+  side blue
+  position  13.75575064n 100.50598203e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform

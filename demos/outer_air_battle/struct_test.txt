@@ -1,0 +1,54 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+      script_struct Car
+         script_variables
+            WsfGeoPoint  position;
+            Vec3         velocity;
+            string       color = "red";
+         end_script_variables
+         script void Honk()
+            writeln(color, " car honks");
+         end_script
+      end_script_struct
+
+
+
+platform testing WSF_PLATFORM
+
+#   add processor testing WSF_SCRIPT_PROCESSOR
+
+      on_initialize
+         // Create a new instance of the struct
+         struct car = struct.New("Car");
+
+         // Print the contents of the struct
+         writeln(car);
+
+         // Assign to a variable on the instance
+         car->color = "blue";
+
+         // Call a script
+         car->Honk();
+
+         // Add a new variable to the instance
+         car->make = "Ford";
+
+         // The '->' operator isn't checked until it's executed
+         // So variables can be added at runtime.
+         writeln("Car Make: ", car->make);
+
+         // However, the script compiler won't know if you use the wrong name
+         writeln("This will produce an error", car->Not_A_Variable);
+
+      end_on_initialize
+
+#   end_processor
+
+end_platform

@@ -1,0 +1,221 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# DESCRIPTION:  This type of processor is a state machine processor that requires
+# that a strike platform be repaired with two good engines, and fully fueled before
+# mission departure.  (However, those fuel and repair decisions are assumed to occur
+# magically, without any action by this state machine.)  It will fly the mission, and
+# land with partially filled fuel tanks, as the fuel will be consumed during flight.
+# After landing, inspection will reveal (via random draw) that one or two engines
+# have failed, and will need servicing <again, controlled separately>.  Process is
+# repeated until the required number of strike missions are flown.
+
+processor STRIKE_CONTROLLER WSF_STATE_MACHINE
+
+   script_variables
+
+      bool        runSilent                 = true;
+      bool        isInitialized             = false;
+      bool        isDone                    = false;
+      string      currentState              = "SC_IDLE";
+      double      initializeTime            = 0.0;
+      double      takeoffTime               = 0.0;
+      double      missionDuration           = 0.0;
+      double      landingTime               = 0.0;
+      double      inspectionStartTime       = 0.0;
+      double      engineDispatchReliability = 0.8;
+      double      proximityLimit            = 20.0; // meters
+
+      WsfRoute    missionRoute;
+      WsfGeoPoint rampLocation;
+
+      WsfExchangeProcessor exProc;
+
+      Container   fuelContainer;        // Must be Full before takeoff.
+      Container   goodEnginesContainer; // Must contain (2) Good engines before takeoff.
+
+      Transactor  fuelRequestTransactor;
+      Transactor  repairRequestTransactor;
+
+   end_script_variables
+
+   script void Say(string aMsg)
+      if ((runSilent || gDebugNone) && (! gDebugAll)) return;
+      writeln("At t=", TIME_NOW,", ",PLATFORM.Name(), " - ", aMsg);
+   end_script
+
+   script string GetState()
+      return currentState;
+   end_script
+
+   state SC_IDLE
+      on_entry
+         Say("Entering state SC_IDLE.");
+         PLATFORM.Comment("Entering State SC_IDLE");
+      end_on_entry
+      next_state PREFLIGHT_INSPECTION
+         rampLocation = PLATFORM.Location();
+         return true;
+      end_next_state
+   end_state
+
+   state PREFLIGHT_INSPECTION
+      on_entry
+         Say("Entering state PREFLIGHT_INSPECTION.");
+         PLATFORM.Comment("Entering State PREFLIGHT_INSPECTION");
+         inspectionStartTime = TIME_NOW;
+      end_on_entry
+      next_state INSPECTED
+         return TIME_NOW > inspectionStartTime + 1200.0;  # Inspection Interval
+      end_next_state
+      on_exit
+         bool failedLeftEngine  = (RANDOM.Uniform() - engineDispatchReliability) > 0.0;
+         bool failedRightEngine = (RANDOM.Uniform() - engineDispatchReliability) > 0.0;
+         if (failedLeftEngine)
+         {
+            goodEnginesContainer.Decrement(1.0);
+            Say("Inspection failed Left Engine!");
+            PLATFORM.Comment("Left Engine Failed Inspection.");
+         }
+         if (failedRightEngine)
+         {
+            goodEnginesContainer.Decrement(1.0);
+            Say("Inspection failed Right Engine!");
+            PLATFORM.Comment("Right Engine Failed Inspection.");
+         }
+      end_on_exit
+   end_state
+
+   state INSPECTED
+      on_entry
+         Say("Entering state INSPECTED.");
+         PLATFORM.Comment("Entering State INSPECTED");
+      end_on_entry
+      next_state MISSION_READY
+         return fuelContainer.IsFull() && goodEnginesContainer.IsFull();
+      end_next_state
+      next_state NEEDS_REPAIR_OR_FUEL
+         return ! (goodEnginesContainer.IsFull() && fuelContainer.IsFull());
+      end_next_state
+   end_state
+
+   state NEEDS_REPAIR_OR_FUEL
+      on_entry
+         Say("Entering state NEEDS_REPAIR_OR_FUEL");
+         PLATFORM.Comment("Entering state NEEDS_REPAIR_OR_FUEL.");
+      end_on_entry
+      next_state MISSION_READY
+         return goodEnginesContainer.IsFull() && fuelContainer.IsFull();
+      end_next_state
+   end_state
+
+   state MISSION_READY
+      on_entry
+         Say("Entering state MISSION_READY.");
+         PLATFORM.Comment("Entering state MISSION_READY.");
+         missionRoute = gNextMissionRouteToFly();
+         Say("Mission Orders Received.");
+      end_on_entry
+      next_state WHEELS_UP
+         return true;
+      end_next_state
+   end_state
+
+   state WHEELS_UP
+      on_entry
+         Say("Entering state WHEELS_UP.");
+         WsfRoute routeToJob = WsfRoute();
+         routeToJob.Append(PLATFORM.LocationAsWaypoint());
+         routeToJob.Back().SetSpeed(100.0);
+         foreach(WsfWaypoint wp in missionRoute)
+         {
+            routeToJob.Append(wp);
+         }
+         WsfWaypoint endPt = WsfWaypoint();
+         endPt.SetLocation(rampLocation);
+         endPt.SetEndOfPathOption("STOP");
+         routeToJob.Append(endPt);
+         takeoffTime = TIME_NOW;
+         PLATFORM.FollowRoute(routeToJob);
+      end_on_entry
+      next_state ON_MISSION
+         return TIME_NOW - takeoffTime > 300.0;
+      end_next_state
+   end_state
+
+   state ON_MISSION
+      on_entry
+         Say("Entering state ON_MISSION.");
+      end_on_entry
+      next_state LANDED
+         return (missionDuration > 1000.0) && (PLATFORM.Speed() < 0.01) && (PLATFORM.GroundRangeTo(rampLocation) < proximityLimit);
+      end_next_state
+   end_state
+
+   state LANDED
+      on_entry
+         Say("Entering state LANDED.");
+         landingTime = TIME_NOW;
+         # Update the tally of the number of missions flown.
+         isDone = gIncrementSortieCount();
+         fuelContainer.Decrement(120.0); # Temporary, just to mimic a fuel consumption model.
+      end_on_entry
+      next_state SC_COMPLETED
+         return isDone;
+      end_next_state
+      next_state PREFLIGHT_INSPECTION
+         return TIME_NOW > landingTime + 1200.0; # 20 minute crew changeout.
+      end_next_state
+   end_state
+
+   state SC_COMPLETED
+      on_entry
+         Say("Entering state SC_COMPLETED.");
+         PLATFORM.Comment("Entering State SC_COMPLETED");
+      end_on_entry
+   end_state
+
+   script bool SC_Init(Container  aFuelContainer,
+                       Container  aGoodEnginesContainer,
+                       Transactor aFuelRequestTransactor,
+                       Transactor aRepairRequestTransactor,
+                       bool       aRunningSilent)
+
+      runSilent = aRunningSilent;
+      initializeTime = TIME_NOW;
+      fuelContainer = aFuelContainer;
+      goodEnginesContainer = aGoodEnginesContainer;
+      fuelRequestTransactor = aFuelRequestTransactor;
+      repairRequestTransactor = aRepairRequestTransactor;
+
+      bool success = fuelContainer.IsValid() && goodEnginesContainer.IsValid() &&
+                     fuelRequestTransactor.IsValid() && repairRequestTransactor.IsValid();
+
+      if (success)
+      {
+         Say("The SC_Init() succeeded");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("The SC_Init() FAILED.");
+      }
+      return success;
+   end_script
+
+   on_update
+      if (isInitialized && (TIME_NOW > initializeTime + 11.0))
+      {
+         currentState = STATE_MACHINE.Evaluate(currentState);
+         missionDuration = TIME_NOW - takeoffTime;
+      }
+   end_on_update
+
+   update_interval 5 sec
+
+end_processor

@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../p6dof_types/misc/zell-launch-system/zell-launch-system.txt
+include_once ../p6dof_types/aircraft/fa-lgt/fa-lgt-zll.txt
+
+# This is the stationary launcher on the ground
+# It is represented as a p6dof object so that the subobject block can be defined.
+platform_type ZELL-LAUNCHER WSF_PLATFORM
+
+   icon btr-60
+   
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type  ZELL-LAUNCHER
+   end_mover
+   
+end_platform_type
+
+# This is the aircraft that is launched
+platform_type FA-LGT-ZLL-PLATFORM WSF_PLATFORM
+
+   spatial_domain air
+
+   icon f16
+
+   mover WSF_P6DOF_MOVER
+      update_interval 0.01 sec
+      p6dof_object_type  FA-LGT-ZLL
+   end_mover
+
+end_platform_type
+
+# This is the rocket that is attached to the aircraft
+platform_type ZELL-ROCKET-PLATFORM WSF_PLATFORM
+
+   spatial_domain air
+   icon           zell-booster
+
+   mover WSF_P6DOF_MOVER
+      update_interval 0.01 sec
+      p6dof_object_type    SRB-RATO
+   end_mover
+
+end_platform_type
+
+# Map object and platform types
+# This list maps P6DOF object types to AFSIM platform types. It allows P6DOF subobjects
+# to be mapped to an AFSIM platform once they are jettisoned. If any of these are multiply
+# defined, the last one to be defined is used.
+p6dof_object_types
+   map_p6dof_object_to_platform    FA-LGT-ZLL    FA-LGT-ZLL-PLATFORM
+   map_p6dof_object_to_platform    SRB-RATO      ZELL-ROCKET-PLATFORM
+end_p6dof_object_types

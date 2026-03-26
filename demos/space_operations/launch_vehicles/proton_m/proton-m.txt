@@ -1,0 +1,186 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                                  Proton M
+#
+# Source:
+#    1) https://en.wikipedia.org/wiki/Proton_(rocket_family)
+#    2) http://www.russianspaceweb.com/proton-m.html
+#    SMPG: Proton Launch System Mission Planner's Guide
+#    (SF101): SpaceFlight101, Proton-M
+#==============================================================================
+
+aero PROTON-M_STAGE_1_AERO WSF_AERO
+   reference_area            43.01 m^2           # (SF101), diameter=7.4 m
+
+   # Reasonable data according to Dan Schueths
+   mach_and_cd 0.1 0.15      # 0.12-0.18
+   mach_and_cd 0.9 0.23
+   mach_and_cd 0.98 0.4
+   mach_and_cd 1.0  3.2
+   mach_and_cd 1.2  2.0
+   mach_and_cd 5.0  .21
+end_aero
+
+aero PROTON-M_STAGE_2_AERO WSF_AERO
+   reference_area            13.20 m^2           # (SF101), diameter=4.1 m
+   zero_lift_cd              0.2
+end_aero
+
+#==============================================================================
+
+platform_type PROTON-M WSF_PLATFORM
+   icon SA-10_Missile
+   icon space_shuttle
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep 0.01 sec
+      update_interval      0.01 sec
+      coordinate_frame     eci
+      check_for_ground_impact          # Don't require a fuse on the platform
+
+      ejectable payload_fairing
+         mass 2000 kg   # (SF101)
+         time 348 sec   # (SPG)
+      end_ejectable
+
+      stage 1
+         aero                          PROTON-M_STAGE_1_AERO
+         empty_mass                    31000 kg            # (SF101)
+         fuel_mass                     419400 kg           # (SF101)
+
+         # (SF101) states vacuum thrust of 10,998 kn and a vacuum impulse of 325 sec
+         # This gives a burn rate of 10,998 kn / (9.8 m/s^2 * 325 sec) = 3,453.06 kg/s
+
+         sea_level_thrust              9942000 nt          # (SF101)
+         vacuum_thrust                 10998000 nt         # (SF101)
+         burn_rate                     3453.06 kg/s        # (SF101) Derived above
+         thrust_duration               120 sec             # (SF101)
+
+         thrust_vectoring_angle_limit  7.0 deg
+         lateral_thrust_gain           100.0
+
+         pre_separation_coast_time     3 sec               # SPG, separate at T+123
+      end_stage
+
+      # 3 RD-210 and 1 RD-211 (Ref 2)
+      # Stage 1/2 Separation 123.4
+      # Stage 2   Shutdown   334.5
+      # Stage 2/3 Separation 335.2
+
+      stage 2
+         aero                          PROTON-M_STAGE_2_AERO
+         empty_mass                    11715 kg            # (SF101)
+         fuel_mass                     156113 kg           # (SF101)
+
+         thrust                        2399000 Nt          # (SF101)
+         specific_impulse              327 sec             # (SF101)
+         thrust_duration               206 sec             # (SF101)
+
+         thrust_vectoring_angle_limit  7.0 deg
+         lateral_thrust_gain           100.0
+
+         pre_separation_coast_time     6 sec               # (SPG) separate at T+335
+      end_stage
+
+      # Start at T=328, main shutdown at T=576, vernier shutdown at T=588
+      # Vernier ignition                332.1
+      # Stage 2 shutdown                334.5
+      # Stage 2/3 separation            335.2
+      # Stage 3 main engine ignition    337.6
+      # Stage 3 main engine shutdown    576.4
+      # Stage 3 vernier engine shutdown 588.3
+      # Stage 3/OU separation           588.4
+
+      stage 3
+         aero                          none
+         empty_mass                    4185 kg             # (SF101)
+         fuel_mass                     46562 kg            # (SF101)
+
+         thrust                        613800 Nt           # (SF101) Includes the RD-0213 and the RD-0214 vernier
+         specific_impulse              325 sec             # (SF101)
+         thrust_duration               238 sec             # (SF101)
+
+         thrust_vectoring_angle_limit  7.0 deg
+         lateral_thrust_gain           100.0
+
+         #pre_separation_coast_time     0.1 sec
+      end_stage
+
+      # Optional Briz-M.
+      stage 4
+         aero                          none
+         total_mass                    0.01 kg             # Dummy placeholder when not using Briz-M
+/*
+         empty_mass                    2370 kg             # (SF101)
+         fuel_mass                     19800 kg            # (SF101)
+         thrust                        19620 nt            # (SF101)
+         specific_impulse              328.6 sec           # (SF101)
+         thrust_duration               200 sec             # (SF101) 3,200 sec with 8 restarts or 2,000 single burn
+
+         thrust_vectoring_angle_limit  7.0 deg
+         lateral_thrust_gain           100.0
+
+         # There are also thrusters, but we won't worry about them:
+         #   4x 11D458M (392N, Isp=296)
+         #  12x 17D58E (13.3N, Isp=269s)
+*/
+      end_stage
+
+      # This is the payload
+      stage 5
+         aero                          none
+         total_mass                    22000 kg            # SMPG, to H=180 km
+
+         # (SF101) says launch mass is 712,800 kg, but what we have so far only gives us 692,975 kg,
+         # or almost 20,000 kg! I'm not sure if they are including the Briz-M, which is another 22,300 kg.
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+      phase LAUNCH
+         program NULL_PROGRAM end_program
+         next_phase PITCH_OVER when speed > 100 m/s
+      end_phase
+
+      phase PITCH_OVER
+         program FLIGHT_PATH_ANGLE_PROGRAM
+            # flight_path_angle is from launch computer
+            pitch_rate 0.6 deg/sec
+         end_program
+         next_phase ASCENT when program FLIGHT_PATH_ANGLE_PROGRAM complete
+      end_phase
+
+      phase ASCENT
+         program GRAVITY_BIAS_PROGRAM
+            g_bias 0.0
+         end_program
+         next_phase ORBIT_INSERTION when flight_time > 500 sec
+      end_phase
+
+      phase ORBIT_INSERTION
+         program ORBIT_INSERTION_PROGRAM
+         end_program
+         next_phase IN_ORBIT when program ORBIT_INSERTION_PROGRAM complete
+      end_phase
+
+      phase IN_ORBIT
+      end_phase
+   end_processor
+
+end_platform_type
+
+weapon PROTON-M WSF_EXPLICIT_WEAPON
+   tilt                      90 deg
+   launch_delta_v            0.0 0.0 0.0 m/s
+   launched_platform_type    PROTON-M
+   quantity                  1
+end_weapon

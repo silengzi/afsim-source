@@ -1,0 +1,80 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior targets_of_opportunity
+
+   script_variables
+      bool tempVariable;
+   end_script_variables
+
+
+   precondition
+      writeln("precondition targets_of_opportunity");
+
+      if (GetNumJobChannels() > 1)
+      {
+         return true;
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing targets_of_opportunity.");
+
+     #extern WsfTrack GetTrackByName(WsfPlatform, string);
+     #extern double   GetWeaponQuantityRemainingMax(WsfPlatform, Array<Map<string, Object>>);
+     #extern bool     CheckAndFire(WsfTrack);
+
+      ########################################################################
+      ###   shoot on any targets of opportunity
+      ###   we use the extra channels to represent "secondary" jobs like this
+      ########################################################################
+
+
+      if (PROCESSOR.GetRIPRCommanderProcessor().IsValid())
+      {
+         for (int channel = 1; channel < GetNumJobChannels(); channel = channel + 1)
+         {
+            WsfRIPRJob aJob = GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR, channel);
+            if (!aJob.IsValid())
+            {
+               continue;
+            }
+            if (aJob.Name() == "pursue-target")
+            {
+               string targetName = (string)aJob.GetData("targetTrackName");
+               WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+               if (!targetTrack.IsValid() || !targetTrack.BelievedAlive())   // || !targetTrack.IFF_Foe())
+               {
+                  continue;
+               }
+
+               //don't fire last weapon at target thats not primary target
+               if (GetWeaponQuantityRemainingMax(PLATFORM, mWeaponArray) > 1)
+               {
+                  writeln_d("Platform: ", PLATFORM.Name(), " Looking to fire at target of opportunity: ", targetName, " for channel: ", channel);
+                  CheckAndFire(targetTrack);
+               }
+            }
+            else
+            {
+               //writeln_d("Job is NOT pursue-target for channel: ", channel);
+            }
+         }
+      }
+
+   end_execute
+
+end_behavior
+
+

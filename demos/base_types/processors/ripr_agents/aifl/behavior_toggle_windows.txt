@@ -1,0 +1,66 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior toggle_windows
+
+   script_debug_writes off
+
+
+   script_variables
+      int mToggleAfterThisManyUpdates = 1;
+      int mToggleCounter;
+   end_script_variables
+
+
+   on_init
+      mToggleCounter = mToggleAfterThisManyUpdates;
+   end_on_init
+
+
+   precondition
+      writeln_d("precondition toggle_windows");
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //((WsfRIPRProcessor)PROCESSOR)
+      //this behavior should probably always run, windows can always be toggled
+      return true;
+   end_precondition
+
+
+   execute
+      writeln_d("executing toggle_windows");
+
+      if (mToggleCounter <=0)
+      {
+         mToggleCounter = mToggleAfterThisManyUpdates;
+
+         if (((WsfRIPRProcessor)PROCESSOR).IsJobWindowOpen())
+         {
+            ((WsfRIPRProcessor)PROCESSOR).SetJobWindowOpen(false);
+            ((WsfRIPRProcessor)PROCESSOR).SetBidWindowOpen(true);
+            writeln_d(PLATFORM.Name(), " job window closed / bid window opened, time=", TIME_NOW);
+         }
+         else
+         {
+            ((WsfRIPRProcessor)PROCESSOR).SetJobWindowOpen(true);
+            ((WsfRIPRProcessor)PROCESSOR).SetBidWindowOpen(false);
+            writeln_d(PLATFORM.Name(), " job window opened / bid window closed, time=", TIME_NOW);
+         }
+      }
+      else
+      {
+         mToggleCounter = mToggleCounter - 1;
+      }
+
+   end_execute
+
+end_behavior

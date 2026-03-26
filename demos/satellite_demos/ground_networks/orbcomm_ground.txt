@@ -1,0 +1,116 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/orbcomm_gs.txt
+
+# Orbcomm ground network
+
+platform GEORGIA ORBCOMM_GS               # approximate location
+  side blue
+  position 31.503629n 83.056641w altitude 75.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform NEW_YORK ORBCOMM_GS  # approximate location
+  side blue
+  position    42.55308n  78.925781w altitude 275.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform ARIZONA ORBCOMM_GS  # approximate location
+  side blue
+  position     34.379713n   110.390625w altitude 1900.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform WASHINGTON ORBCOMM_GS  # approximate location
+  side blue
+  position   47.694974n  120.673828w altitude 700.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform CURACAO ORBCOMM_GS     # approximate location
+  side blue
+  position  12.178965n 68.961182w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MOROCCO ORBCOMM_GS     # approximate location
+  side blue
+  position  33.211116n 7.998047w altitude 200.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform ITALY ORBCOMM_GS     # approximate location
+  side blue
+  position  40.178873n  16.611328e altitude 100.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SOUTH_AFRICA ORBCOMM_GS    # approximate location
+  side blue
+  position  25.165173s 27.421875e altitude 1000.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform KAZAKHSTAN ORBCOMM_GS     # approximate location
+  side blue
+  position  43.261206n 78.046875e altitude 2000.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MALAYSIA ORBCOMM_GS    # approximate location
+  side blue
+  position  3.776559n 103.359375e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform AUSTRALIA ORBCOMM_GS    # approximate location
+  side blue
+  position  35.88905s 147.568359e altitude 500.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform KOREA ORBCOMM_GS    # approximate location;
+  side blue
+  position  37.020098n  127.617188e altitude 175.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform JAPAN ORBCOMM_GS    # approximate location
+  side blue
+  position  35.675147n 140.097656e altitude 25.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform BRAZIL ORBCOMM_GS     # approximate location
+  side pink
+  position  22.998852s  43.945312w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform ARGENTINA ORBCOMM_GS    # approximate location
+  side pink
+  position  34.379713s 64.775391w altitude 250.0 m agl
+  commander SELF
+  category ground_station
+end_platform

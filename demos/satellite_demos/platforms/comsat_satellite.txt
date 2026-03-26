@@ -1,0 +1,90 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#                          Communications satellite
+#
+# This data is for the Amateur Radio satellite AO-51 (Echo)
+# See www.amsat.org for more information.
+
+antenna_pattern SAT_ANTENNA #Create an antenna pattern named SAT_ANTENNA
+  uniform_pattern
+    peak_gain  2 dB
+  end_uniform_pattern
+end_antenna_pattern
+
+platform_type COMSAT WSF_PLATFORM
+   icon Satellite
+   side blue
+   mover WSF_NORAD_SPACE_MOVER end_mover
+   
+   // enable automated linking for bridging
+   add router default WSF_COMM_ROUTER
+      automated_interface_linking true
+   end_router
+
+   comm downlink-1 WSF_RADIO_XMTR
+     # The earth radius multiplier is set to one to disable the
+     # computations that simulate atmospheric refraction.
+     earth_radius_multiplier 1.0
+     antenna_pattern SAT_ANTENNA
+     frequency       435.300 mhz
+     power           1 w
+     # The internal loss accounts for the 'transmit feeder loss' in the
+     # link budget calculator
+     internal_loss   0.2 dB
+     transfer_rate   1.544 mbit/s
+     //debug
+     network_name ComsatNet
+   end_comm
+
+   comm uplink-1 WSF_RADIO_RCVR
+     antenna_pattern SAT_ANTENNA
+     frequency       145.920 mhz
+     # The internal_loss is used to account the following items from the
+     # link budget calculator:
+     #   a) 3 dB polarization mismatch loss.
+     #   b) 1 dB loss for going through the ionosphere
+     #   c) 0.2 dB receive antenna feeder loss
+     internal_loss   4.2 dB
+     # The receiver noise floor in the link budget calculator is -138 dBm
+     noise_power     -138 dBm
+     detection_threshold 12 dB
+     //debug
+     network_name ComsatNet
+   end_comm
+
+   comm downlink-2 WSF_RADIO_XMTR
+     antenna_pattern SAT_ANTENNA
+     frequency       2401.200 mhz
+     power           1 w
+     # The internal loss accounts for the 'transmit feeder loss' in the
+     # link budget calculator
+     internal_loss   0.2 dB
+     transfer_rate   1.544 mbit/s
+     //debug
+     network_name ComsatNet
+   end_comm
+
+   comm uplink-2 WSF_RADIO_RCVR
+     antenna_pattern SAT_ANTENNA
+     frequency       1268.700 mhz
+     # The internal_loss is used to account the following items from the
+     # link budget calculator:
+     #   a) 3 dB polarization mismatch loss.
+     #   b) 1 dB loss for going through the ionosphere
+     #   c) 0.2 dB receive antenna feeder loss
+     internal_loss   4.2 db
+     # The receiver noise floor in the link budget calculator is -138 dBm
+     noise_power     -138 dBm
+     detection_threshold 12 dB
+     //debug
+     network_name ComsatNet
+   end_comm
+
+end_platform_type
+

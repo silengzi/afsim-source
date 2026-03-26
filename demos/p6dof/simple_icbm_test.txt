@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario is a simple ballistic missile demo. It presents a three stage
+# ICBM complete with interstage pieces, nosecone, simple/generic decoys, and
+# a reentry vehicle. This demo does not include any guidance -- it is merely
+# launched with a fixed tilt (pitch) angle. It demonstrates the ability to
+# create a ballistic missile with intercontinental range that performs
+# realistic staging events and trajectory.
+#
+# ******************************************************************************
+
+define_path_variable CASE simple_icbm
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 49 min
+
+include_once platforms/simple-icbm-platform.txt
+
+platform simple-icbm ICBM_PLATFORM
+   icon scud_missile
+   update_interval 0.01 sec
+   side blue
+
+   p6dof_position      48.5538  -98.3805
+   p6dof_alt           100.0 ft
+
+   p6dof_ned_heading   20 deg
+   p6dof_ned_pitch     80 deg
+   p6dof_ned_roll      0 deg
+
+   p6dof_set_velocity_ned_fps  0 0 0
+end_platform

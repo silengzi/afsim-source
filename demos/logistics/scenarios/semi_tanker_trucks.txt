@@ -1,0 +1,18 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform FuelSemi_1 SEMI_TANKER_TRUCK
+   icon Semi
+   #position 24.56709n 81.79592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier)
+   position 24.56709n 81.79492w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier, slide a bit to east)
+end_platform
+
+platform FuelSemi_2 SEMI_TANKER_TRUCK
+   icon Semi
+   position 24.5515n 81.7600w # Slightly south of Key West Intl Airport
+end_platform

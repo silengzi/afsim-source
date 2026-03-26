@@ -1,0 +1,273 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#                                  RED_MRBM_2
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# NOTE: If you modify any parameter in this file, you must rerun 'weapon_tools'
+#       with 'red_mrbm_2_lcg.txt' as input to regenerate the launch computer data.
+#
+###############################################################################
+#
+# References:
+###############################################################################
+
+###############################################################################
+#           Support for explicit representation of spent stages
+#
+# Platforms will be created for spent stages if one the global script variables
+# is defined as follows:
+#
+# script_variables
+#    SHOW_SPENT_STAGES["ALL"] = true;            # For any weapon
+#    SHOW_SPENT_STAGES["RED_MRBM_2"] = true;       # For just this weapon type
+# end_script_variables
+###############################################################################
+
+include_once show_spent_stages.txt
+
+aero RED_MRBM_2_SPENT_STAGE_1_AERO WSF_AERO
+   reference_area            16.62 ft^2
+   aspect_ratio              1.0
+   cl_max                    5.0
+   zero_lift_cd              0.7
+end_aero
+
+infrared_signature RED_MRBM_2_SPENT_STAGE_1_INFRARED_SIG
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  RED_MRBM_2_SPENT_STAGE_1_OPTICAL_SIG
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    RED_MRBM_2_SPENT_STAGE_1_RADAR_SIG
+   constant 1 m^2
+end_radar_signature
+
+platform_type RED_MRBM_2_SPENT_STAGE_1 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_MRBM_2_SPENT_STAGE_1_INFRARED_SIG
+   optical_signature  RED_MRBM_2_SPENT_STAGE_1_OPTICAL_SIG
+   radar_signature    RED_MRBM_2_SPENT_STAGE_1_RADAR_SIG
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep   0.01 secs
+      stage 1
+         aero                RED_MRBM_2_SPENT_STAGE_1_AERO
+         total_mass          4806.0 lbs
+      end_stage
+   end_mover
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+###############################################################################
+# Signature data is unknown...
+
+infrared_signature RED_MRBM_2_INFRARED_SIG
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  RED_MRBM_2_OPTICAL_SIG
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    RED_MRBM_2_RADAR_SIG
+   constant 1 m^2
+end_radar_signature
+
+# Nominal lethality data.
+
+weapon_effects RED_MRBM_2_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 1000.0 m 1.0
+end_weapon_effects
+
+###############################################################################
+
+aero RED_MRBM_2_STAGE_1_AERO WSF_AERO
+   reference_area            10.0 ft^2
+   aspect_ratio              1.0
+   cl_max                    5.0
+   zero_lift_cd              0.3                 # Brian's value
+end_aero
+
+aero RED_MRBM_2_PAYLOAD_AERO WSF_AERO
+   reference_area            5.0 ft^2
+   aspect_ratio              1.0
+   cl_max                    5.0
+   zero_lift_cd              0.15                 # Brian's value
+end_aero
+
+###############################################################################
+
+mover RED_MRBM_2_MOVER WSF_GUIDED_MOVER
+   integration_timestep      0.005 secs
+   update_interval           0.05 secs
+
+   stage 1
+      aero                   RED_MRBM_2_STAGE_1_AERO
+      #empty_mass             6300.0 lbs          # Brian's data
+      empty_mass             4625.0 lbs          # Brian's data - 1675.0
+      fuel_mass              28466.0 lbs         # Brian's data
+      thrust                 58995.0 lbf         # Brian's data
+      specific_impulse       254.0 sec           # Brian's data (220.0 vac)
+      thrust_duration        122.56 sec          # Brian's data
+   end_stage
+
+   stage 2
+      aero                   RED_MRBM_2_PAYLOAD_AERO
+      total_mass             1675.0 lbs
+   end_stage
+end_mover
+
+###############################################################################
+
+processor RED_MRBM_2_GUIDANCE WSF_GUIDANCE_COMPUTER
+
+   # Go vertical for a short time.
+
+   phase LIFTOFF
+      guidance_delay                   100.0 sec
+
+      # NOTE: Do not use altitude for the criteria for starting pitch over as
+      # trajectory is VERY sensitive to the TIME when pitch over starts. If it
+      # were to be used, a minor changes in the launcher altitude would cause
+      # pitch over to start at a different time!
+
+      next_phase PITCH_OVER when phase_time >= 0.5 sec     # About 100 ft
+   end_phase
+
+   # Pitch over to the desired flight path angle from the launch computer.
+
+   phase PITCH_OVER
+      commanded_flight_path_angle      from_launch_computer
+      proportional_navigation_gain     0.0                 # Don't guide to target
+      velocity_pursuit_gain            0.0                 # Don't guide to target
+      maximum_commanded_g              1.0 g
+      next_phase BALLISTIC when on_commanded_flight_path_angle
+   end_phase
+
+   # Continue flight without guidance (gravity turn).
+
+   phase BALLISTIC
+      # Turn the guidance processor off once pure ballistic mode is started.
+      # This shaves several percent off the processor time.
+      on_entry
+        TurnOff();
+      end_on_entry
+      guidance_delay                   2000.0 sec
+   end_phase
+
+end_processor
+
+###############################################################################
+
+platform_type RED_MRBM_2 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_MRBM_2_INFRARED_SIG
+   optical_signature  RED_MRBM_2_OPTICAL_SIG
+   radar_signature    RED_MRBM_2_RADAR_SIG
+
+   weapon_effects     RED_MRBM_2_EFFECT
+
+   mover RED_MRBM_2_MOVER
+      #show_status
+   end_mover
+
+   processor guidance RED_MRBM_2_GUIDANCE
+      #show_status
+      #show_graphics
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+      # If the target is killed by another weapon we want to still keep going.
+      coast_time_on_loss_of_target     10000.0 secs
+   end_processor
+
+   weapon stage_1 WSF_EXPLICIT_WEAPON
+      launched_platform_type RED_MRBM_2_SPENT_STAGE_1
+      launch_delta_v         -100.0 0.0 0.0 m/s
+      quantity 1
+   end_weapon
+
+   script void on_stage_separation(int aStage)
+      extern Map<string, bool> SHOW_SPENT_STAGES;
+      if (SHOW_SPENT_STAGES["ALL"] ||
+          SHOW_SPENT_STAGES["RED_MRBM_2"])
+      {
+         if (aStage == 1) Weapon("stage_1").Fire(WsfTrack());
+      }
+   end_script
+end_platform_type
+
+###############################################################################
+
+launch_computer RED_MRBM_2_LAUNCH_COMPUTER WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER
+   surface_to_surface_table weapons/ssm/red_mrbm_2_launch_data.txt
+end_launch_computer
+
+###############################################################################
+# Provide the aero and mass data to WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER. This
+# is 'truth data' used by the launch computer for 'trajectory estimation'.
+
+ballistic_missile_launch_computer
+   target_data RED_MRBM_2
+      aero RED_MRBM_2_PAYLOAD_AERO       # Aero type of final stage
+      mass 1675.0 lbs                  # Mass of final stage
+   end_target_data
+end_ballistic_missile_launch_computer
+
+###############################################################################
+
+weapon RED_MRBM_2 WSF_EXPLICIT_WEAPON
+
+   # The location offset puts the weapon center at half the length - 1 m.
+   # This assumes the scenario creator puts the launching platform at 1 m agl.
+
+   location 0.0 0.0 -4.625 m                     # TODO Ref 1, length = 11.25 m
+
+   launched_platform_type RED_MRBM_2
+
+   launch_computer RED_MRBM_2_LAUNCH_COMPUTER
+   end_launch_computer
+
+   # The missiles are launched vertically.
+   # We can't specify 90 degrees because of a singularity
+   tilt  89.9 degrees
+
+   # This causes a call to the launch computer to compute the predicted intercept.
+   # The launcher will then be cued to the proper angles (Subject to the slewing
+   # limits defined below). This is a bit of a hack until the guidance computer
+   # is changed...
+
+   cue_to_predicted_intercept true
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+
+   # Default to a single weapon on the vehicle
+   quantity 1
+
+   # Abort the launch if the launch computer didn't provide the required data
+   require_loft_angle
+
+end_weapon

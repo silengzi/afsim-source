@@ -1,0 +1,69 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform_type RECEIVER WSF_PLATFORM
+
+   fuel_mass         3000 kg  # Wants 5000 more, so 3 + 5 = 8000 kg at end, if successful.
+   empty_mass        9000 kg
+   payload_mass      2000 kg
+
+   processor exchange_proc WSF_EXCHANGE_PROCESSOR
+
+      #debug
+      update_interval 1 sec
+
+      # Connect a commodity name with a DIS Capability name.
+      commodity_and_capability_pairing JP8_FUEL SUPPLY_FUEL
+
+      container fuel_and_receive_tank
+         commodity JP8_FUEL
+           maximum_mass_quantity 8000 kg
+           mass_rate 40 kg/s
+         end_commodity
+         initial_mass_quantity 3000 kg
+      end_container
+
+      transactor fuel_receiver
+
+         is_requestor
+         container_name fuel_and_receive_tank
+
+         hook_to_fuel                  true   # This flag would be applicable to the _receiver's_ processor.
+         exclusive_hook_to_fuel        true
+         hook_to_payload               false  # As transactions are completed, the exchanged quantity
+                                              # is DECREMENTED from the payload attribute of the platform.
+         proximity_limit             400 m    # If the transacting platforms are more than this distance apart,
+                                              # the transaction will not be allowed to take place.
+      end_transactor
+
+   end_processor
+
+   mover WSF_AIR_MOVER
+   end_mover
+
+   execute at_time 60 sec relative
+      WsfExchangeProcessor eproc = (WsfExchangeProcessor)PLATFORM.Processor("exchange_proc");
+      if (eproc.IsValid())
+      {
+          Transactor eprocTransactor = eproc.FindTransactor("fuel_receiver"); 
+          WsfPlatform offeror = WsfSimulation.FindPlatform("tanker");
+          bool didRequest = eprocTransactor.RequestFrom(offeror, eprocTransactor.Container().TenderNeeded());
+          if(didRequest)
+          {
+             writeln("At t=", TIME_NOW, ", RECEIVER IS REQUESTING FUEL.");
+          }
+          else
+          {
+             writeln("Receiver request failed");
+          }
+         
+      }
+   end_execute
+
+end_platform_type
+

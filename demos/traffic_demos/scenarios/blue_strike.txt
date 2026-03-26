@@ -1,0 +1,30 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform strike-1 BLUE_MULTIROLE_FIGHTER_1_STATIC
+  side blue
+  icon F-18
+  route
+#   Take off
+    position 38:44:52.3n 90:21:36.4w altitude 6 ft agl speed 10 kts
+    position 38:45:07.6n 90:22:09.4w altitude 6 ft agl speed 120 kts # climb_rate 1000 fpm
+
+    position 38:49:06n 90:29:06w altitude 15000 ft speed 400 kts
+    position 39:28:00n 91:33:00w
+    position 39:32:36n 91:33:06w
+    position 38:45:00n 90:06:08w
+    position 38:38:24n 90:07:46w altitude 10000 ft speed 250 kts
+
+#   Landing
+    position 38:44:52.3n 90:21:36.4w altitude 6 ft agl speed 120 kts
+    position 38:45:07.6n 90:22:09.4w altitude 6 ft agl speed 0 kts
+
+  end_route
+end_platform
+
+

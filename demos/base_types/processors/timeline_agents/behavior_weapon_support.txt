@@ -1,0 +1,92 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once common_timeline_scripts.txt
+include_once air_combat_maneuvers.txt
+
+behavior weapon_support
+
+   script_debug_writes off
+
+   script_variables
+      WsfQuantumTaskerProcessor processor;
+
+      Array<WsfLocalTrack> mEngaged  = Array<WsfLocalTrack>();
+      Array<double>        mBearings = Array<double>();
+   end_script_variables
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         processor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition  weapon_support,  T=", TIME_NOW);
+      if (!processor.IsValid())
+      {
+         return Failure("behavior not attached to a WSF_QUANTUM_TASKER_PROCESSOR");
+      }
+
+      extern bool mRequiredToSupportWeapons;
+      if (mRequiredToSupportWeapons == false)
+      {
+         return Failure("not required to support weapons!");
+      }
+
+      WsfTask timeline = GetTimeLineTask(processor);
+      if (!timeline.IsValid())
+      {
+         return Failure("not assigned a TIMELINE task");
+      }
+
+      extern Array<WsfLocalTrack> mTimeLineLocalTargets;
+      mEngaged.Clear();
+      mBearings.Clear();
+      foreach(WsfLocalTrack t in mTimeLineLocalTargets)
+      {
+         if (PLATFORM.WeaponsActiveFor(t.TrackId()) > 0)
+         {
+            mEngaged.PushBack(t);
+            mBearings.PushBack(PLATFORM.RelativeBearingTo(t.CurrentLocation()));
+         }
+      }
+      if (mEngaged.Size() <= 0)
+      {
+         return Failure("no weapons to support against timeline targets");
+      }
+      return true;
+   end_precondition
+
+   on_new_execute
+      PLATFORM.Comment("crank");
+   end_on_new_execute
+
+   execute
+      SortLocalTracksByValue(mEngaged, mBearings);
+      extern string mSeparateSide;   # "LEFT" or "RIGHT" or other?
+      extern double mOffsetAngle;
+      extern double mDefaultAltitude;
+      extern double mDelaySpeed;
+      extern double mGeesToTurnWith;
+      if (mSeparateSide == "RIGHT")
+      {
+         #crank right of left-most engaged target (front of array)
+         Offset(PLATFORM, mEngaged.Front().CurrentLocation(), mOffsetAngle, mDefaultAltitude, mDelaySpeed, mGeesToTurnWith);
+      }
+      else #if (mSeparateSide == "LEFT")
+      {
+         #crank left of right-most engaged target (back of array)
+         Offset(PLATFORM, mEngaged.Back().CurrentLocation(), -mOffsetAngle, mDefaultAltitude, mDelaySpeed, mGeesToTurnWith);
+      }
+   end_execute
+
+end_behavior
+

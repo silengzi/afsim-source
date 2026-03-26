@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# common terrain configuration
+
+terrain
+# EXAMPLES
+#  dted 2 /db/nga/DTED2/dted201
+#  dted 2 /db/nga/DTED2/dted202
+#  raw_dted <level> <directory> <sw_lat> <sw_lon> <ne_lat> <ne_lon>
+#  dted 1 /sdadev1a/nima/dted/lvl1-21n-38n-34e-52e
+#  raw_dted 1 /db/nga/SRTF1/srtf101/dted 42 -180 60 -45
+#  raw_dted 1 /db/nga/SRTF1/srtf102/dted 14 -179 42 -60
+#  raw_dted 1 /db/nga/SRTF1/srtf103/dted -12 -177 14 -32
+#  raw_dted 1 /db/nga/SRTF1/srtf104/dted -55 -180 -12 -37
+#  raw_dted 1 /db/nga/SRTF1/srtf105/dted 42 -14 60 82
+#  raw_dted 1 /db/nga/SRTF1/srtf106/dted 30 -29 42 82
+#  raw_dted 1 /db/nga/SRTF1/srtf107/dted 14 -25 30 82
+#  raw_dted 1 /db/nga/SRTF1/srtf108/dted -12 -17 14 82
+#  raw_dted 1 /db/nga/SRTF1/srtf109/dted -54 11 -12 78
+#  raw_dted 1 /db/nga/SRTF1/srtf110/dted 42 82 60 180
+#  raw_dted 1 /db/nga/SRTF1/srtf111/dted 14 82 42 170
+#  raw_dted 1 /db/nga/SRTF1/srtf112/dted -12 92 14 180
+#  raw_dted 1 /db/nga/SRTF1/srtf113/dted -56 96 -12 180
+  #no terrain for now
+#validate_terrain
+end_terrain

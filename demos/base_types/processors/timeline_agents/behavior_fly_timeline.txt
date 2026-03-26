@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once common_timeline_scripts.txt
+include_once air_combat_maneuvers.txt
+
+behavior fly_timeline
+
+   script_debug_writes off
+
+   script_variables
+      WsfQuantumTaskerProcessor processor;
+      #***********************************************************************#
+      #** debugging parameters                                             ***#
+      #***********************************************************************#
+      bool    mDebugDraw = true;
+      #***********************************************************************#
+      #********* VARIABLES BELOW THIS LINE ARE NOT FOR USER EDITING **********#
+      #***********************************************************************#
+      WsfDraw mDraw      = WsfDraw();
+   end_script_variables
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         processor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition  fly_timeline,  T=", TIME_NOW);
+     #if (!PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      if (!processor.IsValid())
+      {
+         return Failure("behavior not attached to a WSF_QUANTUM_TASKER_PROCESSOR");
+      }
+#      WsfTaskList tasks = processor.TasksReceivedOfType("TIMELINE");
+#      if (tasks.Count() <= 0)
+#      {
+#         return Failure("no TIMELINE tasks received yet");
+#      }
+#      writeln_d(PLATFORM.Name(), " received TIMELINE tasks: ", tasks.Count());
+      if (!GetTimeLineTask(processor).IsValid())
+      {
+         return Failure("no TIMELINE tasks received yet");
+      }
+      return true;
+   end_precondition
+
+
+   execute
+
+#      WsfTrack target = GetNearestTimelineTarget(PLATFORM, processor);
+#     #Engage(PLATFORM, target, "pure");
+#      Engage(PLATFORM, target, "lead");
+
+      #look for the soonest intercepting target that we don't already have a weapon active or pending against
+      #sort them
+
+      Array<WsfTrack> targets = GetTimeLineTargets(processor);
+      Array<double> times = Array<double>();
+      foreach(WsfTrack target in targets)
+      {
+         double time = TimeToReachPoint(target, PLATFORM.Location(), 6.0);   //6 G turns
+         times.PushBack(time);
+      }
+      SortTracksByValue(targets, times);
+
+      #check for no active or pending weapons
+      foreach(WsfTrack target in targets)
+      {
+         #do we need master track?
+         WsfLocalTrack masterTarget = GetMasterTrackByName(PLATFORM, target.TargetName());
+         if (!masterTarget.IsValid())
+         {
+            continue;
+         }
+         if ((PLATFORM.WeaponsPendingFor(masterTarget.TrackId()) + PLATFORM.WeaponsActiveFor(masterTarget.TrackId())) > 0)
+         {
+            continue;
+         }
+         Engage(PLATFORM, target, "lead", PLATFORM.Speed(), PLATFORM.Altitude(), 6.0);
+         break;
+      }
+
+      if (mDebugDraw == true)
+      {
+         mDraw.SetLayer("behavior_fly_timeline");
+         mDraw.SetDuration(processor.UpdateInterval());
+         string side = PLATFORM.Side().Lower();
+         mDraw.SetLineSize(1);
+         mDraw.SetLineStyle("solid");
+         WsfTaskList tasks = processor.TasksReceivedOfType("TIMELINE");
+         foreach(WsfTask task in tasks)
+         {
+            Array<WsfTrack> targets = (Array<WsfTrack>)task.AuxDataObject("targets");
+            WsfGeoPoint SeparateA;
+            WsfGeoPoint SeparateB;
+            if (task.AuxDataExists("point_a"))
+            {
+               SeparateA = (WsfGeoPoint)task.AuxDataObject("point_a");
+               SeparateB = (WsfGeoPoint)task.AuxDataObject("point_b");
+            }
+
+            #draw lines to targets
+            if (side == "blue") {
+               mDraw.SetColor(0.0, 0.0, 1.0);   #blue
+            } else if (side == "red") {
+               mDraw.SetColor(1.0, 0.0, 0.0);   #red
+            } else {
+               mDraw.SetColor(0.0, 1.0, 0.0);   #green
+            }
+
+            if (SeparateA.IsValid() && SeparateB.IsValid())
+            {
+               #draw lines for separation divide
+               mDraw.SetColor(0.0, 0.0, 0.0);   #black
+               mDraw.BeginLines();
+                  mDraw.Vertex(SeparateA);
+                  mDraw.Vertex(SeparateB);
+               mDraw.End();
+
+               #check if platform is on the correct side of separation line
+               WsfCluster targetCluster = GetCluster(targets);
+               double refAz = SeparateA.TrueBearingTo(SeparateB);
+               double ownAz = SeparateA.TrueBearingTo(PLATFORM.Location()) - refAz;
+               double tgtAz = SeparateA.TrueBearingTo(targetCluster.MeanLocation()) - refAz;
+               ownAz = MATH.NormalizeAngleMinus180_180(ownAz);
+               tgtAz = MATH.NormalizeAngleMinus180_180(tgtAz);
+               if ((ownAz * tgtAz) > 0)
+               {
+                  #on correct side of line
+                  mDraw.SetColor(1.0, 0.0, 1.0);   #purple
+               }
+               else
+               {
+                  #incorrect side
+                  mDraw.SetColor(1.0, 0.5, 0.0);   #orange
+               }
+            }
+
+            mDraw.BeginLines();
+            foreach(WsfTrack target in targets)
+            {
+               mDraw.Vertex(PLATFORM);
+               mDraw.Vertex(target.CurrentLocation());
+            }
+            mDraw.End();
+         }
+      }
+   end_execute
+
+end_behavior
+

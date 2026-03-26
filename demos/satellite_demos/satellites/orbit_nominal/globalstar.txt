@@ -1,0 +1,467 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#Globalstar Satellite Constellation
+
+include_once platforms/globalstar.txt
+
+#==============The following models the ideal Globalstar constellation==================================
+
+platform GLOBALSTAR_A1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTARA2 GLOBALSTAR
+   edit mover
+   designator GLOBALSTAR_A2
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_A3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_A4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_A5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_A6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 45 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+# Plane B
+
+platform GLOBALSTAR_B1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_B2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_B3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_B4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_B5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_B6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 90 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+
+# Plane C
+
+platform GLOBALSTAR_C1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_C2 GLOBALSTAR
+   edit mover
+   designator C2
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_C3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_C4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_C5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_C6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 135 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+
+# Plane D
+
+platform GLOBALSTAR_D1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_D2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_D3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_D4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_D5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_D6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 180 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+
+# Plane E
+
+platform GLOBALSTAR_E1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_E2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_E3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_E4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_E5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_E6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 225 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+
+# Plane F
+
+platform GLOBALSTAR_F1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_F2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_F3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_F4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_F5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_F6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 270 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+# plane g
+
+platform GLOBALSTAR_G1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_G2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_G3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_G4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_G5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_G6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 315 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+# plane h
+
+platform GLOBALSTAR_H1 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 60 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_H2 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 120 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_H3 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 180 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_H4 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 240 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_H5 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 300 deg
+   end_mover
+end_platform
+
+platform GLOBALSTAR_H6 GLOBALSTAR
+   edit mover
+      revs_per_day 12.6315789
+      inclination 52 deg
+      raan 360 deg
+      anomaly 360 deg
+   end_mover
+end_platform
+
+#==========================================================================================================

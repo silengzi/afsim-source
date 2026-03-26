@@ -1,0 +1,31 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: 1st_conus_zone.txt - Coverage_Demo
+
+
+define_path_variable CASE 1st_conus_zone
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+file_path  .
+
+// Satellite platform and constellation definition
+include_once platforms/sat1.txt
+include scenarios/sat_con_1_autogen.txt
+
+// CONUS Zone definition
+include zones/conus.txt
+
+// Coverage and grid definition
+include_once coverage_grids/conus_zone_coverage.txt
+
+// Sim start epoch and end time
+start_date jul 07 2020 
+start_time 00:00:00.00
+
+end_time 2 hrs

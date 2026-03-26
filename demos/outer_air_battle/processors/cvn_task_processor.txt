@@ -1,0 +1,295 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+   script_struct launchParameters
+      script_variables
+         int num;
+         string type;
+         string prefix;
+      end_script_variables
+   end_script_struct
+
+##############################################################################
+#
+# This processor has two parts:
+#
+# The on_update block launches aircraft, based on the specified launch cycle.
+#
+# The state machine vectors aircraft towards targets, using assignments.
+#
+##############################################################################
+
+processor CVN_TASK_PROCESSOR WSF_TASK_PROCESSOR
+
+   script_variables
+      int numERC = 4;
+      int numMRC = 6;
+      int numAEW = 2;
+      double separationERC = 30.0;
+      double separationMRC = 45.0;
+      double launchCycle   = 90.0; # minutes
+      double nextERClaunch = -1.0;
+      double nextMRClaunch = -1.0;
+      double nextAEWlaunch = -1.0;
+
+      struct ERC = struct.New("launchParameters");
+         ERC->num    = numERC;
+         ERC->type   = "BLUE_MULTIROLE_FIGHTER_2_ERC";
+         ERC->prefix = "erc-";
+      struct MRC = struct.New("launchParameters");
+         MRC->num    = numMRC;
+         MRC->type   = "BLUE_MULTIROLE_FIGHTER_2_MRC";
+         MRC->prefix = "mrc-";
+      struct AEW = struct.New("launchParameters");
+         AEW->num    = numAEW;
+         AEW->type   = "BLUE_PROP_AWACS_1";
+         AEW->prefix = "aew-";
+
+      int numberToAssign = 1;
+   end_script_variables
+
+   on_initialize
+   end_on_initialize
+
+
+   script void launch_ac_struct(struct tempParms)
+      for (int i = 1; i <= tempParms->num; i = i + 1)
+      {
+         string commander = write_str("commander ", PLATFORM.Name());
+
+         WsfPlatform p = WsfSimulation.CreatePlatform(tempParms->type);
+         p.ProcessInput("side blue");
+         p.ProcessInput("position 0n 30w heading 90 deg");
+         p.ProcessInput(commander);
+         WsfPlatform pa = WsfSimulation.AddPlatform(p, "");    // Use a generated name
+         if (! pa.IsValid()) writeln("***** ERROR T=", TIME_NOW, " Could not add platform of type ", p.Type());
+
+         string routeName = write_str(tempParms->prefix, i);
+#         if (!pa.FollowRoute(routeName)) # if this route does not exist
+#         {
+#            writeln(" non-existing route. deleting ", pa.Name());
+#            WsfSimulation.DeletePlatform(pa.Name());
+#         } # check route exists
+
+         if (pa.FollowRoute(routeName))
+         {
+            pa.SetAuxData("route", routeName); # remember route name
+         }
+         else   # if this route does not exist
+         {
+            writeln(" non-existing route. deleting ", pa.Name());
+            WsfSimulation.DeletePlatform(pa.Name());
+         } # check route exists
+
+
+
+      } # for loop
+   end_script
+
+   script void announce(string sState)
+#      writeln(PLATFORM.Name(), " has entered state ", sState, " for "
+#            , TRACK.TargetName(), " at time ", TIME_NOW);
+   end_script
+
+   script bool availableSubordinates()
+      bool available = false;
+      WsfPlatformList subordinates = PLATFORM.Subordinates();
+      foreach (WsfPlatform temp in subordinates)
+      {
+         if (temp.IsValid())
+         {
+            if ( temp.CategoryMemberOf("fighter") )
+            {
+               if (TasksAssignedTo(temp, TRACK.TrackId()) < 1)
+               {
+                  available = true;
+                  break;
+               } # no tasks assigned to this one
+            } # interceptor
+         } # is valid
+      } # for each
+      return available;
+   end_script
+
+
+   # this script assignes interceptors to the tracks. it is a very simple sript
+   # in particular, it assigns the closest available interceptors
+   # first, it looks at the ERC (extended range CAP) aircraft,
+   # and picks the closest one. This could be one that is returning to the CV.
+   # worse, it could be one that is really out of range.
+   # then, it goes through the MRC (medium range CAP) aircraft and sends
+   # enough to fill the request.
+   # note: if it manages to send ANY aircraft, it will return true!
+   script bool assignInterceptor(int numberToAssign)
+      bool madeAssignment = false;
+      WsfPlatformList subordinates = PLATFORM.Subordinates();
+      int assignmentsMade = 0;
+
+      # start with ERC fighters
+      double rangeERC = MATH.DOUBLE_MAX();
+      WsfPlatform tempERC;
+      foreach (WsfPlatform temp in subordinates)
+      {
+         if (temp.IsValid() && temp.CategoryMemberOf("ERC"))
+         {
+            if (TasksAssignedTo(temp) < 1)
+            {
+               if (temp.GroundRangeTo(TRACK) < rangeERC)
+               {
+                  rangeERC = temp.GroundRangeTo(TRACK);
+                  tempERC = temp;
+               } # closer than previous selection
+            } # no current tasks
+         } # is valid and ERC
+      } # for each loop
+
+      # if an ERC was found, then assign it
+      if (tempERC.IsValid())
+      {
+         AssignTask(TRACK, "ENGAGE", tempERC);
+         madeAssignment = true;
+         assignmentsMade = assignmentsMade + 1;
+      }
+
+      # then look at MRC fighters
+      for (int i = 1; i <= numberToAssign - assignmentsMade; i = i + 1)
+      {
+#         writeln("");
+#         writeln(" the current value of i is ", i, " and is limited to ", numberToAssign - assignmentsMade);
+#         writeln(" there are ", subordinates.Count(), " subordinates");
+         double rangeMRC = MATH.DOUBLE_MAX();
+         WsfPlatform tempMRC;
+         foreach (WsfPlatform temp in subordinates)
+         {
+#            if (temp.IsValid()) writeln(" looking at ", temp.Name());
+            if (temp.IsValid() && temp.CategoryMemberOf("MRC"))
+            {
+               if (TasksAssignedTo(temp) < 1)
+               {
+                  if (temp.GroundRangeTo(TRACK) < rangeMRC)
+                  {
+                     rangeMRC = temp.GroundRangeTo(TRACK);
+                     tempMRC = temp;
+                  } # closer than previous selection
+               } # no current tasks
+            } # is valid and MRC
+         } # for each loop
+
+         # if an MRC was found, then assign it
+         if (tempMRC.IsValid())
+         {
+            AssignTask(TRACK, "ENGAGE", tempMRC);
+            madeAssignment = true;
+            assignmentsMade = assignmentsMade + 1;
+         }
+      } # for loop
+
+      return madeAssignment;
+   end_script
+
+   # this script cancels the assignments for the interceptors
+   script void deassignInterceptor()
+      writeln("   !!! canceling tasks  !!!! ", PLATFORM.Name(), " cancelling for ", TRACK.TargetName());
+      int numTasks = TasksAssignedFor(TRACK.TrackId());
+      if (numTasks > 0)
+      {
+         CancelTask(TRACK.TrackId());
+      }
+   end_script
+
+   update_interval 60 seconds
+   on_update
+      if (nextAEWlaunch < TIME_NOW)
+      {
+         launch_ac_struct(AEW);
+         nextAEWlaunch = TIME_NOW + (2.0*launchCycle)*60.0;
+      } # time to create new AEW
+
+      if (nextERClaunch < TIME_NOW)
+      {
+         launch_ac_struct(ERC);
+         nextERClaunch = TIME_NOW + launchCycle*60.0;
+      } # time to create new ERC
+
+      if (nextMRClaunch < TIME_NOW)
+      {
+         launch_ac_struct(MRC);
+         nextMRClaunch = TIME_NOW + (2.0*launchCycle)*60.0;
+      } # time to create new MRC
+
+   end_on_update
+
+   on_message
+      type WSF_TASK_STATUS_MESSAGE
+         script
+            writeln("*** ", PLATFORM.Name(), " has received a ", MESSAGE.Type(), " from ", MESSAGE.Originator());
+            string status   = ((WsfTaskStatusMessage)MESSAGE).Status();
+            string taskType = ((WsfTaskStatusMessage)MESSAGE).TaskType();
+            writeln(" the status is ", status, " and the type is ", taskType);
+         end_script
+#      type WSF_TRACK_MESSAGE
+#         script
+#            writeln(" received a track message from ", MESSAGE.Originator(), " at time ", TIME_NOW);
+#            string targetName = ((WsfTrackMessage)MESSAGE).Track().TargetName();
+#            writeln(" the target name is ", targetName);
+#         end_script
+#      default
+#         script
+#            writeln(" received a message from ", MESSAGE.Originator(), " of type ", MESSAGE.Type(), " at time ", TIME_NOW);
+#         end_script
+   end_on_message
+
+   evaluation_interval DETECTED 10 sec
+   state DETECTED
+      on_entry announce("DETECTED"); end_on_entry
+      next_state VECTOR
+         return availableSubordinates();
+      end_next_state
+   end_state
+
+   evaluation_interval VECTOR 10 sec
+   state VECTOR
+      on_entry announce("VECTOR"); end_on_entry
+      next_state ASSIGNED
+         return assignInterceptor(numberToAssign);
+      end_next_state
+   end_state
+
+   evaluation_interval ASSIGNED 10 sec
+   state ASSIGNED
+      on_entry announce("ASSIGNED"); end_on_entry
+
+      next_state DEASSIGN
+         bool deassign = false;
+         WsfPlatform target = TRACK.Target();
+         if (target.IsValid())
+         {
+            double headingAngle = TRACK.Target().RelativeBearingTo(PLATFORM);  # yes, this is a cheat!
+            bool headedMyWay = MATH.AngleIsBetween(headingAngle, -90.0, 90.0);
+            if (!headedMyWay)
+            {
+               deassignInterceptor();
+               deassign = true;
+            }
+         }
+         else
+         {
+            deassign = true;
+         }
+         return deassign;
+      end_next_state
+   end_state
+
+   evaluation_interval DEASSIGN 10 sec
+   state DEASSIGN
+
+   end_state
+
+end_processor

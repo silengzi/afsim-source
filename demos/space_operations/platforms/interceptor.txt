@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Ship to intercept telemetry transmitted between launcher and launch facility.
+# Does so by joining the telemtry group to receive messages and then forwarding
+# to radars for tracking.
+
+protocol MULTICAST WSF_COMM_PROTOCOL_IGMP
+   join_multicast_group 230.1.1.1/32
+end_protocol
+
+platform_type INTERCEPTOR WSF_PLATFORM
+   comm intercept_comm WSF_COMM_TRANSCEIVER
+      internal_link message_proc
+      add protocol localMulticast MULTICAST
+      end_protocol
+   end_comm
+
+   # Communication "network" between launch vehicle and launcher (launch facility)
+   group_join telemetry
+
+   processor message_proc WSF_SCRIPT_PROCESSOR
+      on_message
+         script
+            WsfTrackMessage msg = (WsfTrackMessage)MESSAGE;
+#            writeln("Message Intercepted from ", msg.Originator());
+#            WsfTrack track = msg.Track();
+#            WsfTrackMessage relay_message = WsfTrackMessage();
+#            relay_message.SetTrack(track);
+#            WsfGroup group = WsfGroup.Group("blueTrack"); # Tracking radars
+            WsfAddress telemetry = {};
+            telemetry.SetAddress("230.1.1.1", 32);
+#            PLATFORM.Comm("intercept_comm").SendMulticastMessage(msg, group);
+            PLATFORM.Comm("intercept_comm").SendMessage(msg, telemetry);
+            PLATFORM.Comment("Telemetry intercepted. Forwarding to radars.");
+         end_script
+      end_on_message
+   end_processor
+end_platform_type

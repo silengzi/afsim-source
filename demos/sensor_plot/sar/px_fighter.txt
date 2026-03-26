@@ -1,0 +1,76 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ============================================================================
+# 'sensor_plot' input file to generate the data necessary to create the 'SAR
+# constraint' plot for the 'fighter_sar' sensor.
+#
+# The file can be plotted with 'gnuplot px_fighter.gnu -'.
+# ============================================================================
+
+include fighter_sar.txt
+
+# ============================================================================
+platform_type FIGHTER WSF_PLATFORM
+   mover WSF_AIR_MOVER
+      # Corresponds to pitch angle in spreadsheet
+      angle_of_attack_table
+         altitude 0 m
+            speed    0 kts angle 3 deg           # <--- Spreadsheet value: Pitch angle
+      end_angle_of_attack_table
+   end_mover
+
+   sensor sar FIGHTER_SAR
+      yaw 0 deg                                  # <--- Spreadsheet value: Installed azimuth
+      pitch 27 deg                               # <--- Spreadsheet value: Installed elevation
+      backscatter_coefficient -15 db             # <--- Spreadsheet value: Clutter backscatter
+
+      # The modes must be overriden with the desired dwell time
+      mode SPOT
+         dwell_time 10 sec
+      end_mode
+      mode STRIP
+         dwell_time 10 sec
+      end_mode
+   end_sensor
+end_platform_type
+
+# ============================================================================
+platform fighter FIGHTER
+   route
+      position 0n 0e altitude 20000 ft heading 0 deg speed 444.36398 kts
+   end_route
+end_platform
+
+# ============================================================================
+radar_signature TARGET_RADAR_SIG
+   constant 100 m^2
+end_radar_signature
+
+optical_signature TARGET_OPTICAL_SIG
+   constant 100 m^2
+end_optical_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature   TARGET_RADAR_SIG
+   optical_signature TARGET_OPTICAL_SIG
+end_platform_type
+
+# ============================================================================
+horizontal_map
+   down_range_limits         0 nm 60 nm
+   down_range_step           0.06 nm
+   cross_range_limits        -60 nm 0 nm
+   cross_range_step          0.06 nm
+
+   # Default target speed is 250 m/s. Must override so SAR will detect it.
+   target_speed              0 kts
+
+   gnuplot_file              px_fighter.plt
+   variable                  pixel_count
+end_horizontal_map

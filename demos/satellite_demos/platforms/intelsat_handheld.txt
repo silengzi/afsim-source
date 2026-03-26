@@ -1,0 +1,67 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# INTELSAT HANDHELD
+
+include_once ../avionics/comm/IntelsatCommDef_HH.txt
+
+platform_type INTELSAT_HANDHELD WSF_PLATFORM
+   icon C4I
+
+comm HANDHELD_INTELSAT_UPLINK_TX HANDHELD_INTELSAT_UPLINK_TX
+   on
+  end_comm
+
+  comm HANDHELD_INTELSAT_DOWNLINK_RX HANDHELD_INTELSAT_DOWNLINK_RX
+   on
+  end_comm
+
+#=====================Uncomment this to send a test message to Satellites=========================================================
+#execute at_interval_of 2 hr
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	      if (myPlatform.Type() == "INTELSAT_BLUE")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#         if (myPlatform.Type() == "INTELSAT_TAN")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#         if (myPlatform.Type() == "INTELSAT_YELLOW")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#         if (myPlatform.Type() == "INTELSAT_GREEN")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#         if (myPlatform.Type() == "INTELSAT_MAGENTA")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#         if (myPlatform.Type() == "INTELSAT_ORANGE")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_INTELSAT_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#              }
+#          }
+# end_execute
+#======================================================================================================================================
+
+ end_platform_type
+
+
+

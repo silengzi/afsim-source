@@ -1,0 +1,284 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#Laydown of Space Surveillance Network 01/24/17
+
+sensor TELESCOPE WSF_GEOMETRIC_SENSOR
+   ignore_same_side
+   frame_time 2 seconds
+   frame_time 100 seconds
+   reports_bearing
+   reports_elevation
+   azimuth_error_sigma 1.0e-4 rad
+   elevation_error_sigma 1.0e-4 rad
+end_sensor
+
+
+sensor RADAR WSF_RADAR_SENSOR
+   transmitter
+      power 10 gw
+      frequency 100 mhz
+   end_transmitter
+   ignore_same_side
+   compute_measurement_errors false
+   azimuth_error_sigma 0.0001 deg
+   elevation_error_sigma 0.0001 deg
+   range_error_sigma 1 m
+   reports_location
+   reports_velocity
+   frame_time 10 sec
+end_sensor
+
+#Commander
+platform_type COMMANDER WSF_PLATFORM
+   icon cmd_post
+   side blue
+
+   comm comm WSF_COMM_TRANSCEIVER
+      internal_link tp
+   end_comm
+
+   track_manager
+      retain_raw_tracks
+      retain_track_history
+      fusion_method orbit_determination
+         process_noise_sigmas_XYZ 0.1 0.1 0.1
+         number_of_angle_measurements 8
+      end_fusion_method
+   end_track_manager
+
+   processor tp WSF_TRACK_PROCESSOR
+      update_interval 100 sec
+      purge_interval 2 days
+      track_history_retention_interval 1000 sec
+
+      script_variables
+         Map<int, WsfGeoPoint> lastTrackLoc = {};
+      end_script_variables
+
+      on_update
+         WsfLocalTrackList ltList = PLATFORM.TrackManager().LocalTrackList();
+         foreach (WsfLocalTrack lt in ltList)
+         {
+               WsfGeoPoint trackLoc = lt.LocationAtTime(TIME_NOW);
+               int id = lt.Target().Index();
+               WsfGeoPoint lastLoc = lastTrackLoc[id];
+               if (lastLoc.IsValid())
+               {
+                  WsfDraw draw = {};
+                  draw.SetId(id);
+                  draw.BeginLines();
+                  draw.Vertex(lastTrackLoc[id]);
+                  draw.Vertex(trackLoc);
+                  draw.End();
+               }
+               lastTrackLoc[id] = trackLoc;
+            }
+      end_on_update
+   end_processor
+
+   processor conj WSF_ORBITAL_CONJUNCTION_PROCESSOR
+      on
+      update_interval 10 min
+      search_interval 3 hr
+      filter_cut_distance 10.0 km
+      search_step_size 1 deg
+      exclusion_factor 10.0
+      default_variance 100.0 m
+      default_object_size 5.0 m
+      prediction_model default
+      primary
+         primary
+      end_primary
+
+      script void on_conjunction_predicted(Array<WsfOrbitalConjunctionReport> aReports)
+         for (int i = 0; i < aReports.Size(); i += 1)
+         {
+            writeln("Possible Conjunction:");
+            writeln("   Between: ", aReports[i].Primary(), " and ", aReports[i].Secondary());
+            writeln("   Max. Probability: ", aReports[i].MaximumProbability());
+            writeln("   Miss Distance: ", aReports[i].MissDistance(), " [m]");
+            writeln("   Relative Velocity: ", aReports[i].RelativeVelocity(), " [m/s]");
+            writeln("   Times: (", aReports[i].StartTime(), ", ", aReports[i].EndTime(), ")");
+            writeln("   Closest Approach Time: ", aReports[i].MinimumTime());
+         }
+      end_script
+   end_processor
+
+end_platform_type
+
+platform commander COMMANDER
+  position 38:43:17.04n 90:23:23.91w
+end_platform
+
+#General SSN platform
+platform_type SSN WSF_PLATFORM
+   side blue
+
+   comm comm WSF_COMM_TRANSCEIVER
+   end_comm
+
+   processor report WSF_LINKED_PROCESSOR
+      report_to commander via comm
+   end_processor
+end_platform_type
+
+#Advanced Electro-Optical System (AEOS) Telescope
+#http://www2.l-3com.com/brashear/pdf/3meter_low-res.pdf
+platform_type AEOST SSN
+   icon ground_radar
+   category TELESCOPE
+   sensor aeost TELESCOPE
+      on
+      internal_link report
+      elevation_error_sigma 0.000556 deg
+      azimuth_error_sigma 0.000556 deg
+   end_sensor
+end_platform_type
+
+platform aeost AEOST
+   commander commander
+   position 20:42:30n 156:15:25w
+end_platform
+
+#ALTAIR radar at Ronald Reagan Ballistic Missile Defense Test Site
+#http://onlinelibrary.wiley.com/doi/10.1029/2000RS002602/full
+#https://www.ll.mit.edu/publications/journal/pdf/vol12_no2/12_2detectsatellitiesplanets.pdf
+platform_type ALTAIR SSN
+   icon ew_radar_icon
+   category RADAR
+   sensor altair RADAR
+      on
+      internal_link report
+#      range_error_sigma 20 m
+#      azimuth_error_sigma 0.03 deg
+#      elevation_error_sigma 0.03 deg
+   end_sensor
+end_platform_type
+
+platform altair ALTAIR
+   commander commander
+   position 9.3966n 167.4716e
+end_platform
+
+#AN/FPS-85
+#http://aero.tamu.edu/sites/default/files/faculty/alfriend/CTI2P/CT2013%20S5.1%20Walsh.pdf
+platform_type FPS85 SSN
+   icon ew_radar_icon
+   category RADAR
+   sensor fps85_radar RADAR
+      on
+      internal_link report
+#      range_error_sigma 11 m #higher at max sensitivity
+#      azimuth_error_sigma 0.026 deg #higher at max sensitivity
+#      elevation_error_sigma 0.026 deg #higher at max sensitivity
+   end_sensor
+end_platform_type
+
+platform fps85 FPS85
+   commander commander
+   position 30:34:24n 86:12:54w altitude 100 ft
+end_platform
+
+#GEODSS
+platform_type GEODSS SSN
+   icon ground_radar
+   category TELESCOPE
+   sensor geodss TELESCOPE
+      on
+      internal_link report
+      elevation_error_sigma  0.00194 deg
+      azimuth_error_sigma 0.00194 deg
+   end_sensor
+end_platform_type
+
+platform socorro GEODSS
+   commander commander
+   position 33.8172n 106.6599w altitude 4100 ft msl
+end_platform
+
+platform maui GEODSS
+   commander commander
+   position 20.7088n 156.2578w altitude 10000 ft msl
+end_platform
+
+platform diegogarcia GEODSS
+   commander commander
+   position 7.41173s 72.45222e
+end_platform
+
+#Globus II
+platform_type GLOBUSII SSN
+   icon ew_radar_icon
+   category RADAR
+   sensor globus_radar RADAR
+      on
+      internal_link report
+   end_sensor
+end_platform_type
+
+platform globusii GLOBUSII
+   commander commander
+   position 70.3671n 31.1271e
+end_platform
+
+#Haystack Observatory
+#http://www.haystack.mit.edu/obs/haystack/tech_guide/Introduc.pdf
+platform_type HAYSTACK SSN
+   icon ground_radar
+   category TELESCOPE
+   sensor haystack TELESCOPE
+      on
+      internal_link report
+      elevation_error_sigma 0.000833 deg
+      azimuth_error_sigma 0.00111 deg
+#      elevation_error_sigma 1.1e-7 rad
+#      azimuth_error_sigma 1.1e-7 rad
+   end_sensor
+end_platform_type
+
+#platform haystack HAYSTACK
+#   commander commander
+#   position 42.6233n 71.4882w
+#end_platform
+
+#Millstone Hill Radar
+#https://www.ll.mit.edu/publications/journal/pdf/vol12_no2/12_2detectsatellitiesplanets.pdf
+platform_type MILLSTONE SSN
+   icon ew_radar_icon
+   category RADAR
+   sensor millstone_radar RADAR
+      on
+      internal_link report
+      azimuth_error_sigma 0.01 deg
+      elevation_error_sigma 0.01 deg
+      range_error_sigma 5 m
+   end_sensor
+end_platform_type
+
+platform millstone MILLSTONE
+   commander commander
+   position 42.61950n 71.49173w altitude 480 ft
+end_platform
+
+
+#Space Surveillance Telescope - currently moving from New Mexico to Australia
+platform_type SST SSN
+   icon ground_radar
+   category TELESCOPE
+   sensor SST TELESCOPE
+      on
+      internal_link report
+   end_sensor
+end_platform_type
+
+platform sst_australia SST
+   commander commander
+   position 21.485s 114.95e #approximate
+end_platform
+

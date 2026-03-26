@@ -1,0 +1,93 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#                  BLUE_LR_SAM - Complex (with uplink and seeker)
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# This BLUE_LR_SAM representation extends upon the baseline seeker representation
+# by providing a datalink and a seeker.
+#
+###############################################################################
+
+include blue_lr_sam_common.txt
+
+###############################################################################
+
+platform_type BLUE_LR_SAM BLUE_LR_SAM_BASE
+
+   comm datalink WSF_COMM_TRANSCEIVER
+      internal_link data_mgr
+   end_comm
+
+   # The seeker is modeled very simplisticly. There is no performance data.
+   # This is really just a method to model seeker errors.
+
+   sensor seeker WSF_GEOMETRIC_SENSOR
+      off
+
+      frame_time                       0.1 sec
+
+      azimuth_field_of_view            -30 deg 30 deg
+      elevation_field_of_view          -30 deg 30 deg
+      maximum_range                    50 km
+
+      maximum_request_count            1
+
+      range_error_sigma                1 m
+      azimuth_error_sigma              0.001 deg
+      elevation_error_sigma            0.001 deg
+
+      filter                           WSF_KALMAN_FILTER
+         process_noise_sigmas_XYZ      50 50 50
+         process_noise_model           constant_acceleration
+      end_filter
+
+      reports_range
+      reports_bearing
+      reports_elevation
+      reports_velocity
+
+      internal_link data_mgr
+   end_sensor
+
+   processor data_mgr WSF_WEAPON_TRACK_PROCESSOR
+   end_processor
+
+   # Modify the guidance processor such that when it enters TERMINAL phase
+   # that it turns on the sensor and starts tracking the target. During this
+   # phase we guide to perception to allow the introduction of errors.
+
+   edit processor guidance
+      edit phase TERMINAL
+         guide_to_truth false
+
+         on_entry
+            WsfSensor seeker = PLATFORM.Sensor("seeker");
+            WsfTrack targetTrack = PLATFORM.CurrentTargetTrack();
+            if (seeker.IsValid() &&
+                targetTrack.IsValid())
+            {
+               seeker.TurnOn();
+               seeker.StartTracking(targetTrack, "");
+            }
+         end_on_entry
+      end_phase
+   end_processor
+
+end_platform_type

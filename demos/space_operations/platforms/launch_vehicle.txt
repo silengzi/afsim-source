@@ -1,0 +1,19 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#Launch vehicle
+platform_type  LAUNCH_VEHICLE  WSF_PLATFORM
+   side red
+   optical_signature LAUNCH_VEHICLE_SIG
+   inherent_contrast LAUNCH_VEHICLE_CONTRAST
+
+   processor change_sig CHANGE_SIG
+   end_processor
+
+   category launch
+end_platform_type

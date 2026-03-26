@@ -1,0 +1,17 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch facility
+platform_type  LAUNCH_FACILITY  WSF_PLATFORM
+   side red
+   icon wedge
+
+   concealment_factor 1.0 #cannot be sensed (only sense launch vehicle)
+
+   category launch
+end_platform_type

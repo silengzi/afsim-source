@@ -1,0 +1,130 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# --------------------------------------------------------------------------------------------------
+# This file defines the aerodynamics of the vehicle.
+# The aero is composed of two types -- primary aero (defined within the aero_data block) and
+# component aero (defined within aero_component blocks).
+# --------------------------------------------------------------------------------------------------
+
+
+
+aero_data
+
+   ref_area_sqft           20.0
+   
+   use_legacy_derivatives   true
+   use_reduced_frequency    false
+   
+   cL_alpha_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable alpha units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cL_alpha_mach_table
+
+   cd_alpha_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable alpha units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.3     0.3    0.3
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.3     0.3    0.3
+      end_irregular_table
+   end_cd_alpha_mach_table
+
+   cm_alpha_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable alpha units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cm_alpha_mach_table
+
+   cd_beta_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable beta units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cd_beta_mach_table
+
+   cy_beta_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable beta units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cy_beta_mach_table
+
+   cn_beta_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable beta units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cn_beta_mach_table
+
+   cl_beta_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable beta units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0.0     0.0    0.0
+      end_irregular_table
+   end_cl_beta_mach_table
+
+
+
+   aero_mode  PostStaging
+
+
+   end_aero_mode
+
+end_aero_data
+

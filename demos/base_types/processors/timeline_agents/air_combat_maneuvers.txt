@@ -1,0 +1,683 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+# --------------------------------------------------------------
+#     This files defines air combat maneuvers to be used
+#     with a timeline agent. Maenuvers defined are:
+#     - engage/re-engage/pursue/push maneuver
+#     - beam maneuver
+#     - crank maneuver
+#     - drag maneuver
+#     Also included is a TurnHeading method that provides a new
+#     relative heading to turn to based on maneuver conditions.
+# --------------------------------------------------------------
+
+script_interface
+
+   script_debug_writes off
+
+   # Returns a relative heading (degrees) to turn
+   # relative to a track based on inputs
+   # aPlatform - the platform to get the new relative heading for
+   # aTrack - the track the new relative heading is in relation to
+   # aTurnAngle - the angle in degrees to turn relative to the track
+   # aTolerance - the values in degrees (+/-) within which the Platform will
+   #              already be considered to be aTurnAngle from aTrack
+   script double TurnHeading(WsfPlatform aPlatform,
+                              WsfTrack aTrack,
+                              double aTurnAngle,
+                              double aTolerance)
+      # Variable to store new relative heading return value
+      # Defualt to 0 degrees, no turn
+      double heading = 0;
+
+      if (aPlatform.IsValid() && aTrack.IsValid())
+      {
+         double relativeBearing = aPlatform.RelativeBearingTo(aTrack);
+         writeln_d("T= ", TIME_NOW);
+         writeln_d("   ", aPlatform.Name(), " heading: ", aPlatform.Heading(), " deg.");
+         writeln_d("   ", aPlatform.Name(), " relative bearing to track: ", relativeBearing, " deg.");
+
+         # Check that relative bearing is not already within tolerance of
+         # aTurnAngle and no need to change heading
+         if (!Math.AngleIsBetween(Math.Fabs(relativeBearing), aTurnAngle - aTolerance, aTurnAngle + aTolerance))
+         {
+            if (relativeBearing > 0 )
+            {
+               # Turn left
+               heading = -aTurnAngle + relativeBearing;
+            }
+            else
+            {
+               # Turn right
+               heading = aTurnAngle + relativeBearing;
+            }
+
+            # Because we are adding angle, make sure relative heading is valid
+            heading = Math.NormalizeAngleMinus180_180(heading);
+            writeln_d("   ", aPlatform.Name(), " new relative heading: ", heading, " deg.");
+         }
+         else
+         {
+            writeln_d("   ", aPlatform.Name(), " already within ",
+                      aTolerance, " deg of ", aTurnAngle, " deg to track." );
+         }
+      }
+
+      return heading;
+   end_script
+
+   # Calculate the relative positioning of aPlatform and aTrack
+   # Borrowed from common_platform_script
+   # aPlatform - the platform of interest for relative position
+   # aTrack - the track to determine the relative position to
+   #          with respect to the platform
+   # aAngleTolerance - angle in degrees used to bound how close
+   #                   two heading are to be considered the same
+   # returns a string indicating the relative positioning
+   #        (head-to-head, head-to-tail, etc.)
+   script string GetPositioning(WsfPlatform aPlatform, WsfTrack aTrack, double aAngleTolerance)
+      # Are we heading the same direction?
+      bool sameHeading = false;
+      bool oppHeading = false;
+      bool oppHeadingValid = aTrack.HeadingValid();
+      double headingDiff = MATH.Fabs(MATH.NormalizeAngleMinus180_180(aPlatform.Heading() - aTrack.Heading()));
+
+      if (oppHeadingValid && headingDiff < aAngleTolerance)
+      {
+         sameHeading = true;
+      }
+      if (oppHeadingValid && headingDiff > (180 - aAngleTolerance))
+      {
+         oppHeading = true;
+      }
+
+      # Is either one of us pointing at the other?
+      # Apparently bearing is always valid (?)
+      bool pointingMeYou = false;
+      bool pointingYouMe = false;
+
+      double pMeYou = MATH.Fabs(aPlatform.RelativeBearingTo(aTrack));
+      double pYouMe = MATH.Fabs(aTrack.RelativeBearingTo(aPlatform));
+
+      if (pMeYou < aAngleTolerance)
+      {
+         pointingMeYou = true;
+      }
+      if (pYouMe < aAngleTolerance)
+      {
+         pointingYouMe = true;
+      }
+
+      # Put them together and we've got relative positioning
+      string positioning = "";
+      if (sameHeading && pointingMeYou)
+      {
+         positioning = "head-to-tail";
+      }
+      else if (sameHeading && pointingYouMe)
+      {
+         positioning = "tail-to-head";
+      }
+      else if (oppHeading && (pointingMeYou || pointingYouMe))
+      {
+         positioning = "head-to-head";
+      }
+      else if (pointingMeYou && pointingYouMe)
+      {
+         positioning = "head-to-head";
+      }
+      else if (oppHeading)
+      {
+         positioning = "tail-to-tail";
+      }
+      else if (pointingMeYou)
+      {
+         positioning = "me-facing-target";
+      }
+      else if (pointingYouMe)
+      {
+         positioning = "target-facing-me";
+      }
+      else
+      {
+         positioning = "none";
+      }
+      # Debug, in case angle math is bad
+#      writeln_d("    ", aPlatform.Name(), " to ", aTrack.TargetName(), ", headingDiff: ", headingDiff, ", pMeYou: ", pMeYou, ", pYouMe: ", pYouMe);
+#      writeln_d("    meHeading: ", aPlatform.Heading(), ", youHeading: ", aTrack.Heading());
+#      writeln_d("    sameHeading: ", sameHeading, ", oppHeading: ", oppHeading,
+#                ", pointingMeYou: ", pointingMeYou, ", pointingYouMe: ", pointingYouMe,
+#                ", positioning: ", positioning);
+
+      return positioning;
+   end_script
+
+
+   # Commands passed in platform to do an engage maneuver
+   # Relative to passed in track
+   # Mode (pure, lead) input string determines if mode will be
+   #      pure pursuit or lead to predicted intercept point
+   # Return true if engage maneuver command is successful
+   script bool Engage(WsfPlatform aPlatform, WsfTrack aTrack, string aMode, double aSpeed, double aAlt, double aGs)
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+
+      double leadTime = 15.0; #sec
+
+      WsfGeoPoint targetPoint = WsfGeoPoint();
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return false;
+      }
+
+      # Determine location to fly toward based on pursuit mode
+      if (aMode == "intercept")
+      {
+         WsfWaypoint wpt = WsfWaypoint();
+         double tti = aPlatform.InterceptLocation3D(aTrack, wpt);
+         if (tti > 0.0)
+         {
+            targetPoint = wpt.Location();
+         }
+         else
+         {
+            targetPoint = aTrack.LocationAtTime(TIME_NOW + leadTime);
+         }
+      }
+      else if (aMode == "lead")
+      {
+         targetPoint = aTrack.LocationAtTime(TIME_NOW + leadTime);
+      }
+      else #if (aMode == "pure")
+      {
+         # All other input will be considered 'pure' pursuit
+         targetPoint = aTrack.LocationAtTime(TIME_NOW);
+      }
+
+      double relativeBearing = aPlatform.RelativeBearingTo(targetPoint);
+
+      # Fly determined course
+      double radialAccel = aGs * Earth.ACCEL_OF_GRAVITY();
+      bool ok = aPlatform.TurnToRelativeHeading(relativeBearing, radialAccel);
+      ok = ok && aPlatform.GoToSpeed(aSpeed);
+      ok = ok && aPlatform.GoToAltitude(aAlt);
+      return ok;
+   end_script
+
+   # Commands passed in platform to do a fire maneuver
+   # Relative to passed in track
+   # Return true if fire maneuver command is successful
+   script bool FireManeuver(WsfPlatform aPlatform, WsfTrack aTrack)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # TODO make method arguments?
+      double fireMach = 1.5; # Speed to fire weapon
+      double pitchAngle = 15.0; # Degrees of pitch up (loft shot)
+      double distance = 100000.0; # Distance in meters to new altitude point
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return false;
+      }
+
+      # Determine heading toward track
+      double relativeBearing = aPlatform.RelativeBearingTo(aTrack);
+
+      # Determine new altitude to give desired pitch angle
+      # Arbitrary point that is pitch angle up, 100 km distant
+      double altitudeDelta = distance * Math.Tan(pitchAngle);
+      double newAltitude = aPlatform.Altitude() + altitudeDelta;
+
+      # Determine an approximate climb rate based on
+      # desired angle and new point
+      double speed = aPlatform.Speed();
+      double time = distance / speed;
+      double climbRate = altitudeDelta / time;
+
+      # Fly determined course
+      bool ok = aPlatform.TurnToRelativeHeading(relativeBearing);
+      ok = ok && aPlatform.GoToMachNumber(fireMach);
+      ok = ok && aPlatform.GoToAltitude(newAltitude, climbRate);
+      return ok;
+   end_script
+
+   # Commands passed in platform to do a beam maneuver
+   # Relative to passed in track
+   # Return final heading if crank maneuver command is successful
+   # or -1 if unsuccessful
+   script double Beam(WsfPlatform aPlatform, WsfTrack aTrack)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # Angle in degrees to turn to get to "beam" on track.
+      double beamAngle = 90;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered on "beam"
+      double beamTolerance = 1.5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return false;
+      }
+
+      # Heading when we have finished maneuver
+      double finalHeading = 0;
+
+      # Determine new heading
+      if (aTrack.HeadingValid())
+      {
+         # Check for condition when we know track's heading
+         # this gives a more accurate "beam" to threat course
+         if (aPlatform.RelativeBearingTo(aTrack) > 0)
+         {
+            # Turn left
+            finalHeading = aTrack.Heading() + beamAngle;
+         }
+         else
+         {
+            # Turn right
+            finalHeading = aTrack.Heading() - beamAngle;
+         }
+      }
+      else
+      {
+         # Determine a relative heading based only on the track's location
+         double relativeHeading = TurnHeading(aPlatform, aTrack, beamAngle, beamTolerance);
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() + relativeHeading);
+      }
+
+      # Turn to new heading, maintaining speed and altitude
+      bool ok = aPlatform.TurnToHeading(finalHeading);
+      if (!ok)
+      {
+         finalHeading = -1.0;
+      }
+      return finalHeading;
+   end_script
+
+   # Commands passed in platform to do a crank maneuver
+   # Relative to passed in track
+   # Return final heading if drag maneuver command is successful
+   # or -1 if unsuccessful
+   script double Crank(WsfPlatform aPlatform, WsfTrack aTrack, double crankAngle, double aSpeed)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # TODO make method arguments?
+      # Angle in degrees to offset track. Should be close to,
+      # but not at, max radar azimuth
+     #double crankAngle = 35;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered cranking
+      double crankTolerance = 1.5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return false;
+      }
+
+      double relativeHeading = TurnHeading(aPlatform, aTrack, crankAngle, crankTolerance);
+
+      # Heading when we have finished maneuver
+      double finalHeading = Math.NormalizeAngleMinus180_180(aPlatform.Heading() + relativeHeading);
+
+      # Turn to new heading, maintaining speed and altitude
+      bool ok = aPlatform.TurnToRelativeHeading(relativeHeading);
+      ok = ok && aPlatform.GoToSpeed(aSpeed);
+      if (!ok)
+      {
+         finalHeading = -1.0;
+      }
+      return finalHeading;
+   end_script
+
+   # Commands passed in platform to do a drag maneuver
+   # Relative to passed in track
+   # aSpeed - speed (m/s) to drag at
+   # aAlt - Altitude to offset from current altitude
+   # Return final heading if drag maneuver command is successful
+   # or -1 if unsuccessful
+   script double Drag(WsfPlatform aPlatform, WsfTrack aTrack, double aSpeed, double aAlt, double aGs)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # TODO make method arguments?
+      # Flight parameters when dragging for speed (Mach) and altitude offest (meters) from start
+      double dragMach = 1.1;
+      # Angle in degrees to turn to drag on track.
+      double dragAngle = 179;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered dragging
+      double dragTolerance = 5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return false;
+      }
+
+      # Heading when we have finished maneuver
+      double finalHeading = 0;
+      # Determine new heading for drag maneuver
+      string positioning = GetPositioning(aPlatform, aTrack, dragTolerance);
+      if (aTrack.HeadingValid() &&
+          (positioning == "tail-to-head" ||
+           positioning == "head-to-head" ||
+           positioning == "target-facing-me")
+         )
+      {
+         # Check for condition when we know track's heading and
+         # track is facing platform.
+         # This gives a more accurate "drag" to threat course
+         finalHeading = aTrack.Heading();
+      }
+      else
+      {
+         # Don't know track heading or not facing platform, turn
+         # based on relative bearing to track location
+         double relativeHeading = TurnHeading(aPlatform, aTrack, dragAngle, dragTolerance);
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() + relativeHeading);
+      }
+
+      # Fly new course
+      double radialAccel = aGs * Earth.ACCEL_OF_GRAVITY();
+      bool ok = aPlatform.TurnToHeading(finalHeading, radialAccel);
+      ok = ok && aPlatform.GoToSpeed(aSpeed);
+      ok = ok && aPlatform.GoToAltitude(aAlt);
+      if (!ok)
+      {
+         finalHeading = -1.0;
+      }
+      return finalHeading;
+   end_script
+
+   # Do a 180 degree turn in the specified direction,
+   # at specified mach, maintaining altitude
+   script double TurnDirection(WsfPlatform aPlatform, string aDirection, double aSpeed, double aGs)
+      # Angle in degrees to turn.
+      double turnAngle = 179.5;
+      # Heading when we have finished maneuver
+      double finalHeading = 0;
+
+      if (aDirection == "left")
+      {
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() - turnAngle);
+      }
+      else
+      {   # "right"
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() + turnAngle);
+      }
+
+      # Fly new course
+      double radialAccel = aGs * Earth.ACCEL_OF_GRAVITY();
+      bool ok = aPlatform.TurnToHeading(finalHeading, radialAccel);
+      ok = ok && aPlatform.GoToSpeed(aSpeed);
+      ok = ok && aPlatform.GoToAltitude(aPlatform.Altitude());
+      if (!ok)
+      {
+         finalHeading = -1.0;
+      }
+      return finalHeading;
+   end_script
+
+   # Commands passed in platform to do a post hole maneuver
+   # Direction (left/right) controls direction of post hole
+   # Return final heading if drag maneuver command is successful
+   # or -1 if unsuccessful
+   script double PostHole(WsfPlatform aPlatform, string aDirection)
+      # Distance in meters to offset the range to the post hole waypoint
+      double offsetRange = 3000;
+      # Angle down (deg) to offset post hole waypoint
+      double offsetElevation = -75.0;
+
+      if (!aPlatform.IsValid())
+      {
+         return false;
+      }
+
+      # Use left/right direction to determine the offset bearing for
+      # the post hole waypoint. Heading + 120 deg will put the point
+      # slightly behind current location
+      double offsetBearing = 0;
+      if (aDirection == "left")
+      {
+         offsetBearing = Math.NormalizeAngleMinus180_180(aPlatform.Heading() + 120);
+      }
+      else
+      {
+         offsetBearing = Math.NormalizeAngleMinus180_180(aPlatform.Heading() - 120);
+      }
+
+      # Build point to fly to for post hole
+      WsfGeoPoint pt = aPlatform.Location();
+      pt.OffsetRBE(offsetRange, offsetBearing, offsetElevation);
+
+      # Create waypoint so we can specify final heading/speed
+      WsfWaypoint waypoint = WsfWaypoint();
+      waypoint.SetHeading(aPlatform.Heading());
+      waypoint.SetSpeed(aPlatform.Speed());
+      waypoint.SetLocation(pt);
+
+      # Build route from post hole waypoint
+      WsfRoute newRoute = WsfRoute();
+      newRoute.Append(waypoint);
+
+      # Heading when we have finished maneuver
+      double finalHeading = aPlatform.Heading();
+
+      bool ok = aPlatform.FollowRoute(newRoute);
+      if (!ok)
+      {
+         finalHeading = -1.0;
+      }
+      return finalHeading;
+   end_script
+
+
+
+   script double GetTurnRateLimit(WsfPlatform aPlatform)
+       Array<double> turnRadiusArray = aPlatform.Mover().PropertyDouble("turn_radius");
+
+       double turnRateLimit = 0;
+       if (turnRadiusArray.Size() > 0)
+       {
+          double turnRate = turnRadiusArray[0];
+          double speed = aPlatform.Speed();
+          turnRateLimit = speed/turnRate;
+          turnRateLimit = turnRateLimit * MATH.DEG_PER_RAD();
+       }
+       return turnRateLimit;
+   end_script
+
+   script double GetDefaultG(WsfPlatform aPlatform)
+      Array<double> defaultAccelArray = aPlatform.Mover().PropertyDouble("default_radial_acceleration");
+       if (defaultAccelArray.Size() > 0)
+       {
+          return defaultAccelArray[0];
+       }
+       return 0.0;
+   end_script
+
+   script double TimeToPerformBeam(WsfPlatform aPlatform, WsfTrack aTrack)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # Angle in degrees to turn to get to "beam" on track.
+      double beamAngle = 90;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered on "beam"
+      double beamTolerance = 1.5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return -1.0;
+      }
+
+      # Heading when we have finished maneuver
+      double finalHeading = 0;
+
+      # Determine new heading
+      if (aTrack.HeadingValid())
+      {
+         # Check for condition when we know track's heading
+         # this gives a more accurate "beam" to threat course
+         if (aPlatform.RelativeBearingTo(aTrack) > 0)
+         {
+            # Turn left
+            finalHeading = aTrack.Heading() + beamAngle;
+         }
+         else
+         {
+            # Turn right
+            finalHeading = aTrack.Heading() - beamAngle;
+         }
+      }
+      else
+      {
+         # Determine a relative heading based only on the track's location
+         double relativeHeading = TurnHeading(aPlatform, aTrack, beamAngle, beamTolerance);
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() + relativeHeading);
+      }
+
+
+      //calculate time to perform the beam given the calculated heading
+
+      #RadialAccel = Speed^2/Radius
+
+      double RadialAccel = GetDefaultG(aPlatform) * Earth.ACCEL_OF_GRAVITY();
+      if (RadialAccel < 2.0)
+      {
+         RadialAccel = 2.0 * Earth.ACCEL_OF_GRAVITY();
+      }
+
+      double TurnAzimuth = MATH.Fabs(finalHeading);
+      double Speed = aPlatform.Speed();
+      double Radius = Speed * Speed / RadialAccel;
+      double TurningCircleCircumference = 2.0 * MATH.PI() * Radius;
+      double TurningArc = (TurnAzimuth/360) * TurningCircleCircumference;
+      double TimeToTurn = TurningArc / Speed;
+      return TimeToTurn;
+
+
+   end_script
+
+   script double TimeToPerformCrank(WsfPlatform aPlatform, WsfTrack aTrack)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # TODO make method arguments?
+      # Angle in degrees to offset track. Should be close to,
+      # but not at, max radar azimuth
+      double crankAngle = 35;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered cranking
+      double crankTolerance = 1.5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return -1.0;
+      }
+
+      double relativeHeading = TurnHeading(aPlatform, aTrack, crankAngle, crankTolerance);
+
+      # Heading when we have finished maneuver
+      double finalHeading = Math.NormalizeAngleMinus180_180(aPlatform.Heading() + relativeHeading);
+
+      double RadialAccel = GetDefaultG(aPlatform) * Earth.ACCEL_OF_GRAVITY();
+      if (RadialAccel < 2.0)
+      {
+         RadialAccel = 2.0 * Earth.ACCEL_OF_GRAVITY();
+      }
+
+      double TurnAzimuth = MATH.Fabs(finalHeading);
+      double Speed = aPlatform.Speed();
+      double Radius = Speed * Speed / RadialAccel;
+      double TurningCircleCircumference = 2.0 * MATH.PI() * Radius;
+      double TurningArc = (TurnAzimuth/360) * TurningCircleCircumference;
+      double TimeToTurn = TurningArc / Speed;
+      return TimeToTurn;
+
+   end_script
+
+   script double TimeToPerformDrag(WsfPlatform aPlatform, WsfTrack aTrack)
+
+      # Variables used in the script to generate the maneuver.
+      # Change these to modify the behavior.
+      # TODO make method arguments?
+      # Flight parameters when dragging for speed (Mach) and altitude offest (meters) from start
+      double dragMach = 1.1;
+      double dragAltitudeOffset = -1000;
+      # Angle in degrees to turn to drag on track.
+      double dragAngle = 179;
+      # Min/max angle in degrees that aircraft needs to be
+      # between relative to track to be considered dragging
+      double dragTolerance = 5;
+
+      if (!aPlatform.IsValid() || !aTrack.IsValid())
+      {
+         return -1.0;
+      }
+
+      # Heading when we have finished maneuver
+      double finalHeading = 0;
+      # Determine new heading for drag maneuver
+      string positioning = GetPositioning(aPlatform, aTrack, dragTolerance);
+      if (aTrack.HeadingValid() &&
+          (positioning == "tail-to-head" ||
+           positioning == "head-to-head" ||
+           positioning == "target-facing-me")
+         )
+      {
+         # Check for condition when we know track's heading and
+         # track is facing platform.
+         # This gives a more accurate "drag" to threat course
+         finalHeading = aTrack.Heading();
+      }
+      else
+      {
+         # Don't know track heading or not facing platform, turn
+         # based on relative bearing to track location
+         double relativeHeading = TurnHeading(aPlatform, aTrack, dragAngle, dragTolerance);
+         finalHeading = Math.NormalizeAngle0_360(aPlatform.Heading() + relativeHeading);
+      }
+
+      double RadialAccel = GetDefaultG(aPlatform) * Earth.ACCEL_OF_GRAVITY();
+      if (RadialAccel < 2.0)
+      {
+         RadialAccel = 2.0 * Earth.ACCEL_OF_GRAVITY();
+      }
+      double TurnAzimuth = MATH.Fabs(finalHeading);
+      double Speed = aPlatform.Speed();
+      double Radius = Speed * Speed / RadialAccel;
+      double TurningCircleCircumference = 2.0 * MATH.PI() * Radius;
+      double TurningArc = (TurnAzimuth/360) * TurningCircleCircumference;
+      double TimeToTurn = TurningArc / Speed;
+      return TimeToTurn;
+
+   end_script
+
+
+   script void Offset(WsfPlatform flyer, WsfGeoPoint target, double angle, double alt, double speed, double gees)
+      angle = MATH.NormalizeAngleMinus180_180(angle);
+      double offsetTrueBearing = flyer.TrueBearingTo(target) + angle;
+      double radialAccel = gees * Earth.ACCEL_OF_GRAVITY();
+      double climbRate = MATH.Sin(30) * speed;
+      bool ok =       flyer.GoToSpeed(speed, 9999, true);
+           ok = ok && flyer.GoToAltitude(alt, climbRate, true);
+           ok = ok && flyer.TurnToHeading(offsetTrueBearing, radialAccel);
+   end_script
+
+
+end_script_interface

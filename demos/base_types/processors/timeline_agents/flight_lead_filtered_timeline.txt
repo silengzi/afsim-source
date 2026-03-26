@@ -1,0 +1,521 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once common_timeline_scripts.txt
+
+processor FLIGHT_LEAD_FILTERED_TIMELINE WSF_QUANTUM_TASKER_PROCESSOR
+   script_debug_writes on
+   script_variables
+      #asset evaluation on tasks:
+      bool mCountWeaponsInEval = false;
+
+      #setting up the timeline:
+      double FSR  = 40 * MATH.M_PER_NM();
+      double DOR  = 35 * MATH.M_PER_NM();
+      double MAR  = 20 * MATH.M_PER_NM();
+
+      #risk level management
+      bool   mStaticRiskLevel = false;
+      string RISK = "LOW";   #overwritten dynamically if 'mStaticRiskLevel' is true
+                             #based on range gates to protected location defined here
+      WsfGeoPoint mProtectedLocation;   #can be invalid, will just use lead's position
+      double mLowRiskRange    = 120 * MATH.M_PER_NM();
+      double mMediumRiskRange =  90 * MATH.M_PER_NM();
+      double mHighRiskRange   =  60 * MATH.M_PER_NM();
+
+      #battle stance management
+      bool             mPassiveAllowed = true;
+      Map<string,bool> mPassivePlayers = Map<string,bool>();
+
+      #values for engaging two groups
+      bool    mEnableTwoTimelines    = true;
+      double  mMyWeaponRange         = 40*1852;   #used to figure out if threats are presenting to wide on azimuth for one shooter
+      double  mMaxTargetAzSeparation = 30.0;      #degrees, max az separation of targets for one shooter
+
+      #########################################################################
+      #   Threat Filtering
+      #      Only consider known threats with soonest intercept time
+      #      1000 knots closing speed = ~514 meters/sec
+      #      15 nm range at 514 m/s closing speed = ~54 seconds
+      #########################################################################
+      double   mDefaultTargetTurningGs =  6.0;   # units of gravity (1 gravity = 9.8 m/s^2)
+      double   mInterceptTimeThreshold = 108.0;   #our current calculation only accounts for threats speed, not ours
+     #double mInterceptTimeThreshold = 27.0;
+     #double mInterceptTimeThreshold = 54.0;   # (sec) ignore all threats that will intercept us later than (the soonest threat + this time)
+      Map<string,int> mKnownTargetTypes = Map<string,int>();
+                      mKnownTargetTypes["BLUE_STRIKER"] = 1;
+                      mKnownTargetTypes["RED_STRIKER"]  = 1;
+                      mKnownTargetTypes["STRIKER"]  = 1;
+
+      #values for support roles
+     #bool               mEnableSupportRoles = false;
+
+
+      #########################################################################
+      ##  util - dont touch
+      double             mSoonestIntercept = -1.0;
+      WsfTrack           mBiggestThreat;
+      WsfClusterManager  mClusterManager;
+      WsfAssetPerception mShooter1;
+      int                mWeapons1 = 0;
+      WsfAssetPerception mShooter2;
+      int                mWeapons2 = 0;
+      WsfDraw            mDraw  =  WsfDraw();
+   end_script_variables
+
+   on_initialize
+      mDraw.SetId("timeline_lead");
+      mDraw.SetColor(1.0,0.5,0.0); #orange?
+      mDraw.SetLineStyle("solid");
+      mDraw.SetLineSize(1);
+      mDraw.SetDuration(PROCESSOR.UpdateInterval());
+
+      mClusterManager = WsfClusterManager.Create();
+      mClusterManager.SetClusterMethod("H_TREE_MAX");
+      #if clustering is ever used in this agent, its to create two clusters for two timelines
+      mClusterManager.SetDistanceFunction("POSITION_ONLY");
+      mClusterManager.SetNumClustersToCreate(2);
+
+      if (!mProtectedLocation.IsValid())
+      {
+         mProtectedLocation = PLATFORM.Location();
+      }
+
+   end_on_initialize
+
+
+   state INITIAL
+      on_entry
+         PLATFORM.Comment("INITIAL state");
+      end_on_entry
+
+      next_state BATTLE
+         Map<string, bool> shots = Map<string, bool>();
+         writeln_d("T=",TIME_NOW,", ", PLATFORM.Name(), " analyzing battle conditions!");
+         WsfTaskList list = PROCESSOR.TasksAssignedOfType("TIMELINE");
+         foreach(WsfTask task in list)
+         {
+            #bool roundsFired = task.Assignee().RoundsFiredAt(task.TrackId()) > 0;
+            bool roundsFired = task.Assignee().RoundsCompleteFor(WsfTrackId()) > 0;
+            writeln_d("   checking assigned task ", task.TrackId().ToString(), " assigned to ", task.AssigneeName(), "fired? ", roundsFired);
+            shots[task.AssigneeName()] = roundsFired;
+         }
+         foreach (string assignee : bool shot in shots)
+         {
+            if (shot == false)
+            {
+               return false;
+            }
+         }
+         return (shots.Size() > 0);
+      end_next_state
+
+   end_state
+
+   state BATTLE
+      on_entry
+         PLATFORM.Comment("BATTLE state");
+         mPassiveAllowed = false;
+      end_on_entry
+   end_state
+
+
+   script void UpdateRiskLevel(Array<WsfTrack> knownThreats)
+      string oldrisk = RISK;
+      double closest = MATH.DOUBLE_MAX();
+      foreach(WsfTrack threat in knownThreats)
+      {
+         double dist = mProtectedLocation.GroundRangeTo(threat.CurrentLocation());
+         closest = MATH.Min(closest, dist);
+      }
+      if (closest < mHighRiskRange)
+      {
+         RISK = "HIGH";
+      }
+      else if (closest < mMediumRiskRange)
+      {
+         RISK = "MEDIUM";
+      }
+      else
+      {
+         RISK = "LOW";
+      }
+      if (oldrisk != RISK)
+      {
+         PLATFORM.Comment(write_str(RISK," RISK"));
+      }
+   end_script
+
+
+   script Array<WsfTrack> FilterTracks(Array<WsfLocalTrack> TRACKS, Array<WsfAssetPerception> ASSETS)
+      Array<WsfTrack> filtered = Array<WsfTrack>();
+
+      #filter out threats that wont intercept us as soon as most threatening
+      #find soonest intercept
+      Array<double> interceptTimes = Array<double>();
+      mSoonestIntercept = MATH.DOUBLE_MAX();
+      for (int i=0; i<TRACKS.Size(); i=i+1)
+      {
+         WsfLocalTrack lt = TRACKS[i];
+         writeln_d("T=", TIME_NOW, ", considering target ", lt.TargetName());
+
+         interceptTimes[i] = -1.0;
+
+         if (lt.IsValid() && !lt.TargetKilled() && (!lt.SideValid() || lt.Side() != PLATFORM.Side()))
+         {
+            if (mKnownTargetTypes.Size() <= 0 || mKnownTargetTypes.Exists(lt.TargetType()))
+            {
+               writeln_d("T=", TIME_NOW, ", did not filter target ", lt.TargetName(), " of type ", lt.TargetType());
+               double time = MATH.DOUBLE_MAX();
+               foreach (WsfAssetPerception p in ASSETS)
+               {
+                  double temp = TimeToReachPoint(lt, p.Location(), mDefaultTargetTurningGs);
+                  if (temp < time)
+                  {
+                     time = temp;
+                  }
+               }
+               interceptTimes[i] = time;
+               writeln_d("T=", TIME_NOW,", ", lt.TargetName()," time to reach = ", time);
+               if (time > 0 && time < mSoonestIntercept)
+               {
+                  mSoonestIntercept = time;
+                  mBiggestThreat = lt;
+               }
+            } else { writeln_d("UNKNOWN TARGET TYPE!"); }
+         } else { writeln_d("TRACK NOT VALID (or similar error)"); }
+      }
+
+      for (int i=0; i<TRACKS.Size(); i=i+1)
+      {
+         if (interceptTimes[i] > 0 && interceptTimes[i] <= (mSoonestIntercept + mInterceptTimeThreshold))
+         {
+            filtered.PushBack(TRACKS[i]);
+         }
+         # else ignore this threat for now, too far away
+      }
+      return filtered;
+   end_script
+
+
+
+
+   script Array<WsfQuantumTask> FlightLeadTaskGeneration (Array<WsfLocalTrack> TRACKS, Array<WsfAssetPerception> ASSETS )
+      writeln_d("T=", TIME_NOW, ", ", PLATFORM.Name(), " generating tasks!");
+      Array<WsfQuantumTask> tasks = Array<WsfQuantumTask>();
+      if (ASSETS.Size() <= 0)
+      {
+         writeln_d("NO ASSETS!");
+         return tasks;
+      }
+      if (TRACKS.Size() <= 0)
+      {
+         writeln_d("NO TRACKS!");
+      }
+
+      #FILTER TRACKS DOWN TO ONLY TARGETS WE CARE ABOUT RIGHT NOW
+      #TODO - find fastest/furthest along asset (as likliest to be first engaged by threats)
+      Array<WsfTrack> filtered = FilterTracks(TRACKS, ASSETS);
+
+      if (mStaticRiskLevel == false)
+      {
+         UpdateRiskLevel(filtered);
+      }
+
+#      mDraw.SetColor(0.6, 0.6, 0.6);   #gray
+#      mDraw.BeginLines();
+#      foreach(WsfTrack target in filtered)
+#      {
+#         writeln_d("T=", TIME_NOW, " drawing filtered: ", target.TargetName());
+#         mDraw.Vertex(PLATFORM);
+#         mDraw.Vertex(target.CurrentLocation());
+#      }
+#      mDraw.End();
+
+      if (filtered.Size() <= 0)
+      {
+         return tasks;
+      }
+      #DEBUG - draw the filtered tracks with a purple hull
+      mClusterManager.Draw(filtered, PROCESSOR.UpdateInterval(), Vec3.Construct(0.2,0.2,1.0), "hull");
+
+#      #DEBUG - draw line from asset centroid to filtered threats centroid
+#      mDraw.SetColor(1.0,1.0,0.0);  #yellow?
+#      mDraw.SetLineStyle("solid");
+#      mDraw.SetLineSize(1);
+#      mDraw.BeginLines();
+#         mDraw.Vertex(AssetCentroid);
+#         mDraw.Vertex(FilteredCluster.MeanLocation());
+#      mDraw.End();
+
+
+      #CALCULATE IF THE FLIGHT EXECUTES ONE OR TWO TIMELINES
+      #first find if we have two+ shooters or not
+      int totalWeapons = 0;
+      mWeapons1 = 0;
+      mWeapons2 = 0;
+      bool haveTwoShooters = false;
+      foreach(WsfAssetPerception ASSET in ASSETS)
+      {
+         for (int i=0; i<ASSET.SystemCount(); i+=1)
+         {
+            #TODO - limit the consideration to only certain [better] weapons
+            #       instead of just first weapon in system list
+            if (ASSET.SystemKind(i) == "weapon")
+            {
+               int weapons = ASSET.SystemQuantityRemaining(i);
+               totalWeapons += weapons;
+               if (mPassiveAllowed == true && mPassivePlayers[ASSET.Name()] == true)
+               {
+                  break;   #passive players will not fly "point" on a timeline nor shoot
+               }
+               if (weapons > mWeapons1)
+               {
+                  if (mWeapons1 > mWeapons2)
+                  {
+                     mShooter2 = mShooter1;
+                     mWeapons2 = mWeapons1;
+                  }
+                  mShooter1 = ASSET;
+                  mWeapons1 = weapons;
+               }
+               else if (weapons > mWeapons2)
+               {
+                  mShooter2 = ASSET;
+                  mWeapons2 = weapons;
+               }
+               break;
+            }
+         }
+      }
+
+      if (filtered.Size() > totalWeapons)
+      {
+         writeln_d(PLATFORM.Name(), ", WARNING! More threats than this flight has weapons!");
+      }
+
+      if (filtered.Size() > (mWeapons1+mWeapons2))
+      {
+         writeln_d(PLATFORM.Name(), ", WARNING! More threats than two shooters have weapons! Enable all as shooters?");
+      }
+
+      haveTwoShooters = (mWeapons1 > 0 && mWeapons2 > 0);
+
+      #TODO - more intelligent calculation of azimuth presentation:
+      #       find likely first shot location (from shooter 1 to biggest threat)
+      #       sort all extrapolatead threats based on relative azimuth at this shot location
+      #       figure out if the threats are presenting on azimuth and will require two timelines
+
+      #for now - sort filtered tracks on azimuth
+      #          compare "width" of threats (left most to right most) to "length" of weapon
+      Array<double> bearings = Array<double>();
+      foreach(WsfTrack t in filtered)
+      {
+         double bearing = ASSETS[0].RelativeBearingTo(t.CurrentLocation());
+         bearings.PushBack(bearing);
+      }
+      SortTracksByValue(filtered, bearings);
+
+      #debug: print sorted (by bearing) order to screen
+      mDraw.SetDuration(PROCESSOR.UpdateInterval());
+      mDraw.SetColor(1.0,0.5,0.0);  #orange?
+      mDraw.SetLineStyle("solid");
+      mDraw.SetTextSize(16);
+      for (int i=0; i<filtered.Size(); i+=1)
+      {
+         mDraw.BeginText(write_str(i));
+            mDraw.Vertex(filtered[i].CurrentLocation());
+         mDraw.End();
+      }
+
+      #calculate if the threats are presenting across a wide azimuth
+      bool AzimuthPresentation = true;
+      WsfTrack left  = filtered.Front();
+      WsfTrack right = filtered.Back();
+      double width  = left.CurrentLocation().GroundRangeTo(right.CurrentLocation());
+      double length = mMyWeaponRange;
+      #assume shooter 1 flies towards middle of angle separation
+      double halfAngle = MATH.ATan2(width/2.0,length);
+      if ((2.0*halfAngle) < mMaxTargetAzSeparation)
+      {
+         AzimuthPresentation = false;
+      }
+
+      if (mEnableTwoTimelines &&
+          haveTwoShooters     &&   #only create two timelines if we have 2 shooters???
+          filtered.Size() > 1 &&   #two timelines only possible if more than 1 threat exists
+          (  mWeapons1 < filtered.Size() ||  #if MUST use 2 shooters because of weapon counts
+             AzimuthPresentation)            #OR if must use 2 shooters because of threat presentation
+         )
+      {
+         #create two timeline tasks
+         #first make mShooter1 the left most shooter
+         WsfGeoPoint p1 = filtered[0].CurrentLocation();   #left target
+         double d1 = mShooter1.Location().GroundRangeTo(p1);
+         double d2 = mShooter2.Location().GroundRangeTo(p1);
+         if (d2 < d1)
+         {
+            #swap 1 and 2 so mShooter1 refers to left shooter
+            int tWeapons; WsfAssetPerception tShooter;
+            tShooter  = mShooter1; tWeapons  = mWeapons1;
+            mShooter1 = mShooter2; mWeapons1 = mWeapons2;
+            mShooter2 = tShooter;  mWeapons2 = tWeapons;
+         }
+
+
+         #TODO - consider group up threats on azimuth???
+         #TODO - consider other azimuth-based algorithms to separate the threats
+         #for now - make two clusters
+         WsfGeoPoint SeparateA;
+         WsfGeoPoint SeparateB;
+
+         Array<Array<WsfTrack>> clusters = mClusterManager.GetClusters(filtered);
+         #should be 2 clusters now
+         if (clusters.Size() != 2)
+         {
+            writeln("ERROR: cluster manager did not create two clusters! ABORT task generation!");
+            return tasks;
+         }
+         else
+         {
+            #draw separation lines
+            WsfGeoPoint a = mClusterManager.MeanLocation(clusters[0]);
+            WsfGeoPoint b = mClusterManager.MeanLocation(clusters[1]);
+            double az   = a.TrueBearingTo(b);
+            double dist = a.GroundRangeTo(b);
+           #WsfGeoPoint c = WsfGeoPoint(a);
+            SeparateA = WsfGeoPoint(a);
+            SeparateA.OffsetRBE(dist/2.0,az,0.0);
+           #WsfGeoPoint d = WsfGeoPoint(c);
+            SeparateB = WsfGeoPoint(SeparateA);
+            SeparateA.OffsetRBE(DOR,az+90.0,0.0);
+            SeparateB.OffsetRBE(DOR,az-90.0,0.0);
+
+#            mDraw.SetColor(1.0,1.0,1.0);  #white
+#            mDraw.SetLineStyle("solid");
+#            mDraw.SetLineSize(1);
+#            mDraw.BeginLines();
+#               mDraw.Vertex(a);
+#               mDraw.Vertex(b);
+#               mDraw.Vertex(SeparateA);
+#               mDraw.Vertex(SeparateB);
+#            mDraw.End();
+         }
+
+         for (int i = 0; i < clusters.Size(); i += 1 )
+         {
+            string shapeType = "hull";
+
+            if(Math.Mod(i,2) == 0)
+            {
+               shapeType = "star";
+            }
+
+            #Draw a green shape around the cluster for one update cycle
+            mClusterManager.Draw(clusters[i], PROCESSOR.UpdateInterval(), Vec3.Construct(0.0,1.0,0.0), shapeType);
+
+            WsfQuantumTask task = WsfQuantumTask.Construct(1.0, "TIMELINE");
+            task.SetTaskType("TIMELINE");
+            Array<WsfTrack> targets = Array<WsfTrack>();
+            for (int j=0; j<clusters[i].Size(); j+=1)
+            {
+               targets.PushBack(WsfTrack(clusters[i][j]));
+            }
+            task.SetAuxData("targets",targets);
+            task.SetAuxData("FSR",FSR);
+            task.SetAuxData("DOR",DOR);
+            task.SetAuxData("MAR",MAR);
+            task.SetAuxData("RISK",RISK);
+            task.SetAuxData("point_a",SeparateA);
+            task.SetAuxData("point_b",SeparateB);
+            task.SetAuxData("cluster_mean", mClusterManager.MeanLocation(clusters[i]));
+            task.UniqueId(mClusterManager.UniqueId(targets));
+            tasks.PushBack(task);
+            writeln_d("timeline task generated for cluster: ", mClusterManager.UniqueId(clusters[i]));
+         }
+      }
+      else
+      {
+         #create just one timeline task
+         WsfQuantumTask task = WsfQuantumTask.Construct(1.0, "TIMELINE");
+         task.SetTaskType("TIMELINE");
+         Array<WsfTrack> targets = Array<WsfTrack>();
+         foreach(WsfTrack t in filtered)
+         {
+            targets.PushBack(WsfTrack(t));
+         }
+         task.SetAuxData("targets",targets);
+         task.SetAuxData("FSR",FSR);
+         task.SetAuxData("DOR",DOR);
+         task.SetAuxData("MAR",MAR);
+         task.SetAuxData("RISK",RISK);
+         task.UniqueId(PLATFORM.Index());   #only timeline task this lead will generate
+         tasks.PushBack(task);
+         writeln_d("timeline task generated for all filtered tracks!");
+      }
+
+      return tasks;
+   end_script
+
+
+   script double FlightLeadEvaluation ( WsfQuantumTask TASK, WsfAssetPerception ASSET)
+      writeln_d(PLATFORM.Name(), " evaluating task type ", TASK.TaskType());
+      #TODO - include weapon capability in evaluation
+      #       for now: just base value on range
+      if (TASK.TaskType() == "TIMELINE")
+      {
+         if (mPassiveAllowed == true && mPassivePlayers[ASSET.Name()] == true)
+         {
+            return 0;   #passive players do not do weapon tasks for now
+         }
+
+         Array<WsfTrack> targets = (Array<WsfTrack>)TASK.AuxDataObject("targets");
+         if (targets.Size() > 0)
+         {
+            WsfGeoPoint clusterMeanPoint = mClusterManager.MeanLocation(targets);
+            double range = ASSET.Location().GroundRangeTo(clusterMeanPoint);
+            double value = 1.0 / (range * range);
+            if (mCountWeaponsInEval == true)
+            {
+               double weaponCount = 0;
+               for (int i=0; i<ASSET.SystemCount(); i+=1)
+               {
+                  if (ASSET.SystemKind(i) == "weapon")
+                  {
+                     weaponCount += ASSET.SystemQuantityRemaining(i);
+                  }
+               }
+               if (weaponCount >= targets.Size())
+               {
+                  value *= 2.0;
+               }
+            }
+            return value;
+         }
+      }
+      return 0.0;
+   end_script
+
+  #show_task_messages
+   #script_debug_writes    on
+   update_interval        10.0 sec
+   asset_representation   platform
+   reallocation_strategy  dynamic
+   #reallocation_strategy  event
+   generator              custom          FlightLeadTaskGeneration
+   evaluator              custom          FlightLeadEvaluation
+  #allocator              optimal_profit  type   TIMELINE
+  #allocator              greedy_profit
+   allocator              optimal_profit
+   allocator_extra_assets greedy_profit
+  #allocator_extra_tasks  optimal_profit
+  #allocator_extra_assets optimal_profit
+
+end_processor
+

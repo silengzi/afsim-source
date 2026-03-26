@@ -1,0 +1,345 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/beidou.txt
+
+# BEIDOU CONSTELLATION SCENARIO (CHINA-GPS)
+# TLEs updated February 13 2019
+
+#====================================================================================
+#              Ideal Constellation Configuration
+#====================================================================================
+
+# MEO Satellites
+# Plane 1
+
+platform MEO11 BEIDOU
+edit mover
+   designator MEO11
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform MEO12 BEIDOU
+edit mover
+   designator MEO12
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform MEO13 BEIDOU
+edit mover
+   designator MEO13
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform MEO14 BEIDOU
+edit mover
+   designator MEO14
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform MEO15 BEIDOU
+edit mover
+   designator MEO15
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform MEO16 BEIDOU
+edit mover
+   designator MEO16
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform MEO17 BEIDOU
+edit mover
+   designator MEO17
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform MEO18 BEIDOU
+edit mover
+   designator MEO18
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 120 deg
+   anomaly 360 deg
+end_mover
+end_platform
+
+# plane 2
+
+platform MEO21 BEIDOU
+edit mover
+   designator MEO21
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform MEO22 BEIDOU
+edit mover
+   designator MEO22
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform MEO23 BEIDOU
+edit mover
+   designator MEO23
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform MEO24 BEIDOU
+edit mover
+   designator MEO24
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform MEO25 BEIDOU
+edit mover
+   designator MEO25
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform MEO26 BEIDOU
+edit mover
+   designator MEO26
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform MEO27 BEIDOU
+edit mover
+   designator MEO27
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform MEO28 BEIDOU
+edit mover
+   designator MEO28
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 240 deg
+   anomaly 360 deg
+end_mover
+end_platform
+
+# plane 3
+
+platform MEO31 BEIDOU
+edit mover
+   designator MEO31
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform MEO32 BEIDOU
+edit mover
+   designator MEO32
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform MEO33 BEIDOU
+edit mover
+   designator MEO33
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform MEO34 BEIDOU
+edit mover
+   designator MEO34
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform MEO35 BEIDOU
+edit mover
+   designator MEO35
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform MEO36 BEIDOU
+edit mover
+   designator MEO36
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform MEO37 BEIDOU
+edit mover
+   designator MEO37
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform MEO38 BEIDOU
+edit mover
+   designator MEO38
+   revs_per_day 2.1333333
+   inclination 55 deg
+   raan 360 deg
+   anomaly 360 deg
+end_mover
+end_platform
+
+# GEO Satellites
+
+platform GEO1 BEIDOU
+edit mover
+   designator GEO1
+   revs_per_day 1
+   inclination 0 deg
+   raan 158.75 deg
+end_mover
+end_platform
+
+platform GEO2 BEIDOU
+edit mover
+   designator GEO2
+   revs_per_day 1
+   inclination 0 deg
+   raan 180 deg
+end_mover
+end_platform
+
+platform GEO3 BEIDOU
+edit mover
+   designator GEO3
+   revs_per_day 1
+   inclination 0 deg
+   raan 210.5 deg
+end_mover
+end_platform
+
+platform GEO4 BEIDOU
+edit mover
+   designator GEO4
+   revs_per_day 1
+   inclination 0 deg
+   raan 240 deg
+end_mover
+end_platform
+
+platform GEO5 BEIDOU
+edit mover
+   designator GEO5
+   revs_per_day 1
+   inclination 0 deg
+   raan 260 deg
+end_mover
+end_platform
+
+# IGSO Satellites
+
+platform IGSO1 BEIDOU
+edit mover
+   designator IGSO1
+   revs_per_day 1
+   inclination 55 deg
+   raan 218 deg
+   anomaly 0 deg
+end_mover
+end_platform
+
+platform IGSO2 BEIDOU
+edit mover
+   designator IGSO2
+   revs_per_day 1
+   inclination 55 deg
+   raan 98 deg
+   anomaly 120 deg
+end_mover
+end_platform
+
+platform IGSO3 BEIDOU
+edit mover
+   designator IGSO3
+   revs_per_day 1
+   inclination 55 deg
+   raan 338 deg
+   anomaly 240 deg
+end_mover
+end_platform
+

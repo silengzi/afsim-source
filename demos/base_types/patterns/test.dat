@@ -1,0 +1,44 @@
+# ****************************************************************************
+# UNCLASSIFIED//FOUO 
+# See AAA_ITAR.txt for distribution and usage. 
+# ****************************************************************************
+DATA-TABLE
+
+$ --UNCLASSIFIED
+
+$ ...
+$ ...
+
+DIMENSION 1  AZ (DEG)
+-180 -90 -30 0 30 90 180
+
+$ EL DATA FOR AZ Interval: -180 to -90
+DIMENSION 2  EL (DEG)
+ -90 -30 30 90
+GAIN (DB)
+ -10 -8 -10
+$ EL DATA FOR AZ Interval: -90 to -30
+DIMENSION 2  EL (DEG)
+ -90 -30 0 30 90
+GAIN (DB)
+ -9 -7  -7 -9
+$ EL DATA FOR AZ Interval: -30 to 0
+DIMENSION 2  EL (DEG)
+ -90 -30 -10 10 30 90
+GAIN (DB)
+ -3 -2 0 -2 -3
+$ EL DATA FOR AZ Interval: 0 to 30
+DIMENSION 2  EL (DEG)
+ -90 -30 30 90
+GAIN (DB)
+ -3 0 -3
+$ EL DATA FOR AZ Interval: 30 to 90
+DIMENSION 2  EL (DEG)
+ -90 -30 30 90
+GAIN (DB)
+ -9 -7 -9
+$ EL DATA FOR AZ Interval: 90 to 180
+DIMENSION 2  EL (DEG)
+ -90 -30 30 90
+GAIN (DB)
+ -10 -8 -10

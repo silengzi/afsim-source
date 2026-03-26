@@ -1,0 +1,114 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# === === (Strike Bombers) Primary Operations Players  === ===
+
+platform StrikeBomber_1 STRIKE_PLATFORM
+
+   position 24.5561n 81.7590w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 5218.2 kg
+      end_container
+      edit transactor fuel_requesting_transactor
+         #debug
+      end_transactor
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform StrikeBomber_2 STRIKE_PLATFORM
+
+   position 24.5561n 81.7586w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 218.2 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform StrikeBomber_3 STRIKE_PLATFORM
+
+   position 24.5561n 81.7582w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 6200.0 kg # FULL
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform StrikeBomber_4 STRIKE_PLATFORM
+
+   position 24.5561n 81.7578w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 3218.2 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform StrikeBomber_5 STRIKE_PLATFORM
+
+   position 24.5561n 81.7574w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 4218.2 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform StrikeBomber_6 STRIKE_PLATFORM
+
+   position 24.5561n 81.7570w # Slightly East of Key West Airport, FL
+
+   # Give each a different initial fuel load.
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 2218.2 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform

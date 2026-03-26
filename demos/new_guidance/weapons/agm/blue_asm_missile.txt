@@ -1,0 +1,126 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###################################################################################
+# Based on the following sources:
+#   Wikipedia:     en.wikipedia.org/wiki/Boeing_Harpoon
+#   GlobalSecurity www.globalsecurity.org/military/systems/munitions/agm-84-specs.htm
+
+
+aero BLUE_ASM_MISSILE_AERO WSF_AERO
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       4.00
+
+   # 13.5 in (34.29 cm) diameter
+   reference_area            0.092347 m2         # 34.29 cm diameter
+   cl_max                    10.0
+
+   # 3 ft (91.44 cm) wingspan
+   aspect_ratio              16.0                # 32.0 // AR = B^2/Sref assume span = 5Xdia
+end_aero
+
+weapon_effects BLUE_ASM_MISSILE_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 100 m 0.7
+end_weapon_effects
+
+platform_type BLUE_ASM_MISSILE WSF_PLATFORM
+   icon CRUISE_MISSILE
+
+   weapon_effects BLUE_ASM_MISSILE_LETHALITY
+
+   mover WSF_GUIDED_MOVER
+      #debug
+      #show_status
+
+      update_interval        0.5 s
+      integration_timestep   0.05 s
+
+      stage 1
+         # Warhead 487 lb (221 kg)
+         initial_mass        519 kg              # 1144 lb
+         fuel_mass           200 kg              # Guess
+         thrust              2900 Nt
+         #specific_impulse    300 sec             # Guess
+         thrust_duration      1000 sec
+         aero                BLUE_ASM_MISSILE_AERO
+         thrust_delay        1.0 sec
+      end_stage
+
+      # pre-briefed route (normally provided by a task manager)
+      route
+        position 39.0n 89.5w
+        position 38.8n 89.5w
+      end_route
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+      show_status
+      #show_evaluations
+      #debug
+
+      phase CRUISE
+         allow_route_following    true
+         commanded_altitude       75 m
+         commanded_speed          537 mph
+
+         next_phase POPUP when target_slant_range < 3000 m
+         next_phase POPUP when target_slant_range < 3000 m
+
+ /*
+         next_phase POPUP when phase_time > 1000 sec
+         next_phase POPUP when altitude > 100000 m
+         next_phase POPUP when speed    > 100000 m/s
+         next_phase POPUP when target_altitude > 100000 m
+         next_phase POPUP when target_speed    > 100000 m/s
+         next_phase POPUP when closing_speed > 100000 m/s
+         next_phase POPUP when time_to_intercept < 1 sec
+         next_phase POPUP when range_to_intercept < 1 m
+         next_phase POPUP when target_slant_range < 1 m
+         next_phase POPUP when target_ground_range < 1 m
+         next_phase POPUP when target_azimuth > 179 deg
+         next_phase POPUP when target_elevation > 89 deg
+         next_phase POPUP when los_target_azimuth > 179 deg
+         next_phase POPUP when los_target_elevation > 89 deg
+         next_phase POPUP when los_target_angle > 179 deg
+ */
+         maximum_pitch_angle           50 deg
+         proportional_navigation_gain  10.0
+
+         velocity_pursuit_gain         10.0
+
+      end_phase
+
+      phase POPUP
+         # Command a ridiculous altitude... we just go up until the target
+         # elevation angle is correct...
+
+         commanded_altitude 6000 m
+         next_phase DIVE when target_elevation < -20 deg
+         proportional_navigation_gain  10.0
+         velocity_pursuit_gain         5.0
+      end_phase
+
+      phase DIVE
+         velocity_pursuit_gain         5.0
+      end_phase
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+
+end_platform_type
+
+weapon BLUE_ASM_MISSILE WSF_EXPLICIT_WEAPON
+      launched_platform_type BLUE_ASM_MISSILE
+      quantity 1
+end_weapon
+

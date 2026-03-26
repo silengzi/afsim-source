@@ -1,0 +1,363 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#        1         2         3         4         5         6         7
+#2345678901234567890123456789012345678901234567890123456789012345678901234567890
+#################################################################################
+#               *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
+#               All information below is representative only,
+#               and is estimated or obtained from open sources.
+#               It is not yet substantiated or corroborated by
+#               definitive data.
+#               *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
+#
+# Values noted for a:
+#  500-pound bomb are indicative of Mk-82, GBU-38, or BLU-111/B
+# 1000-pound bomb are indicative of Mk-83 or GBU-32
+# 1000-pound penetrator are indicative of GBU-35 or BLU-110/B
+# 2000-pound bomb are indicative of Mk-84 or GBU-31
+# 2000-pound penetrator are indicative of GBU-31-3/4 or BLU-109B
+# 5000-pound penetrator are indicative of Paveway III LGB, GBU-37, or GAM-113
+#################################################################################
+
+# Note:  If any physical properties for weapons are changed in
+# this file, the corresponding Launch Acceptable Regions (LARs)
+# and Launch Computers should be re-generated for them.
+
+radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+   constant 10 m^2
+end_radar_signature
+
+#################################################################################
+#              Define the charactistics of the guidance computer
+#################################################################################
+
+processor BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER WSF_GUIDANCE_COMPUTER
+  #continuous_g_bias            #flag only, no argument required
+  #omit_velocity_pursuit        #flag only, no argument required
+  #omit_proportional_navigation #flag only, no argument required
+  proportional_navigation_gain  10.0
+  velocity_pursuit_gain         10.0
+  g_bias                         1.0
+  maximum_commanded_g          25.0 g
+  guidance_delay                0.0 sec
+end_processor
+
+#################################################################################
+#                    Define the charactistics of the fuse
+#################################################################################
+
+processor CONTACT_FUSE WSF_GROUND_TARGET_FUSE
+   proximity_cancel_on_loss_of_target
+end_processor
+
+###############################################################################
+#                    Define the aerodynamic characteristics
+###############################################################################
+
+aero BLUE_GPS_BOMB_3_500_LB_AERO WSF_AERO
+  # Note:  Values for Mk-82-like slick bomb.
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  reference_area      0.059 m2 # 273mm body dia
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_GPS_BOMB_3_1000_LB_AERO WSF_AERO
+  reference_area      1.078 ft2 # 14.06 in dia
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_GPS_BOMB_3_1000_LB_PENETRATOR_AERO WSF_AERO
+  reference_area      1.078 ft2 # 14.06 in dia
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_GPS_BOMB_3_2000_LB_AERO WSF_AERO
+  reference_area      0.159 m2 # 45cm body dia
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_GPS_BOMB_3_2000_LB_PENETRATOR_AERO WSF_AERO
+  reference_area      0.108 m2 # 370mm body dia
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_GPS_BOMB_3_5000_LB_PENETRATOR_AERO WSF_AERO
+  reference_area      0.283 m2 # 60cm body dia (???)
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+#        1         2         3         4         5         6         7
+#2345678901234567890123456789012345678901234567890123456789012345678901234567890
+###############################################################################
+#                 Define the explicit platforms for the bombs
+###############################################################################
+
+platform_type IRON_500_LB_BOMB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_UNGUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_500_LB_AERO
+    mass 500.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_500_LB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_500_LB_AERO
+    mass 500.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type IRON_1000_LB_BOMB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_UNGUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_1000_LB_AERO
+    mass 1015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_1000_LB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_1000_LB_AERO
+    mass 1015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_1000_LB_PENETRATOR WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_1000_LB_PENETRATOR_AERO
+    mass 1015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type IRON_2000_LB_BOMB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_UNGUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_2000_LB_AERO
+    mass 2015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_2000_LB WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_2000_LB_AERO
+    mass 2015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_2000_LB_PENETRATOR WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_2000_LB_PENETRATOR_AERO
+    mass 2015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+platform_type BLUE_GPS_BOMB_3_5000_LB_PENETRATOR WSF_PLATFORM
+  icon jdam
+  radar_signature BLUE_GPS_BOMB_3_RADAR_SIGNATURE
+  mover WSF_GUIDED_MOVER
+    aero BLUE_GPS_BOMB_3_5000_LB_PENETRATOR_AERO
+    mass  5000.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BLUE_GPS_BOMB_3_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+end_platform_type
+
+#################################################################################
+#                          Define the weapon lethality
+#################################################################################
+
+weapon_effects BLUE_GPS_BOMB_3_500_LB_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   25.0 m   # largest blast radius at which damage inflicted is maximum.
+  maximum_radius   30.0 m   # blast radius beyond which the damage inflicted is Zero.
+  maximum_damage   1.0      # maximum damage level achievable upon the target.
+  minimum_damage   0.1      # damage level acheived at the maximum radius.
+  threshold_damage 0.2      # initial damage level which must be acheived
+                            # before effects begin to accumulate upon the target
+  exponent         1.0      # exponent of proportionality of damage with radius.
+                            # ( e = 1.0 ==> linear damage within blast region,
+                            #   e > 1.0 ==> more damaging within the blast region,
+                            #   0.0 < e < 1.0 ==> less damaging within blast region. )
+end_weapon_effects
+
+weapon_effects BLUE_GPS_BOMB_3_1000_LB_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   30.0 m   # largest blast radius at which damage inflicted is maximum.
+  maximum_radius   35.0 m   # blast radius beyond which the damage inflicted is Zero.
+  maximum_damage   1.0      # maximum damage level achievable upon the target.
+  minimum_damage   0.1      # damage level acheived at the maximum radius.
+  threshold_damage 0.2      # initial damage level which must be acheived
+                            # before effects begin to accumulate upon the target
+  exponent         1.0      # exponent of proportionality of damage with radius.
+                            # ( e = 1.0 ==> linear damage within blast region,
+                            #   e > 1.0 ==> more damaging within the blast region,
+                            #   0.0 < e < 1.0 ==> less damaging within blast region. )
+end_weapon_effects
+
+weapon_effects BLUE_GPS_BOMB_3_2000_LB_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   35.0 m   # largest blast radius at which damage inflicted is maximum.
+  maximum_radius   40.0 m   # blast radius beyond which the damage inflicted is Zero.
+  maximum_damage   1.0      # maximum damage level achievable upon the target.
+  minimum_damage   0.1      # damage level acheived at the maximum radius.
+  threshold_damage 0.2      # initial damage level which must be acheived
+                            # before effects begin to accumulate upon the target
+  exponent         1.0      # exponent of proportionality of damage with radius.
+                            # ( e = 1.0 ==> linear damage within blast region,
+                            #   e > 1.0 ==> more damaging within the blast region,
+                            #   0.0 < e < 1.0 ==> less damaging within blast region. )
+end_weapon_effects
+
+weapon_effects BLUE_GPS_BOMB_3_5000_LB_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   40.0 m   # largest blast radius at which damage inflicted is maximum.
+  maximum_radius   45.0 m   # blast radius beyond which the damage inflicted is Zero.
+  maximum_damage   1.0      # maximum damage level achievable upon the target.
+  minimum_damage   0.1      # damage level acheived at the maximum radius.
+  threshold_damage 0.2      # initial damage level which must be acheived
+                            # before effects begin to accumulate upon the target
+  exponent         1.0      # exponent of proportionality of damage with radius.
+                            # ( e = 1.0 ==> linear damage within blast region,
+                            #   e > 1.0 ==> more damaging within the blast region,
+                            #   0.0 < e < 1.0 ==> less damaging within blast region. )
+end_weapon_effects
+
+#################################################################################
+#                           Define the weapon types
+#################################################################################
+
+weapon BLUE_GPS_BOMB_3_500_LB WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_500_LB
+   weapon_effects         BLUE_GPS_BOMB_3_500_LB_EFFECT
+   category               500_POUNDER
+   category               glide_bomb_unit
+end_weapon
+
+weapon BLUE_GPS_BOMB_3_1000_LB WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_1000_LB
+   weapon_effects         BLUE_GPS_BOMB_3_1000_LB_EFFECT
+   category               1000_POUNDER
+   category               glide_bomb_unit
+end_weapon
+
+weapon BLUE_GPS_BOMB_3_1000_LB_PENETRATOR WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_1000_LB_PENETRATOR
+   weapon_effects         BLUE_GPS_BOMB_3_1000_LB_EFFECT
+   category               1000_POUNDER
+   category               penetrator
+   category               glide_bomb_unit
+end_weapon
+
+weapon BLUE_GPS_BOMB_3_2000_LB WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_2000_LB
+   weapon_effects         BLUE_GPS_BOMB_3_2000_LB_EFFECT
+   category               2000_POUNDER
+   category               glide_bomb_unit
+end_weapon
+
+weapon BLUE_GPS_BOMB_3_2000_LB_PENETRATOR WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_2000_LB_PENETRATOR
+   weapon_effects         BLUE_GPS_BOMB_3_2000_LB_EFFECT
+   category               2000_POUNDER
+   category               penetrator
+   category               glide_bomb_unit
+end_weapon
+
+weapon BLUE_GPS_BOMB_3_5000_LB_PENETRATOR WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_GPS_BOMB_3_5000_LB_PENETRATOR
+   weapon_effects         BLUE_GPS_BOMB_3_5000_LB_EFFECT
+   category               5000_POUNDER
+   category               penetrator
+   category               glide_bomb_unit
+end_weapon

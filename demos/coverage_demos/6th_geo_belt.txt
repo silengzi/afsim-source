@@ -1,0 +1,36 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Startup - 6th_geo_belt.txt - Coverage_Demo
+
+define_path_variable CASE 6th_geo_belt
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+file_path  .
+
+// Satellite platform and constellation definition
+include_once platforms/sat3.txt
+include_once scenarios/sat_con_geo_autogen.txt
+
+// Ground station platform definition
+include_once platforms/ground_station.txt
+
+// Ground Station Laydown
+include_once scenarios/ground_station.txt
+
+// Coverage and grid definition
+include_once coverage_grids/geo_belt_grid_coverage.txt
+
+// Utlity scripts
+include_once scripts/point_to_geo.txt
+
+// Sim start epoch and end time
+start_date jul 07 2020 
+start_time 00:00:00.00
+
+end_time 2 hrs

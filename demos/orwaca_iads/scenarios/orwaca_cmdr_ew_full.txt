@@ -1,0 +1,135 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#================================================================================
+# *** UNCLASSIFIED ***
+#================================================================================
+/*
+platform_type    stub_type       WSF_PLATFORM
+
+   comm sub_net RED_DATALINK
+      network_name <local:master>
+      internal_link data_mgr
+      internal_link task_mgr
+   end_comm
+
+   processor data_mgr IADS_CMDR_DATA_MGR
+   end_processor
+
+   processor task_mgr IADS_CMDR_TASK_MGR
+      operating_level ENGAGE 1
+   end_processor
+end_platform_type
+*/
+
+
+#================================================================================
+#	10 iads cmdr
+#================================================================================
+
+platform 10_iads_cmdr IADS_CMDR
+   side red
+   commander SELF
+   position 46:47:39.175n 122:16:08.684w altitude 10.00 ft agl
+   heading 300 deg
+end_platform
+
+platform 100_radar_company RADAR_COMPANY
+   side red
+   commander 10_iads_cmdr
+   position 47:09:07.42n 122:32:13.65w altitude 10.00 ft agl
+   heading 45 deg
+   icon comm_truck_icon
+end_platform
+
+platform uhf_ew_radar-1 UHF_EW_RADAR
+   side red
+   commander 100_radar_company
+   position 47:44:24.35n 123:46:31.09w  altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform
+
+platform s-band_ew_radar-1 S-BAND_EW_RADAR
+   side red
+   commander 100_radar_company
+   position 46:12:14.25n 121:29:47.45w altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform
+
+platform vhf_ew_radar-1 VHF_EW_RADAR
+   icon ew_radar_icon
+   side red
+   commander 100_radar_company
+   position 46:52:31.67n 121:54:08.82w altitude 10.00 ft agl
+   heading 270 deg
+end_platform
+
+platform 200_radar_company RADAR_COMPANY
+   side red
+   commander 10_iads_cmdr
+   position 43:51:11.69n 121:45:30.34w altitude 10 ft agl
+   heading 315 deg
+   icon comm_truck_icon
+end_platform
+
+platform uhf_ew_radar-2 UHF_EW_RADAR
+   side red
+   commander 200_radar_company
+   position 44:57:56.97n 123:43:09.93w altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform
+
+platform vhf_ew_radar-2 VHF_EW_RADAR
+   icon ew_radar_icon
+   side red
+   commander 200_radar_company
+   position 44:50:28.26n 119:00:00.79w  altitude 10.00 ft agl
+   heading 270 deg
+end_platform
+
+platform s-band_ew_radar-2 S-BAND_EW_RADAR
+   side red
+   commander 200_radar_company
+   position 42:55:57.01n 121:21:34.33w altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform
+
+platform 300_radar_company RADAR_COMPANY
+   side red
+   commander 10_iads_cmdr
+   position 38:12:36.11n 122:06:29.24w  altitude 10.00 ft agl
+   icon comm_truck_icon
+end_platform
+
+platform uhf_ew_radar-3 UHF_EW_RADAR
+   side red
+   commander 300_radar_company
+   position 40:07:18.82n 121:23:50.42w altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform
+
+platform vhf_ew_radar-3 VHF_EW_RADAR
+   icon ew_radar_icon
+   side red
+   commander 300_radar_company
+   position 36:34:38.59n 118:17:41.25w altitude 10.00 ft agl
+   heading 270 deg
+end_platform
+
+platform s-band_ew_radar-3 S-BAND_EW_RADAR
+   side red
+   commander 300_radar_company
+   position 34:52:24.09n 116:20:09.66w altitude 10.00 ft agl
+   icon ew_radar_icon
+   heading 270 deg
+end_platform

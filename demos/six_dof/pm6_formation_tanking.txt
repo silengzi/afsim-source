@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates various features of the formation capability
+# supported by the WSF_SIX_DOF_MOVER. This scenario involves one tanker and a
+# four-ship formation that takes on fuel before heading off toward their
+# mission. This scenario demonstrates the formation command system, the two
+# kinds of station keeping available, and the flexibility of the defined
+# formations.
+#
+# ******************************************************************************
+
+define_path_variable CASE pm_formation_tanking
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 34 min
+
+include_once platforms/fa-lgt.txt
+include_once platforms/c-hvy.txt
+
+include_once scripts/tanking_scripts.txt
+
+# The following platforms are the aircraft that will be taking on fuel
+
+platform_type FormationFlyer FA-LGT_PM6
+   update_interval 0.05 sec
+   side blue
+   icon f16
+   follow_vertical_track
+end_platform_type
+
+platform alpha FormationFlyer
+   route
+      position 0.000n 0.000w altitude 10000 ft speed 450.0 knots
+      position 0.010n 0.010w altitude 10000 ft speed 450.0 knots
+      position 0.020n 0.020w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform beta FormationFlyer
+   route
+      position 0.000n 1.000w altitude 10000 ft speed 450.0 knots
+      position 0.010n 1.000w altitude 10000 ft speed 450.0 knots
+      position 0.020n 1.000w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform gamma FormationFlyer
+   route
+      position 0.000n 0.500w altitude 10000 ft speed 450.0 knots
+      position 0.010n 0.490w altitude 10000 ft speed 450.0 knots
+      position 0.020n 0.480w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+platform delta FormationFlyer
+   route
+      position 0.000n 0.670w altitude 10000 ft speed 450.0 knots
+      position 0.000n 0.680w altitude 10000 ft speed 450.0 knots
+      position 0.000n 0.690w altitude 10000 ft speed 450.0 knots
+   end_route
+end_platform
+
+six_dof_formation yankee
+   lead six_dof_unit one
+      member_platform alpha
+   end_six_dof_unit
+
+   six_dof_unit two
+      member_platform beta
+      offset 30 m 135.0 deg -1.0 m welded_wing
+   end_six_dof_unit
+
+   six_dof_unit three
+      member_platform gamma
+      offset 30 m -135.0 deg -1.0 m welded_wing
+   end_six_dof_unit
+
+   six_dof_unit four
+      member_platform delta
+      offset 60 m -135.0 deg -2.0 m welded_wing
+   end_six_dof_unit
+end_six_dof_formation
+
+# This platform will be the tanker
+
+platform lambda C-HVY_PM6
+   icon kc46ext
+   side blue
+   
+   route
+      position 0.122n 0.750w altitude 10000 ft speed 450.0 knots
+      position 0.122n 0.740w altitude 10000 ft speed 450.0 knots
+      position 0.122n 0.730w altitude 10000 ft speed 450.0 knots
+   end_route
+
+   execute at_time 0.1 min absolute
+      // Set limits on this platform so it will take its turns nice
+      // and easy.
+      WsfSixDOF_Mover mov = (WsfSixDOF_Mover)PLATFORM.Mover();
+      mov.SetBankAngleMax(20.0);
+      mov.SetRollRateMax(1.0);
+
+      WsfSixDOF_Maneuver orbit = CreateOrbitManeuver();
+      mov.ExecuteManeuver(orbit);
+   end_execute
+end_platform
+
+# We create a formation of which lambda is the lead so that during
+# tanking, the yankee formation can form up with the tanker. During
+# tanking, the foxtrot formation will have more sub-formations.
+six_dof_formation foxtrot
+   lead six_dof_unit one
+      member_platform lambda
+   end_six_dof_unit
+end_six_dof_formation
+
+# Behavior
+
+execute at_time 60 s absolute
+   InitialYankeeRearrange();
+end_execute
+
+execute at_time 240 s absolute
+   YankeeTurnToIntercept();
+end_execute
+
+execute at_time 360 s absolute
+   YankeeAttachToFoxtrot();
+end_execute
+
+execute at_time 650 s absolute
+   ReparentAllSubsBeforeTanking();
+end_execute
+
+execute at_time 651 s absolute
+   RunTankingSchedule();
+end_execute
+
+execute at_time 1350 s absolute
+   ReparentAllSubsAfterTanking();
+end_execute
+
+execute at_time 1370 s absolute
+   SeparateFromTanker();
+end_execute
+
+execute at_time 1700 s absolute
+   FinalizeYankeeFormation();
+end_execute

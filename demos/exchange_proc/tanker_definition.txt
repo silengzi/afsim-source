@@ -1,0 +1,71 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform_type TANKER WSF_PLATFORM
+
+   fuel_mass         6000 kg
+   empty_mass       10000 kg
+   payload_mass      9000 kg  # Willing to give 5000, so 9 - 5 = 4000 kg at end, if successful.
+
+   processor exchange_proc WSF_EXCHANGE_PROCESSOR
+
+#      debug
+      update_interval 1 sec
+
+      commodity_and_capability_pairing JP8_FUEL SUPPLY_FUEL
+
+
+      container payload_and_supply_tank
+         commodity JP8_FUEL
+           maximum_mass_quantity 9000 kg
+           mass_rate         50 kg/sec
+         end_commodity
+         initial_mass_quantity 9000 kg
+      end_container
+
+      transactor fuel_provider
+
+         is_offeror
+         container_name payload_and_supply_tank
+
+         hook_to_fuel                  false  # This flag would be applicable to the _receiver's_ processor.
+         hook_to_payload                true  # As transactions are completed, the exchanged quantity
+                                              # is DECREMENTED from the payload attribute of the platform.
+         exclusive_hook_to_payload      true
+
+         proximity_limit                500 m # If the transacting platforms are more than this distance apart,
+                                              # the transaction will not be allowed to take place.
+      end_transactor
+
+   end_processor
+
+   mover WSF_AIR_MOVER
+   end_mover
+
+   execute at_time 60 sec relative
+      WsfExchangeProcessor exchProc = (WsfExchangeProcessor)PLATFORM.Processor("exchange_proc");
+      if (exchProc.IsValid())
+      {
+         Transactor exchProcTrans = exchProc.FindTransactor("fuel_provider");
+         bool ok = exchProcTrans.ReserveAll();
+         if (ok)
+         {
+            writeln("At t=", TIME_NOW, ", TANKER RESERVING ENOUGH FUEL.");
+         }
+         else
+         {
+            writeln("-FAIL-5");
+         }
+      }
+      else
+      {
+         writeln("-FAIL-6");
+      }
+   end_execute
+
+end_platform_type

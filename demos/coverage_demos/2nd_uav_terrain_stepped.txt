@@ -1,0 +1,31 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Startup - 2nd_uav_terrain_stepped.txt - Coverage_Demo
+
+define_path_variable CASE 2nd_uav_terrain_stepped
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+file_path  .
+
+
+// UAV platform and scenario laydown
+include_once platforms/uav.txt
+include scenarios/uav.txt
+
+// Coverage and grid definition
+include_once coverage_grids/uav_stepped_grid_coverage.txt
+
+// Load terrain data and a script to visualize the terrain
+include_once terrain/uav_coverage_terrain.txt
+
+// Sim start epoch and end time
+start_date jul 07 2020 
+start_time 00:00:00.00
+
+end_time 4 hrs

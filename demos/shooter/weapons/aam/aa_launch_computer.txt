@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch/engagement computer
+# If other aa missile types are on the platform, they
+# would be added here also
+include_once weapons/aam/aa_mrm_launch_computer.txt
+
+script bool AA_LaunchComputer(WsfTrack aTrack, WsfPlatform aAssignee, double aLaunchDelay)
+   extern bool AA_MRM_LaunchComputer(WsfTrack, WsfPlatform, double);
+
+   bool canIntercept = false;
+   string subType = aAssignee.Type();
+   if (subType == "JET_AIRCRAFT") # PUT THE CARRYING AIRCRFT TYPE HERE
+   {
+      canIntercept = AA_MRM_LaunchComputer(aTrack, aAssignee, aLaunchDelay);
+   }
+
+   return canIntercept;
+end_script
+
+
+# -----------------------------------------------------------------------------
+
+script bool Local_AA_LaunchComputer(WsfTrack aTrack, WsfWeapon aWeapon, double aLaunchDelay)
+   extern bool AA_MRM_LaunchComputer(WsfTrack, WsfPlatform, double);
+
+   bool canIntercept = false;
+   string weaponType = aWeapon.Type();
+   WsfPlatform platform = aWeapon.Platform();
+   if (weaponType == "AA_MRM")
+   {
+      canIntercept = AA_MRM_LaunchComputer(aTrack, platform, aLaunchDelay);
+   }
+
+   return canIntercept;
+end_script

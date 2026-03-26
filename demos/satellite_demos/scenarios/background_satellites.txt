@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Uncomment the platform categories of interest
+
+#include_once amateur_platforms.txt
+include_once argos_platforms.txt
+include_once beidou_platforms.txt
+#include_once cubesat_platforms.txt
+#include_once education_platforms.txt
+#include_once engineering_platforms.txt
+include_once galileo_platforms.txt
+include_once geo_platforms.txt
+include_once glo-ops_platforms.txt
+include_once globalstar_platforms.txt
+include_once goes_platforms.txt
+include_once gps-ops_platforms.txt
+include_once intelsat_platforms.txt
+include_once iridium_platforms.txt
+#include_once molniya_platforms.txt
+include_once nnss_platforms.txt
+include_once orbcomm_platforms.txt
+#include_once resource_platforms.txt
+#include_once sarsat_platforms.txt
+#include_once weather_platforms.txt
+include_once x-comm_platforms.txt
+include_once stations_platforms.txt
+include_once tdrss_platforms.txt

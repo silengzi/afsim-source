@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: scenarios/uav.txt
+
+platform uav UAV
+  # Initial conditions of the UAV
+   route
+      position 38:45:00.000n 106:35:00.000w altitude 45931.76 ft msl
+      speed 120 nm/h
+      radial_acceleration 0.22 m/s2      
+   end_route
+   
+  # Creating the orbit route
+   script WsfRoute MakeOrbit(WsfPlatform plat, WsfGeoPoint center, double r)
+      WsfRoute orbit = WsfRoute();
+      WsfWaypoint startPoint;
+      
+      int points_in_orbit = 8;
+      
+      double bearing_to_start = center.TrueBearingTo(plat.Location()) + 90;
+      
+      for (int i = 0; i < points_in_orbit; i = i + 1)
+      {         
+         WsfGeoPoint offsetPos = WsfGeoPoint.Construct(center.Latitude(), center.Longitude(), plat.Altitude());
+         offsetPos.Extrapolate(bearing_to_start + (i * (360 / points_in_orbit)), r);
+         WsfWaypoint point = WsfWaypoint.Create(offsetPos, plat.Speed());
+         orbit.Append(point);
+         
+         if (i == 0)
+         {
+            startPoint = point;
+         }
+      }
+      orbit.Append(startPoint);    
+      return orbit;
+   end_script
+   
+  # Inserting orbit conditions
+   execute at_time 1 s absolute 
+      WsfGeoPoint centerpt = WsfGeoPoint.Construct(39.40, -106.50, 0);
+      double radius = 5200;
+      WsfRoute orbit = MakeOrbit(PLATFORM, centerpt, radius);
+      PLATFORM.FollowRoute(orbit);
+   end_execute
+end_platform
+ 

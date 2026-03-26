@@ -1,0 +1,31 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform GOES_3_[P](10953) GOES
+   orbit
+1 10953U 78062A   14243.37589083 -.00000112  00000-0  00000+0 0  7530
+2 10953  14.3386 342.2683 0006643 146.8330 240.5258  1.00265412 85737
+   end_orbit
+end_platform
+
+platform GOES_13_(29155) GOES
+   orbit
+1 29155U 06018A   14243.43907666 -.00000259  00000-0  00000+0 0  2889
+2 29155   0.0364 240.0081 0003735 237.0202 305.2464  1.00282602 30329
+   end_orbit
+end_platform
+
+platform GOES_15_(36411) GOES
+   orbit
+1 36411U 10008A   14243.45823194  .00000075  00000-0  00000+0 0  2527
+2 36411   0.4080 264.9881 0003086 309.3277 155.3933  1.00288704 16494
+   end_orbit
+end_platform
+

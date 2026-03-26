@@ -1,0 +1,114 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+script_variables
+
+   bool gDebugAll   = true;  # Enable to turn all debugging ON.
+   bool gDebugNone  = false;  # Enable to turn all debugging OFF.
+                              # (If both are false, then use individual setting.)
+   bool gRunSilent  = true;
+
+   int  gSortiesCompleteCount = 0;
+   int  gSortiesRequired      = 30;
+
+   Array<WsfPlatform> gPlatformsNeedingRepair = Array<WsfPlatform>();
+   Array<WsfPlatform> gPlatformsNeedingFuel   = Array<WsfPlatform>();
+   Array<string>      gMissionRouteNames      = Array<string>();
+   int                gNextMissionRouteIndex;
+
+end_script_variables
+
+script void gSay(string aMsg)
+   if ((gRunSilent || gDebugNone) && (! gDebugAll)) return;
+   writeln("GLOBAL_SCRIPTS - ", aMsg);
+end_script
+
+script void gInitialize()
+   gSay("*** Is now Initializing Global Route Names List ***");
+   gMissionRouteNames.Clear();
+   gMissionRouteNames.PushBack("NorthLeafletBombRoute");
+   gMissionRouteNames.PushBack("CentralLeafletBombRoute");
+   gMissionRouteNames.PushBack("SouthLeafletBombRoute");
+   gPlatformsNeedingRepair.Clear();
+   gPlatformsNeedingFuel.Clear();
+   gNextMissionRouteIndex = 0;
+end_script
+
+script bool gIncrementSortieCount()
+   bool isDone = false;
+   gSortiesCompleteCount = gSortiesCompleteCount + 1;
+   string msg = "Sortie Count is now " + (string)gSortiesCompleteCount;
+   gSay(msg);
+   if (gSortiesCompleteCount >= gSortiesRequired)
+   {
+      isDone = true;
+      gSay("All sorties completed.  Terminating simulation.");
+      WsfSimulation.Terminate();
+   }
+   return isDone;
+end_script
+
+script void gRequestRepair(WsfPlatform aPlatform)
+   # Assure this is not a duplicate:
+   gPlatformsNeedingRepair.Erase(aPlatform);
+   gPlatformsNeedingRepair.PushBack(aPlatform);
+   string msg = "Platform " + aPlatform.Name() + " is added to to-repair list (" +
+             (string)gPlatformsNeedingRepair.Size() + ").";
+   gSay(msg);
+end_script
+
+script void gRequestFuel(WsfPlatform aPlatform)
+   # Assure this is not a duplicate:
+   gPlatformsNeedingFuel.Erase(aPlatform);
+   gPlatformsNeedingFuel.PushBack(aPlatform);
+   string msg = "Platform " + aPlatform.Name() + " is added to the to-fuel list (" +
+             (string)gPlatformsNeedingFuel.Size() + ").";
+   gSay(msg);
+end_script
+
+script WsfPlatform gGetFuelingAssignment(WsfPlatform aPlatform)
+   WsfPlatform platformToFuel;
+   if (! gPlatformsNeedingFuel.Empty())
+   {
+      string msg1 = "There are " + (string)gPlatformsNeedingFuel.Size() + " platforms needing fuel.";
+      gSay(msg1);
+      platformToFuel = gPlatformsNeedingFuel[0];
+      string msg2 = "Thirsty platform " + platformToFuel.Name() + " will be given " + aPlatform.Name() + " as a fueler.";
+      gSay(msg2);
+      gPlatformsNeedingFuel.Erase(platformToFuel);
+      string msg3 = "Now there are " + (string)gPlatformsNeedingFuel.Size() + " platforms needing fuel.";
+      gSay(msg3);
+   }
+   return platformToFuel;
+end_script
+
+script WsfPlatform gGetRepairAssignment(WsfPlatform aPlatform)
+   WsfPlatform platformToRepair;
+   if (! gPlatformsNeedingRepair.Empty())
+   {
+      string msg1 = "There are " + (string)gPlatformsNeedingRepair.Size() + " platforms needing repair.";
+      gSay(msg1);
+      platformToRepair = gPlatformsNeedingRepair[0];
+      string msg2 = "Broken platform " + platformToRepair.Name() + " will be given " + aPlatform.Name() + " as a mechanic.";
+      gSay(msg2);
+      gPlatformsNeedingRepair.Erase(platformToRepair);
+      string msg3 = "Now there are " + (string)gPlatformsNeedingRepair.Size() + " platforms needing repair.";
+      gSay(msg3);
+   }
+   return platformToRepair;
+end_script
+
+script WsfRoute gNextMissionRouteToFly()
+   WsfRoute theRoute = WsfRoute.CopyGlobal(gMissionRouteNames[gNextMissionRouteIndex]);
+   string msg = "Providing route number " + (string)gNextMissionRouteIndex +
+        " to fly, named " + gMissionRouteNames[gNextMissionRouteIndex] + ".";
+   gSay(msg);
+   gNextMissionRouteIndex = gNextMissionRouteIndex + 1;
+   if (gNextMissionRouteIndex == gMissionRouteNames.Size()) gNextMissionRouteIndex = 0;
+   return theRoute;
+end_script

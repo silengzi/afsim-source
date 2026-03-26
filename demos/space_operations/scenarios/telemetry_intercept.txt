@@ -1,0 +1,50 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Sets up interceptor ship and radars to send intercepted telemetry sent back to launch
+# facility and establish a track of the launch vehicle
+
+# Create group to be forwarded intercepted telemetry (radars for tracking)
+group blueTrack WSF_GROUP
+end_group
+
+# Ship that intercepts telemetry
+platform interceptor_ship INTERCEPTOR
+   commander SELF
+   icon Ship
+   side blue
+   position 29:09:46.90n 75w
+end_platform
+
+############ Radars part of Space Surveillance Network (SSN) #############################
+
+platform intercept_radar_1 INTERCEPT_RADAR #millstone
+  commander interceptor_ship
+  side blue
+  position 42.61950n 71.49173w altitude 480 ft
+#  position 35:12:48.42n 78:06:18.11w
+  icon ew_radar_icon
+  heading 90 deg
+end_platform
+
+platform intercept_radar_2 INTERCEPT_RADAR #fps85
+  commander interceptor_ship
+  side blue
+  position 30:34:24n 86:12:54w altitude 100 ft
+#  position 21:48:26.60n 15:03:03.48w
+  icon ew_radar_icon
+  heading 90 deg
+end_platform
+
+#########################################################################################
+
+platform intercept_radar_ship_1 INTERCEPT_RADAR
+  side blue
+  position 25n 44w
+  icon Ship
+end_platform

@@ -1,0 +1,228 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+##############################################################################
+#                    Suppressor Bomb Demo Laydown
+##############################################################################
+
+###################
+#
+#  Red targets
+#
+###################
+
+
+platform 203_target TARGET
+  side red
+  position 33:35:06.8n  36:13:55.5e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+platform 201_target TARGET
+  side red
+  position 33:35:06.8n  36:12:37.8e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+platform 202_target TARGET
+  side red
+  position 33:35:06.8n  36:13:16.6e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+platform 103_target TARGET
+  side red
+  position 33:35:39.3n  36:13:36.1e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+platform 102_target TARGET
+  side red
+  position 33:35:39.3n  36:12:57.3e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+platform 101_target TARGET
+  side red
+  position 33:35:39.3n  36:12:18.4e altitude 0 ft agl
+  heading 90 deg
+end_platform
+
+
+###################
+#
+#  Red defenders
+#
+###################
+
+
+zone 100_sam_zone
+  minimum_altitude 0 m
+  maximum_altitude 30 km
+  maximum_radius 45 km
+end_zone
+
+platform 100_sam_regiment sam_regiment
+  side red
+  position 33:30:00.0n  36:00:00.0e altitude 1 m agl
+  heading 90 deg
+  command_chain red-net SELF
+  comm red-net
+    network_name red-net
+  end_comm
+end_platform
+
+platform 110_sam_battery sam_battery
+  side red
+  position 33:32:09.5n  35:57:24.8e altitude 1 m agl
+  heading 90 deg
+  command_chain red-net 100_sam_regiment
+  comm red-net
+    network_name red-net
+  end_comm
+  use_zone 100_sam_zone as sam_zone
+end_platform
+
+platform 120_sam_battery sam_battery
+  side red
+  position 33:32:09.5n  36:01:17.7e altitude 1 m agl
+  heading 90 deg
+  command_chain red-net 100_sam_regiment
+  comm red-net
+    network_name red-net
+  end_comm
+  use_zone 100_sam_zone as sam_zone
+end_platform
+
+platform 130_sam_battery sam_battery
+  side red
+  position 33:26:45.8n  36:01:17.6e altitude 1 m agl
+  heading 90 deg
+  command_chain red-net 100_sam_regiment
+  comm red-net
+    network_name red-net
+  end_comm
+  use_zone 100_sam_zone as sam_zone
+end_platform
+
+platform 140_sam_battery sam_battery
+  side red
+  position 33:27:50.4n  35:56:07.2e altitude 1 m agl
+  heading 90 deg
+  command_chain red-net 100_sam_regiment
+  comm red-net
+    network_name red-net
+  end_comm
+  use_zone 100_sam_zone as sam_zone
+end_platform
+
+
+###################
+#
+#  Blue bombers
+#
+###################
+
+
+platform 10_bomber BOMBER
+  side blue
+  route
+    position 33:35:06.9n  34:55:14.1e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:19.5n  35:27:37.0e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:38:05.4n  35:53:31.2e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:23.7n  36:00:00.0e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:39.5n  36:09:43.0e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:39.2n  36:12:57.3e  altitude 2200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:38:05.4n  35:53:31.2e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:06.9n  34:55:14.1e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+      stop
+  end_route
+
+  sensor bomber_radar
+    on
+  end_sensor
+
+  zone target_area
+    minimum_altitude    -5 m
+    maximum_altitude     5 m
+
+    polygonal
+      lat_lon
+      point  33:36:27.9n  36:11:39.4e
+      point  33:35:23.2n  36:11:39.4e
+      point  33:35:23.2n  36:14:14.9e
+      point  33:36:27.9n  36:14:14.9e
+  end_zone
+
+end_platform
+
+platform 11_bomber BOMBER
+  side blue
+  creation_time 0.5 sec
+  route
+    position 33:35:03.6n  34:55:14.2e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:16.3n  35:27:37.0e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:38:02.2n  35:53:31.2e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:20.5n  36:00:00.0e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:07.2n  36:09:42.9e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:06.9n  36:12:57.2e  altitude 2200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:38:08.7n  35:53:31.2e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+    position 33:35:10.1n  34:55:14.1e  altitude 1200 m agl
+      speed 235 m/s
+      radial_acceleration 1.13 g
+      stop
+  end_route
+
+  sensor bomber_radar
+    on
+  end_sensor
+
+  zone target_area
+    minimum_altitude    -5 m
+    maximum_altitude     5 m
+
+    polygonal
+      lat_lon
+      point  33:35:23.2n  36:11:39.4e
+      point  33:34:18.4n  36:11:39.4e
+      point  33:34:18.4n  36:14:14.9e
+      point  33:35:23.2n  36:14:14.9e
+  end_zone
+
+end_platform

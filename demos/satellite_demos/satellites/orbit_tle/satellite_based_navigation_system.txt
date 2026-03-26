@@ -1,0 +1,184 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/satellite_based_navigation_system.txt
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+# Wide Area Augmentation System (WAAS) Services the United States
+
+platform CRE WAAS  # USA-248, IIF
+edit mover
+orbit
+1 28868U 05036A   17205.93726559 -.00000099  00000-0  00000-0 0  9996
+2 28868   0.0372 300.2585 0001993 144.8448  87.8188  1.00271422 43572
+end_orbit
+end_mover
+end_platform
+
+platform CRW WAAS  # USA-201, IIRM
+edit mover
+orbit
+1 28884U 05041A   17206.00948727  .00000054  00000-0  00000-0 0  9992
+2 28884   0.0112  46.0830 0001157  75.8992  51.3342  1.00272654 43047
+end_orbit
+end_mover
+end_platform
+
+platform AMR WAAS  # USA-151, IIR
+edit mover
+orbit
+1 33278U 08039A   17206.28329855 -.00000163  00000-0  00000-0 0  9992
+2 33278   3.0226   1.8237 0002839 128.4186 176.9354  1.00271625 14005
+end_orbit
+end_mover
+end_platform
+
+# European Geostationary Navigation Overlay Service (EGNOS) services Europe
+
+platform AOR_E EGNOS  # USA-239, IIF
+edit mover
+orbit
+1 24307U 96053A   17206.10532135 -.00000150  00000-0  00000-0 0  9992
+2 24307   2.7018  77.5594 0004482  28.4722 219.3900  1.00271793 76418
+end_orbit
+end_mover
+end_platform
+
+platform ARTEMIS EGNOS  # USA-190, IIRM
+side ESA
+edit mover
+orbit
+1 26863U 01029A   17204.88129355 -.00000393  00000-0  00000-0 0  9998
+2 26863  12.7677  32.6874 0001263 137.0042 212.4112  1.00272580 11556
+end_orbit
+end_mover
+end_platform
+
+platform IOR_W EGNOS  # USA-166, IIR
+edit mover
+orbit
+1 28899U 05044A   17206.01672407 -.00000014  00000-0  00000-0 0  9998
+2 28899   2.5785  12.4261 0002363 118.0844 242.3061  1.00272488 42940
+end_orbit
+end_mover
+end_platform
+
+platform SES_5 EGNOS  # USA-199, IIRM
+edit mover
+orbit
+1 38652U 12036A   17206.09563133  .00000008  00000-0  00000-0 0  9990
+2 38652   0.0095 287.0055 0001843 192.5345 222.8605  1.00270461 11921
+end_orbit
+end_mover
+end_platform
+
+platform ASTRA_5B EGNOS  # USA-183, IIRM
+side SES
+edit mover
+orbit
+1 39617U 14011B   17205.85323865  .00000130  00000-0  00000-0 0  9992
+2 39617   0.0414 331.5392 0003568 152.8913 156.9499  1.00272335 12092
+end_orbit
+end_mover
+end_platform
+
+# Multi-funcitonal Satellite Augmentation System (MSAS) and Quasi-Zenith Satellite System (QZSS) services Japan
+
+platform MTSAT_2 MSAS  # USA-213, IIF
+edit mover
+orbit
+1 28937U 06004A   17206.23932172 -.00000268  00000-0  00000-0 0  9991
+2 28937   0.0379 224.7227 0004030 262.7523  46.8204  1.00272560 41776
+end_orbit
+end_mover
+end_platform
+
+platform QZS_1 QZSS  # USA-192, IIRM
+edit mover
+orbit
+1 37158U 10045A   17203.20462692 -.00000181  00000-0  00000-0 0  9999
+2 37158  40.8652 158.8193 0753969 270.4550  82.0847  1.00268617 25106
+end_orbit
+end_mover
+end_platform
+
+platform QZS_2 QZSS  # USA-232, IIF
+edit mover
+orbit
+1 42738U 17028A   17200.79473325 -.00000218  00000-0  00000-0 0  9994
+2 42738  44.7358 289.1477 0747081 270.4920 161.8544  1.00271303   529
+end_orbit
+end_mover
+end_platform
+
+# GPS Aided Geo Augmented Navigation (GAGAN) services India
+
+platform GSAT_8 GAGAN  # USA-260, IIF
+edit mover
+orbit
+1 37605U 11022A   17206.11229851  .00000060  00000-0  00000-0 0  9998
+2 37605   0.0741 269.5628 0002858  18.2920 110.5997  1.00271017 20630
+end_orbit
+end_mover
+end_platform
+
+platform GSAT_10 GAGAN  # USA-242, IIF
+edit mover
+orbit
+1 38779U 12051B   17205.92832528 -.00000190  00000-0  00000-0 0  9998
+2 38779   0.0951 269.5779 0002044 162.5547 287.8690  1.00272441 17713
+end_orbit
+end_mover
+end_platform
+
+platform GSAT_15 GAGAN  # USA-180, IIR
+edit mover
+orbit
+1 41028U 15065A   17205.89916350 -.00000283  00000-0  00000-0 0  9992
+2 41028   0.1268 268.4823 0001696 144.7124 306.8001  1.00273185  6261
+end_orbit
+end_mover
+end_platform
+
+# GLONASS System for Differential Correction and Monitoring (SDCM) services Russia
+
+platform LUCH_5A SDCM  # USA-150, IIF
+side CIS
+edit mover
+orbit
+1 37951U 11074B   17206.31131597 -.00000069  00000-0  00000-0 0  9990
+2 37951   1.5734 177.1250 0002268 297.7232 107.4983  1.00274244 20615
+end_orbit
+end_mover
+end_platform
+
+platform LUCH_5B SDCM  # USA-262, IIF
+side CIS
+edit mover
+orbit
+1 38977U 12061A   17205.18863990 -.00000156  00000-0  00000-0 0  9996
+2 38977   3.6157  74.3046 0002735   4.2300 275.2539  1.00272547 17580
+end_orbit
+end_mover
+end_platform
+
+platform LUCH_5V SDCM  # USA-177, IIRM
+side CIS
+edit mover
+orbit
+1 39727U 14023A   17205.98938189 -.00000291  00000-0  00000-0 0  9991
+2 39727   2.6350 298.9871 0001739 215.3071 239.4144  1.00273810529947
+end_orbit
+end_mover
+end_platform
+
+
+

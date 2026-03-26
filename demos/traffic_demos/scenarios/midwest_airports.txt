@@ -1,0 +1,37 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform ORD-Chicago AIRPORT
+  side red
+  route
+    position 41:58:45.993n 87:54:15.991w heading 90 deg
+  end_route
+end_platform
+
+platform STL-Lambert AIRPORT
+  side blue
+  route
+    position 38:44:51.994n 90:21:36.002w heading 300 deg
+  end_route
+end_platform
+
+platform SPI-Springfield AIRPORT
+  side green
+  route
+    position 39:50:38.214n 89:40:39.432w heading 42 deg
+  end_route
+end_platform
+
+platform UIN-Quincy AIRPORT
+  side green
+  route
+    position 39:56:39.005n 91:11:49.991w heading 45 deg
+  end_route
+end_platform
+
+

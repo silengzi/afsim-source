@@ -1,0 +1,74 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+attenuation laser_link_attenuation WSF_OPTICAL_ATTENUATION
+   internal_table mono_1550nm_a2_h1
+end_attenuation
+
+
+## for AFSIM 2.2.3 or custom build with laser transceiver model
+comm LASERCOMM_LINK WSF_LASER_TRANSCEIVER  
+   on
+   
+   category linkable
+   
+   slew_mode azimuth_and_elevation   
+   azimuth_slew_rate 30 deg/s
+   elevation_slew_rate 30 deg/s  
+   azimuth_slew_limits -80 deg 80 deg
+   elevation_slew_limits -80 deg 80 deg
+
+   azimuth_slew_limits -80 deg 80 deg
+   elevation_slew_limits -80 deg 80 deg
+   slew_mode azimuth_and_elevation   
+   azimuth_slew_rate 30 deg/s
+   elevation_slew_rate 30 deg/s
+   
+   transmitter
+      wavelength                       1550 nanometers
+      power                            100 watts   // 1.56 W average power * 64 PPM order
+
+      modulation_type ppm
+      ppm_order                        64 // overrides transfer_rate input
+      pulse_width                      10  nanoseconds
+      aperture_diameter                2.5 cm
+      beamwidth                        0.120 deg
+      optics_transmission_factor       0.7
+      
+      attenuation laser_link_attenuation 
+      
+   end_transmitter
+      
+   receiver
+   
+      aperture_diameter                2.5 cm
+      optics_transmission_factor       0.7
+      quantum_efficiency               0.3
+      detector_gain                    1.0
+
+      # Parameters for computing instantaneous field-of-view (IFOV)
+      focal_length                     0.1 m // used to calculate fov of sensor for background noise.
+      detector_size                    0.0001 m
+      
+      # Parameters for computing thermal noise
+      circuit_temperature              300 K
+      circuit_capacitance              1.0E-12 farads
+      
+      # Parameters for computing background noise
+      dark_current                     1 nanoamp
+      dark_count_rate                  6231.51 mHz        # Preferred alternative: produces 1 nanoamp
+      
+   end_receiver
+   
+end_comm
+
+script WsfVisualPart Comm_Orientation(WsfComm aComm)
+   return aComm.Platform().VisualPart(aComm.Name());
+end_script
+

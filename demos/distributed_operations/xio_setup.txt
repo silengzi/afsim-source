@@ -1,0 +1,79 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+xio_interface
+   # broadcast 10.9.16.255
+   broadcast 192.168.2.255
+   port 39583
+   debug yes
+   connect_to_simulations
+   auto_dis_mapping yes
+end_xio_interface
+
+platform_type my_type WSF_PLATFORM
+   side red
+   icon f-18
+   mover WSF_AIR_MOVER
+   end_mover
+   comm com1 WSF_COMM_TRANSCEIVER
+      on
+      processor dumper
+      processor link-proc
+   end_comm
+   sensor sensor-1 WSF_GEOMETRIC_SENSOR
+      off
+      maximum_range 100 nm
+      frame_time 2.0 s
+      reports_location
+      processor link-proc
+   end_sensor
+   processor link-proc WSF_LINKED_PROCESSOR
+      on
+      external_link commander via com1
+   end_processor
+   processor dumper WSF_SCRIPT_PROCESSOR
+      off
+      on_message
+        default
+           script  # Writes all received message to output
+              writeln("T=", TIME_NOW, " ", PLATFORM.Name(),
+                      " Received ", MESSAGE.Type(), " from ",
+                      MESSAGE.Originator());
+           end_script
+      end_on_message
+   end_processor
+end_platform_type
+
+platform air-1 my_type
+   route
+      position 0.0n 0.0e altitude 20000 ft heading 90 deg extrapolate
+   end_route
+   edit processor dumper
+      on
+   end_processor
+end_platform
+
+platform air-2 my_type
+   route
+      position 0.001n 0.0e altitude 20000 ft heading 90 deg extrapolate
+   end_route
+   commander air-1
+end_platform
+
+platform air-3 my_type
+   route
+      position 0.001s 0.0e altitude 20000 ft heading 90 deg extrapolate
+   end_route
+   edit sensor sensor-1
+      on
+   end_sensor
+   commander air-2
+end_platform
+
+ realtime
+ end_time 10 min

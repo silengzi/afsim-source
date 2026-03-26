@@ -1,0 +1,242 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+// functions to fly in formation
+
+script_variables
+   // the proximity in which I think I've achieved the waypoint (nm)
+   double cWAYPOINT_PROXIMITY = 0.2 * MATH.M_PER_NM();
+   // the range that I think I'm far from my waypoint and need to fly a "max" speed to catch up
+   double cFAR_FROM_WAYPOINT  = 5.0 * MATH.M_PER_NM();
+   // the slowest I will fly to get back into formation
+   double cMIN_MACH           = 0.6;
+   // the fastest I will fly to get back into formation
+   double cMAX_MACH           = 1.5;
+   // once I'm in formation, the range that I think I'm out again
+   double cOUT_OF_FORMATION   = 2.0 * MATH.M_PER_NM();
+
+   bool mInFormation = false;
+end_script_variables
+
+script void formation_initialize(double aWaypointProximity,
+                                 double aFarFromWaypoint,
+                                 double aMinMach,
+                                 double aMaxMach,
+                                 double aOutOfFormation)
+   // set the constants base on the inputs
+   // allows users to parameterize their own formation
+   cWAYPOINT_PROXIMITY = aWaypointProximity;
+   cFAR_FROM_WAYPOINT = aFarFromWaypoint;
+   cMIN_MACH = aMinMach;
+   cMAX_MACH = aMaxMach;
+   cOUT_OF_FORMATION = aOutOfFormation;
+end_script
+
+script void waypoint_behind_logic(WsfWaypoint aWaypoint, 
+                                  WsfPlatform aLeadPlatform,
+                                  WsfPlatform aExternalPlatform)
+   // what's the minimum I want to fly to let the waypoint "catch up"?
+   // a fraction of my lead's mach
+   double machToFly = aExternalPlatform.MachNumber();
+   double rangeToWaypoint = PLATFORM.SlantRangeTo(aWaypoint);
+   double relBearing = PLATFORM.RelativeBearingTo(aWaypoint.Latitude(), aWaypoint.Longitude(), aWaypoint.Altitude());
+   double absBearing = PLATFORM.TrueBearingTo(aWaypoint.Latitude(), aWaypoint.Longitude(), aWaypoint.Altitude());
+
+writeln_d("    wbl, mach: ", machToFly, ", range: ", rangeToWaypoint, ", relBearing: ", relBearing);
+
+   // if I've reached my waypoint, just fly my lead's heading
+   if (rangeToWaypoint <= cWAYPOINT_PROXIMITY)
+   {
+writeln_d("    in formation!");
+      mInFormation = true;
+   }
+   // if I'm far from my waypoint, fly a scale of my lead's speed
+   else if (rangeToWaypoint > cFAR_FROM_WAYPOINT)
+   {
+writeln_d("    far from formation!");
+      // fly a fraction of my lead's speed and let the waypoint catch up
+//      machToFly = cMIN_MACH;
+
+      machToFly = cMAX_MACH;
+      PLATFORM.GoToMachNumber(machToFly);
+//      PLATFORM.GoToLocation(aWaypoint);
+      PLATFORM.TurnToHeading(absBearing);
+      PLATFORM.GoToAltitude(aExternalPlatform.Altitude());
+   }
+   // if I haven't reached my waypoint yet
+   else if (rangeToWaypoint > cWAYPOINT_PROXIMITY)
+   {
+writeln_d("    close, but not in formation!");
+      // some speed in the middle representative of the range
+      // "slow down as the waypoint approaches me"
+      double multiplier = MATH.Sqrt(
+                         (rangeToWaypoint - cWAYPOINT_PROXIMITY) / 
+                         (cFAR_FROM_WAYPOINT - cWAYPOINT_PROXIMITY));
+      multiplier = MATH.Sqrt(multiplier);
+      machToFly = machToFly - ((machToFly - cMIN_MACH) * multiplier);
+
+      // fly in front of the waypoint so when it reaches me, i'm flying on the same line with it
+      double angle = 0.0;
+      if (relBearing <= 0.0)
+      {
+         angle = 90.0;
+      }
+      else
+      {
+         angle = -90.0;
+      }
+writeln_d("   angle == ", angle);  
+      double newAngle = angle * (relBearing + 180.0) / 360.0;
+writeln_d("   newAngle == ", newAngle);  
+      if (newAngle > 45.0)
+      {
+         newAngle = 45.0;
+      }
+
+      if (newAngle < -45.0)
+      {
+         newAngle = -45.0;
+      }
+writeln_d("   newAngle == ", newAngle);  
+
+      double heading = aExternalPlatform.Heading() + newAngle;
+writeln_d("   new heading == ", heading);  
+      PLATFORM.TurnToHeading(heading);
+      PLATFORM.GoToMachNumber(machToFly);
+      PLATFORM.GoToAltitude(aExternalPlatform.Altitude());
+   }
+end_script
+
+script void waypoint_in_front_logic(WsfWaypoint aWaypoint, 
+                                    WsfPlatform aLeadPlatform,
+                                    WsfPlatform aExternalPlatform)
+   // what's the maximum I want to fly to catch up to the waypont?
+   // a scale of my lead's mach
+   double machToFly = aExternalPlatform.MachNumber();
+   double rangeToWaypoint = PLATFORM.SlantRangeTo(aWaypoint);
+   double absBearing = PLATFORM.TrueBearingTo(aWaypoint.Latitude(), aWaypoint.Longitude(), aWaypoint.Altitude());
+
+writeln_d("    wifl, mach: ", machToFly, ", range: ", rangeToWaypoint);
+
+   // if I've reached my waypoint, just fly my lead's heading
+   if (rangeToWaypoint <= cWAYPOINT_PROXIMITY)
+   {
+writeln_d("    in formation!");
+      mInFormation = true;
+      PLATFORM.TurnToHeading(aExternalPlatform.Heading());
+      PLATFORM.GoToMachNumber(machToFly);
+      PLATFORM.GoToAltitude(aExternalPlatform.Altitude());
+   }
+   // if I'm really far from my waypoint, fly a scale of my lead's speed
+   else if (rangeToWaypoint > cFAR_FROM_WAYPOINT)
+   {
+writeln_d("    far from formation!");
+      // fly a multiple of my lead's speed and catch up to the waypoint 
+      // using lead pursuit
+      machToFly = cMAX_MACH;
+      PLATFORM.GoToMachNumber(machToFly);
+
+//    double lat = aWaypoint.Latitude();
+//    double lon = aWaypoint.Longitude();
+// XXX ????      mSoarAirAgent.PushWaypointToLead(aWaypoint, aExternalPlatform.TruthId());
+
+//      PLATFORM.GoToLocation(aWaypoint);
+      PLATFORM.TurnToHeading(absBearing);
+      PLATFORM.GoToAltitude(aExternalPlatform.Altitude());
+   }
+   // if i haven't reached my waypoint yet
+   else if (rangeToWaypoint > cWAYPOINT_PROXIMITY)
+   {
+writeln_d("    close but not in formation!");
+      // some speed in the middle representative of the range
+      // "slow down as I approach the waypoint"
+      double multiplier = MATH.Sqrt(
+                         (rangeToWaypoint - (cWAYPOINT_PROXIMITY)) /
+                         (cFAR_FROM_WAYPOINT - (cWAYPOINT_PROXIMITY)));
+      multiplier = MATH.Sqrt(multiplier);
+      machToFly = machToFly + ((cMAX_MACH - machToFly) * multiplier);
+
+      PLATFORM.GoToMachNumber(machToFly);
+
+//    double lat = aWaypoint.Latitude();
+//    double lon = aWaypoint.Longitude();
+// XXX ????      mSoarAirAgent.PushWaypointToLead(aWaypoint, aExternalPlatform.TruthId());
+
+      PLATFORM.TurnToHeading(absBearing);
+//      PLATFORM.GoToLocation(aWaypoint);
+   }
+end_script
+
+script void formation_logic(WsfWaypoint aWaypoint, 
+                            WsfPlatform aLeadPlatform,
+                            WsfPlatform aExternalPlatform,
+                            bool aTightFormation)
+   // is waypoint behind or in front of me?
+   double relBearing = PLATFORM.RelativeBearingTo(aWaypoint.Latitude(), aWaypoint.Longitude(), aWaypoint.Altitude());
+   double waypointRange = PLATFORM.SlantRangeTo(aWaypoint);
+
+writeln_d("    relBearing: ", relBearing, ", waypointRange: ", waypointRange);
+   // if waypoint is behind me and I'm somewhat close to it, just let it catch up to me
+   if (MATH.Fabs(relBearing) > 90 && waypointRange < 20.0 * MATH.M_PER_NM())
+   {
+writeln_d("    waypoint behind, relBearing:", relBearing);
+      waypoint_behind_logic(aWaypoint, aLeadPlatform, aExternalPlatform);
+   }
+   else  // waypoint is in front of me
+   {
+writeln_d("    waypoint in front, relBearing: ", relBearing);
+      // if I'm in formation, don't get out of it easily
+      if ((aTightFormation == false) && (mInFormation == true))
+      {
+         // check if I'm still in formation
+         if (waypointRange >= cOUT_OF_FORMATION)
+         {
+            mInFormation = false;
+         }
+         else
+         {
+            // fly my lead's heading
+            PLATFORM.TurnToHeading(aExternalPlatform.Heading());
+            PLATFORM.GoToMachNumber(aExternalPlatform.MachNumber());
+            PLATFORM.GoToAltitude(aExternalPlatform.Altitude());
+            return;
+         }
+      }
+
+      waypoint_in_front_logic(aWaypoint, aLeadPlatform, aExternalPlatform);
+   }
+end_script
+
+script void formation_update(WsfPlatform aLeadPlatform)
+   WsfWaypoint formationPoint = WsfWaypoint();
+   WsfWaypoint leadPoint      = WsfWaypoint();
+   int followingIndex         = GetFollowingFormationIndex();
+   WsfPlatform following      = mFlightLeadAgent.GetPlatformInFormation(followingIndex);
+   int flightLeadIndex        = mFlightLeadAgent.GetFormationIndex(mFlightLeadAgent.GetPlatformInFormation(-1));
+
+   if (followingIndex == flightLeadIndex)
+   {
+      // get the formation point for my position
+      if ((mFlightLeadAgent.GetFormationPosition(PLATFORM, formationPoint)) == false)
+      {
+         return;
+      }
+   }
+   else
+   {
+      PROCESSOR.FollowPlatform(following, 110.0, 1.5 * MATH.M_PER_NM(), formationPoint);
+   }
+writeln_d("    following: ", followingIndex, ", flightLeadIndex: ", flightLeadIndex);
+writeln_d("    me: (", PLATFORM.Latitude(), ", ", PLATFORM.Longitude(), ", ", PLATFORM.Altitude(), ")");
+writeln_d("    to: (", formationPoint.Latitude(), ", ", formationPoint.Longitude(), ", ", formationPoint.Altitude(), ")");
+   // fly formation logic
+   formation_logic(formationPoint, aLeadPlatform, following, false);
+end_script
+
+

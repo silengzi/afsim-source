@@ -1,0 +1,68 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+/* vespa <range_ring name="ELRSAM_175nm-1" uid="21710">
+
+  <name>ELRSAM_175nm-1</name>
+
+  <position>
+    <latitude>46:24:10.31n</latitude>
+    <longitude>122:09:08.33w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+
+  <minimum_distance>175.00 nm</minimum_distance>
+
+  <distance_increment>100 nm</distance_increment>
+
+  <number_rings>1</number_rings>
+
+  <line_color>FF0000FF</line_color>
+
+  <line_width>5</line_width>
+
+</range_ring> end_vespa */
+
+
+platform elr_sam_battalion_1 ELR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 46:24:14.84n 122:09:11.23w altitude 3.28 ft agl
+   #use_zone elr_sam_battalion_sector as battalion_sector
+end_platform
+platform elr_sam_acq_radar_1 ELR_SAM_ACQ_RADAR
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:14.53n 122:09:14.51w altitude 3.28 ft agl
+end_platform
+platform elr_sam_ttr_radar_1  ELR_SAM_TTR_RADAR
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:16.44n 122:09:13.75w altitude 3.28 ft agl
+end_platform
+platform elr_sam_launcher_1-1 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:18.367n 122:09:18.096w altitude 1.0 m agl
+end_platform
+platform elr_sam_launcher_1-2 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:11.65n 122:09:18.32w altitude 3.28 ft agl
+end_platform
+platform elr_sam_launcher_1-3 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:10.664n 122:09:09.195w altitude 1 m agl
+end_platform
+platform elr_sam_launcher_1-4 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:17.742n 122:09:08.861w altitude 1 m agl
+end_platform

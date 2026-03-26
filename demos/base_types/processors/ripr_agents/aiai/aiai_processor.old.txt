@@ -1,0 +1,2007 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#always requires a commander
+#bids on "pursue-target" and "pursue-point" jobs
+#performs "pursue-target" and "pursue-point" jobs
+#does not create any jobs
+
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+
+
+processor AIAI-thinker WSF_AIAI_PROCESSOR
+
+   update_interval 2.0 sec
+
+  #script_debug_writes on
+   script_debug_writes off
+
+   script_variables
+
+      //radar control
+      bool                   mTurnOnFiringRadarInRange = false;
+      string                 mFiringRadarName          = "firing_radar";     // replace with sensor name on platform
+      double                 mFiringRadarRange         = 1852 * 50;          // 50 nautical miles (units: meters)
+
+      bool                   mTurnOnFiringRadarIfRWR   = false;
+      string                 mRWR_RadarType            = "ESM_RADAR";        // replace with sensor name on platform
+
+      //agent constants
+      double                 cLAUNCH_TQ                = 0.49;
+      double                 cFAST_UPDATE_RATE         = 1.0;
+      double                 cSLOW_UPDATE_RATE         = 3.0;
+      double                 cTHREAT_TOLERANCE         = 0;
+      double                 cTHREAT_GONE              = 0;
+      double                 cMAX_DIST                 = MATH.DOUBLE_MAX();
+      double                 cBUCKET_BASE              = 1.2;
+      double                 cWAIT_SPEED               = 200;     # m/s
+      double                 cINTERCEPT_SPEED          = 1000;    # m/s
+   ###double                 cDEFAULT_ALTITUDE         = 12049;   # approximately 40,000 feet
+      double                 cDEFAULT_ALTITUDE         = 9144;    # approximately 30,000 feet
+      double                 cCLOSING_SPEED_MIN        = -100;
+      double                 cCLOSING_SPEED_MAX        = 1000;
+      double                 cMIN_JOB_BID              = -MATH.DOUBLE_MAX();
+   ###int                    cMAX_ACTIVE_WEAPONS       = 4;
+      int                    cMAX_ACTIVE_WEAPONS       = 1;
+
+      int                    cAirSalvoCount            = 1;
+      int                    cGndSalvoCount            = 1;
+
+      //type of mover
+      bool                   mUsePathFinder = false;
+
+      bool                   mUseMoverDuringPursuit = true;     #set to false to force aiai to follow route during pursuit of target
+
+
+      int                    cROUTE_WAYPOINT_INDEX     = -1;  # use negative for "CLOSEST_POINT"
+
+      // input weights
+      double                 cWEIGHT_BEING_TARGETED    = 100.0;
+      double                 cWEIGHT_CURRENT_TARGET    = 100.0;
+      double                 cWEIGHT_CLOSING_SPEED_OF  =   1.0;
+      double                 cWEIGHT_SLANT_RANGE_TO    =  -3.0;
+      double                 cWEIGHT_OTHERS_TARGETING  =   0.0;
+      double                 cWEIGHT_WEAPONS_IN_FLIGHT =  50.0;
+      double                 cWEIGHT_WEAPONS_FIRED_AT  =   0.0;
+     #double                 cWEIGHT_ANY_WEAPONS_ACTIVE = -50000;
+      double                 cWEIGHT_ANY_WEAPONS_ACTIVE = 100;
+
+      double                 cBASE_SLANT_RANGE_CONSTANT   = 600000 * MATH.Fabs(cWEIGHT_SLANT_RANGE_TO);  #over 300 nm away
+      double                 cBASE_CLOSING_SPEED_CONSTANT = 1050 * MATH.Fabs(cWEIGHT_CLOSING_SPEED_OF);  #over 2000 kts closing speed
+
+      string mFireControlRadarCategory = "FIRE_CONTROL";
+
+      //include types or names
+      Array<string> mTargetTrackerTaskManagerStrings = Array<string>();
+      mTargetTrackerTaskManagerStrings[0] = "WSF_TASK_MANAGER";
+      mTargetTrackerTaskManagerStrings[1] = "RED_SAM_RADAR_TASK_MANAGER";
+      mTargetTrackerTaskManagerStrings[2] = "task_manager";
+      mTargetTrackerTaskManagerStrings[3] = "task_mgr";
+
+      Array<string> mMustShootAtCategories    = Array<string>();
+                    mMustShootAtCategories[0] = "sam";
+                    mMustShootAtCategories[1] = "FIRE_CONTROL";
+
+
+   ###double mEngagementAggressiveness = 0.5;   // value between 0 and 1.  1 being suicidal kamikaze, and 0 being cautious pansy
+      double mEngagementAggressiveness = 0.7;   // value between 0 and 1.  1 being suicidal kamikaze, and 0 being cautious pansy
+
+      bool   mCoopEngageOne  = false;
+      bool   mEscortFollowing    = false;
+      double mGoodFormationRatio = 0.15;   #percentage of total offset
+      double mFormationLookAhead = 30.0;   #seconds
+      bool   mLastInPosition     = false;  #boolean flag
+      double mFormationPositionX = 0;      #meters in front of of package
+      double mFormationPositionY = 0;      #meters off right wing of package
+
+##      double escortProtectDistance = 125.0 * MATH.M_PER_NM();  #should try to stay within this range of the escort package
+      double escortProtectDistance = 100.0 * MATH.M_PER_NM();  #engage threats within this range of the escort package
+      double escortChaseDistance   = 15.0 * MATH.M_PER_NM();  #allowed to chase a threat this far out of protect area if it entered
+      bool escortAddMissileProtectRange = false;
+
+      string        mEscortName   = "";
+      Array<string> mEscortNames  = Array<string>();
+
+      Map<string, double> ThreatTypePriority = Map<string, double>();
+
+      # the interceptor uses these threat priority pairs to
+      # determine who is the most important threat of concern
+      #            category string    threat priority
+      ThreatTypePriority["unknown"]        =      0.0;
+      ThreatTypePriority["uav"]            =      2.0;
+      ThreatTypePriority["sam"]            =      4.0;
+      ThreatTypePriority["ship"]           =      4.0;
+      ThreatTypePriority["awacs"]          =   -500.0;
+      ThreatTypePriority["bomber"]         =      2.0;
+      ThreatTypePriority["jammer"]         =      0.0;
+      ThreatTypePriority["fighter"]        =  50000.0;
+      ThreatTypePriority["missile"]        =      9.0;
+      ThreatTypePriority["missile_fast"]   =      9.0;  // try new category for cmd
+      ## let the strike aircraft set these individually
+      #ThreatTypePriority["strike_target"]    = 100.0;
+      #ThreatTypePriority["primary_target"]   = 100.0;
+      #ThreatTypePriority["secondary_target"] =  50.0;
+
+      #ThreatTypePriority["2D_RADAR"]     = 0.0;
+      #ThreatTypePriority["3D_RADAR"]     = 0.0;
+      #ThreatTypePriority["ACQUISITION"]  = 0.0;
+      #ThreatTypePriority["HF_RADAR"]     = 0.0;
+
+      //fly different offset angles, depending on the type or category of threat
+      Map<string, double> ThreatTypeOffsetAngle = Map<string, double>();
+      ThreatTypeOffsetAngle["unknown"]          =  45.0;
+      ThreatTypeOffsetAngle["uav"]              =  15.0;
+      ThreatTypeOffsetAngle["sam"]              =  50.0;
+      ThreatTypeOffsetAngle["ship"]             =  45.0;
+      ThreatTypeOffsetAngle["awacs"]            =  15.0;
+      ThreatTypeOffsetAngle["bomber"]           =  25.0;
+      ThreatTypeOffsetAngle["jammer"]           =  50.0;
+      ThreatTypeOffsetAngle["fighter"]          =  35.0;
+      ThreatTypeOffsetAngle["missile"]          =  20.0;
+      ThreatTypeOffsetAngle["missile_fast"]   =  15.0;  // try new category for cmd
+
+
+      //fire off different kinds of salvos at different types of threats
+      Map<string, int> ThreatTypeSalvo = Map<string, int>();
+      ThreatTypeSalvo["unknown"]   =  1;
+      ThreatTypeSalvo["uav"]       =  1;
+      ThreatTypeSalvo["sam"]       =  1;
+      ThreatTypeSalvo["ship"]      =  1;
+      ThreatTypeSalvo["awacs"]     =  1;
+      ThreatTypeSalvo["bomber"]    =  1;
+      ThreatTypeSalvo["jammer"]    =  1;
+      ThreatTypeSalvo["fighter"]   =  1;
+      ThreatTypeSalvo["missile"]   =  1;
+      ThreatTypeSalvo["missile_fast"]   =  1;  // try new category for cmd
+      ThreatTypeSalvo["FIRE_CONTROL"]   =  2;
+
+
+      //require different track qualities to fire on different kinds of threats
+      Map<string, double> ThreatTypeRequiredTrackQuality = Map<string, double>();
+      ThreatTypeRequiredTrackQuality["unknown"]   =  0.49;
+      ThreatTypeRequiredTrackQuality["uav"]       =  0.49;
+      ThreatTypeRequiredTrackQuality["sam"]       =  0.49;
+      ThreatTypeRequiredTrackQuality["ship"]      =  0.49;
+      ThreatTypeRequiredTrackQuality["awacs"]     =  0.49;
+      ThreatTypeRequiredTrackQuality["bomber"]    =  0.49;
+      ThreatTypeRequiredTrackQuality["jammer"]    =  0.49;
+      ThreatTypeRequiredTrackQuality["fighter"]   =  0.49;
+      ThreatTypeRequiredTrackQuality["missile"]   =  0.49;
+      ThreatTypeRequiredTrackQuality["missile_fast"]  =  0.49;  // try new category for cmd
+      ThreatTypeRequiredTrackQuality["FIRE_CONTROL"]  =  0.49;
+
+
+
+      //fly different offset angles, depending on the type or category of threat
+      Map<string, string> ThreatTypeWeapon = Map<string, string>();
+      ThreatTypeWeapon["unknown"]   =  "";
+      ThreatTypeWeapon["uav"]       =  "";
+      ThreatTypeWeapon["sam"]       =  "";
+      ThreatTypeWeapon["ship"]      =  "";
+      ThreatTypeWeapon["awacs"]     =  "";
+      ThreatTypeWeapon["bomber"]    =  "";
+      ThreatTypeWeapon["jammer"]    =  "";
+      ThreatTypeWeapon["fighter"]   =  "";
+      ThreatTypeWeapon["missile"]   =  "";
+      ThreatTypeWeapon["missile_fast"]    =  "";  // try new category for cmd
+      #ThreatTypeWeapon["FIRE_CONTROL"]   =  "";
+
+      double                 mMaxFiringAngle         = 45.0; // this should be missile specific
+
+      double                 mDegradedFiringAngle    = 55.0;   //negative if not valid
+      double                 mDegradedPercentRange   = 0.50;   //additional range constraint on launch if past degraded firing angle
+
+      Map<string, double> WeaponTypeMaxFiringAngle = Map<string, double>();
+      WeaponTypeMaxFiringAngle["sdb"]      =  45.0;  // Need target specific option
+      WeaponTypeMaxFiringAngle["srm"]      =  90.0;  // Need target specific option
+      WeaponTypeMaxFiringAngle["mrm"]      =  60.0;  // Need target specific option
+      WeaponTypeMaxFiringAngle["lrm"]      = 180.0;  // Need target specific option
+
+      double                 mLaunchPercentRangeMax  = 0.80; // don't launch until X fraction of Rmax
+
+      Map<string, double> ThreatTypeLaunchPercentRangeMax = Map<string, double>();
+      ThreatTypeLaunchPercentRangeMax["sam"]          = 0.95;
+      ThreatTypeLaunchPercentRangeMax["FIRE_CONTROL"] = 0.95;
+      ThreatTypeLaunchPercentRangeMax["ship"]         = 0.95;
+      ThreatTypeLaunchPercentRangeMax["unknown"]      = 0.80;
+      ThreatTypeLaunchPercentRangeMax["uav"]          = 0.80;
+      ThreatTypeLaunchPercentRangeMax["awacs"]        = 0.80;
+      ThreatTypeLaunchPercentRangeMax["bomber"]       = 0.80;
+      ThreatTypeLaunchPercentRangeMax["jammer"]       = 0.80;
+      ThreatTypeLaunchPercentRangeMax["fighter"]      = 0.80;
+      ThreatTypeLaunchPercentRangeMax["missile"]      = 0.80;
+      ThreatTypeLaunchPercentRangeMax["missile_fast"]      = 0.80;  // try new category for cmd
+
+      //use this offset angle if a category specific offset isn't found
+      double                 mFPoleAngle = 45.0; // this should be radar-specific
+
+      // hacks
+      double                 weightPeersForEvade     = 0.25;  //percentage to scale peers influence for evasion vector
+      double                 mAltitudeMax            = 20000; // meters, hack
+      double                 mAltitudeMin            = 1000;
+#      double                 mAltitudeToDiveEvade    = 10000; //distance to dive (meters)
+      double                 mAltitudeToDiveEvade    = 5000; //distance to dive (try this instead)
+
+      double                 mAltitudeBeforeEvade    = -1.0;  //utility variable (don't adjust)
+      double                 mSafeAltitudeToDiveTo   = 1000;  //utility variable (don't adjust)
+
+      double                 mLastWeaponFiredTime    = 0.0;
+      double                 mLaunchWeaponDelay      = 3.0;
+      double                 mLastActiveWeaponTime   = 0.0;
+      #double                 mInactiveLaunchDelay    = 3.0;  //  Wait 3 seconds after your last missile detonated.
+      double                 mInactiveLaunchDelay    = 1.0;  //  Wait 3 seconds after your last missile detonated.
+      int                    mPreviousJobId          = -1;
+
+
+      #double                 mLastTimeSoarCalled     = 0.0;
+
+
+      Array<Map<string, Object>> mWeaponArray = Array<Map<string, Object>>();
+
+      //example weapon input block for a ripr aiai platform:
+      //
+      //   weapon blue_lr_a2a_rf_missile quantity 8  end_weapon
+      //
+      //   processor int-thinker AIAI-thinker
+      //      script_variables
+      //         mWeaponArray[0] = Map<string, Object>();
+      //         mWeaponArray[0].Set("name", "blue_lr_a2a_rf_missile");
+      //         mWeaponArray[0].Set("weapon", PLATFORM.Weapon("blue_lr_a2a_rf_missile"));
+      //         mWeaponArray[0].Set("rangeMin", 1000);
+      //         mWeaponArray[0].Set("rangeMax", 111120); // ~60 miles
+      //         mWeaponArray[0].Set("numActiveMax", 1);  // how many weapons of this type can be in play simultaneously
+      //         mWeaponArray[0].Set("AIR",  1);          // DOMAIN CAPABLE, yes, this weapon can hit air (default true)
+      //         mWeaponArray[0].Set("LAND", 0);          // DOMAIN CAPABLE, no, this weapon can NOT hit land (default false)
+      //      end_script_variables
+      //   end_processor
+
+
+      // Inputs to RIPR
+      double ownshipSpeed              = 0;
+      double ownshipAmmo               = 0;
+      double ownshipEngagementRangeMin = 0; // set later GetWeaponRangeMin(PLATFORM, mWeaponArray);
+      double ownshipEngagementRangeMax = 0; // set later GetWeaponRangeMax(PLATFORM, mWeaponArray);
+      int    ownshipWeaponsIncoming    = 0;
+
+      Array<WsfPlatform>     mIncoming              = Array<WsfPlatform>();
+      string                 mState                 = "";
+      string                 mRouteType             = "";
+      string                 mPursuitMode           = "";
+      string                 mOldCommandComment     = "no command";
+      string                 mOldTOOComment         = "Targets of opportunity: ";
+      WsfRIPRJob             mCurrentJob;
+      WsfGeoPoint            mCurrentPointIntercept;
+
+      Map<string,double> mTrackWeaponActiveMap = Map<string,double>();
+      Map<string,bool> mTrackMinRangeOkMap = Map<string,bool>();
+
+      Array<string> mZoneNames = Array<string>();   #dlc
+      Map<WsfTrack, double> mRoundsFiredAtMap = Map<WsfTrack, double>();    #useful for bombs, that don't show up as active weapons
+                                                                            #must keep track of number fired
+
+   end_script_variables
+
+
+   script bool MustShootAt(WsfTrack track)
+      WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+      if (plat.IsValid())
+      {
+         foreach( string aCategory in mMustShootAtCategories )
+         {
+            if( plat.CategoryMemberOf( aCategory ) )
+            {
+               return true;
+            }
+         }
+      }
+      return false;
+   end_script
+
+
+    script int GetSalvoForThreat(WsfTrack track)
+
+        #extern string DetermineTrackCategory(WsfTrack);
+        #string category = DetermineTrackCategory(track);
+        #writeln_d("checking salvo size for category: ", category);
+
+        #WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetIndex() );
+        WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : int salvo in ThreatTypeSalvo )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+
+writeln_d("salvo for type ", aCategory, " = ", salvo);
+
+                    return salvo;
+                }
+            }
+        }
+       #extern string GetTargetDomain(WsfTrack);
+        string sTargetDomain = GetTargetDomain(track);
+        if ( (sTargetDomain == "LAND") || (sTargetDomain == "SURFACE") )
+        {
+          return cGndSalvoCount;
+        }
+        return cAirSalvoCount;
+    end_script
+
+    script string GetWeaponForThreat(WsfPlatform platform, WsfTrack track, Array<Map<string, Object>> weapons, double percent)
+        bool checkName = false;
+        string name = "";
+       #extern bool IsWeaponDomainCapable(WsfTrack, Map<string, Object>);
+
+        WsfPlatform plat = WsfSimulation.FindPlatform( track.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : string wpnStr in ThreatTypeWeapon )
+            {
+
+                #writeln_d("checking if ", plat.Name(), " is category: ", aCategory);
+                if( wpnStr.Length()>0 && plat.CategoryMemberOf( aCategory ) )
+                {
+                    checkName = true;
+                    name = wpnStr;
+                    writeln_d(PLATFORM.Name(), " searching only for weapon: ", name, " (for use against ", plat.Name(), ")");
+                    writeln_d("weapon for type ", aCategory, " = ", wpnStr);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            writeln_d("platform for target ", track.TargetName()," is not valid!");
+        }
+
+       #extern double EffectiveRange(WsfPlatform, WsfTrack);
+        double desiredRange = EffectiveRange(platform, track);
+        #writeln_d(" effective range from ", platform.Name(), " to ", aTarget.TargetName(), " = ", desiredRange);
+        foreach (Map<string, Object> curWeapon in weapons)
+        {
+          if (checkName && ((string)(curWeapon["name"]))!=name)
+          {
+              continue;
+          }
+          if (((WsfWeapon)curWeapon["weapon"]).QuantityRemaining() <= 0)
+          {
+              continue;
+          }
+          if (!IsWeaponDomainCapable(track,curWeapon))
+          {
+              continue;
+          }
+          if ((double)curWeapon["rangeMin"] > desiredRange)
+          {
+              continue;
+          }
+          if ((double)curWeapon["rangeMax"] * percent < desiredRange)
+          {
+              continue;
+          }
+          #writeln_d(" returning best weapon: ", (string)curWeapon["name"]);
+          return (string)curWeapon["name"];
+        }
+        return "";
+    end_script
+
+
+
+    script double GetOffsetAngleOnThreat(WsfTrack threat)
+        #extern string DetermineTrackCategory(WsfTrack);
+        #string category = DetermineTrackCategory(threat);
+        #if (ThreatTypeOffsetAngle.Exists(category))
+        #{
+        #  return ThreatTypeOffsetAngle[category];
+        #}
+
+        #WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetIndex() );
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : double angle in ThreatTypeOffsetAngle )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+writeln_d("offset angle for type ", aCategory, " = ", angle);
+                    return angle;
+                }
+            }
+        }
+        return mFPoleAngle;
+    end_script
+
+
+    script double GetRequiredTrackQualityForThreat(WsfTrack threat)
+        #extern string DetermineTrackCategory(WsfTrack);
+        #string category = DetermineTrackCategory(threat);
+
+        writeln_d("checking required TQ for track: ", threat.TargetName());
+
+        #WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetIndex() );
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : double quality in ThreatTypeRequiredTrackQuality )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+writeln_d("TQ for type ", aCategory, " = ", quality);
+                    return quality;
+                }
+            }
+        }
+
+        #if (ThreatTypeRequiredTrackQuality.Exists(category))
+        #{
+        #    return ThreatTypeRequiredTrackQuality[category];
+        #}
+        return cLAUNCH_TQ;
+
+    end_script
+
+// currently only considers weapon in firing angle; needs to determine firing angle for weapon/target pairing
+    script double GetMaxFiringAngleForWeapon(WsfWeapon weapon)
+        if (weapon.IsValid())
+        {
+            foreach( string aName : double angle in WeaponTypeMaxFiringAngle )
+            {
+                if( weapon.Name() == aName )
+                {
+writeln_d("firing angle for weapon/target pairing ", aName, " = ", angle);
+                   return angle;
+                }
+            }
+        }
+        return mMaxFiringAngle;
+    end_script
+
+
+    script double GetLaunchPercentRangeMaxOnThreat(WsfTrack threat)
+        WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+        if (plat.IsValid())
+        {
+            foreach( string aCategory : double percent in ThreatTypeLaunchPercentRangeMax )
+            {
+                if( plat.CategoryMemberOf( aCategory ) )
+                {
+                    return percent;
+                }
+            }
+        }
+        return mLaunchPercentRangeMax;
+    end_script
+
+
+
+   script WsfProcessor GetPlatformsTaskManager(WsfPlatform aPlat)
+      for (int i=0; i < aPlat.ProcessorCount(); i=i+1)
+      {
+         WsfProcessor proc = aPlat.ProcessorEntry(i);
+
+         foreach (string procString in mTargetTrackerTaskManagerStrings)
+         {
+            if (proc.Type() == procString || proc.Name() == procString)
+            {
+               return proc;
+            }
+         }
+      }
+   end_script
+
+
+  script WsfGeoPoint GetFormationPoint( WsfPlatform reference, double xOff, double yOff )
+    WsfGeoPoint formationPoint = reference.Location();
+    formationPoint.Offset(reference.Heading(), xOff, yOff, 0);
+    return formationPoint;
+  end_script
+
+  script bool AmInFormationPosition(WsfGeoPoint formationPoint, double radius)
+    //make it fly to the inner 50% of the acceptable radius on re-entry
+    if (!mLastInPosition)
+    {
+      radius = 0.5 * radius;
+    }
+    mLastInPosition = false;
+    double range = PLATFORM.GroundRangeTo(formationPoint);
+    if (range <= radius)
+    {
+      mLastInPosition = true;
+    }
+    return mLastInPosition;
+  end_script
+
+  script bool FlyEscortFormation()
+    if (!mEscortFollowing)
+    {
+      return false;
+    }
+    //make sure escorted platform exists, find it, save it
+    WsfPlatform escortPlatform;
+    #if ( !mEscortNames.Empty() )     #{
+    foreach ( string sEscortName in mEscortNames )
+    {
+      escortPlatform = WsfSimulation.FindPlatform(sEscortName);
+      if (escortPlatform.IsValid() )
+      {
+        mEscortName = sEscortName;
+        writeln_d("--- fighter ", PLATFORM.Name(), " is escorting ", mEscortName);
+        break;
+      }
+    }                                 #}
+
+    if ( escortPlatform.IsValid() )
+    {
+      //check if I am approximately in my formation position
+      WsfGeoPoint formationPoint = GetFormationPoint( escortPlatform, mFormationPositionX, mFormationPositionY );
+      if (!formationPoint.IsValid())
+      {
+        writeln_d("--- fighter ", PLATFORM.Name(), " invalid formation point from ", escortPlatform.Name());
+        return false;
+      }
+      double radius = mGoodFormationRatio * escortPlatform.SlantRangeTo(formationPoint);
+
+      bool bAlt = true;
+      if (escortPlatform.Altitude() > PLATFORM.Altitude())
+      {
+         bAlt = PLATFORM.GoToAltitude ( escortPlatform.Altitude(), 200 );
+      }
+      if (AmInFormationPosition(formationPoint, radius))
+      {
+        //match speed and heading of escorted platform
+        # bool GoToAltitude (double aAlt,     double aAltRateOfChange);
+        # bool GoToSpeed    (double aSpeed,   double aLinearAccel    );
+        # bool TurnToHeading(double aHeading, double aRadialAccel    );
+        bool bVel = PLATFORM.GoToSpeed    ( escortPlatform.Speed()    );
+        bool bYaw = PLATFORM.TurnToHeading( escortPlatform.Heading()  );
+        #PLATFORM.Comment(write_str("formation: alt=", bAlt, " vel=", bVel, " yaw=",bYaw));
+      }
+      else
+      {
+        //fly towards formation position, extrapolated ahead X seconds
+        double lookAheadDistance  = mFormationLookAhead * escortPlatform.Speed();
+        formationPoint.Offset(escortPlatform.Heading(), lookAheadDistance, 0, 0);
+        double myDistanceToExtrap = PLATFORM.GroundRangeTo(formationPoint);
+        double mySpeedToExtrap    = myDistanceToExtrap / mFormationLookAhead;
+
+       #bool bVel = PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+        bool bVel = PLATFORM.GoToSpeed(mySpeedToExtrap);
+        bool bYaw = PLATFORM.TurnToHeading( PLATFORM.TrueBearingTo(formationPoint) );
+        #PLATFORM.Comment(write_str("re-enter: vel=", bVel, " yaw=",bYaw));
+      }
+      return true;
+    }
+    writeln_d("--- fighter ", PLATFORM.Name(), " no valid platform to escort!");
+    return false;
+   end_script
+
+
+#######
+   script bool RejoinEscort()
+     bool bEscortRejoined = false;
+     if ( !mEscortFollowing || (mEscortName != "") )
+     {
+       WsfPlatform escortPlatform = WsfSimulation.FindPlatform(mEscortName);
+       if ( escortPlatform.IsValid() )
+       {
+         WsfGeoPoint joinGeoPoint0 = PLATFORM.Location();
+         WsfGeoPoint joinGeoPoint1 = escortPlatform.Location();
+         double dDeltaTime = PROCESSOR.UpdateInterval();
+         double dRejoinSpeed = escortPlatform.Speed();
+         double dRejoinSpeedFast = dRejoinSpeed*1.2;
+         double dRejoinSpeedSlow = dRejoinSpeed*0.8;
+         double dRejoinHeadingTolerance = 15;
+         double dRejoinTimeTolerance = 15;
+
+         #writeln_d("$$$1 ", TIME_NOW, " ", PLATFORM.Name() , " ", mFormationPositionX, " ", mFormationPositionY);
+         joinGeoPoint1.Offset(escortPlatform.Heading(), mFormationPositionX, mFormationPositionY, 0);
+
+         double dRejoinDistance = joinGeoPoint0.SlantRangeTo(joinGeoPoint1);
+         double dRejoinTime = dRejoinDistance/dRejoinSpeed;
+         double dRejoinDownrange = PLATFORM.DownRangeTo(joinGeoPoint1);
+         double dHeadingDiff = MATH.Fabs(PLATFORM.Heading()-escortPlatform.Heading());
+
+         #if (dRejoinDownrange > 0)
+         #{
+           if ( dRejoinTime > (dDeltaTime + dRejoinTimeTolerance) )
+           {
+             dRejoinSpeed = Math.Min(dRejoinSpeedFast,cINTERCEPT_SPEED);
+           }
+           else if ( dRejoinTime < dDeltaTime )
+           {
+             joinGeoPoint1.Extrapolate(escortPlatform.Heading(), (dDeltaTime - dRejoinTime)*dRejoinSpeed);
+             dRejoinSpeed = dRejoinSpeedSlow;
+           }
+         #}
+         #else
+         #{
+         #  writeln_d("$$ $$ $$1");
+         #  dRejoinSpeed = dRejoinSpeedSlow;
+         #  if ( (dHeadingDiff < dRejoinHeadingTolerance) && (dRejoinDistance < 10*MATH.M_PER_NM()) )
+         #  {
+         #    joinGeoPoint1 = joinGeoPoint0;
+         #    joinGeoPoint1.Extrapolate(escortPlatform.Heading(), (dDeltaTime*1.01)*dRejoinSpeed);
+         #    writeln_d("$$ $$ $$2");
+         #  }
+         #}
+         #writeln_d("$$$2 ", dRejoinSpeed*MATH.NMPH_PER_MPS());
+
+         #For some reason the GoToLocation and GoToSpeed commands never work so I resort to making a route...
+         WsfRoute joinRoute = WsfRoute().Create("joinRouteName");
+         WsfWaypoint joinWaypoint1 = WsfWaypoint().Create(joinGeoPoint1.Latitude(), joinGeoPoint1.Longitude(), cDEFAULT_ALTITUDE, dRejoinSpeed, "LATITUDE_AND_LONGITUDE", "EXTRAPOLATE");
+         joinRoute.Append(joinWaypoint1);
+         PLATFORM.FollowRoute(joinRoute);
+
+         bEscortRejoined = true;
+       }
+     }
+     return bEscortRejoined;
+   end_script
+
+
+   script bool UpdatePointInterceptLocation (WsfPlatform aPlatform, WsfGeoPoint aPoint)
+      if (!aPoint.IsValid())
+      {
+         PLATFORM.Comment("ignoring invalid point");
+         return false;
+      }
+      double interceptAltitude = aPoint.Altitude();
+
+      if (interceptAltitude < 0)
+      {
+         PLATFORM.Comment("ignoring invalid point");
+         return false;
+      }
+
+      double interceptRange = aPlatform.SlantRangeTo(aPoint);
+      double interceptHeading = aPlatform.TrueBearingTo(aPoint);
+      aPlatform.TurnToHeading(interceptHeading);
+
+      writeln_d("    T=", TIME_NOW, ", range: ", interceptRange, " true-bearing: ", interceptHeading);
+
+#      #if ( (interceptAltitude - aPlatform.Altitude()) > 5)
+#      if ( (interceptAltitude - aPlatform.Altitude()) > 10000*MATH.M_PER_FT())
+#      {
+#         writeln_d("GoToAltitude: ",interceptAltitude);
+#         #aPlatform.GoToAltitude(interceptAltitude);
+#      }
+
+      return true;
+   end_script
+
+
+   script bool UpdatePointInterceptLocationWithPathing(WsfPlatform aPlatform, WsfGeoPoint aPoint)
+      double interceptAltitude = aPoint.Altitude();
+      double interceptHeading = aPlatform.TrueBearingTo(aPoint);
+      double interceptRange = aPlatform.SlantRangeTo(aPoint);
+
+      writeln_d("    T=", TIME_NOW, ", range: ", interceptRange, " true-bearing: ", interceptHeading);
+
+      WsfGeoPoint startGeoPoint = aPlatform.Location();
+
+      if (!aPlatform.FindAndSetPath(startGeoPoint, aPoint) && mRouteType != "DEFAULT")
+      {
+         if ( cROUTE_WAYPOINT_INDEX < 0)
+         {
+            PLATFORM.FollowRoute("DEFAULT_ROUTE","CLOSEST_POINT");
+         }
+         else
+         {
+            PLATFORM.FollowRoute("DEFAULT_ROUTE",cROUTE_WAYPOINT_INDEX);
+         }
+         PLATFORM.Comment("Route: DEFAULT");
+         mRouteType = "DEFAULT";
+      }
+      else if(mRouteType != "PATH")
+      {
+         PLATFORM.Comment("Route: PATH");
+         mRouteType = "PATH";
+      }
+      if ( (interceptAltitude - PLATFORM.Altitude()) > 10000*MATH.M_PER_FT())
+      #if ( (interceptAltitude - aPlatform.Altitude()) > 5)
+      {
+         writeln_d("GoToAltitude: ",interceptAltitude);
+         #aPlatform.GoToAltitude(interceptAltitude);
+      }
+      return true;
+   end_script
+
+
+
+   /*
+   *  bool UpdateInterceptLocationWithPathing ()
+   *
+   *       Intercept aTarget.  This should eventually be replaced by methods in the mover.
+   */
+
+   script bool UpdateInterceptLocationWithPathing (WsfTrack aTarget, string pursuitMode)
+
+      if (aTarget.IsNull())
+      {
+         writeln_d("    UpdateInterceptLocationWithPathing, aTarget is null");
+         return false;
+      }
+
+      // If we got the altitude from the TRACK, match it
+      double interceptAltitude = cDEFAULT_ALTITUDE;
+      //double interceptAltitude = PLATFORM.Altitude();
+      double interceptHeading  = PLATFORM.Heading();
+      double distanceToTarget  = PLATFORM.SlantRangeTo(aTarget);
+
+      double desiredSpeed = cINTERCEPT_SPEED;
+      if (aTarget.VelocityValid() && aTarget.AirDomain())
+      {
+        #extern double EffectiveRange(WsfPlatform, WsfTrack);
+
+        #extern double GetWeaponRangeMax (WsfPlatform, Array<Map<string, Object>>);
+        #extern double GetWeaponRangeMin (WsfPlatform, Array<Map<string, Object>>);
+
+         double rangeMin = GetWeaponRangeMin(PLATFORM, mWeaponArray);
+         double rangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+         double speedOfTarget = aTarget.Speed();
+         double effRange      = EffectiveRange(PLATFORM, aTarget);
+         double missileWindow = rangeMax - rangeMin;
+         double speedWindow   = cINTERCEPT_SPEED - speedOfTarget;
+
+
+         if(effRange < rangeMax &&  effRange > rangeMin)
+         {
+            double rangeScale = (effRange - rangeMin) / missileWindow;
+            desiredSpeed = speedOfTarget + (speedWindow * rangeScale);
+         }
+         else if (effRange <= rangeMin)
+         {
+            desiredSpeed = speedOfTarget;
+         }
+
+         if (desiredSpeed < cWAIT_SPEED)
+         {
+            desiredSpeed = cWAIT_SPEED;
+         }
+      }
+      PLATFORM.GoToSpeed(desiredSpeed);
+
+      WsfGeoPoint startGeoPoint = PLATFORM.Location();
+      WsfGeoPoint endGeoPoint = aTarget.ReportedLocation();
+
+      if (pursuitMode == "lead")
+      {
+         double timeToIntercept = 0.0;
+         WsfWaypoint interceptPoint = WsfWaypoint();
+
+         timeToIntercept = PLATFORM.InterceptLocation3D(aTarget, interceptPoint);
+         // If timeToIntercept is positive then we know intercept is possible
+         if (timeToIntercept > 0.0)
+         {
+            writeln_d("    T=", TIME_NOW, " TTI=", timeToIntercept, " range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", interceptPoint.Heading());
+            writeln_d("      lead pursuit: ", interceptPoint.Latitude(), ", ", interceptPoint.Longitude(), ", ", interceptPoint.Altitude());
+
+            startGeoPoint = PLATFORM.Location();
+            endGeoPoint = aTarget.ReportedLocation();
+         }
+         else
+         {
+            writeln_d("    lead pursuit attempt with timeToIntercept < 0");
+         }
+      }
+      else if (pursuitMode == "f-pole")
+      {
+        #extern double MaximizeFPole(WsfPlatform, WsfTrack, double);
+         interceptHeading = MaximizeFPole(PLATFORM, aTarget, GetOffsetAngleOnThreat(aTarget));
+         startGeoPoint = PLATFORM.Location();
+         endGeoPoint   = PLATFORM.Location();
+         //f-pole towards a point 30 miles away in the correct direction
+         endGeoPoint.Extrapolate(interceptHeading, 55560);
+
+         writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", PLATFORM.TrueBearingTo(aTarget));
+         writeln_d("      ", pursuitMode, " pursuit");
+      }
+      else
+      {
+         //otherwise... just fly at the target
+         startGeoPoint = PLATFORM.Location();
+         endGeoPoint = aTarget.ReportedLocation();
+
+         writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", PLATFORM.TrueBearingTo(aTarget),
+            " (", endGeoPoint.Latitude(), "/", aTarget.Latitude(), ",", endGeoPoint.Longitude(), "/", aTarget.Longitude(), ")");
+         writeln_d("      ", pursuitMode, " pursuit");
+      }
+
+      //make sure we don't dive, staying above the target is fine
+      if (endGeoPoint.Altitude() < interceptAltitude)
+      {
+         endGeoPoint.Set(endGeoPoint.Latitude(), endGeoPoint.Longitude(), interceptAltitude);
+      }
+
+      if (!PLATFORM.FindAndSetPath(startGeoPoint, endGeoPoint) && mRouteType != "DEFAULT")
+      {
+         if ( cROUTE_WAYPOINT_INDEX < 0)
+         {
+            PLATFORM.FollowRoute("DEFAULT_ROUTE","CLOSEST_POINT");
+         }
+         else
+         {
+            PLATFORM.FollowRoute("DEFAULT_ROUTE",cROUTE_WAYPOINT_INDEX);
+         }
+         PLATFORM.Comment("Route: DEFAULT");
+         mRouteType = "DEFAULT";
+      }
+      else if(mRouteType != "PATH")
+      {
+         PLATFORM.Comment("Route: PATH");
+         mRouteType = "PATH";
+      }
+      return true;
+   end_script
+
+
+
+
+
+   /*
+   *  bool UpdateInterceptLocation ()
+   *
+   *       Intercept aTarget.  This should eventually be replaced by methods in the mover.
+   */
+
+   script bool UpdateInterceptLocation (WsfTrack aTarget, string pursuitMode)
+
+      if (aTarget.IsNull())
+      {
+         writeln_d("    UpdateInterceptLocation, aTarget is null");
+         return false;
+      }
+
+      // If we got the altitude from the TRACK, match it
+      double interceptAltitude = cDEFAULT_ALTITUDE;
+      //double interceptAltitude = PLATFORM.Altitude();
+      double interceptHeading  = PLATFORM.Heading();
+      double distanceToTarget  = PLATFORM.SlantRangeTo(aTarget);
+
+      if (aTarget.ElevationValid() || aTarget.LocationValid())
+      {
+         #writeln_d("dlc ", aTarget.Altitude()*MATH.FT_PER_M(), ", ", interceptAltitude*MATH.FT_PER_M());
+         if (aTarget.Altitude() > interceptAltitude)
+         {
+            interceptAltitude = aTarget.Altitude();
+         }
+      }
+
+
+      double desiredSpeed = cINTERCEPT_SPEED;
+      if (aTarget.VelocityValid() && aTarget.AirDomain())
+      {
+        #extern double EffectiveRange(WsfPlatform, WsfTrack);
+
+        #extern double GetWeaponRangeMax (WsfPlatform, Array<Map<string, Object>>);
+        #extern double GetWeaponRangeMin (WsfPlatform, Array<Map<string, Object>>);
+
+         double rangeMin = GetWeaponRangeMin(PLATFORM, mWeaponArray);
+         double rangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+         double speedOfTarget = aTarget.Speed();
+         double effRange      = EffectiveRange(PLATFORM, aTarget);
+         double missileWindow = rangeMax - rangeMin;
+         double speedWindow   = cINTERCEPT_SPEED - speedOfTarget;
+
+
+         if(effRange < rangeMax &&  effRange > rangeMin)
+         {
+            double rangeScale = (effRange - rangeMin) / missileWindow;
+            desiredSpeed = speedOfTarget + (speedWindow * rangeScale);
+         }
+         else if (effRange <= rangeMin)
+         {
+            desiredSpeed = speedOfTarget;
+         }
+
+         if (desiredSpeed < cWAIT_SPEED)
+         {
+            desiredSpeed = cWAIT_SPEED;
+         }
+      }
+      PLATFORM.GoToSpeed(desiredSpeed);
+
+      if (pursuitMode == "lead")
+      {
+         double timeToIntercept = 0.0;
+         WsfWaypoint interceptPoint = WsfWaypoint();
+
+         timeToIntercept = PLATFORM.InterceptLocation3D(aTarget, interceptPoint);
+         // If timeToIntercept is positive then we know intercept is possible
+         if (timeToIntercept > 0.0)
+         {
+            writeln_d("    T=", TIME_NOW, " TTI=", timeToIntercept, " range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", interceptPoint.Heading());
+            writeln_d("      lead pursuit: ", interceptPoint.Latitude(), ", ", interceptPoint.Longitude(), ", ", interceptPoint.Altitude());
+
+            interceptHeading = interceptPoint.Heading();
+         }
+         else
+         {
+            writeln_d("    lead pursuit attempt with timeToIntercept < 0, flying straight at target for now");
+            interceptHeading = PLATFORM.TrueBearingTo(aTarget);
+         }
+      }
+      else if (pursuitMode == "f-pole")
+      {
+        #extern double MaximizeFPole(WsfPlatform, WsfTrack, double);
+         interceptHeading = MaximizeFPole(PLATFORM, aTarget, GetOffsetAngleOnThreat(aTarget));
+         writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", PLATFORM.TrueBearingTo(aTarget));
+         writeln_d("      ", pursuitMode, " pursuit");
+      }
+      else
+      {
+         interceptHeading = PLATFORM.TrueBearingTo(aTarget);
+
+         //writeln_d("    T=", TIME_NOW, ", range: ", PLATFORM.SlantRangeTo(aTarget), " true-bearing: ", PLATFORM.TrueBearingTo(aTarget),
+         //   " (", endGeoPoint.Latitude(), "/", aTarget.Latitude(), ",", endGeoPoint.Longitude(), "/", aTarget.Longitude(), ")");
+         writeln_d("      ", pursuitMode, " pursuit");
+      }
+
+      //PLATFORM.Comment("USING TURNTOHEADING");
+      // Head towards the target using the interceptHeading instead of Pathfinder
+      PLATFORM.TurnToHeading(interceptHeading);
+
+      ###if ( (interceptAltitude - PLATFORM.Altitude()) > 10000*MATH.M_PER_FT())
+      if ( (interceptAltitude - PLATFORM.Altitude()) > 100)
+      {
+         writeln_d("GoToAltitude: ",interceptAltitude);
+         PLATFORM.GoToAltitude(interceptAltitude, 200);
+      }
+      return true;
+
+   end_script
+
+
+
+
+   script string Think()
+
+      //always evade incoming weapons
+      //mIncoming = Array<WsfPlatform>(); // clear the existing incoming weapons
+      mIncoming.Clear();
+
+      ### use darin's custom threat processor instead
+      ###
+      ###ownshipWeaponsIncoming = WeaponsIncoming(mIncoming);
+      ###
+
+
+#      WsfProcessor proc = PLATFORM.Processor("incoming_threats");
+#      if (proc.IsValid())
+#      {
+#        writeln_d("using incoming_threats threat processor!!!");
+#        mIncoming = (Array<WsfPlatform>)(proc.Execute("ThreatProcessorWeaponsIncoming"));
+#        ownshipWeaponsIncoming = mIncoming.Size();
+#      }
+#      else
+#      {
+#        writeln_d("using standard WSF_THREAT_PROCESSOR!!!");
+        ownshipWeaponsIncoming = WeaponsIncoming(mIncoming);
+#      }
+
+
+      if (ownshipWeaponsIncoming > 0)
+      {
+         if (mState != "EVADE_INCOMING")
+         {
+            writeln_d("EVASION BLOCK : ", PLATFORM.Name(), " :");
+            foreach(WsfPlatform p in mIncoming)
+            {
+               string msg = write_str("Evading: ", p.Name());
+               PLATFORM.Comment(msg);
+               writeln_d(msg);
+            }
+         }
+
+
+         //we now have weapons incoming, check to see if we are currently guiding any missiles with an uplink
+         //basically: check if we have any active weapons
+         int WeaponCount = WeaponsActive();
+         if (WeaponCount > 0)
+         {
+            writeln_d(PLATFORM.Name(), " weapons incoming, checking weapons active, count: ", WeaponCount);
+            double threat = 1000.0;
+            double asset  = 1000.0;
+
+            //find most threatening incoming weapon
+            foreach(WsfPlatform p in mIncoming)
+            {
+               double range = PLATFORM.SlantRangeTo(p);  # meters
+               double speed = p.Speed();                 # meters/sec
+               double time  = range / speed;             # seconds
+               if (time < threat)
+               {
+                  threat = time;
+               }
+            }
+
+            //find most valuable launched weapon (most threatening to enemy)
+            for (int i=0; i< WeaponCount; i=i+1)
+            {
+               WsfPlatform w = ActiveWeaponPlatform(i);
+               WsfTrack    t = w.CurrentTargetTrack();
+               if (t.IsValid())
+               {
+                  double range = w.SlantRangeTo(t);  # meters
+                  double speed = w.Speed();          # meters/sec
+                  double time  = range / speed;      # seconds
+                  if (time < asset)
+                  {
+                     asset = time;
+                  }
+               }
+            }
+
+            //factor in our aggressiveness, and decide whether or not we should evade yet
+            double requiredAggressiveness = threat / (threat + asset);
+            writeln_d(PLATFORM.Name(), " threat: ", threat, ", asset: ", asset, ", required aggressiveness: ", requiredAggressiveness);
+            if (mEngagementAggressiveness < requiredAggressiveness)
+            {
+               return "EVADE_INCOMING";
+            }
+         }
+         else
+         {
+            return "EVADE_INCOMING";
+         }
+      }
+
+      // if we're low on fuel, go home
+      if (PLATFORM.FuelRemaining() < PLATFORM.FuelBingoQuantity())
+      {
+         return "BINGO_FUEL";
+      }
+
+      // if no weapons are available to use, don't fight
+ #    #extern double GetWeaponQuantityRemainingMax(WsfPlatform,Array<Map<string, Object>>);
+ #     double wRemaining = GetWeaponQuantityRemainingMax(PLATFORM, mWeaponArray);
+ #     if (wRemaining < 1)
+ #     {
+ #        writeln_d("   no weapons left, WAITing");
+ #        return "WAIT";
+ #     }
+ #     else
+ #     {
+ #        writeln_d("   weapons left: ", wRemaining);
+ #     }
+
+      #if (PLATFORM.WeaponEntry(0).QuantityRemaining() < 1)
+      #{
+      #    return "WAIT";
+      #}
+
+      bool wait = true;
+      foreach( WsfPlatform sub in GetRIPRCommanderPlatform().Subordinates() )
+      {
+          if (sub.WeaponEntry(0).QuantityRemaining() > 0)
+          {
+              wait = false;
+          }
+      }
+
+      if (wait == true)
+      {
+          return "WAIT";
+      }
+
+      if (GetRIPRCommanderProcessor().IsBidWindowOpen())
+      {
+         writeln_d("    Jobs:");
+
+         Array<WsfRIPRJob> jobs = GetRIPRCommanderProcessor().GetJobs();
+         writeln_d("    (jobs fetched): ", jobs.Size());
+
+         // bid on jobs
+         foreach (WsfRIPRJob aJob in jobs)
+         {
+            double bidVal = QueryBid(aJob);
+
+            #writeln_d(PLATFORM.Name(), " bid val for ", aJob.GetDescription(), " = ", bidVal);
+            #writeln_d(aJob.Name(), " priority: ", aJob.GetPriority());
+
+            writeln_d(PLATFORM.Name(), " bid on job ", aJob.GetDescription(), " == ", bidVal, ", priority = ",  aJob.GetPriority());
+
+            if (bidVal < 0)
+            {
+              #unbid all jobs
+              for (int channel = 0; channel < GetNumJobChannels(); channel = channel + 1)
+              {
+                aJob.UnbidJob( PROCESSOR, channel);
+              }
+            }
+            else
+            {
+              //bid normal value for primary job (channel zero)
+              aJob.BidJob( PROCESSOR, bidVal );
+              //writeln_d("Main Channel\'s bid value: ", bidVal);
+
+              for (int channel = 1; channel < GetNumJobChannels(); channel = channel + 1)
+              {
+                //scale down bid value to  25% of max for all other channels
+                //                  or to 250% of max if bid is negative
+                //basically, ensure that half the magnitude of the default channel can
+                //beat the full magnitude of the sub channels
+                double scaledBidValue = bidVal * 0.25;
+                if (bidVal < 0.0)
+                {
+                    scaledBidValue = bidVal * 2.5;
+                }
+                double progress = 0.0;
+                aJob.BidJob( PROCESSOR, (int)channel, scaledBidValue, progress );
+                //writeln_d("Channel ", channel, "\'s bid value: ", scaledBidValue);
+              }
+            }
+         }
+      }
+
+      // win and execute primary job
+      if (GetRIPRCommanderProcessor().IsJobWindowOpen())
+      {
+         // now check the board to see what we've won!
+         mCurrentJob = GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR);
+      }
+
+      if (!(mCurrentJob.IsValid()))
+      {
+         writeln_d("    no valid job from job board, WAITing");
+         return "WAIT";
+      }
+
+      string commandComment = "Job: " + mCurrentJob.Name() + ", " + mCurrentJob.GetDescription(); // + " pursuit-mode: " + mPursuitMode;
+      writeln_d("    - ", commandComment);
+
+      if (commandComment != mOldCommandComment)
+      {
+         PLATFORM.Comment(commandComment);
+         mOldCommandComment = commandComment;
+      }
+
+      // Clear the variables we'll use to store the agent's output
+      ClearTarget();
+
+      if (mCurrentJob.Name() == "pursue-target")
+      {
+        #extern int      GetBucket             (double, double);
+        #extern WsfTrack GetTrackByName        (WsfPlatform, string);
+        #extern bool     TestTrackCategory     (WsfTrack, string);
+        #extern string   CalculatePositioning  (WsfPlatform, WsfTrack, double);
+        #extern string   DetermineTrackCategory(WsfTrack);
+
+         Map<string, Object> tempData    = mCurrentJob.GetData();
+         string              targetName  = (string)tempData["targetTrackName"];
+         WsfTrack            targetTrack = GetTrackByName(PLATFORM, targetName);
+
+         if (targetTrack.IsValid())
+         {
+            //writeln_d("    Setting target to ", targetName, ", type: ", DetermineTrackCategory(targetTrack));
+            SetTarget(targetName);
+         }
+         else
+         {
+            writeln_d("    No track found for target named ", targetName);
+            ClearTarget();
+         }
+
+         //get target from ripr processor, to be sure
+         targetTrack = GetTarget();
+
+         if (!targetTrack.IsValid()  ||
+             #!targetTrack.IFF_Foe()  ||                  // Was commented out - see if this helps.
+             TestTrackCategory(targetTrack, "unknown"))
+         {
+            writeln_d("    No valid target set yet, go to WAIT mode.");
+            return "WAIT";
+         }
+
+         double ownSpeed       = GetBucket(PLATFORM.Speed(), cBUCKET_BASE);
+         double engageRangeMin = GetBucket(ownshipEngagementRangeMin, cBUCKET_BASE);
+         double engageRangeMax = GetBucket(ownshipEngagementRangeMax, cBUCKET_BASE);
+         double slantRangeTo   = GetBucket(PLATFORM.SlantRangeTo(targetTrack), cBUCKET_BASE);
+         double targetSpeed    = GetBucket(targetTrack.Speed(), cBUCKET_BASE);
+         string positioning    = CalculatePositioning(PLATFORM, targetTrack, GetOffsetAngleOnThreat(targetTrack));
+         int    weaponsActive  = WeaponsActive(targetTrack);
+
+         if (weaponsActive > 0)
+         {
+            mPursuitMode = "f-pole";
+         }
+         else if (targetTrack.AirDomain())
+         {
+            if (slantRangeTo >= engageRangeMax &&
+                   positioning  != "head-to-head" &&
+                   positioning  != "head-to-tail" &&
+                   targetSpeed  >= ownSpeed)
+            {
+               mPursuitMode = "lead";
+            }
+            else if (slantRangeTo <= engageRangeMax &&
+                   positioning  != "head-to-head" &&
+                   positioning  != "head-to-tail")
+            {
+               mPursuitMode = "lag";
+            }
+            else if (slantRangeTo  > engageRangeMax ||
+                   (slantRangeTo <= engageRangeMax &&
+                    (positioning  == "head-to-head" ||
+                     positioning  == "head-to-tail")))
+            {
+               mPursuitMode = "pure";
+            }
+         }
+         else
+         {
+            mPursuitMode = "pure";
+         }
+
+         //target is valid if this line is reached
+         //pursuit mode should be set, its a go
+         return "INTERCEPT";
+      }
+
+      // Clear the variables we'll use to store the agent's output
+      ClearTarget();
+
+      // If we're supposed to fly towards a point, go for it!
+      if (mCurrentJob.Name() == "pursue-point")
+      {
+         Map<string,Object> tempData = mCurrentJob.GetData();
+         WsfGeoPoint temp = (WsfGeoPoint)tempData["targetPoint"];
+         if (temp.IsValid())
+         {
+            mCurrentPointIntercept = temp;
+         }
+         return "POINT";
+      }
+
+      // If we don't have a target, just keep waiting
+      return "WAIT";
+   end_script
+
+
+
+
+   script bool CheckAndFire (WsfTrack aTarget)
+
+      bool launched = false;
+
+      if (aTarget.IsNull() || !aTarget.BelievedAlive())
+      {
+         writeln_d("    No target to fire on");
+         return launched;
+      }
+
+      if ( (WeaponsActive(aTarget) > 0) || (PeersWeaponsActive(aTarget) > 0) )
+      #if (WeaponsActive(aTarget) > 0)
+      {
+         mLastActiveWeaponTime   = TIME_NOW;
+         mTrackWeaponActiveMap[aTarget.TargetName()] = TIME_NOW;
+         writeln_d("    Weapons already active against ", aTarget.TargetName());
+         return launched;
+      }
+
+      if ((TIME_NOW - mTrackWeaponActiveMap[aTarget.TargetName()]) < mInactiveLaunchDelay)
+      {
+         writeln_d("    Waiting to see what last active weapon did, score a kill?");
+         return launched;
+      }
+
+      writeln_d("    CheckAndFire() against: ", aTarget.TargetName(), " Index: ", aTarget.TargetIndex(), " Type: ", aTarget.TargetType());
+
+      if (!mCoopEngageOne)
+      {
+        if (aTarget.AuxDataString("notlocal") != "true")
+        {
+          WsfLocalTrack targetLocalTrack = (WsfLocalTrack)aTarget;
+          if (targetLocalTrack.IsValid())
+          {
+            if(!targetLocalTrack.ContributorOf(PLATFORM) && !targetLocalTrack.IsPredefined())
+            {
+              writeln_d("    Not able to coop engage! ", PLATFORM.Name(), " targeting ",aTarget.TargetName(), ".  NumContributors: ", targetLocalTrack.NumContributors()  );
+              return launched;
+            }
+          }
+        }
+      }
+
+      // We can launch once we have a target-quality track.
+      //TODO probably need something to test for failure to lockon
+      writeln_d ("    aTarget.TrackQuality == ", aTarget.TrackQuality());
+
+
+      double dRelativeBearing = MATH.Fabs(PLATFORM.RelativeBearingTo( aTarget ));
+      double dSlantRange = PLATFORM.SlantRangeTo(aTarget);
+
+      writeln_d("abs relative bearing: ", dRelativeBearing, ", slant range: ", dSlantRange);
+
+      if (aTarget.TrackQuality() < GetRequiredTrackQualityForThreat(aTarget))
+      {
+         writeln_d("track quality not good enough to fire on target");
+         return launched;
+      }
+
+
+      // Launch the weapon.  Returns false if not launched.
+     #extern bool LaunchWeapon(WsfPlatform, WsfTrack, WsfWeapon, int);
+     #extern double GetMaxLaunchRange (WsfPlatform, WsfTrack, string, Array<Map<string, Object>>);
+     #extern double EffectiveRange (WsfPlatform, WsfTrack);
+     #extern string GetTargetDomain(WsfTrack);
+      double dLaunchRangePercentage = GetLaunchPercentRangeMaxOnThreat(aTarget);
+      string sTargetDomain = GetTargetDomain(aTarget);
+     #int  salvoCount  =  1;
+      int  salvoCount  =  GetSalvoForThreat(aTarget);
+
+      writeln_d("salvo count: ", salvoCount);
+
+      string selectedWeapon = GetWeaponForThreat(PLATFORM, aTarget, mWeaponArray, dLaunchRangePercentage);
+      if (selectedWeapon == "")
+      {
+         writeln_d("    No domain capable weapon within range available!");
+         return launched;
+      }
+
+      WsfWeapon weaponToLaunch = PLATFORM.Weapon(selectedWeapon);
+
+      if (dRelativeBearing > GetMaxFiringAngleForWeapon( weaponToLaunch ))
+      {
+         writeln_d("relative bearing towards ", aTarget.TargetName(), " is too high for selected weapon ", weaponToLaunch.Name());
+         return launched;
+      }
+
+     #extern int GetWeaponNumberActiveMax(string, Array<Map<string, Object>>);
+      int maxActiveOfType = GetWeaponNumberActiveMax(selectedWeapon,mWeaponArray);
+      int curActiveOfType = WeaponsActiveOfType(weaponToLaunch);
+
+      if (MustShootAt(aTarget))
+      {
+         curActiveOfType = maxActiveOfType - 1;
+      }
+
+      if (curActiveOfType >= maxActiveOfType)
+      {
+         writeln_d("    Max number (", maxActiveOfType,")of ", selectedWeapon, " weapon type are already active! (", curActiveOfType,")");
+         return launched;
+      }
+
+      double effectiveRange = EffectiveRange(PLATFORM, aTarget);
+      double dMaxLaunchRange = GetMaxLaunchRange(PLATFORM, aTarget, selectedWeapon, mWeaponArray);
+
+      double rangeScale = dLaunchRangePercentage;   //no change to scaling yet (use normal launch percent)
+      if (dRelativeBearing > mDegradedFiringAngle)
+      {
+         rangeScale = MATH.Min(mDegradedPercentRange, dLaunchRangePercentage);
+      }
+
+      if ( effectiveRange > (dMaxLaunchRange*rangeScale) )
+      {
+        //writeln_d("    Slantrange, ", dSlantRange*(1/MATH.M_PER_NM()), " nmi, To Target Greater Than Weapon Max Launch Range, ", dMaxLaunchRange*(1/MATH.M_PER_NM()), " nmi!");
+
+        writeln_d(PLATFORM.Name(), " failed weapon range check against ", aTarget.TargetName());
+        return launched;
+      }
+
+      launched = LaunchWeapon(PLATFORM, aTarget, weaponToLaunch, salvoCount);
+      writeln_d("    launched == ", launched, ", weapon: ", selectedWeapon);
+
+      if (launched == true)
+      {
+         mLastWeaponFiredTime = TIME_NOW;
+
+#######
+         double dPreviousRoundsFiredAt = mRoundsFiredAtMap.Get(aTarget);
+         mRoundsFiredAtMap.Set(aTarget,dPreviousRoundsFiredAt + salvoCount);
+         writeln_d("    F-pole after shot fired");
+         PLATFORM.Comment("Shot at: " + aTarget.TargetName());
+         //PLATFORM.Comment("Fired " + selectedWeapon + " at " + aTarget.TargetName());
+         mPursuitMode = "f-pole";
+         writeln_d("    mPursuitMode == ", mPursuitMode);
+      }
+
+      return launched;
+   end_script
+
+
+
+
+
+
+   // These Transition methods are intended to handle any bookkeeping required when changing
+   // into a certain state.
+
+   script void TransitionToWAIT(bool resumeDefaultRoute)
+
+      PLATFORM.GoToSpeed(cWAIT_SPEED);             //stay at wait speed
+
+      if (resumeDefaultRoute)
+      {
+         bool success = false;
+         if ( cROUTE_WAYPOINT_INDEX < 0)
+         {
+            success = PLATFORM.FollowRoute("DEFAULT_ROUTE", "CLOSEST_POINT");
+         }
+         else
+         {
+            success = PLATFORM.FollowRoute("DEFAULT_ROUTE", cROUTE_WAYPOINT_INDEX);
+         }
+         PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200, true);
+
+         if (!success)
+         {
+            PLATFORM.Comment("ERROR: transition to wait, could not follow default route!");
+         }
+         if (mRouteType != "DEFAULT")
+         {
+            PLATFORM.Comment("Route: DEFAULT");
+            mRouteType = "DEFAULT";
+         }
+      }
+      else
+      {
+         ### PLATFORM.GoToAltitude(PLATFORM.Altitude(), 100);  //stay at same altitude
+         PLATFORM.TurnToHeading(PLATFORM.Heading());  //stay at same heading
+      }
+
+      ### PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE);
+      PROCESSOR.SetUpdateInterval(cSLOW_UPDATE_RATE);
+
+      writeln_d("    Transition to WAIT due to Think()");
+   end_script
+
+
+
+   script void TransitionToINTERCEPT(WsfTrack aTarget, string pursuitMode)
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+
+      if (mUseMoverDuringPursuit)
+      {
+         #nothing
+         PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200);
+      }
+      else
+      {
+        #TransitionToWAIT(true);     #FAIL
+        #PLATFORM.FollowRoute("DEFAULT_ROUTE", "CLOSEST_POINT"); #better
+        PLATFORM.ReturnToRoute();
+        PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200, true);
+      }
+      PROCESSOR.SetUpdateInterval(cFAST_UPDATE_RATE);
+      writeln_d("    Transition to INTERCEPT due to pursuing ", aTarget.TargetName(), " mode ", pursuitMode);
+   end_script
+
+
+
+   script void TransitionToPOINT()
+      PROCESSOR.SetUpdateInterval(cSLOW_UPDATE_RATE);
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+      PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200);
+      writeln_d("    Transition to pursue POINT!");
+   end_script
+
+
+
+   script void TransitionToEVADE_INCOMING()
+      PROCESSOR.SetUpdateInterval(cFAST_UPDATE_RATE);
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+      #PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200, true);
+      writeln_d("    Transition to EVADE_INCOMING");
+   end_script
+
+
+
+
+
+
+   on_initialize
+
+     #extern double GetWeaponRangeMax (WsfPlatform, Array<Map<string, Object>>);
+     #extern double GetWeaponRangeMin (WsfPlatform, Array<Map<string, Object>>);
+
+      ownshipEngagementRangeMin = GetWeaponRangeMin(PLATFORM, mWeaponArray);
+      ownshipEngagementRangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+      mTrackWeaponActiveMap = Map<string,double>();
+
+      #can win a number of jobs, not just one
+      SetNumJobChannels(cMAX_ACTIVE_WEAPONS);
+
+      Array<WsfZone> zoneList = PLATFORM.Zones();
+      foreach( WsfZone z in zoneList)
+      {
+         mZoneNames.PushBack(z.Name());
+      }
+      foreach( string x in mZoneNames )
+      {
+        writeln_d("--- Aircraft ", PLATFORM.Name(), " is now monitoring retrieved zone: ", x );
+      }
+
+      if( mZoneNames.Size() == 0 )
+      {
+        writeln_d( "--- Aircraft ", PLATFORM.Name(), " has no zones defined." );
+      }
+
+   end_on_initialize
+
+
+
+
+
+   query_bid
+
+      if (!JOB.IsValid())
+      {
+         return cMIN_JOB_BID;
+      }
+
+      double current_bid = 10000.0;
+      //writeln_d("    - bidding on ", JOB.Name(), ", desc: ", JOB.GetDescription());
+
+      if (JOB.Name() == "pursue-target")
+      {
+         Map<string, Object>tempData = JOB.GetData();
+         string name = (string)tempData["targetTrackName"];
+        #extern WsfTrack GetTrackByName(WsfPlatform, string);
+         WsfTrack track = GetTrackByName(PLATFORM, name);
+
+         // if the track is not a foe or is damaged, we'll ignore it
+         if (!(track.IsValid()))  // || !(track.IFF_Foe()))
+         {
+            writeln_d("!!! No track for JOB: ", JOB.Name(), ", ", JOB.GetDescription(), ", ", name);
+            return cMIN_JOB_BID;
+         }
+
+        #extern double EffectiveRange (WsfPlatform, WsfTrack);
+         double effRange = EffectiveRange(PLATFORM, track);
+         double slantRange = PLATFORM.SlantRangeTo(track);
+
+         bool isCapable = false;
+         string tName = track.TargetName();
+         if (!mTrackMinRangeOkMap.Exists(tName))
+         {
+            mTrackMinRangeOkMap.Set(tName,true);
+         }
+
+         double maxCapableWeaponRange = 0.0;
+
+         //determine if this agent has any weapons that are capable of engaging this kind of target (domain check)
+        #extern bool IsWeaponDomainCapable(WsfTrack,Map<string, Object>);
+         foreach (Map<string, Object> curWeapon in mWeaponArray)
+         {
+            #writeln_d("    ", (string)curWeapon["name"], " weapon is domain capable: ", IsWeaponDomainCapable(track,curWeapon));
+            #writeln_d("    ", (string)curWeapon["name"], " weapons remaining       : ", ((WsfWeapon)curWeapon["weapon"]).QuantityRemaining());
+
+            if ( IsWeaponDomainCapable(track,curWeapon) &&
+                 (((WsfWeapon)curWeapon["weapon"]).QuantityRemaining() > 0))
+            {
+               isCapable = true;
+               double curRange = (double)curWeapon["rangeMax"];
+               if (curRange > maxCapableWeaponRange) maxCapableWeaponRange = curRange;
+
+               if (mTrackMinRangeOkMap.Get(tName)==true    &&
+                   (double)curWeapon["rangeMin"] < effRange  )
+               {
+                  mTrackMinRangeOkMap.Set(tName, true);
+               }
+               else if (mTrackMinRangeOkMap.Get(tName)==false   &&
+                        ((double)curWeapon["rangeMin"] * 2.0) < slantRange )
+               {
+                  mTrackMinRangeOkMap.Set(tName, true);
+               }
+               else
+               {
+                  mTrackMinRangeOkMap.Set(tName, false);
+
+                 writeln_d("    weapon min range failure");
+               }
+            }
+         }
+         if (isCapable==false)
+         {
+           #extern string GetTargetDomain(WsfTrack);
+            writeln_d("!!! No weapon capable in the ", GetTargetDomain(track)," domain and in range for: ", JOB.GetDescription());
+            return cMIN_JOB_BID;
+         }
+
+         if (mTrackMinRangeOkMap.Get(tName)==false)
+         {
+            writeln_d("!!! TrackMinRangeOk == false");
+            return cMIN_JOB_BID;
+         }
+
+         double currentlyTargeted = 0;
+         if (GetTargetName() == name)
+         {
+            currentlyTargeted = 1.0;
+         }
+         //writeln_d("      Currently Targeted: ", currentlyTargeted );
+
+
+
+         //determine if the missile range is added to the escort protect radius
+         if (!escortAddMissileProtectRange)
+         {
+            maxCapableWeaponRange = 0.0;
+         }
+         // if escoring a package, determine if the threat is engageable
+         // check if it lies within the protect radius
+         if (mEscortFollowing)
+         {
+            #if already engaging the threat, allow a little chase
+            if (slantRange > (escortProtectDistance + maxCapableWeaponRange + (currentlyTargeted * escortChaseDistance)))
+            {
+                #writeln_d("      Target not a threat to escort package!");
+                return cMIN_JOB_BID;
+            }
+         }
+
+        #extern string DetermineTrackCategory (WsfTrack);
+         string targetType = DetermineTrackCategory(track);
+         //writeln_d("      track category: ",targetType);
+        #extern bool TestTrackCategory(WsfTrack, string);
+         if (TestTrackCategory(track, "unknown"))
+         {
+            writeln_d("!!! Target type unknown for current job. ");
+            return cMIN_JOB_BID;
+         }
+
+         int othersTargeting = GetRIPRCommanderProcessor().SubsTargeting( track, PLATFORM );
+         //writeln_d("      Others Targeting: ", othersTargeting );
+
+         // set the target type
+         //writeln_d("   -Creating track record for ", name, " -- ", targetType);
+         //writeln_d("      track closing speed: ", PLATFORM.ClosingSpeedOf(track) );
+         //writeln_d("      track slant range  : ", PLATFORM.SlantRangeTo(track) );
+
+         // account for bidding parameters
+        #extern int GetBucket(double, double);
+         //writeln_d("      GetBucket(track closing speed): ", GetBucket(PLATFORM.ClosingSpeedOf(track), cBUCKET_BASE) );
+         //writeln_d("      GetBucket(track slant range): ", GetBucket(PLATFORM.SlantRangeTo(track), cBUCKET_BASE) );
+
+         //current_bid = current_bid + cWEIGHT_BEING_TARGETED    * beingTargeted;
+         current_bid = current_bid + cWEIGHT_CURRENT_TARGET    * currentlyTargeted;
+         current_bid = current_bid + cWEIGHT_CLOSING_SPEED_OF  * GetBucket(PLATFORM.ClosingSpeedOf(track), cBUCKET_BASE) + GetBucket(cBASE_CLOSING_SPEED_CONSTANT, cBUCKET_BASE);
+         current_bid = current_bid + cWEIGHT_SLANT_RANGE_TO    * GetBucket(PLATFORM.SlantRangeTo(track), cBUCKET_BASE) + GetBucket(cBASE_SLANT_RANGE_CONSTANT, cBUCKET_BASE);
+         current_bid = current_bid + cWEIGHT_OTHERS_TARGETING  * othersTargeting;
+         current_bid = current_bid + cWEIGHT_WEAPONS_IN_FLIGHT * PROCESSOR.WeaponsActive(track);
+         current_bid = current_bid + cWEIGHT_WEAPONS_FIRED_AT  * mRoundsFiredAtMap.Get(track);
+         current_bid = current_bid + cWEIGHT_ANY_WEAPONS_ACTIVE * (WeaponsActive(track) + PeersWeaponsActive(track));
+
+      ### if ( (WeaponsActive(aTarget) > 0) || (PeersWeaponsActive(aTarget) > 0) )
+
+
+
+         if( ThreatTypePriority.Exists( targetType ) )
+         {
+           current_bid = current_bid + ThreatTypePriority.Get( targetType );
+         }
+      }
+      else if( JOB.Name() == "pursue-point" )
+      {
+         Map<string, Object>tempData = JOB.GetData();
+         string name = (string)tempData["targetTrackName"];
+
+         WsfGeoPoint point = (WsfGeoPoint)tempData["targetPoint"];
+
+         if (!point.IsValid())
+         {
+            writeln_d("!!! Invalid point for current job: ",JOB.Name(), ", ", JOB.GetDescription() );
+            return cMIN_JOB_BID;
+         }
+
+         // account for bidding parameters
+        #extern int GetBucket(double, double);
+         current_bid = current_bid + cWEIGHT_SLANT_RANGE_TO * GetBucket(PLATFORM.SlantRangeTo(point), cBUCKET_BASE) + GetBucket(cBASE_SLANT_RANGE_CONSTANT, cBUCKET_BASE);
+      }
+
+      //writeln_d("      calculated bid: ", current_bid);
+      return current_bid;
+
+   end_query_bid
+
+
+
+   on_update
+
+
+
+      int WeaponCount = WeaponsActive();
+      for (int i=0; i< WeaponCount; i=i+1)
+      {
+         WsfPlatform w = ActiveWeaponPlatform(i);
+         if (IsUplinkingTo(w))
+         {
+            foreach( WsfRIPRProcessor proc in GetRIPRCommanderProcessor().GetRIPRSubordinateProcessors() )
+            {
+               if ( ! proc.IsUplinkingTo(w))
+               {
+                  proc.StartUplinking(w);
+                  PROCESSOR.StopUplinking(w);
+                  break;
+               }
+            }
+         }
+      }
+
+
+
+
+     #extern Array<string> ttrs;
+      foreach(string ttr in ttrs)
+      {
+        if (PLATFORM.AuxDataBool(ttr))    #shoot at this guy if we can
+        {
+          writeln_d(PLATFORM.Name(), " trying to shoot at ttr: ", ttr);
+          WsfPlatform ttrPlatform = WsfSimulation.FindPlatform(ttr);
+          if (ttrPlatform.IsValid())      #take a shot
+          {
+            WsfTrack ttrTrack = ttrPlatform.MakeTrack();
+            ttrTrack.SetAuxData("notlocal", "true");
+            if (CheckAndFire(ttrTrack))
+            {
+              writeln_d(PLATFORM.Name(), " shot at the ttr: ", ttr);
+              PLATFORM.SetAuxData(ttr, false);
+            }
+          }
+        }
+      }
+
+
+     #extern bool TestTrackCategory(WsfTrack, string);
+
+      double duration = 0.0;
+      double lStartTime = GetWallClockTime();
+
+      writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", State: ", mState, ", Time: ", TIME_NOW);
+
+      string oldState       = mState;
+      string oldPursuitMode = mPursuitMode;
+
+      mState = Think();
+
+      WsfTrack curTarget = GetTarget();
+      string targetType;
+
+      bool turnOnFiringRadar = false;
+      //turn on firing radar if in range
+      if (mTurnOnFiringRadarInRange && !curTarget.IsNull() && curTarget.IsValid())
+      {
+         //check range against radar range
+         if (PLATFORM.SlantRangeTo(curTarget) < mFiringRadarRange)
+         {
+            #writeln_d(PLATFORM.Name()," within range of curTarget!");
+
+            turnOnFiringRadar = true;
+         }
+         else
+         {
+            #writeln_d(PLATFORM.Name()," NOT within range of curTarget!");
+         }
+      }
+      //turn on firing radar if being tracked
+      if (mTurnOnFiringRadarIfRWR && !turnOnFiringRadar)
+      {
+         WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+         foreach (WsfLocalTrack t in localTracks)
+         {
+            if (t.SensorTypeContributor(mRWR_RadarType))
+            {
+               turnOnFiringRadar = true;
+               #writeln_d(PLATFORM.Name(), " is being tracked!  RWR signal from ", mRWR_RadarType);
+               break;
+            }
+         }
+         if (!turnOnFiringRadar)
+         {
+            #writeln_d(PLATFORM.Name(), " not being tracked. No RWR signal from ", mRWR_RadarType);
+         }
+      }
+      if (turnOnFiringRadar)
+      {
+         //make sure radar is on
+         WsfSensor firingRadar = PLATFORM.Sensor(mFiringRadarName);
+         if (firingRadar.IsValid())
+         {
+            if (!firingRadar.IsTurnedOn())
+            {
+               firingRadar.TurnOn();
+               #writeln_d(PLATFORM.Name(), " turned on fire control radar ", mFiringRadarName);
+            }
+            else
+            {
+               #writeln_d(PLATFORM.Name(), " has fire control radar ", mFiringRadarName, " already on!");
+            }
+         }
+         else
+         {
+            #writeln_d("fire control radar ", mFiringRadarName," not found on ", PLATFORM.Name());
+         }
+      }
+
+
+
+
+
+      if (oldState != mState)
+      {
+         PLATFORM.Comment("State: " + mState);
+      }
+
+      if (mState == "POINT")
+      {
+         if (oldState != "POINT")
+         {
+            TransitionToPOINT();
+         }
+
+         if (mUsePathFinder)
+         {
+            //extern bool UpdatePointInterceptLocationWithPathing(WsfPlatform, WsfGeoPoint);
+            UpdatePointInterceptLocationWithPathing (PLATFORM, mCurrentPointIntercept);
+         }
+         else
+         {
+            //extern bool UpdatePointInterceptLocation(WsfPlatform, WsfGeoPoint);
+            UpdatePointInterceptLocation (PLATFORM, mCurrentPointIntercept);
+         }
+
+         duration = GetWallClockTime() - lStartTime;
+         writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", Process Time: ", duration);
+         return;
+      }
+
+      // Process our state
+      if (mState == "EVADE_INCOMING")
+      {
+         if (oldState != "EVADE_INCOMING")
+         {
+            TransitionToEVADE_INCOMING();
+            #mAltitudeBeforeEvade = PLATFORM.Altitude();
+            mAltitudeBeforeEvade = cDEFAULT_ALTITUDE;
+            mSafeAltitudeToDiveTo = MATH.Max(mAltitudeMin, (mAltitudeBeforeEvade - mAltitudeToDiveEvade));
+         }
+         CheckAndFire(curTarget);
+         writeln_d("    Evading incoming");
+        #extern bool EvadeIncoming(WsfPlatform, WsfAIAIProcessor, Array<WsfPlatform>, double, double, double);
+      ###EvadeIncoming(PLATFORM, PROCESSOR, mIncoming, mAltitudeBeforeEvade, mSafeAltitudeToDiveTo, weightPeersForEvade);
+         EvadeIncoming(PLATFORM, PROCESSOR, mIncoming, mAltitudeBeforeEvade, mAltitudeBeforeEvade, weightPeersForEvade);
+         duration = GetWallClockTime() - lStartTime;
+         writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", Process Time: ", duration);
+         return;
+      }
+
+      if (TestTrackCategory(curTarget, "unknown"))
+      {
+         writeln_d("Platform: ", PLATFORM.Name(), " current target: ", curTarget, " unknown or not valid, default mode to WAIT.");
+         mState = "WAIT";
+      }
+
+      if (mState == "INTERCEPT")
+      {
+         if (oldState != "INTERCEPT")
+         {
+            TransitionToINTERCEPT( curTarget, mPursuitMode );
+         }
+#######
+         PLATFORM.SetCurrentTarget(curTarget);
+         CheckAndFire(curTarget);
+
+         if (mUseMoverDuringPursuit)
+         {
+            // Our track quality may not be good enough yet, so keep moving towards the target.
+            if (mUsePathFinder)
+            {
+                UpdateInterceptLocationWithPathing (curTarget, mPursuitMode);
+            }
+            else
+            {
+                UpdateInterceptLocation (curTarget, mPursuitMode);
+            }
+         }
+
+         if (mPursuitMode != oldPursuitMode)
+         {
+            //PLATFORM.Comment("Pursuit Mode: " + mPursuitMode);
+         }
+
+         //writeln_d("    Heading: ", PLATFORM.Heading (), " Altitude: ", PLATFORM.Altitude (), " Speed: ", PLATFORM.Speed());
+         //writeln_d("        (", PLATFORM.Latitude(), ", ", PLATFORM.Longitude(), ", ", PLATFORM.Altitude(), ")");
+         //duration = GetWallClockTime() - lStartTime;
+         //writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", Process Time: ", duration);
+         //return;
+      }
+      else if (mState == "BINGO_FUEL")
+      {
+         writeln_d("   bingo_fuel, return to base or something");
+         PLATFORM.Comment("Bingo fuel");
+         PLATFORM.GoToSpeed(0);
+      }
+      else //if (mState == "WAIT")
+      {
+        mState = "WAIT";
+
+        bool flyingEscort = false;
+        if (mUseMoverDuringPursuit)
+        {
+            flyingEscort = FlyEscortFormation();
+        }
+
+        if (flyingEscort)
+        {
+          writeln_d("flying escort formation!");
+        }
+        else
+        {
+          writeln_d("Platform: ", PLATFORM.Name(), " not flying escort, flying regular WAIT state.");
+          if (oldState != "WAIT")
+          {
+            TransitionToWAIT(true);     //TransitionToWAIT(false);  //LBM try this
+          }
+        }
+      }
+
+      //give attention to secondary jobs
+
+      string tooComment = "Targets of opportunity: ";
+
+      for (int channel = 1; channel < GetNumJobChannels(); channel = channel + 1)
+      {
+         //writeln_d("Getting job for channel: ", channel);
+
+         WsfRIPRJob aJob = GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR, channel);
+         if (!aJob.IsValid())
+         {
+            //writeln_d("Job NOT VALID for channel: ", channel);
+            continue;
+         }
+         if (aJob.Name() == "pursue-target")
+         {
+            string targetName = (string)aJob.GetData("targetTrackName");
+            #extern WsfTrack GetTrackByName(WsfPlatform, string);
+            WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+
+            if (!targetTrack.IsValid() || !targetTrack.BelievedAlive())   // || !targetTrack.IFF_Foe())
+            {
+               writeln_d("Job TRACK is NOT valid for channel: ", channel, " job: ", aJob.GetDescription());
+               continue;
+            }
+
+            tooComment = (tooComment + targetName + "  ");
+
+            //don't fire last weapon at target thats not primary target
+           #extern double GetWeaponQuantityRemainingMax(WsfPlatform, Array<Map<string, Object>>);
+            if (GetWeaponQuantityRemainingMax(PLATFORM, mWeaponArray) > 1)
+            {
+               writeln_d("Platform: ", PLATFORM.Name(), " Looking to fire at target of opportunity: ", targetName, " for channel: ", channel);
+               CheckAndFire(targetTrack);
+            }
+         }
+         else
+         {
+            //writeln_d("Job is NOT pursue-target for channel: ", channel);
+         }
+      }
+
+      if (mOldTOOComment != tooComment)
+      {
+         //PLATFORM.Comment(tooComment);
+         mOldTOOComment = tooComment;
+      }
+
+      duration = GetWallClockTime() - lStartTime;
+      writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", Process Time: ", duration);
+
+   end_on_update
+
+
+
+end_processor
+

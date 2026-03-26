@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#     * * ************************************** * *
+#     *   ****** Demonstration input file ******   *
+#     *   ******      UNCLASSIFIED        ******   *
+#     * * ************************************** * *
+#     ----------------------------------------------------------------
+# 		Simple Airborne Strikers Flying Straight
+#     ----------------------------------------------------------------
+
+
+platform SimpleStriker BLUE_STRIKER
+   side blue
+   category fighter
+   route
+   	#mach 0.9, 30K alt
+      position 1.05n 1.05e altitude 30000 ft msl
+         speed 580 kts
+      position 1.05n 5.0e altitude 30000 ft msl
+         speed 580 kts
+   end_route
+   heading 90 deg
+end_platform

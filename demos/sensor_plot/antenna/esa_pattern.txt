@@ -1,0 +1,35 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# A ESA-based pattern
+###############################################################################
+
+include esa_element_pattern.txt
+
+antenna_pattern ESA_PATTERN
+   esa_pattern
+      element_pattern                  ESA_ELEMENT_PATTERN # comment out for isotrpic element
+      back_baffled                     false  # use minimum gain outside az of [-90 90] range
+      lattice                          rectangular
+      minimum_gain                     -100.0 db
+
+      amplitude_quantization_bits      8
+      phase_quantization_bits          8
+
+      element_spacing_x                0.1499 m
+      number_elements_x                20
+      element_spacing_y                0.1499 m
+      number_elements_y                10
+
+      distribution_type taylor
+         sidelobe_level_x              18 dB
+         sidelobe_level_y              18 dB
+         n_bar_x                       5
+         n_bar_y                       5
+end_antenna_pattern

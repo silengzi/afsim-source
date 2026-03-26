@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior low_speed_recovery
+
+   script_variables
+      double  mLastAltitude        =          0.0;
+      double  mMinimumSpeedAllowed =        102.9;           # units: meters/sec,  == 200 knots
+      double  cDIVE_ALTITUDE       =        304.8;           # 1000 feet
+      double  cMAX_SPEED           = 9999999999.99;          # m/s
+      double  cGRAVITY_ACCEL       =          9.80665;       # 1 G
+      double  cDEFAULT_ACCEL       = (cGRAVITY_ACCEL * 7.5); # m/s^2  ~7.5 Gs
+   end_script_variables
+
+
+   precondition
+      writeln("precondition low_speed_recovery");
+
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      WsfMover mover = PLATFORM.Mover();
+
+      if (targetTrack.IsNull() || !targetTrack.IsValid() || mover.IsNull() || !mover.IsValid())
+      {
+         return false;
+      }
+
+      if (PLATFORM.Speed() < mMinimumSpeedAllowed)
+      {
+         return true;
+      }
+
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing low_speed_recovery");
+      PLATFORM.Comment("low_speed_recovery");
+      //straighten out, fly forward, and negative 1 G to minimize lift drag
+      PLATFORM.GoToSpeed(cMAX_SPEED, cDEFAULT_ACCEL, true);          # go max speed
+      writeln("   GoToSpeed( ", cMAX_SPEED," )");
+      if (PLATFORM.Pitch()>0)
+      {
+         PLATFORM.GoToAltitude(cDIVE_ALTITUDE, cGRAVITY_ACCEL, false);  # unload, dive "slowly" at 1 negative G so there is zero lift drag
+      }
+
+   end_execute
+
+end_behavior
+

@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../p6dof_types/environment/p6dof_environment.txt
+include_once ../p6dof_types/weapons/srb-rato/srb-rato.txt
+
+platform_type  SRB-RATO  WSF_PLATFORM
+
+   spatial_domain  air
+   side            blue
+   icon            zell-booster
+
+   # Setup the P6DOF mover
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type SRB-RATO
+      update_interval   0.01 sec
+   end_mover
+
+end_platform_type

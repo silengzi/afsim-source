@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: processors/sat_exclusion_angle_proc.txt
+
+processor SAT_EXCLUSION_ANGLE_PROC WSF_SCRIPT_PROCESSOR
+   on
+   update_interval 30 sec
+   
+   # Change these on the platform_type or platform level.
+   # Set vars directly - do not specify type again.
+   script_variables 
+      string EXCL_SENSOR_NAME = "";  # default: no sensor
+      double SOLAR_EXCL_ANGLE = 0.0; # default var for no exclusion
+      double LUNAR_EXCL_ANGLE = 0.0; # default var for no exclusion
+      bool ANGLES_TO_MYSTIC = false; # default: do not send angle data to Mystic
+      bool DRAW_SEN_ON_OFF = false;  # default: do not draw to indicate sensor on/off
+      bool BOOKMARK_SEN_OFF = false; # default: do not make Mystic bookmarks when sensor is turned off
+      int senOffCt = 0;              # leave this var alone at the platform_type or platform level
+      double drawRadius = 1.0e5;     # meters, tweak to adjust draw circle
+   end_script_variables
+   
+   on_update
+      # get the sensor subsystem to apply exclusion angle constraints to
+      WsfSensor sen = PLATFORM.Sensor(EXCL_SENSOR_NAME);
+      if (!sen.IsValid()) # turn of processor if sensor not found
+      {
+         PROCESSOR.TurnOff();
+         return;
+      }
+      string platName = PLATFORM.Name();
+      string senName = EXCL_SENSOR_NAME;
+      string platSenStr = platName + "-" + senName;
+      
+      # time now in the sim
+      Calendar simNow = WsfDateTime.CurrentTime();
+      
+      # update pointing
+      bool senOn = sen.IsTurnedOn();
+      if (senOn)
+      {
+         PointSensorToGEO_Belt(sen);
+      }
+      
+      # sensor-platform related vectors
+      Vec3 senBoresightUnit = Vec3.Construct(1.0, 0.0, 0.0); # unit vector along the sensor's boresight
+      Vec3 senPosPlat = sen.ConvertPCSVectorToECS(senBoresightUnit); # platform/body or entity coord system (ECS)
+      
+      # solar related vectors
+      Vec3 solarPosECI = Sun.LocationECI(simNow);  # ECI coord syst = GCRF (Geocentric Celestial Reference Frame)
+      Vec3 solarPosWCS = PLATFORM.ConvertECIToWCS(solarPosECI); # WCS (world coord syst), a.k.a Earth Centered, Earth Fixed (ECEF)
+      Vec3 solarPosPlat = PLATFORM.ConvertWCSToECS(solarPosWCS);
+      
+      # lunar related vectors
+      Vec3 lunarPosECI = Moon.LocationECI(simNow); # ECI coord syst = GCRF (Geocentric Celestial Reference Frame)
+      Vec3 lunarPosWCS = PLATFORM.ConvertECIToWCS(lunarPosECI); # WCS (world coord syst), a.k.a Earth Centered, Earth Fixed (ECEF)
+      Vec3 lunarPosPlat = PLATFORM.ConvertWCSToECS(lunarPosWCS);
+      
+      # calculate the solar and lunar angles off the sensor boresight
+      double solarNumer = Vec3.Dot(senPosPlat, solarPosPlat);
+      double solarDenom = senPosPlat.Magnitude() * solarPosPlat.Magnitude();
+      double solarAng = Math.ACos(solarNumer / solarDenom); # deg
+   
+      double lunarNumer = Vec3.Dot(senPosPlat, lunarPosPlat);
+      double lunarDenom = senPosPlat.Magnitude() * lunarPosPlat.Magnitude();
+      double lunarAng = Math.ACos(lunarNumer / lunarDenom); # deg
+      
+      # determine if exclusion conditions are met
+      # if any are less than and the sensor is on, turn off the sensor
+      # if both are greater than and the sensor is off, turn on the sensor
+      bool solarExcl = solarAng < SOLAR_EXCL_ANGLE;
+      bool lunarExcl = lunarAng < LUNAR_EXCL_ANGLE;
+      
+      if (senOn && (solarExcl || lunarExcl))
+      {
+         sen.TurnOff();
+         senOffCt = senOffCt + 1;
+         
+         if (DRAW_SEN_ON_OFF)
+         {
+            WsfDraw draw = {};
+            draw.Erase(platSenStr);
+            draw.SetId(platSenStr);
+            draw.SetColor(Color.Red());
+            draw.BeginEllipse(0.0, drawRadius, drawRadius);
+            draw.VertexNED(PLATFORM, 0.0, 0.0, 0.0);
+            draw.End();
+         }
+         
+         if (BOOKMARK_SEN_OFF)
+         {
+            string bmrkType = platSenStr;
+            string bmrkText = "sensor_off_ct_" + (string) senOffCt;
+            WsfEventPipe.AddBookmark(TIME_NOW, bmrkType, bmrkText);
+         }
+      }
+      
+      else if (!senOn && !solarExcl && !lunarExcl)
+      {
+         PointSensorToGEO_Belt(sen);
+         sen.TurnOn();
+         
+         if (DRAW_SEN_ON_OFF)
+         {
+            WsfDraw draw = {};
+            draw.Erase(platSenStr);
+            draw.SetId(platSenStr);
+            draw.SetColor(Color.Green());
+            draw.BeginEllipse(0.0, drawRadius, drawRadius);
+            draw.VertexNED(PLATFORM, 0.0, 0.0, 0.0);
+            draw.End();
+         }
+      }
+      
+      # if enabled, sends angular data to Mystic
+      if(ANGLES_TO_MYSTIC)
+      {
+         WsfEventPipe.Record(PLATFORM, "Sun-Sen", solarAng);
+         WsfEventPipe.Record(PLATFORM, "Moon-Sen", lunarAng);
+         WsfEventPipe.Record(PLATFORM, "Sen-On", sen.IsTurnedOn());
+      }
+      
+   end_on_update
+   
+   # draw initial sensor on/off circle, if option enabled
+   execute at_time 0.001 sec absolute 
+      WsfSensor sen = PLATFORM.Sensor(EXCL_SENSOR_NAME);
+      if (!sen.IsValid()) # turn of processor if sensor not found
+      {
+         PROCESSOR.TurnOff();
+         return;
+      }
+      string platName = PLATFORM.Name();
+      string senName = EXCL_SENSOR_NAME;
+      string platSenStr = platName + "-" + senName;
+      
+      if(DRAW_SEN_ON_OFF)
+      {
+         bool senOn = sen.IsTurnedOn();
+         Color initColor = Color.Green();
+         if (!senOn)
+         {
+            initColor = Color.Red();
+         }
+         
+         WsfDraw draw = {};
+         draw.Erase(platSenStr);
+         draw.SetId(platSenStr);
+         draw.SetColor(initColor);
+         draw.BeginEllipse(0.0, drawRadius, drawRadius);
+         draw.VertexNED(PLATFORM, 0.0, 0.0, 0.0);
+         draw.End();
+      }
+   end_execute
+end_processor

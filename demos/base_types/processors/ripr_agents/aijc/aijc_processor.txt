@@ -1,0 +1,107 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#creates "jam-target" jobs from threats in tracklist
+#does not perform any jobs
+#dost not bid on any jobs
+
+    processor AIJC-thinker WSF_RIPR_PROCESSOR
+
+      update_interval 5.0 seconds
+      #script_debug_writes on
+
+      script_variables
+        Map<string, int> mTargetNameJobIdMap = Map<string, int>();
+        Map<int, string> mJobIdTargetNameMap = Map<int, string>();
+        int mMaxJobWinners = 1;
+      end_script_variables
+
+
+      on_initialize
+         //SetJobAllocationMode(2);
+      end_on_initialize
+
+      ##deprecated
+      #query_bid
+      #   return -MATH.DOUBLE_MAX();
+      #end_query_bid
+
+
+      on_update
+        Map<string, int> updatedJobs = Map<string, int>();
+        //simply create jam jobs for each threat we know about
+        //this agent considers itself the highest level commander for any of it's subordinates
+        WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+
+        string comment = "Num Tracks: " + (string)localTracks.Count();
+        //PLATFORM.Comment(comment);
+
+        foreach (WsfTrack track in localTracks)
+        {
+          if (mTargetNameJobIdMap.Exists(track.TargetName()))
+          {
+            //update existing job
+            double currentPriority = 1.0;
+            int jobId = mTargetNameJobIdMap.Get(track.TargetName());
+            WsfRIPRJob job = GetJobById(jobId);
+            job.Priority( currentPriority );
+            //job.SetData("TrackId", track.TrackId() );           //redundant, this shouldn't change anything
+            job.SetData("targetTrackName", track.TargetName()); //redundant, this shouldn't change anything
+          }
+          else
+          {
+            //create new job
+            double initialPriority = 1.0;
+            WsfRIPRJob temp;
+            temp = temp.Create( PROCESSOR,
+                                "jam-target",
+                                "jam-target-" + track.TargetName(),
+                                initialPriority,
+                                mMaxJobWinners );
+            //temp.SetData("TrackId", track.TrackId() );
+            temp.SetData("targetTrackName", track.TargetName());
+
+            AddJob(temp);
+            mTargetNameJobIdMap.Set(track.TargetName(), temp.GetId());
+            mJobIdTargetNameMap.Set(temp.GetId(), track.TargetName());
+            writeln_d("~~~ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+
+            comment = "create job: " + temp.GetDescription();
+            PLATFORM.Comment(comment);
+          }
+          //either way the job was updated or created, record that fact
+          updatedJobs.Set( track.TargetName(), 1 );
+        }
+
+        //now make sure the right jobs are removed
+        //the targets for previous jobs might not exist anymore
+        //remove any jobs that are for non-existent tracks
+        Array<WsfRIPRJob> jobs = GetJobs();
+        foreach (WsfRIPRJob x in jobs)
+        {
+          string name = (string)x.GetData("targetTrackName");
+          if (updatedJobs[name] != 1)
+          {
+            int jid = x.GetId();
+            writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", x.GetDescription());
+
+            comment = "delete job: " + x.GetDescription();
+            PLATFORM.Comment(comment);
+
+            string tName = mJobIdTargetNameMap[jid];  //this should match the job's data: "targetTrackName"
+            mTargetNameJobIdMap.Erase(name);
+            mJobIdTargetNameMap.Erase(jid);
+            RemoveJob(x);
+          }
+        }
+      end_on_update
+
+
+  end_processor

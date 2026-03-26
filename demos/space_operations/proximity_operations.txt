@@ -1,0 +1,165 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =============================================================================
+# Proximity operations-related demo that shows a CubeSat maneuvering around a
+# Space Shuttle.  Initially it moves under the shuttle, comes up in front of it,
+# where it briefly pauses, then moves over the top to the back.
+# It then transitions to tracing out a path in the horizontal plane,
+# first along the right side to the front, then to the left side and to the back.
+#
+# Try tethering the view to the CubeSat or the space shuttle,
+# as it is otherwise hard to see in the Mystic application.
+# =============================================================================
+
+platform_type SATELLITE WSF_PLATFORM
+   icon satellite
+   mover WSF_SPACE_MOVER
+      update_interval 5 s
+   end_mover
+end_platform_type
+
+platform target SATELLITE
+   side red
+   icon space_shuttle_atlantis
+   edit mover
+      semi_major_axis 7000 km
+      eccentricity 0.0
+      inclination 0 deg
+      mean_anomaly 10 deg
+   end_mover
+end_platform
+
+platform chaser SATELLITE
+   side blue
+   icon cubesat
+   edit mover
+      semi_major_axis 7000 km
+      eccentricity 0.0
+      inclination 0 deg
+      mean_anomaly 9.998 deg
+
+      mission_sequence
+         maneuver intercept
+            delta_time 1000 s
+            target
+               offset ntw -50 0 30 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw 50 0 30 m
+               platform target
+            end_target
+         end_maneuver
+
+         maneuver rendezvous
+            delta_time 25 s
+            target
+               offset ntw 50 0 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver rendezvous
+            delta_time 25 s
+            target
+               offset ntw 50 0 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver rendezvous
+            delta_time 25 s
+            target
+               offset ntw 50 0 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver rendezvous
+            delta_time 25 s
+            target
+               offset ntw 50 0 0 m
+               platform target
+            end_target
+         end_maneuver
+
+         maneuver intercept
+            delta_time 50 s
+            target
+               offset ntw 50 0 -30 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw -50 0 -30 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw -50 30 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw 50 30 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw 50 -30 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw -50 -30 0 m
+               platform target
+            end_target
+         end_maneuver
+         maneuver intercept
+            delta_time 100 s
+            target
+               offset ntw -50 0 0 m
+               platform target
+            end_target
+         end_maneuver
+
+         maneuver rendezvous
+            delta_time 100 s
+            target
+               offset ntw -50 0 30 m
+               platform target
+            end_target
+         end_maneuver
+
+      end_mission_sequence
+   end_mover
+end_platform
+
+event_pipe
+   file output/proximity_operations.aer
+end_event_pipe
+
+event_output
+   file output/proximity_operations.evt
+   enable ORBITAL_MANEUVER_INITIATED
+   enable ORBITAL_MANEUVER_COMPLETED
+end_event_output
+
+end_time 1 hours

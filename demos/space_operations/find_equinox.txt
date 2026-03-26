@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#===============================================================================
+# Show the equinox and solstice events for a 2017 and 2018
+#
+# Note that the times displayed as a result of running this example will differ
+# from those show below by several minutes.
+
+include_once scripts/FindEquinoxOrSolstice.txt
+
+# The equinox and solstice events for 2107 are:
+#   Vernal equinox: Mar 20 10:28
+#  Summer solstice: Jun 21 04:24
+# Autumnal equinox: Sep 22 20:02
+#  Winter solstice: Dec 21 16:28
+
+# The equinox and solstice events for 2107 are:
+#   Vernal equinox: Mar 20 16:15
+#  Summer solstice: Jun 21 10:07
+# Autumnal equinox: Sep 23 01:54
+#  Winter solstice: Dec 21 22:23
+
+on_initialize
+   ShowAllEquinoxAndSolsticeEvents(2017);
+   ShowAllEquinoxAndSolsticeEvents(2018);
+end_on_initialize

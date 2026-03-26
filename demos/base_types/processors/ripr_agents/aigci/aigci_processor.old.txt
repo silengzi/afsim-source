@@ -1,0 +1,808 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#acts as a job-pass-through if a commander exists
+#otherwise:
+#creates and updates "zone" and "flank" jobs
+#does not perform any jobs
+
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+
+
+processor AIGCI-thinker WSF_AIGCI_PROCESSOR
+
+  #debug
+  #script_debug_writes on
+  script_debug_writes off
+
+  update_interval 5.0 sec
+
+  script_variables
+    # the GCI uses these threat priority pairs to dispatch it's subordinates
+    # the string is a platforms category (can have more than one category)
+    # the number is its priority
+    Map<string, double> ThreatTypePriority = Map<string, double>();
+    ThreatTypePriority["unknown"]       = 0.0;
+    ThreatTypePriority["uav"]           = 2.0;
+    ThreatTypePriority["sam"]           = 4.0;
+    ThreatTypePriority["ship"]          = 4.0;
+    ThreatTypePriority["awacs"]         = 4.0;
+    ThreatTypePriority["bomber"]        = 2.0;
+    ThreatTypePriority["jammer"]        = 0.0;
+    ThreatTypePriority["fighter"]       = 5.0;
+    ThreatTypePriority["missile"]       = 9.0;
+    ThreatTypePriority["missile_fast"]       = 9.0;
+    ThreatTypePriority["FIRE_CONTROL"]  = 6.0;
+    ThreatTypePriority["strike_target"]    = 20.0;
+    ThreatTypePriority["primary_target"]   = 20.0;
+    ThreatTypePriority["secondary_target"] = 10.0;
+    #ThreatTypePriority["2D_RADAR"]     = 0.0;
+    #ThreatTypePriority["3D_RADAR"]     = 0.0;
+    #ThreatTypePriority["ACQUISITION"]  = 0.0;
+    #ThreatTypePriority["HF_RADAR"]     = 0.0;
+
+    bool   mCreateFlankJobs    = true;
+    bool   mDrawClusters       = false;
+
+    Array<Vec3> mBowTieZonePoints = Array<Vec3>();
+
+    bool   mUseClustersInZones = false;
+
+    Array<string> mZoneNames = Array<string>();
+
+    Array<WsfTrack> trackArray = Array<WsfTrack>();
+
+    Map<string, WsfRIPRJob> mZoneJobMap = Map<string, WsfRIPRJob>();
+    Map<string, WsfCluster> mZoneCluster = Map<string, WsfCluster>();
+
+    Map<int, int> mJobToWinnerMap    = Map<int, int>();
+    Map<int, int> mFlankToClusterMap = Map<int, int>();
+    Map<int, int> mClusterToFlankMap = Map<int, int>();
+    Array<string> mCompletedFlanks   = Array<string>();
+    Map<string, double> mFlankNameToTimeCompleteMap = Map<string, double>();
+
+    int mMaxTotalFlankJobsEverToCreate =  1;
+    int mMaxJobWinnersForFlank         =  2;
+ ###double mFlankJobPriorityScale      =  0.75; // make > 1 for more important than clusters
+    double mFlankJobPriorityScale      =  1.5;  // make > 1 for more important than clusters
+    double cFLANK_DISTANCE             = 60.0;  // flank towards a point approximately this many nm to the side of target
+    int mFlankJobsCreated              =  0;    // utility variable, not a constant to set
+    int mFlankJobsCompleted            =  0;    // utility variable, not a constant to set
+
+    //after a completed flank on a cluster, don't do another on that same cluster until this time passes
+    double mFlankRepeatDelay = 300.0; //in units of seconds
+
+    int mMaxJobWinnersForGciZone = 1;
+    int mLastNumClusters = 0;
+
+    WsfClusterManager cManager;
+
+    WsfDraw draw = WsfDraw();
+
+  end_script_variables
+
+
+
+  #
+  #  utility method used to draw lines between tracks in a cluster
+  #  lines are drawn in a star-burst pattern from the center out
+  #
+  script void aigci_draw_cluster_star(WsfCluster cluster)
+
+     int trackCount = cluster.Count();
+     WsfGeoPoint center = cluster.MeanLocation();
+
+     //draw.SetId("cluster-lines");
+     draw.SetLineStyle("solid");
+     draw.BeginLines();
+       draw.SetColor(1.0,1.0,0.0);
+       for (int j = 0; j < trackCount; j = j + 1 )
+       {
+          WsfTrack t = cluster.Entry(j);
+          draw.Vertex(center);
+          draw.Vertex(t.CurrentLocation());
+       }
+     draw.End();
+
+  end_script
+
+
+
+  #
+  #  utility method used to draw lines around tracks in a cluster
+  #  lines are drawn according to the convex hull of the cluster members
+  #
+  script void draw_cluster_hull(WsfCluster cluster)
+     Array<WsfGeoPoint> pts = cluster.ConvexHull();
+     //writeln_d("   ~~~ aigci cluster convex hull pts: ", pts.Size());
+     if (pts.Size() <= 0)
+     {
+        return;
+     }
+     WsfGeoPoint first = pts.Get(0);
+     draw.SetColor(1.0,0.5,0.0);  //orange?
+     draw.SetLineStyle("solid");
+     draw.SetLineSize(2);
+     draw.BeginPolyline();
+       for (int j = 0; j < pts.Size(); j = j + 1 )
+       {
+          WsfGeoPoint pt = pts.Get(j);
+          draw.Vertex(pt);
+          //writeln_d("   ~~~ aigci cluster convex hull pt ", j+1, ": ", pt.Latitude(), ", ", pt.Longitude());
+       }
+       draw.Vertex(first);
+     draw.End();
+  end_script
+
+
+
+  #
+  #  utility method used to draw points where the raw tracks in a tracklist are
+  #
+  script void aigci_draw_raw_tracks(WsfLocalTrackList aList)
+
+     draw.SetColor(1.0,1.0,0.0);  //yellow
+     draw.SetPointSize(5);
+
+     draw.BeginPoints();
+     foreach (WsfLocalTrack t in aList)
+     {
+        for (int j = 0; j < t.RawTrackCount(); j = j + 1 )
+        {
+           WsfTrack raw = t.RawTrack(j);
+           draw.Vertex(raw.ReportedLocation());
+        }
+     }
+     draw.End();
+
+  end_script
+
+
+  script void aigci_draw_track_to_truth()
+     WsfLocalTrackList aList = PLATFORM.MasterTrackList();
+     draw.SetColor(0.0,0.5,1.0);  //blue-green
+     draw.SetLineSize(3);
+     draw.BeginLines();
+     foreach (WsfLocalTrack t in aList)
+     {
+        WsfPlatform plat = WsfSimulation.FindPlatform( t.TargetIndex() );
+        if (plat.IsValid())
+        {
+          draw.Vertex(plat.Location());
+          //draw.Vertex(t.ReportedLocation());
+          draw.Vertex(t.CurrentLocation());
+
+          bool broke = false;
+          if (t.Altitude()<0 || t.Altitude()>31000)
+          {
+            writeln("TRACK BROKE!!!");
+            broke = true;
+          }
+
+          writeln("local track: ", t.TrackId().ToString(), " target: ", t.TargetName());
+          for (int i=0; i<t.RawTrackCount(); i=i+1)
+          {
+            WsfTrack raw = t.RawTrack(i);
+            writeln("        raw: ", raw.TrackId().ToString());
+
+            #if (broke)
+            #{
+              WsfPlatform owner = WsfSimulation.FindPlatform(raw.TrackId().Name());
+              if (owner.IsValid()) {
+                WsfLocalTrack t2 = owner.MasterTrackList().Find(raw.TrackId());
+                if (t2.IsValid())
+                {
+                  for (int j=0; j<t2.RawTrackCount(); j=j+1)
+                  {
+                    writeln("        more raw: ", t2.RawTrack(j).TrackId().ToString());
+                  }
+                }
+              }
+            #}
+          }
+        }
+     }
+     draw.End();
+  end_script
+
+
+  #
+  #  if the gci agent wasn't given zones to monitor, then it
+  #  dynamically clusters all threats in its tracklist and
+  #  creates zone/cluster jobs off of those
+  #
+  script void aigci_update_with_clusters_array(Array<WsfTrack> aTrackArray)
+
+    //writeln_d("   ~~~ aigci tracklist count:       ", localTracks.Count());
+
+    cManager.UpdateClusters(TIME_NOW,aTrackArray);
+
+    int NumClusters = cManager.Count();
+
+    for (int i = 0; i < NumClusters; i = i + 1 )
+    {
+      WsfCluster cluster = cManager.Entry(i);
+      string ClusterName = PLATFORM.Name() + "_" + (string)i;
+
+      //no need to have a zone on the platform: deprecated!
+      //cluster.UpdatePlatformZone(PLATFORM,ClusterName,(5.0/60.0));   //5 minutes (1/12th of a degree)
+
+      if (mDrawClusters == true)
+      {
+        draw_cluster_hull(cluster);
+      }
+
+      WsfGeoPoint clusterPoint = cluster.MeanLocation();
+      double clusterBearing = cluster.Bearing();
+      bool clusterBearingValid = cluster.BearingValid();
+
+      #writeln("~~~ aiGCI - cluster ", ClusterName, " bearing valid: ", clusterBearingValid, ", CLUSTER BEARING ", clusterBearing);
+      #for (int i = 0; i < cluster.Count(); i = i + 1 )
+      #{
+      #   WsfTrack t = cluster.Entry(i);
+      #   writeln("~~~ aiGCI - cluster entry ", t.TargetName(), ", bearing = ", t.Bearing());
+      #}
+
+      int occupants = cluster.Count();
+      double ClusterPriority = (double)occupants;
+
+      if( occupants > 0 )
+      {
+        if( mZoneJobMap.Exists( ClusterName ) )
+        {
+          //writeln_d("~~~ aiGCI, updating job for cluster: ", ClusterName);
+
+          //job exists for zone with threats, update job priority
+          WsfRIPRJob temp = mZoneJobMap.Get( ClusterName );
+          //job priority could have changed, set it
+          temp.Priority( ClusterPriority );
+          temp.SetData( "ZonePoint", WsfGeoPoint(clusterPoint) );
+          temp.SetData( "ZoneBearing", clusterBearing );
+          temp.SetData( "ZoneBearingValid", clusterBearingValid );
+          //number of threats inside zone could have changed, set it
+          temp.SetData( "ZoneNumThreats", occupants );
+
+          Array<string> arr = Array<string>();
+          for (int i = 0; i < occupants; i = i + 1 )
+          {
+             arr.PushBack(cluster.Entry(i).TargetName());
+          }
+          temp.SetData( "ZoneThreatNameArray", arr );
+        }
+        else
+        {
+          //zone just became hot, job not created yet, create one
+          WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                               "zone",
+                                               "zone-" + ClusterName,
+                                               ClusterPriority,
+                                               mMaxJobWinnersForGciZone );
+          temp.SetData( "ZoneName", ClusterName );
+          temp.SetData( "ZonePoint", WsfGeoPoint(clusterPoint) );
+          temp.SetData( "ZoneBearing", clusterBearing );
+          temp.SetData( "ZoneBearingValid", clusterBearingValid );
+          temp.SetData( "ZoneNumThreats", occupants );
+          temp.SetData( "for_air", 1 );
+
+          Array<string> arr = Array<string>();
+          for (int i = 0; i < occupants; i = i + 1 )
+          {
+             arr.PushBack(cluster.Entry(i).TargetName());
+
+             writeln_d("job target: ", cluster.Entry(i).TargetName());
+
+          }
+          temp.SetData( "ZoneThreatNameArray", arr );
+
+          AddJob(temp);
+          mZoneJobMap.Set( ClusterName, temp );
+
+          writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+        }
+      }
+      else
+      {
+        //no threats in cluster, make sure job for cluster doesn't exist or is deleted
+        if( mZoneJobMap.Exists( ClusterName ) )
+        {
+          writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", mZoneJobMap.Get(ClusterName).Name() );
+          RemoveJob( mZoneJobMap.Get(ClusterName) );
+          //mZoneJobMap.Erase( ClusterName );
+          mZoneJobMap.Remove( ClusterName );
+        }
+      }
+    }
+
+    //remove any additional clusters
+    for( int j = NumClusters; j < mLastNumClusters; j = j+1 )
+    {
+      string ClusterName = PLATFORM.Name() + "_" + (string)j;
+      if( mZoneJobMap.Exists( ClusterName ) )
+      {
+        writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", mZoneJobMap.Get(ClusterName).Name() );
+        RemoveJob( mZoneJobMap.Get(ClusterName) );
+        //mZoneJobMap.Erase( ClusterName );
+        mZoneJobMap.Remove( ClusterName );
+      }
+    }
+
+    mLastNumClusters = NumClusters;
+  end_script
+
+
+
+  script void aigci_update_with_clusters(WsfLocalTrackList localTracks)
+    trackArray.Clear();
+    foreach (WsfTrack track in localTracks)
+    {
+      track.SetBearing( track.Heading() );  #useful for the cluster processing
+      trackArray.PushBack(track);
+    }
+    aigci_update_with_clusters_array(trackArray);
+  end_script
+
+
+
+  script void aigci_update_with_clusters_in_zones()
+
+   #extern bool TestTrackCategory(WsfTrack,string);
+    WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+    writeln_d("~~~  localTracks.Count() = ", localTracks.Count());
+    trackArray.Clear();
+    foreach (WsfTrack track in localTracks)
+    {
+      // if the track is not a foe, we'll ignore it
+      if (!(track.IsValid()) || !track.IFF_Foe() || TestTrackCategory(track,"unknown"))
+      {
+        continue;
+      }
+
+      foreach( string zName in mZoneNames )
+      {
+        if( track.WithinZoneOf( PLATFORM, zName ) )
+        {
+         track.SetBearing( track.Heading() );  #useful for the cluster processing
+         trackArray.PushBack(track);
+        }
+      }
+    }
+    aigci_update_with_clusters_array(trackArray);
+  end_script
+
+
+  #
+  #  if the gci agent was given WSF zones to monitor, then it only
+  #  creates zone/cluster jobs based on threats in those zones
+  #
+  script void aigci_update_with_zones()
+
+   #extern string DetermineTrackCategory(WsfTrack);
+   #extern bool TestTrackCategory(WsfTrack,string);
+
+    WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+    writeln_d("~~~  localTracks.Count() = ", localTracks.Count());
+
+    mZoneCluster.Clear();
+
+    //build clusters from threats that occupy zones of interest
+    //clusters can share members simply because zones can overlap
+    foreach (WsfTrack track in localTracks)
+    {
+      // if the track is not a foe, we'll ignore it
+      if (!(track.IsValid()) || !track.IFF_Foe() || TestTrackCategory(track,"unknown"))
+      {
+        continue;
+      }
+      #if( track.LocationValid() ) { writeln_d("~~~ Considering: ", track.TrackId().Name(), ".", track.TrackId().Number(), " -> ", track.TargetName()); }
+
+      if (track.LocationValid())
+      {
+        //zones can overlap, so check all zones for each track
+        foreach( string zName in mZoneNames )
+        {
+            if( track.WithinZoneOf( PLATFORM, zName ) )
+            {
+                track.SetBearing( track.Heading() );  #useful for the cluster processing
+                if (!mZoneCluster.Exists(zName))
+                {
+                    mZoneCluster.Set(zName, WsfCluster.Create(track));
+                }
+                else
+                {
+                    mZoneCluster.Get(zName).Add(track);
+                }
+            }
+        }
+      }
+    }
+
+    //ensure a job exists for each occupied zone (cluster of threats)
+    foreach ( string name : WsfCluster cluster in mZoneCluster)
+    {
+      double ZoneJobPriority = 0.0;
+      Array<string> targetNames = Array<string>();
+      for (int i = 0; i < cluster.Count(); i = i + 1)
+      {
+        WsfTrack aTrack = cluster.Entry(i);
+        string trgtType = DetermineTrackCategory(aTrack);
+        ZoneJobPriority = ZoneJobPriority + ThreatTypePriority.Get(trgtType);
+        targetNames.PushBack(aTrack.TargetName());
+      }
+
+      if( mZoneJobMap.Exists( name ) )
+      {
+        //writeln("LBM - update zone job  count: ", cluster.Count());
+        //job exists for zone with threats, update job priority
+        WsfRIPRJob temp = mZoneJobMap.Get( name );
+        //job priority could have changed, set it
+        temp.Priority( ZoneJobPriority );
+        temp.SetData( "ZonePoint", WsfGeoPoint(cluster.MeanLocation()) );
+        temp.SetData( "ZoneBearing", cluster.Bearing() );
+        temp.SetData( "ZoneBearingValid", cluster.BearingValid() );
+        temp.SetData( "ZoneNumThreats", cluster.Count() );
+        temp.SetData( "ZoneThreatNameArray", targetNames );
+      }
+      else
+      {
+        //writeln("LBM - create zone job.  count: ", cluster.Count());
+        //zone just became hot, job not created yet, create one
+        WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR, "zone", "zone-" + name, ZoneJobPriority, mMaxJobWinnersForGciZone );
+        temp.SetData( "ZoneName", name );
+        temp.SetData( "ZonePoint", WsfGeoPoint(cluster.MeanLocation()) );
+        temp.SetData( "ZoneBearing", cluster.Bearing() );
+        temp.SetData( "ZoneBearingValid", cluster.BearingValid() );
+        temp.SetData( "ZoneNumThreats", cluster.Count() );
+        temp.SetData( "ZoneThreatNameArray", targetNames );
+        temp.SetData( "for_air", 1 );
+        AddJob(temp);
+        mZoneJobMap.Set(name, temp);
+        writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+      }
+    }
+    //remove existing jobs for which their is no occupied zone (no cluster of threats)
+    Array<WsfRIPRJob> jobs = GetJobs();
+    foreach (WsfRIPRJob x in jobs)
+    {
+       string zName = (string)x.GetData("ZoneName");
+       if (!mZoneCluster.Exists(zName))
+       {
+          writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", x.GetDescription());
+          RemoveJob(x);
+          mZoneJobMap.Erase(zName);
+       }
+    }
+  end_script
+
+
+  #
+  #  script callback method for when a flank job is completed
+  #  the job board calls this when a flank job that it owns has been marked as complete
+  #
+  script void aigci_flank_complete(int jobID)
+    //save job in completed array
+    //remove job from created array
+    WsfRIPRJob aJob = GetJobById( jobID );
+    writeln_d("~~~ Flank Job Completed: ", aJob.GetDescription());
+    mCompletedFlanks.PushBack( aJob.Name() );
+
+    mFlankNameToTimeCompleteMap.Set( aJob.Name(), TIME_NOW );
+
+    int clusterId = mFlankToClusterMap.Get( jobID );
+    mFlankToClusterMap.Erase( jobID );
+    mClusterToFlankMap.Erase( clusterId );
+
+    mFlankJobsCompleted = mFlankJobsCompleted + 1;
+  end_script
+
+
+  #
+  #  method for administering flank jobs, if they are enabled
+  #
+  script void aigci_update_flanks()
+
+    //check if this gci is done creating & updating the flank jobs
+    if( mFlankJobsCompleted >= mMaxTotalFlankJobsEverToCreate )
+    {
+      writeln_d( "~~~ aiGCI - Max Flank Jobs Completed, return now!" );
+      return;
+    }
+
+    //check for clusters that went away & thus we can't flank them anymore
+    //otherwise, update the flank job
+    foreach( int flankJobId : int clusterJobId in mFlankToClusterMap )
+    {
+      WsfRIPRJob flankJob   = GetJobById( flankJobId );
+      WsfRIPRJob clusterJob = GetJobById( clusterJobId );
+
+      if( clusterJob.IsValid() )
+      {
+        if( flankJob.IsValid() )
+        {
+          if (flankJob.GetBestProgress() >= 1.0 )
+          {
+            writeln("GCI removing completed flank job!!!");
+            mCompletedFlanks.PushBack( flankJob.Name() );
+            mFlankNameToTimeCompleteMap.Set( flankJob.Name(), TIME_NOW );
+            int flankId   = flankJob.GetId();
+            int clusterId = mFlankToClusterMap.Get( flankId );
+            mFlankToClusterMap.Erase( flankId );
+            mClusterToFlankMap.Erase( clusterId );
+            mFlankJobsCompleted = mFlankJobsCompleted + 1;
+            mFlankToClusterMap.Remove( flankId );
+            mClusterToFlankMap.Remove( clusterId );
+            RemoveJob( flankJob );
+          }
+          else
+          {
+            writeln_d( "~~~ aiGCI - updating flank job ", flankJob.Name(), " with cluster ", clusterJob.Name(), "!!!" );
+            writeln_d("best flank progress: ", flankJob.GetBestProgress());
+            WsfGeoPoint point = (WsfGeoPoint)clusterJob.GetData().Get("ZonePoint");
+            double bearing = (double)clusterJob.GetData().Get("ZoneBearing");
+            bool bearingValid = (bool)clusterJob.GetData().Get("ZoneBearingValid");
+            //writeln_d( "~~~ aiGCI - flank job BEARING: ", bearing );
+            string flankZoneName = "flank" + clusterJob.Name();
+
+            //writeln(PLATFORM.Name(), " UpdateFlankZone( ", TIME_NOW, ", ", flankZoneName, ", ", point.ToString(), ", ", bearing, ", ", cFLANK_DISTANCE);
+
+            //now the wsfzone can be treated as a relative zone, and doesn't need updating
+            //UpdateFlankZone( TIME_NOW, flankZoneName, point, bearing, cFLANK_DISTANCE );
+            //update the flank job with relevant cluster information
+            flankJob.Priority( (mFlankJobPriorityScale * clusterJob.GetPriority()) );
+            flankJob.SetData( "FlankZoneName", flankZoneName );
+            flankJob.SetData( "ZonePoint", WsfGeoPoint(point) );
+            flankJob.SetData( "ZoneBearing", bearing );
+            flankJob.SetData( "ZoneBearingValid", bearingValid );
+            flankJob.SetData( "ZoneNumThreats", (int)clusterJob.GetData().Get("ZoneNumThreats") );
+          }
+        }
+        else
+        {
+          writeln_d( "~~~ aiGCI - cluster valid, but flank not valid!" );
+        }
+      }
+      else
+      {
+        //remove flank job, cluster went away
+        WsfRIPRJob tJob = GetJobById( flankJobId );
+
+        writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", tJob.Name() );
+
+        mFlankToClusterMap.Remove( flankJobId );
+        mClusterToFlankMap.Remove( clusterJobId );
+        RemoveJob( tJob );
+
+        if( mFlankJobsCreated > 0 )
+        {
+          mFlankJobsCreated = mFlankJobsCreated - 1;
+        }
+      }
+    }
+
+    //check if only the updates were needed, or if we can create more flank jobs
+    if( mFlankJobsCreated >= mMaxTotalFlankJobsEverToCreate )
+    {
+      writeln_d( "~~~ aiGCI - max flank jobs created, no need for more!" );
+      return;
+    }
+
+    //create a new flank job if a cluster exists that never had one
+
+    double DistClosestCluster = MATH.DOUBLE_MAX();
+    WsfRIPRJob JobWithClusterToFlank;
+    Array<WsfRIPRJob> jobs = GetJobs();
+    foreach (WsfRIPRJob aJob in jobs)
+    {
+      //if job is a cluster job (not a flank job) & is not being flanked already
+      //then consider it as a candidate for flanking, else continue
+      if( mFlankToClusterMap.Exists( aJob.GetId() ) || mClusterToFlankMap.Exists( aJob.GetId() ) )
+      {
+        //writeln_d( "~~~ aiGCI - job ", aJob.Name(), " is either a flank job or a zone thats already being flanked!" );
+        continue;
+      }
+
+      //if enough time hasn't elapsed since the last flank performed on this cluster, then continue
+      string newFlankName = "flank" + aJob.Name();
+      if( mFlankNameToTimeCompleteMap.Exists( newFlankName ) )
+      {
+        double lastFlankTime = mFlankNameToTimeCompleteMap.Get( newFlankName );
+        if( TIME_NOW < (lastFlankTime + mFlankRepeatDelay) )
+        {
+          continue;
+        }
+      }
+
+      WsfGeoPoint cPoint = (WsfGeoPoint)aJob.GetData().Get("ZonePoint");
+      double dist = PLATFORM.GroundRangeTo(cPoint);
+      if( dist < DistClosestCluster )
+      {
+        JobWithClusterToFlank = aJob;
+      }
+    }
+
+    //if no flank job exists yet, and there is a cluster to flank, create job
+    if( JobWithClusterToFlank.IsValid() )
+    {
+      WsfGeoPoint clusterPoint = (WsfGeoPoint)JobWithClusterToFlank.GetData().Get("ZonePoint");
+      double clusterBearing = (double)JobWithClusterToFlank.GetData().Get("ZoneBearing");
+      bool clusterBearingValid = (bool)JobWithClusterToFlank.GetData().Get("ZoneBearingValid");
+      int clusterOccupants = (int)JobWithClusterToFlank.GetData().Get("ZoneNumThreats");
+      string clusterZoneName = (string)JobWithClusterToFlank.GetData().Get("ZoneName");
+
+      string flankZoneName = "flank" + JobWithClusterToFlank.Name();
+
+
+      WsfRIPRJob NewFlankJob = WsfRIPRJob.Create( PROCESSOR,
+                                                  "flank",
+                                                  flankZoneName,
+                                                  (mFlankJobPriorityScale * JobWithClusterToFlank.GetPriority()),
+                                                  mMaxJobWinnersForFlank );
+      NewFlankJob.SetData( "ZoneName", clusterZoneName );
+      NewFlankJob.SetData( "FlankZoneName", flankZoneName );
+      NewFlankJob.SetData( "ZonePoint", WsfGeoPoint(clusterPoint) );
+      NewFlankJob.SetData( "ZoneBearing", clusterBearing );
+      NewFlankJob.SetData( "ZoneBearingValid", clusterBearingValid );
+      NewFlankJob.SetData( "ZoneNumThreats", clusterOccupants );
+      double FlankDistanceMeters = cFLANK_DISTANCE * MATH.M_PER_NM();
+      NewFlankJob.SetData( "FlankDistance", (1.8 * FlankDistanceMeters) );  //pursue a point 10% inside the flank zone, the flank width is 2*FlankDist
+      NewFlankJob.SetData( "OnJobComplete", "aigci_flank_complete" );
+      NewFlankJob.SetData( "for_air", 1 );
+
+      WsfZone flankZone = WsfZone.CreatePolygonal(PLATFORM, mBowTieZonePoints); //creates a relative zone
+      NewFlankJob.SetData( "FlankZone", flankZone );
+
+      AddJob(NewFlankJob);
+
+      writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", NewFlankJob.Name() );
+
+      mFlankJobsCreated = mFlankJobsCreated + 1;
+      //save link between the flank & the cluster thats being flanked
+      mFlankToClusterMap.Set( NewFlankJob.GetId(), JobWithClusterToFlank.GetId() );
+      mClusterToFlankMap.Set( JobWithClusterToFlank.GetId(), NewFlankJob.GetId() );
+
+      //now we can use a WsfZone and not have to update a platform zone
+      //writeln(PLATFORM.Name(), " UpdateFlankZone( ", TIME_NOW, ", ", flankZoneName, ", ", clusterPoint.ToString(), ", ", clusterBearing, ", ", cFLANK_DISTANCE);
+      //UpdateFlankZone( TIME_NOW, flankZoneName, clusterPoint, clusterBearing, cFLANK_DISTANCE );
+    }
+
+  end_script
+
+
+
+  #
+  #  main update loop of the gci agent
+  #  this agent determines his role (commander or not?) and then
+  #  administers zone (cluster) & flank jobs for his subordinates
+  #
+  on_update
+    writeln_d("--- aigci_update Platform: ", PLATFORM.Name(), ", Time: ", TIME_NOW);
+
+    //aigci_draw_track_to_truth();
+
+
+    double duration = 0.0;
+    double lStartTime = GetWallClockTime();
+
+    if( GetRIPRCommanderProcessor().IsValid() )
+    {
+      //if the gci has a commander, then let its subordinates win jobs from the commander
+      //the commander should create the same kinds of jobs that the gci would have created
+      //these kinds include zone (cluster) jobs, or maybe even flank jobs
+      SetJobPassThrough(true);
+      writeln_d( "~~~ aigci is a job pass through now. time: ", TIME_NOW);
+    }
+    else
+    {
+      SetJobPassThrough(false);
+      if( mZoneNames.Size() > 0 )
+      {
+        if ( mUseClustersInZones )
+        {
+          writeln_d( "~~~ aigci update w clusters in zones: ", PLATFORM.Name(), "- time: ", TIME_NOW);
+          aigci_update_with_clusters_in_zones();
+        }
+        else
+        {
+          writeln_d( "~~~ aigci update w zones: ", PLATFORM.Name(), "- time: ", TIME_NOW);
+          aigci_update_with_zones();
+        }
+      }
+      else
+      {
+        writeln_d( "~~~ aigci update w clusters: ", PLATFORM.Name(), "- time: ", TIME_NOW);
+        WsfLocalTrackList localTracks;
+        localTracks = PLATFORM.MasterTrackList();
+        aigci_update_with_clusters(localTracks);
+      }
+
+      if (mCreateFlankJobs == true)
+      {
+        aigci_update_flanks();
+      }
+
+      Array<WsfRIPRJob> jobs = GetJobs();
+      foreach( WsfRIPRJob aJob in jobs )
+      {
+        if( ! mJobToWinnerMap.Exists( aJob.GetId() ) )
+        {
+          mJobToWinnerMap.Set( aJob.GetId(), 0 );
+        }
+        else
+        {
+          int currWinners = aJob.GetNumWinners();
+          int lastWinners = mJobToWinnerMap.Get( aJob.GetId() );
+          if( currWinners != lastWinners )
+          {
+            string NewComment = "AIGCI - Sub took a job: " + aJob.Name() + " - " + aJob.GetDescription();
+            PLATFORM.Comment(NewComment);
+            mJobToWinnerMap.Set( aJob.GetId(), currWinners );
+          }
+        }
+      }
+    }
+    duration = GetWallClockTime() - lStartTime;
+    writeln_d("~~~ on_update GCI Platform: ", PLATFORM.Name(), "- Process Time: ", duration);
+  end_on_update
+
+
+  on_initialize2
+    draw.SetDuration(PROCESSOR.UpdateInterval());  //try it here, after the processor is setup
+  end_on_initialize2
+
+
+   on_initialize
+
+      cManager = WsfClusterManager.Create();               // creates a cluster manager owned by this script
+      cManager.SetClusterMethod("H_TREE_MAX");             // default is: "K_MEANS"
+      cManager.SetDistanceFunction("POSITION_VELOCITY");   // default is: "POSITION_ONLY"
+    //cManager.SetDistanceLimit(46300);                    // ~25 nautical miles
+      cManager.SetDistanceLimit(92600);                    // ~50 nautical miles
+    //cManager.SetDistanceLimit(185200);                   // ~100 nautical miles
+
+      mJobToWinnerMap    = Map<int, int>();
+      mFlankToClusterMap = Map<int, int>();
+      mClusterToFlankMap = Map<int, int>();
+      mCompletedFlanks   = Array<string>();
+      mZoneJobMap        = Map<string, WsfRIPRJob>();
+      mFlankNameToTimeCompleteMap = Map<string, double>();
+
+    Array<WsfZone> zoneList = PLATFORM.Zones();
+    foreach( WsfZone z in zoneList)
+    {
+       mZoneNames.PushBack(z.Name());
+    }
+
+    foreach( string x in mZoneNames )
+    {
+      writeln_d("~~~ GCI now monitoring retrived zone: ", x );
+    }
+
+      if( mZoneNames.Size() == 0 )
+      {
+      writeln_d( "~~~ No GCI zones defined, using Dynamic Clustering!" );
+      }
+
+      double FlankDistanceMeters = cFLANK_DISTANCE * MATH.M_PER_NM();
+      //create simple bowtie shape, based on specified size parameters
+      double w1 = 2.0  * FlankDistanceMeters; //Bow Tie Width (meters)
+      double h2 = 0.75 * FlankDistanceMeters; //Bow Tie Outter Thickness (meters)
+      double h1 = 0.5  * h2;                  //Bow Tie Inner Thickness (meters)
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h1,   0, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h2,  w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h2,  w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h1,   0, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h2, -w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h2, -w1, 0));
+
+  end_on_initialize
+
+
+end_processor
+

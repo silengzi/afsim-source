@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/irnss_gs.txt
+
+# Example IRNSS sites
+
+platform BANGALORE_IRNSS IRNSS_GS
+  position   12.966667n   77.566667e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform NEW_DELHI_IRNSS IRNSS_GS
+  position    28.613889n   77.208889e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+

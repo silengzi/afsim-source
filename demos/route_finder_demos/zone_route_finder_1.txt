@@ -1,0 +1,63 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+end_time 1200 sec
+event_pipe file zone_route_finder_1.aer end_event_pipe
+
+zone crown_zone
+  polygonal
+  lat_lon
+  point 15:18:03.43s 47:42:50.48e
+  point 14:21:32.73s 48:08:10.60e
+  point 14:18:34.83s 48:51:40.79e
+  point 14:44:05.75s 48:16:38.58e
+  point 15:04:40.66s 48:32:42.78e
+  point 15:03:11.55s 48:06:50.11e
+  point 15:44:09.04s 48:14:38.06e
+end_zone
+
+zone poly_zone
+  polygonal
+  lat_lon
+  point 13:48:11.27s 48:17:54.76e
+  point 13:36:43.68s 49:17:45.98e
+  point 14:08:43.62s 49:15:04.57e
+  point 14:00:02.04s 48:23:11.21e
+end_zone
+
+platform  target  WSF_PLATFORM
+  side red
+  icon bullseye
+  position 13:38:39s 48:33:24e altitude 20000 ft
+end_platform
+
+platform  router  WSF_PLATFORM
+   side blue
+   icon F-18
+   add mover WSF_AIR_MOVER
+      at_end_of_path stop
+   end_mover
+   route
+      position 15:31:04s 49:02:50e altitude 35000 ft msl speed 250 m/s
+   end_route
+   on_initialize2
+      WsfZoneRouteFinder finder = WsfZoneRouteFinder();
+      finder.AvoidZone("crown_zone");   #avoid zone by name
+      WsfZone polyZone = WsfZone.FindZone("poly_zone");
+      finder.AvoidZone(polyZone);       #avoid zone by script object
+      WsfGeoPoint tgt = WsfSimulation.FindPlatform("target").Location();
+      WsfRoute path = finder.RouteAroundZones(PLATFORM.Location(), tgt, 250);
+      finder.DrawAvoidances(1200,Vec3.Construct(0,0,0));
+      finder.DrawGraph(200,Vec3.Construct(0,0.8,0));
+      PLATFORM.SetRoute(path);
+   end_on_initialize2
+end_platform
+
+

@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform_type TARGET WSF_PLATFORM
+
+   icon pickup_truck
+   #spatial_domain land  # "land" is the default for this platform.
+
+   script_variables
+      bool mobilityAnnounced = false;
+   end_script_variables
+
+   execute at_interval_of 1 s
+      # We cannot announce a firepower kill, as this platform has no weapons.
+      # We cannot announce a Catastrophic kill as this removes the platform from the simulation.
+      //if (! mobilityAnnounced && PLATFORM.Mover().GetDamageFactor() == 1.0)
+      //{
+      //   PLATFORM.Comment("Target suffered a Mobility Kill.");
+      //   writeln("*** Target suffered a Mobility Kill. ***");
+      //   mobilityAnnounced = true;
+      //}
+   end_execute
+
+   mover WSF_GROUND_MOVER
+      on_ground
+      #resurrectible
+      #automatic_recovery_time 25.0 sec
+      route
+         position 39:09:29.8n 106:51:10.9w speed 10 km/hr
+         position 39:10:35.0n 106:50:44.8w
+         stop
+      end_route
+   end_mover
+
+end_platform_type

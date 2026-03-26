@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once ./logistics_platform.txt
+include_once ../processors/platform_to_platform_transport_processor.txt
+
+platform_type MECHANIC LOGISTICS_PLATFORM
+
+   # DESCRIPTION:  A Mechanic waits stationary (wherever he is), until needed,
+   # unless he gets depleted, when he returns to his supplier for refilling.
+
+   icon Human
+
+   add processor transportProcessor PLATFORM_TO_PLATFORM_TRANSPORT_PROCESSOR
+   end_processor
+
+   edit processor exchanger
+
+      edit container good_engine_container
+         service ENGINE_REPAIR
+            maximum_quantity 14
+            service_interval 30 min
+         end_service
+         initial_quantity 14  # We can fully supply 14 engine repairs non-stop.
+      end_container
+
+      edit transactor repair_offering_transactor
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      edit transactor repair_requesting_transactor
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+   end_processor
+
+   mover WSF_SURFACE_MOVER
+      maximum_speed 25 mph
+      minimum_speed 10 mph
+      maximum_linear_acceleration 0.5 g
+      maximum_radial_acceleration 0.5 g
+      update_interval 5 sec
+   end_mover
+
+   script bool Mech_Init()
+
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_1");
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_2");
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_3");
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_4");
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_5");
+      repairPossibleReceiversToAdd.PushBack("StrikeBomber_6");
+
+      repairPossibleSuppliersToAdd.PushBack("KeyWestAirportPartsStorageDepot");
+
+      bool success = LP_Init();
+      return success;
+
+   end_script
+
+   on_initialize2
+
+      bool success = Mech_Init();
+
+      if (success)
+      {
+         transportProcessor = PLATFORM.Processor("transportProcessor");
+         success = transportProcessor.IsValid();
+      }
+
+      if (success)
+      {
+         # These are declared as variables, rather than in-lined, simply to document syntax.
+         bool isFuelRelated = false;
+         success = (bool)transportProcessor.Execute("PTPTP_Init",
+                  { repairOfferTransactor, repairContainer, runSilent, isFuelRelated } );
+
+         if (! success)
+         {
+            Say("MECHANIC failed PTPTP_Init().");
+         }
+      }
+
+      if (success)
+      {
+         Say(" Initialized.");
+         isInitialized = true;
+      }
+      else
+      {
+         Say(" Initialize FAILED");
+      }
+
+   end_on_initialize2
+
+   execute at_interval_of 204 sec
+
+      if (isInitialized && ! allPlayersResolved)
+      {
+         allPlayersResolved = ResolvePlayersToAdd();
+         if (! allPlayersResolved)
+         {
+            Say("ResolvePlayersToAdd() not yet successful.");
+            return;
+         }
+
+         if (repairPossibleSuppliers.Size() == 1)
+         {
+            SetRepairOfferingPlatform(repairPossibleSuppliers[0]);
+         }
+         if (! RepairOfferingPlatform().IsValid())
+         {
+            Say(" MECHANIC's Repair Resupply Depot assignment failed.  FATAL!");
+            writeln("   - problem is with one of =>");
+            foreach(string val in repairPossibleSuppliersToAdd)
+            {
+               writeln("      ", val);
+            }
+            allPlayersResolved = false;
+         }
+      }
+
+      if (isInitialized && allPlayersResolved)
+      {
+         # Update a couple of critical flags:
+         if (repairContainer.IsEmpty())
+         {
+            Say("MECHANIC ran out of repairs to give.");
+            haveRepairsToGive = false;
+            repairsAreReserved = false;
+         }
+         if (repairContainer.IsFull() && ! haveRepairsToGive)
+         {
+            Say("MECHANIC now has a full load of repairs to give.");
+            haveRepairsToGive = true;
+         }
+
+         // Our job is to continuously make repairs available for any requesting receivers
+         if (haveRepairsToGive && ! repairsAreReserved)
+         {
+            repairsAreReserved = repairOfferTransactor.ReserveAll();
+            if (repairsAreReserved)
+            {
+               Say("MECHANIC Repairs Reserve was successful.");
+            }
+            else
+            {
+               Say("MECHANIC Repairs Reserve was NOT successful.");
+            }
+         }
+      }
+
+   end_execute
+
+end_platform_type

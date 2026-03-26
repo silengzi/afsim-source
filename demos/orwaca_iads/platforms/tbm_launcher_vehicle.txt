@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once weapons/ssm/tbm.txt
+include_once processors/launch_tbm_processor.txt
+
+platform_type TBM_LAUNCHER_VEHICLE WSF_PLATFORM
+   icon tbm_launcher_icon
+   side red
+   mover WSF_GROUND_MOVER end_mover
+   weapon tbm TBM
+      quantity 1
+   end_weapon
+   processor launch_ssm_processor LAUNCH_TBM_PROCESSOR
+      script_variables
+         WEAPON_NAME = "tbm";
+         #TIME_TO_LAUNCH = 0;        // if scenario doesn't give time, it will fire first pass
+         #LAUNCH_RANDOM    = false;  // Default is not to fire at a random time
+         #MIN_TIME       = 10.0;     // Minumum time a missile can launch if random is true
+         #MAX_TIME    = 1000.0;      // Max time a missile can launch if random is true
+      end_script_variables
+   end_processor
+end_platform_type

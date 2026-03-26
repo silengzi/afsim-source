@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# IRNSS SATELLITE COMMUNICATIONS DEFINITION (GROUND STATION)
+
+include_once ../../patterns/uniformPattern.txt
+
+comm GROUNDSTATION_IRNSS_UPLINK_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           1176.45 MHz
+      bandwidth                           200 mhz
+      propagation_model                   none
+      power                               200.0 watts
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GROUNDSTATION_IRNSS_DOWNLINKL5_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1176.45 MHz
+      bandwidth                           200 mhz
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm GROUNDSTATION_IRNSS_DOWNLINK_SBAND_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           2492.028 MHz
+      bandwidth                           200 mhz
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm

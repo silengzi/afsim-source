@@ -1,0 +1,518 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#always requires a commander (in order to do anything interesting)
+#does not create any jobs
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+
+include_once processors/ripr_agents/aiai/behavior_bid_on_jobs.txt
+include_once processors/ripr_agents/aiai/behavior_cap-route.txt
+include_once processors/ripr_agents/aiai/behavior_default-flight.txt
+include_once processors/ripr_agents/aiai/behavior_engage-target.txt
+include_once processors/ripr_agents/aiai/behavior_escort.txt
+include_once processors/ripr_agents/aiai/behavior_evade.txt
+include_once processors/ripr_agents/aiai/behavior_go_home.txt
+include_once processors/ripr_agents/aiai/behavior_guide_weapons.txt
+include_once processors/ripr_agents/aiai/behavior_pincer.txt
+include_once processors/ripr_agents/aiai/behavior_pincer_fsm.txt
+include_once processors/ripr_agents/aiai/behavior_pursue-point.txt
+include_once processors/ripr_agents/aiai/behavior_pursue-target.txt
+include_once processors/ripr_agents/aiai/behavior_radar-control.txt
+#include_once processors/ripr_agents/aiai/behavior_sar_job.txt
+#include_once processors/ripr_agents/aiai/behavior_weapon-uplink.txt
+
+
+
+processor AIAI-thinker WSF_RIPR_PROCESSOR
+
+   update_interval 1.0 sec
+   script_debug_writes off
+
+   script_variables
+      // agent constants
+      double   cMIN_JOB_BID           = -MATH.DOUBLE_MAX();
+
+
+      //**********************************************************************//
+      //**  bidding parameters                                              **//
+      //**     slant range and closing speed are the most important         **//
+      //**     bids are now in units of distance (meters)                   **//
+      //**     all other bid contributions are converted with their weight  **//
+      //**     range will dominate the bids                                 **//
+      //**********************************************************************//
+      double cMAX_SLANT_RANGE                    = 1000000.0;  #over 539 nm away, target ranges beyond this are considered unfavorable
+      double cWEIGHT_SLANT_RANGE_TO              =       1.0;
+     #double cWEIGHT_SLANT_RANGE_TO              =      -4.0;  #-3.0  (legacy value)
+      double cMIN_CLOSING_SPEED                  =   -1050.0;  #threats running away (negative closing) faster are considered unfavorable
+      double cWEIGHT_CLOSING_SPEED               =       1.0;  #scale for how closing speed translates to distance
+      double cWEIGHT_FUEL                        =       0.0;  #try a value of 2.0 if you care about fuel
+      double cWEIGHT_MY_WEAPONS_ACTIVE           =       0.0;  #changes bid if your own weapons are active on target
+      double cWEIGHT_PEERS_WEAPONS_ACTIVE        =       0.0;  #changes bid if your peers weapons are active on target
+      double cWEIGHT_THREAT_WEAPONS_ENVELOPE     =       0.0;  #uses the global "mWeaponsEnvelope" array, try value of 10000 if you care about that
+      //careful with these two parameters, they are stateful
+      double cWEIGHT_CURRENT_TARGET              =       0.0;  #changes bid if you are currently targeting the threat
+     #double cWEIGHT_CURRENT_TARGET              =      10.0;  #cap route jobs
+     #double cWEIGHT_CURRENT_TARGET              =       1.0;  #weapon uplink jobs
+      double cWEIGHT_OTHERS_TARGETING            =       0.0;  #changes bid if peers are currently targeting the threat
+
+      //**********************************************************************//
+      //** control / mode of operation parameters                           **//
+      //**********************************************************************//
+      bool mFilterJobsOnWeapons  = true;  # ignore pursue-target jobs that we cant shoot a weapon at
+      bool mFilterJobsOnCategory = false; # ignore pursue-target jobs that are for platform of unknown category
+      bool mFilterJobsOnFuel     = false; # ignore pursue-target jobs that we dont have the fuel to reach
+      bool mFilterJobsOnZone     = false; # ignore pursue-target jobs that are for platforms outsize of zone "mZoneName"
+      string  mZoneName = "";
+      WsfZone mFezZone;
+      string   mRequiredWeaponForCap = "";
+      bool     mAllowCoopEngage    = true;
+      string   mUplinkSensorName     = "geo_sensor";  //name of sensor object
+
+
+      double   cDEFAULT_ALTITUDE     = 9144;                 // ~30,000 feet
+
+
+      // the interceptor uses these threat priority pairs to determine who is the most important threat of concern
+      Map<string, double> ThreatTypePriority = Map<string, double>();
+      ThreatTypePriority["unknown"]        =      0.0;
+      ThreatTypePriority["uav"]            =      2.0;
+      ThreatTypePriority["sam"]            =      4.0;
+      ThreatTypePriority["ship"]           =      4.0;
+      ThreatTypePriority["awacs"]          =   -500.0;
+      ThreatTypePriority["bomber"]         =      2.0;
+      ThreatTypePriority["jammer"]         =      0.0;
+      ThreatTypePriority["fighter"]        =     10.0;
+      ThreatTypePriority["missile"]        =      9.0;
+      ThreatTypePriority["missile_fast"]   =      9.0;   // try new category for cmd
+
+      Array<Map<string, Object>> mWeaponArray = Array<Map<string, Object>>();
+      ////EXAMPLE:
+      //mWeaponArray[0] = Map<string, Object>();
+      //mWeaponArray[0].Set("name", "blue_lr_a2a_rf_missile");
+      //mWeaponArray[0].Set("weapon", PLATFORM.Weapon("blue_lr_a2a_rf_missile"));
+      //mWeaponArray[0].Set("rangeMin", 1852/2);  // only used if the weapon does NOT have a launch computer
+      //mWeaponArray[0].Set("rangeMax", 60*1852); // only used if the weapon does NOT have a launch computer
+      //mWeaponArray[0].Set("onlyUseInRange", 1); // only considered if the target is already in range
+      //mWeaponArray[0].Set("numActiveMax", 1);   // how many weapons of this type can be in play simultaneously
+      //mWeaponArray[0].Set("AIR",  1);           // DOMAIN CAPABLE, yes, this weapon can hit air (default true)
+      //mWeaponArray[0].Set("LAND", 0);           // DOMAIN CAPABLE, no, this weapon can NOT hit land (default false)
+
+      double   mEngagementAggressiveness = 0.4; // value in range [0, 1].  1 is suicidal, 0 is very cautious.
+                                                // used by behavior_in_danger, behavior_evade, & behavior_disengage.
+   end_script_variables
+
+
+   behavior_tree
+      behavior_node  bid_on_jobs
+      selector
+         behavior_node  evade
+         behavior_node  go_home
+         behavior_node  escort
+         behavior_node  cap-route
+         behavior_node  pincer_fsm
+         sequence
+            selector
+               behavior_node  pursue-target
+              #behavior_node  sar_job
+               behavior_node  pursue-point
+               behavior_node  default-flight
+            end_selector
+            behavior_node  guide_weapons
+         end_sequence
+      end_selector
+      behavior_node  radar-control
+      behavior_node  engage-target
+#     behavior_node  weapon-uplink
+   end_behavior_tree
+
+
+
+  ###########################################################################
+  ##  utility script methods
+  ###########################################################################
+  script bool HaveWeaponsForThreat(WsfTrack track)
+   #extern bool IsWeaponDomainCapable(WsfTrack, Map<string, Object>);
+   #extern Array<Map<string, Object>> mWeaponArray;
+    foreach (Map<string, Object> curWeapon in mWeaponArray)
+    {
+      WsfWeapon weapon = (WsfWeapon)curWeapon["weapon"];
+      if (weapon.QuantityRemaining() > 0 &&
+          IsWeaponDomainCapable(track,curWeapon))
+      {
+        if (curWeapon.Exists("onlyUseInRange")       &&
+            (int)curWeapon["onlyUseInRange"] == 1    &&
+            PLATFORM.SlantRangeTo(track) > (double)curWeapon["rangeMax"] )
+        {
+          continue;
+        }
+        return true;
+      }
+    }
+    return false;
+  end_script
+
+
+   ###########################################################################
+   ##  this runs when the processor initializes (when the platform does)
+   ###########################################################################
+#   on_initialize
+#      writeln_d(PLATFORM.Name(), " executing on initialze!");
+#   end_on_initialize
+
+
+   ###########################################################################
+   ##  deprecated, plz use query_bid_type <job-name> script blocks now
+   ###########################################################################
+   #query_bid
+   #   return cMIN_JOB_BID;
+   #end_query_bid
+
+
+
+   query_bid_type pursue-target
+
+     #extern Map<string, double> ThreatTypePriority;
+     #extern WsfTrack   GetTrackByName (WsfPlatform, string);
+     #extern bool       HasEnoughFuelToTravel (WsfPlatform,double);
+     #extern string     DetermineTrackCategory (WsfTrack);
+     #extern bool       TestTrackCategory (WsfTrack, string);
+     #extern double     GetWeaponsEnvelope (WsfPlatform);
+     #extern double     GetWeaponRangeMax(WsfPlatform aPlatform, Array<Map<string, Object>> aWeaponArray);
+     #extern Array<Map<string, Object>> mWeaponArray;
+
+      if (!JOB.IsValid())
+      {
+         writeln_d("query_bid_type pursue-target: JOB not valid");
+         return cMIN_JOB_BID;
+      }
+
+      string targetTrackName = (string)JOB.GetData("targetTrackName");
+      WsfTrack targetTrack = GetTrackByName(PLATFORM, targetTrackName);
+      if (!targetTrack.IsValid())
+      {
+         writeln_d("!!! No track for JOB: ", JOB.Name(), ", ", JOB.GetDescription(), ", ", targetTrackName);
+         return cMIN_JOB_BID;
+      }
+
+      double slantRangeTo   = PLATFORM.SlantRangeTo(targetTrack);
+      double closingSpeed   = PLATFORM.ClosingSpeedOf(targetTrack);
+      double maxWeaponRange = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+
+      if (mFilterJobsOnFuel == true)
+      {
+         if (!HasEnoughFuelToTravel(PLATFORM,slantRangeTo-maxWeaponRange))
+         {
+            writeln_d("!!! Not enough fuel for JOB: ", JOB.Name(), ", ", JOB.GetDescription(), ", ", targetTrackName);
+            return cMIN_JOB_BID;
+         }
+      }
+
+      if (mFilterJobsOnCategory == true)
+      {
+         if (TestTrackCategory(targetTrack, "unknown"))
+         {
+            writeln_d("!!! Target type unknown for current job. ");
+            return cMIN_JOB_BID;
+         }
+      }
+
+      if (mFilterJobsOnWeapons == true)
+      {
+         //check here if we have any weapons remaining that are capable against target domain
+         if (!HaveWeaponsForThreat(targetTrack) &&
+             PROCESSOR.WeaponsActive(targetTrack) <= 0)
+         {
+            writeln_d("!!! No domain capable weapons left for target!");
+            return cMIN_JOB_BID;
+         }
+      }
+
+      if (mFilterJobsOnZone == true)
+      {
+         if (mZoneName != "")
+         {
+            mFezZone = PLATFORM.Zone(mZoneName);
+            if (!mFezZone.IsValid() || !mFezZone.PointIsInside(PLATFORM.Location()))
+            {
+               writeln_d("!!! Target outside of given FEZ!");
+               return cMIN_JOB_BID;
+            }
+         }
+      }
+
+      double weight_closing_speed = cWEIGHT_CLOSING_SPEED;
+      if (targetTrack.LandDomain())
+      {
+        weight_closing_speed = 2.0 * cWEIGHT_CLOSING_SPEED;
+      }
+
+      /////////////////////////////////////////////////////////////////////////
+      // calculate bulk of the bid HERE
+      double bid = 0.0;
+      bid += cWEIGHT_SLANT_RANGE_TO * (cMAX_SLANT_RANGE    - slantRangeTo);
+      bid += weight_closing_speed * (-cMIN_CLOSING_SPEED + closingSpeed);
+      // the bid has its major contributers now
+      /////////////////////////////////////////////////////////////////////////
+
+      //calculate other optional bid contributions here
+      WsfFuel fuelObj = PLATFORM.Fuel();
+      if (fuelObj.IsValid())
+      {
+         bid = bid + cWEIGHT_FUEL * fuelObj.QuantityRemaining();
+      }
+      //contribution if I have an active weapon on the target
+      bid = bid + cWEIGHT_MY_WEAPONS_ACTIVE * PROCESSOR.WeaponsActive(targetTrack);
+      //contribution if peers have an active weapon on the target
+      bid = bid + cWEIGHT_PEERS_WEAPONS_ACTIVE * PROCESSOR.PeersWeaponsActive(targetTrack);
+      //contribution if I am currently targeting the target
+      if (PROCESSOR.GetTargetName() == targetTrackName)
+      {
+         bid = bid + cWEIGHT_CURRENT_TARGET;
+      }
+      //contribution if any peers are targeting the target
+      WsfRIPRProcessor commander = PROCESSOR.GetRIPRCommanderProcessor();
+      if (commander.IsValid())
+      {
+         bid = bid + cWEIGHT_OTHERS_TARGETING * commander.SubsTargeting(targetTrack, PLATFORM);
+      }
+      //contribution bonus if you care about weapon envelopes
+      if (slantRangeTo < GetWeaponsEnvelope(targetTrack.Target()))
+      {
+         bid = bid + cWEIGHT_THREAT_WEAPONS_ENVELOPE;
+      }
+      //contribution bonus from threat type (category)
+      string targetType = DetermineTrackCategory(targetTrack);
+      if( ThreatTypePriority.Exists( targetType ) )
+      {
+        bid = bid + ThreatTypePriority.Get( targetType );
+      }
+
+      writeln_d(PLATFORM.Name(), " bid on target ", targetTrackName, ": ", bid);
+      return bid;
+   end_query_bid_type
+
+
+   query_bid_type    cap-route
+      //writeln_d("BEHAVIOR NODE query_bid_type cap-route");
+      if (!JOB.IsValid())
+      {
+         return -MATH.DOUBLE_MAX();
+      }
+      double current_bid = 10000.0;
+
+      Map<string, Object>tempData = JOB.GetData();
+      WsfGeoPoint point     = (WsfGeoPoint)tempData["location"];
+      double      heading   =      (double)tempData["heading"];
+      string      routeName =      (string)tempData["route name"];
+
+      WsfRoute    route     = WsfRoute.FindGlobal(routeName);
+
+      if (!point.IsValid())
+      {
+        writeln("!!! Invalid point for current job: ",JOB.Name(), ", ", JOB.GetDescription() );
+        return cMIN_JOB_BID;
+      }
+
+      if (!route.IsValid())
+      {
+        writeln("!!! Invalid route for job to bid on: ",JOB.Name(), ", ", JOB.GetDescription() );
+        return cMIN_JOB_BID;
+      }
+
+      // check fuel levels
+     #extern bool HasEnoughFuelToTravelRoute(WsfPlatform,WsfRoute);
+      if (mFilterJobsOnFuel && !HasEnoughFuelToTravelRoute(PLATFORM,route))
+      {
+         writeln_d("!!! Not enough fuel for JOB: ", JOB.Name(), ", ", JOB.GetDescription());
+         return cMIN_JOB_BID;
+      }
+
+      double bid = 1000000 - PLATFORM.SlantRangeTo(point);
+
+      if (mRequiredWeaponForCap != "")
+      {
+         double Q = PLATFORM.Weapon(mRequiredWeaponForCap).QuantityRemaining();
+         if (Q <= 0)
+         {
+            return 0.001;
+         }
+         bid = bid + 20000 * Q;
+      }
+
+      return bid;
+   end_query_bid_type
+
+
+   query_bid_type pincer
+      //writeln_d("BEHAVIOR NODE querybid_type pincer");
+      if (!JOB.IsValid())
+      {
+         return cMIN_JOB_BID;
+      }
+
+      double current_bid = 10000.0;
+      WsfGeoPoint point = (WsfGeoPoint)JOB.GetData("ZonePoint");
+      if (!point.IsValid())
+      {
+         writeln_d("!!! Invalid point for current job: ",JOB.Name(), ", ", JOB.GetDescription() );
+         return cMIN_JOB_BID;
+      }
+
+      ##extern Map<string, double> ThreatTypePriority;
+     #extern string DetermineTrackCategory (WsfTrack);
+     #extern bool TestTrackCategory (WsfTrack, string);
+     #extern double GetWeaponsEnvelope (WsfPlatform);
+      double slantRangeTo = PLATFORM.SlantRangeTo(point);
+
+      //  calculate bulk of the bid now  //
+      double weight_closing_speed = 2.0 * cWEIGHT_CLOSING_SPEED;
+      double closingSpeed = PLATFORM.Speed() * MATH.Cos(PLATFORM.RelativeBearingTo(point));
+      current_bid += cWEIGHT_SLANT_RANGE_TO * (cMAX_SLANT_RANGE    - slantRangeTo);
+      current_bid += weight_closing_speed   * (-cMIN_CLOSING_SPEED + closingSpeed);
+      //  //  //  //  //  //  //  //  //  //
+
+      WsfFuel fuelObj = PLATFORM.Fuel();
+      if (fuelObj .IsValid())
+      {
+         current_bid = current_bid + cWEIGHT_FUEL * fuelObj.QuantityRemaining();
+      }
+      current_bid = current_bid + cWEIGHT_MY_WEAPONS_ACTIVE * PROCESSOR.WeaponsActive();
+
+      # if (slantRangeTo < GetWeaponsEnvelope(targetTrack.Target()))
+      # {
+         current_bid = current_bid + cWEIGHT_THREAT_WEAPONS_ENVELOPE;
+      # }
+      # if( ThreatTypePriority.Exists( targetType ) )
+      # { # current_bid = current_bid + ThreatTypePriority.Get( targetType ); # }
+      //lets include these in just so this bid is equally competitive with pursue-target jobs
+      current_bid = current_bid + cWEIGHT_CURRENT_TARGET;
+      //current_bid = current_bid + cWEIGHT_PEERS_WEAPONS_ACTIVE * (PROCESSOR.PeersWeaponsActive());
+
+     #extern Map<string, double> ThreatTypePriority;
+     #extern string DetermineTrackCategory(WsfTrack);
+     #extern WsfTrack GetTrackByName (WsfPlatform, string);
+      Array<string> targetNames = (Array<string>)JOB.GetData("ZoneThreatNameArray");
+      foreach(string tgtName in targetNames)
+      {
+         WsfTrack tgt = GetTrackByName(PLATFORM, tgtName);
+         if (tgt.IsValid())
+         {
+            string targetType = DetermineTrackCategory(tgt);
+            if( ThreatTypePriority.Exists( targetType ) )
+            {
+               current_bid = current_bid + ThreatTypePriority.Get( targetType );
+            }
+         }
+      }
+      return current_bid;
+   end_query_bid_type
+
+
+   query_bid_type    pursue-point
+      writeln_d("BEHAVIOR NODE query_bid_type pursue-point");
+      if (!JOB.IsValid())
+      {
+         return cMIN_JOB_BID;
+      }
+      double current_bid = 10000.0;
+      WsfGeoPoint point = (WsfGeoPoint)JOB.GetData("targetPoint");
+      if (!point.IsValid())
+      {
+         writeln_d("!!! Invalid point for current job: ",JOB.Name(), ", ", JOB.GetDescription() );
+         return cMIN_JOB_BID;
+      }
+
+      double distToPoint = PLATFORM.SlantRangeTo(point);
+
+      // check fuel levels
+     #extern bool HasEnoughFuelToTravel(WsfPlatform,double);
+      if (mFilterJobsOnFuel &&
+          !HasEnoughFuelToTravel(PLATFORM,distToPoint))
+      {
+         writeln_d("!!! Not enough fuel for JOB: ", JOB.Name(), ", ", JOB.GetDescription());
+         return cMIN_JOB_BID;
+      }
+
+      current_bid += cWEIGHT_SLANT_RANGE_TO * (cMAX_SLANT_RANGE    - distToPoint);
+
+      return current_bid;
+   end_query_bid_type
+
+
+   query_bid_type    weapon_uplink
+
+      writeln_d("BEHAVIOR NODE query_bid_type weapon_uplink");
+
+      if (!JOB.IsValid())
+      {
+         return cMIN_JOB_BID;
+      }
+      double current_bid = 10000.0;
+      //check if I can support this weapon
+     #extern WsfTrack GetTrackByName(WsfPlatform, string);
+
+      string name             = (string)JOB.GetData("targetTrackName");
+      int weaponPlatformIndex = (int)JOB.GetData("weaponPlatformIndex");
+      int targetPlatformIndex = (int)JOB.GetData("targetPlatformIndex");
+
+      WsfTrack track = GetTrackByName(PLATFORM, name);
+      WsfPlatform weaponPlatform = WsfSimulation.FindPlatform(weaponPlatformIndex);
+      WsfPlatform targetPlatform = WsfSimulation.FindPlatform(targetPlatformIndex);
+      WsfLocalTrack t = (WsfLocalTrack)track;
+      if (!weaponPlatform.IsValid() ||
+          !targetPlatform.IsValid() ||
+          !track.IsValid())
+      {
+          writeln_d("!!! Invalid weapon or target for job: ", JOB.GetDescription() );
+          return cMIN_JOB_BID;
+      }
+
+      if (!mAllowCoopEngage &&
+          !t.ContributorOf(PLATFORM))
+      {
+          return cMIN_JOB_BID;
+      }
+
+      if (PLATFORM.WithinFieldOfView(targetPlatform, mUplinkSensorName))
+      {
+         double alreadyUplinking = 0.0;
+         if (PROCESSOR.IsUplinkingTo(weaponPlatform))
+         {
+            alreadyUplinking = 1.0;
+         }
+         current_bid += cWEIGHT_SLANT_RANGE_TO * (cMAX_SLANT_RANGE    - PLATFORM.SlantRangeTo(targetPlatform));
+         current_bid += cWEIGHT_CLOSING_SPEED * (-cMIN_CLOSING_SPEED + PLATFORM.ClosingSpeedOf(targetPlatform));
+         current_bid += cWEIGHT_CURRENT_TARGET   * alreadyUplinking;
+      }
+      else
+      {
+        writeln_d("!!! target for uplink job is out of view: ", JOB.GetDescription() );
+        return cMIN_JOB_BID;
+      }
+      //writeln_d("      uplink returning calculated bid: ", current_bid);
+      return current_bid;
+   end_query_bid_type
+
+
+
+   ########################################################################
+   ###   this script block is executed every update interval
+   ###   it runs before the behavior tree
+   ########################################################################
+#   on_update
+#      #double startTime = PROCESSOR.WallClockTime();
+#      writeln_d(PLATFORM.Name(), " executing on update!");
+#      #double duration = PROCESSOR.WallClockTime() - startTime;
+#      #writeln_d("AIAI-thinker on update duration = ", duration);
+#   end_on_update
+
+end_processor
+

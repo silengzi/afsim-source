@@ -1,0 +1,9804 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by .//starlink_generator.txt.
+# Modifications to this file may be overwritten.
+
+platform starlink_0_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 0 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_0
+      link starlink_0_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_0
+      link starlink_0_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_0
+   end_comm
+
+end_platform
+
+platform starlink_0_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 20 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_1
+      link starlink_0_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_1
+      link starlink_0_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_1
+   end_comm
+
+end_platform
+
+platform starlink_0_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 40 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_2
+      link starlink_0_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_2
+      link starlink_0_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_2
+   end_comm
+
+end_platform
+
+platform starlink_0_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 60 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_3
+      link starlink_0_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_3
+      link starlink_0_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_3
+   end_comm
+
+end_platform
+
+platform starlink_0_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 80 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_4
+      link starlink_0_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_4
+      link starlink_0_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_4
+   end_comm
+
+end_platform
+
+platform starlink_0_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 100 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_5
+      link starlink_0_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_5
+      link starlink_0_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_5
+   end_comm
+
+end_platform
+
+platform starlink_0_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 120 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_6
+      link starlink_0_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_6
+      link starlink_0_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_6
+   end_comm
+
+end_platform
+
+platform starlink_0_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 140 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_7
+      link starlink_0_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_7
+      link starlink_0_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_7
+   end_comm
+
+end_platform
+
+platform starlink_0_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 160 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_8
+      link starlink_0_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_8
+      link starlink_0_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_8
+   end_comm
+
+end_platform
+
+platform starlink_0_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 180 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_9
+      link starlink_0_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_9
+      link starlink_0_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_9
+   end_comm
+
+end_platform
+
+platform starlink_0_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 200 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_10
+      link starlink_0_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_10
+      link starlink_0_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_10
+   end_comm
+
+end_platform
+
+platform starlink_0_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 220 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_11
+      link starlink_0_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_11
+      link starlink_0_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_11
+   end_comm
+
+end_platform
+
+platform starlink_0_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 240 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_12
+      link starlink_0_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_12
+      link starlink_0_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_12
+   end_comm
+
+end_platform
+
+platform starlink_0_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 260 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_13
+      link starlink_0_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_13
+      link starlink_0_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_13
+   end_comm
+
+end_platform
+
+platform starlink_0_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 280 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_14
+      link starlink_0_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_14
+      link starlink_0_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_14
+   end_comm
+
+end_platform
+
+platform starlink_0_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 300 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_15
+      link starlink_0_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_15
+      link starlink_0_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_15
+   end_comm
+
+end_platform
+
+platform starlink_0_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 320 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_16
+      link starlink_0_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_16
+      link starlink_0_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_16
+   end_comm
+
+end_platform
+
+platform starlink_0_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 0 deg
+      true_anomaly 340 deg
+   end_mover
+   aux_data
+      int plane = 0
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_0_17
+      link starlink_0_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_0_17
+      link starlink_0_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_0_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_0_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_0_17
+   end_comm
+
+end_platform
+
+platform starlink_1_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 5 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_0
+      link starlink_1_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_0
+      link starlink_1_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_0
+   end_comm
+
+end_platform
+
+platform starlink_1_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 25 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_1
+      link starlink_1_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_1
+      link starlink_1_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_1
+   end_comm
+
+end_platform
+
+platform starlink_1_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 45 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_2
+      link starlink_1_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_2
+      link starlink_1_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_2
+   end_comm
+
+end_platform
+
+platform starlink_1_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 65 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_3
+      link starlink_1_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_3
+      link starlink_1_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_3
+   end_comm
+
+end_platform
+
+platform starlink_1_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 85 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_4
+      link starlink_1_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_4
+      link starlink_1_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_4
+   end_comm
+
+end_platform
+
+platform starlink_1_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 105 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_5
+      link starlink_1_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_5
+      link starlink_1_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_5
+   end_comm
+
+end_platform
+
+platform starlink_1_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 125 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_6
+      link starlink_1_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_6
+      link starlink_1_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_6
+   end_comm
+
+end_platform
+
+platform starlink_1_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 145 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_7
+      link starlink_1_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_7
+      link starlink_1_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_7
+   end_comm
+
+end_platform
+
+platform starlink_1_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 165 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_8
+      link starlink_1_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_8
+      link starlink_1_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_8
+   end_comm
+
+end_platform
+
+platform starlink_1_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 185 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_9
+      link starlink_1_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_9
+      link starlink_1_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_9
+   end_comm
+
+end_platform
+
+platform starlink_1_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 205 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_10
+      link starlink_1_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_10
+      link starlink_1_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_10
+   end_comm
+
+end_platform
+
+platform starlink_1_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 225 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_11
+      link starlink_1_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_11
+      link starlink_1_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_11
+   end_comm
+
+end_platform
+
+platform starlink_1_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 245 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_12
+      link starlink_1_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_12
+      link starlink_1_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_12
+   end_comm
+
+end_platform
+
+platform starlink_1_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 265 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_13
+      link starlink_1_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_13
+      link starlink_1_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_13
+   end_comm
+
+end_platform
+
+platform starlink_1_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 285 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_14
+      link starlink_1_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_14
+      link starlink_1_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_14
+   end_comm
+
+end_platform
+
+platform starlink_1_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 305 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_15
+      link starlink_1_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_15
+      link starlink_1_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_15
+   end_comm
+
+end_platform
+
+platform starlink_1_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 325 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_16
+      link starlink_1_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_16
+      link starlink_1_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_16
+   end_comm
+
+end_platform
+
+platform starlink_1_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 22.5 deg
+      true_anomaly 345 deg
+   end_mover
+   aux_data
+      int plane = 1
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_1_17
+      link starlink_1_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_1_17
+      link starlink_1_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_1_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_1_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_1_17
+   end_comm
+
+end_platform
+
+platform starlink_2_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 10 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_0
+      link starlink_2_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_0
+      link starlink_2_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_0
+   end_comm
+
+end_platform
+
+platform starlink_2_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 30 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_1
+      link starlink_2_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_1
+      link starlink_2_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_1
+   end_comm
+
+end_platform
+
+platform starlink_2_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 50 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_2
+      link starlink_2_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_2
+      link starlink_2_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_2
+   end_comm
+
+end_platform
+
+platform starlink_2_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 70 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_3
+      link starlink_2_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_3
+      link starlink_2_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_3
+   end_comm
+
+end_platform
+
+platform starlink_2_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 90 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_4
+      link starlink_2_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_4
+      link starlink_2_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_4
+   end_comm
+
+end_platform
+
+platform starlink_2_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 110 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_5
+      link starlink_2_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_5
+      link starlink_2_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_5
+   end_comm
+
+end_platform
+
+platform starlink_2_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 130 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_6
+      link starlink_2_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_6
+      link starlink_2_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_6
+   end_comm
+
+end_platform
+
+platform starlink_2_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 150 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_7
+      link starlink_2_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_7
+      link starlink_2_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_7
+   end_comm
+
+end_platform
+
+platform starlink_2_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 170 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_8
+      link starlink_2_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_8
+      link starlink_2_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_8
+   end_comm
+
+end_platform
+
+platform starlink_2_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 190 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_9
+      link starlink_2_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_9
+      link starlink_2_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_9
+   end_comm
+
+end_platform
+
+platform starlink_2_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 210 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_10
+      link starlink_2_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_10
+      link starlink_2_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_10
+   end_comm
+
+end_platform
+
+platform starlink_2_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 230 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_11
+      link starlink_2_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_11
+      link starlink_2_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_11
+   end_comm
+
+end_platform
+
+platform starlink_2_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 250 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_12
+      link starlink_2_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_12
+      link starlink_2_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_12
+   end_comm
+
+end_platform
+
+platform starlink_2_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 270 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_13
+      link starlink_2_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_13
+      link starlink_2_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_13
+   end_comm
+
+end_platform
+
+platform starlink_2_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 290 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_14
+      link starlink_2_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_14
+      link starlink_2_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_14
+   end_comm
+
+end_platform
+
+platform starlink_2_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 310 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_15
+      link starlink_2_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_15
+      link starlink_2_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_15
+   end_comm
+
+end_platform
+
+platform starlink_2_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 330 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_16
+      link starlink_2_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_16
+      link starlink_2_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_16
+   end_comm
+
+end_platform
+
+platform starlink_2_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 45 deg
+      true_anomaly 350 deg
+   end_mover
+   aux_data
+      int plane = 2
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_2_17
+      link starlink_2_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_2_17
+      link starlink_2_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_2_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_2_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_2_17
+   end_comm
+
+end_platform
+
+platform starlink_3_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 15 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_0
+      link starlink_3_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_0
+      link starlink_3_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_0
+   end_comm
+
+end_platform
+
+platform starlink_3_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 35 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_1
+      link starlink_3_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_1
+      link starlink_3_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_1
+   end_comm
+
+end_platform
+
+platform starlink_3_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 55 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_2
+      link starlink_3_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_2
+      link starlink_3_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_2
+   end_comm
+
+end_platform
+
+platform starlink_3_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 75 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_3
+      link starlink_3_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_3
+      link starlink_3_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_3
+   end_comm
+
+end_platform
+
+platform starlink_3_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 95 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_4
+      link starlink_3_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_4
+      link starlink_3_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_4
+   end_comm
+
+end_platform
+
+platform starlink_3_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 115 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_5
+      link starlink_3_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_5
+      link starlink_3_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_5
+   end_comm
+
+end_platform
+
+platform starlink_3_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 135 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_6
+      link starlink_3_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_6
+      link starlink_3_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_6
+   end_comm
+
+end_platform
+
+platform starlink_3_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 155 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_7
+      link starlink_3_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_7
+      link starlink_3_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_7
+   end_comm
+
+end_platform
+
+platform starlink_3_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 175 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_8
+      link starlink_3_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_8
+      link starlink_3_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_8
+   end_comm
+
+end_platform
+
+platform starlink_3_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 195 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_9
+      link starlink_3_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_9
+      link starlink_3_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_9
+   end_comm
+
+end_platform
+
+platform starlink_3_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 215 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_10
+      link starlink_3_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_10
+      link starlink_3_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_10
+   end_comm
+
+end_platform
+
+platform starlink_3_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 235 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_11
+      link starlink_3_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_11
+      link starlink_3_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_11
+   end_comm
+
+end_platform
+
+platform starlink_3_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 255 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_12
+      link starlink_3_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_12
+      link starlink_3_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_12
+   end_comm
+
+end_platform
+
+platform starlink_3_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 275 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_13
+      link starlink_3_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_13
+      link starlink_3_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_13
+   end_comm
+
+end_platform
+
+platform starlink_3_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 295 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_14
+      link starlink_3_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_14
+      link starlink_3_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_14
+   end_comm
+
+end_platform
+
+platform starlink_3_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 315 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_15
+      link starlink_3_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_15
+      link starlink_3_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_15
+   end_comm
+
+end_platform
+
+platform starlink_3_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 335 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_16
+      link starlink_3_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_16
+      link starlink_3_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_16
+   end_comm
+
+end_platform
+
+platform starlink_3_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 67.5 deg
+      true_anomaly 355 deg
+   end_mover
+   aux_data
+      int plane = 3
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_3_17
+      link starlink_3_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_3_17
+      link starlink_3_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_3_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_3_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_3_17
+   end_comm
+
+end_platform
+
+platform starlink_4_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 20 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_0
+      link starlink_4_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_0
+      link starlink_4_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_0
+   end_comm
+
+end_platform
+
+platform starlink_4_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 40 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_1
+      link starlink_4_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_1
+      link starlink_4_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_1
+   end_comm
+
+end_platform
+
+platform starlink_4_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 60 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_2
+      link starlink_4_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_2
+      link starlink_4_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_2
+   end_comm
+
+end_platform
+
+platform starlink_4_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 80 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_3
+      link starlink_4_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_3
+      link starlink_4_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_3
+   end_comm
+
+end_platform
+
+platform starlink_4_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 100 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_4
+      link starlink_4_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_4
+      link starlink_4_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_4
+   end_comm
+
+end_platform
+
+platform starlink_4_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 120 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_5
+      link starlink_4_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_5
+      link starlink_4_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_5
+   end_comm
+
+end_platform
+
+platform starlink_4_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 140 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_6
+      link starlink_4_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_6
+      link starlink_4_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_6
+   end_comm
+
+end_platform
+
+platform starlink_4_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 160 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_7
+      link starlink_4_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_7
+      link starlink_4_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_7
+   end_comm
+
+end_platform
+
+platform starlink_4_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 180 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_8
+      link starlink_4_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_8
+      link starlink_4_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_8
+   end_comm
+
+end_platform
+
+platform starlink_4_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 200 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_9
+      link starlink_4_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_9
+      link starlink_4_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_9
+   end_comm
+
+end_platform
+
+platform starlink_4_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 220 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_10
+      link starlink_4_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_10
+      link starlink_4_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_10
+   end_comm
+
+end_platform
+
+platform starlink_4_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 240 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_11
+      link starlink_4_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_11
+      link starlink_4_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_11
+   end_comm
+
+end_platform
+
+platform starlink_4_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 260 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_12
+      link starlink_4_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_12
+      link starlink_4_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_12
+   end_comm
+
+end_platform
+
+platform starlink_4_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 280 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_13
+      link starlink_4_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_13
+      link starlink_4_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_13
+   end_comm
+
+end_platform
+
+platform starlink_4_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 300 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_14
+      link starlink_4_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_14
+      link starlink_4_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_14
+   end_comm
+
+end_platform
+
+platform starlink_4_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 320 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_15
+      link starlink_4_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_15
+      link starlink_4_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_15
+   end_comm
+
+end_platform
+
+platform starlink_4_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 340 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_16
+      link starlink_4_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_16
+      link starlink_4_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_16
+   end_comm
+
+end_platform
+
+platform starlink_4_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 90 deg
+      true_anomaly 0 deg
+   end_mover
+   aux_data
+      int plane = 4
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_4_17
+      link starlink_4_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_4_17
+      link starlink_4_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_4_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_4_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_4_17
+   end_comm
+
+end_platform
+
+platform starlink_5_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 25 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_0
+      link starlink_5_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_0
+      link starlink_5_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_0
+   end_comm
+
+end_platform
+
+platform starlink_5_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 45 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_1
+      link starlink_5_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_1
+      link starlink_5_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_1
+   end_comm
+
+end_platform
+
+platform starlink_5_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 65 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_2
+      link starlink_5_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_2
+      link starlink_5_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_2
+   end_comm
+
+end_platform
+
+platform starlink_5_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 85 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_3
+      link starlink_5_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_3
+      link starlink_5_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_3
+   end_comm
+
+end_platform
+
+platform starlink_5_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 105 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_4
+      link starlink_5_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_4
+      link starlink_5_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_4
+   end_comm
+
+end_platform
+
+platform starlink_5_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 125 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_5
+      link starlink_5_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_5
+      link starlink_5_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_5
+   end_comm
+
+end_platform
+
+platform starlink_5_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 145 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_6
+      link starlink_5_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_6
+      link starlink_5_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_6
+   end_comm
+
+end_platform
+
+platform starlink_5_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 165 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_7
+      link starlink_5_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_7
+      link starlink_5_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_7
+   end_comm
+
+end_platform
+
+platform starlink_5_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 185 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_8
+      link starlink_5_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_8
+      link starlink_5_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_8
+   end_comm
+
+end_platform
+
+platform starlink_5_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 205 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_9
+      link starlink_5_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_9
+      link starlink_5_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_9
+   end_comm
+
+end_platform
+
+platform starlink_5_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 225 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_10
+      link starlink_5_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_10
+      link starlink_5_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_10
+   end_comm
+
+end_platform
+
+platform starlink_5_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 245 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_11
+      link starlink_5_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_11
+      link starlink_5_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_11
+   end_comm
+
+end_platform
+
+platform starlink_5_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 265 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_12
+      link starlink_5_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_12
+      link starlink_5_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_12
+   end_comm
+
+end_platform
+
+platform starlink_5_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 285 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_13
+      link starlink_5_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_13
+      link starlink_5_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_13
+   end_comm
+
+end_platform
+
+platform starlink_5_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 305 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_14
+      link starlink_5_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_14
+      link starlink_5_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_14
+   end_comm
+
+end_platform
+
+platform starlink_5_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 325 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_15
+      link starlink_5_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_15
+      link starlink_5_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_15
+   end_comm
+
+end_platform
+
+platform starlink_5_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 345 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_16
+      link starlink_5_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_16
+      link starlink_5_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_16
+   end_comm
+
+end_platform
+
+platform starlink_5_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 112.5 deg
+      true_anomaly 5 deg
+   end_mover
+   aux_data
+      int plane = 5
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_5_17
+      link starlink_5_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_5_17
+      link starlink_5_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_5_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_5_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_5_17
+   end_comm
+
+end_platform
+
+platform starlink_6_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 30 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_0
+      link starlink_6_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_0
+      link starlink_6_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_0
+   end_comm
+
+end_platform
+
+platform starlink_6_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 50 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_1
+      link starlink_6_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_1
+      link starlink_6_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_1
+   end_comm
+
+end_platform
+
+platform starlink_6_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 70 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_2
+      link starlink_6_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_2
+      link starlink_6_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_2
+   end_comm
+
+end_platform
+
+platform starlink_6_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 90 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_3
+      link starlink_6_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_3
+      link starlink_6_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_3
+   end_comm
+
+end_platform
+
+platform starlink_6_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 110 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_4
+      link starlink_6_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_4
+      link starlink_6_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_4
+   end_comm
+
+end_platform
+
+platform starlink_6_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 130 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_5
+      link starlink_6_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_5
+      link starlink_6_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_5
+   end_comm
+
+end_platform
+
+platform starlink_6_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 150 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_6
+      link starlink_6_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_6
+      link starlink_6_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_6
+   end_comm
+
+end_platform
+
+platform starlink_6_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 170 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_7
+      link starlink_6_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_7
+      link starlink_6_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_7
+   end_comm
+
+end_platform
+
+platform starlink_6_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 190 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_8
+      link starlink_6_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_8
+      link starlink_6_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_8
+   end_comm
+
+end_platform
+
+platform starlink_6_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 210 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_9
+      link starlink_6_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_9
+      link starlink_6_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_9
+   end_comm
+
+end_platform
+
+platform starlink_6_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 230 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_10
+      link starlink_6_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_10
+      link starlink_6_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_10
+   end_comm
+
+end_platform
+
+platform starlink_6_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 250 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_11
+      link starlink_6_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_11
+      link starlink_6_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_11
+   end_comm
+
+end_platform
+
+platform starlink_6_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 270 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_12
+      link starlink_6_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_12
+      link starlink_6_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_12
+   end_comm
+
+end_platform
+
+platform starlink_6_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 290 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_13
+      link starlink_6_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_13
+      link starlink_6_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_13
+   end_comm
+
+end_platform
+
+platform starlink_6_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 310 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_14
+      link starlink_6_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_14
+      link starlink_6_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_14
+   end_comm
+
+end_platform
+
+platform starlink_6_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 330 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_15
+      link starlink_6_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_15
+      link starlink_6_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_15
+   end_comm
+
+end_platform
+
+platform starlink_6_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 350 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_16
+      link starlink_6_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_16
+      link starlink_6_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_16
+   end_comm
+
+end_platform
+
+platform starlink_6_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 135 deg
+      true_anomaly 10 deg
+   end_mover
+   aux_data
+      int plane = 6
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_6_17
+      link starlink_6_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_6_17
+      link starlink_6_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_6_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_6_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_6_17
+   end_comm
+
+end_platform
+
+platform starlink_7_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 35 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_0
+      link starlink_7_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_0
+      link starlink_7_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_0
+   end_comm
+
+end_platform
+
+platform starlink_7_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 55 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_1
+      link starlink_7_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_1
+      link starlink_7_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_1
+   end_comm
+
+end_platform
+
+platform starlink_7_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 75 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_2
+      link starlink_7_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_2
+      link starlink_7_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_2
+   end_comm
+
+end_platform
+
+platform starlink_7_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 95 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_3
+      link starlink_7_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_3
+      link starlink_7_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_3
+   end_comm
+
+end_platform
+
+platform starlink_7_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 115 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_4
+      link starlink_7_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_4
+      link starlink_7_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_4
+   end_comm
+
+end_platform
+
+platform starlink_7_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 135 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_5
+      link starlink_7_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_5
+      link starlink_7_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_5
+   end_comm
+
+end_platform
+
+platform starlink_7_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 155 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_6
+      link starlink_7_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_6
+      link starlink_7_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_6
+   end_comm
+
+end_platform
+
+platform starlink_7_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 175 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_7
+      link starlink_7_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_7
+      link starlink_7_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_7
+   end_comm
+
+end_platform
+
+platform starlink_7_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 195 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_8
+      link starlink_7_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_8
+      link starlink_7_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_8
+   end_comm
+
+end_platform
+
+platform starlink_7_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 215 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_9
+      link starlink_7_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_9
+      link starlink_7_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_9
+   end_comm
+
+end_platform
+
+platform starlink_7_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 235 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_10
+      link starlink_7_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_10
+      link starlink_7_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_10
+   end_comm
+
+end_platform
+
+platform starlink_7_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 255 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_11
+      link starlink_7_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_11
+      link starlink_7_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_11
+   end_comm
+
+end_platform
+
+platform starlink_7_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 275 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_12
+      link starlink_7_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_12
+      link starlink_7_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_12
+   end_comm
+
+end_platform
+
+platform starlink_7_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 295 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_13
+      link starlink_7_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_13
+      link starlink_7_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_13
+   end_comm
+
+end_platform
+
+platform starlink_7_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 315 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_14
+      link starlink_7_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_14
+      link starlink_7_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_14
+   end_comm
+
+end_platform
+
+platform starlink_7_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 335 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_15
+      link starlink_7_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_15
+      link starlink_7_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_15
+   end_comm
+
+end_platform
+
+platform starlink_7_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 355 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_16
+      link starlink_7_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_16
+      link starlink_7_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_16
+   end_comm
+
+end_platform
+
+platform starlink_7_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 157.5 deg
+      true_anomaly 15 deg
+   end_mover
+   aux_data
+      int plane = 7
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_7_17
+      link starlink_7_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_7_17
+      link starlink_7_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_7_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_7_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_7_17
+   end_comm
+
+end_platform
+
+platform starlink_8_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 40 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_0
+      link starlink_8_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_0
+      link starlink_8_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_0
+   end_comm
+
+end_platform
+
+platform starlink_8_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 60 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_1
+      link starlink_8_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_1
+      link starlink_8_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_1
+   end_comm
+
+end_platform
+
+platform starlink_8_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 80 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_2
+      link starlink_8_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_2
+      link starlink_8_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_2
+   end_comm
+
+end_platform
+
+platform starlink_8_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 100 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_3
+      link starlink_8_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_3
+      link starlink_8_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_3
+   end_comm
+
+end_platform
+
+platform starlink_8_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 120 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_4
+      link starlink_8_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_4
+      link starlink_8_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_4
+   end_comm
+
+end_platform
+
+platform starlink_8_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 140 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_5
+      link starlink_8_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_5
+      link starlink_8_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_5
+   end_comm
+
+end_platform
+
+platform starlink_8_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 160 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_6
+      link starlink_8_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_6
+      link starlink_8_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_6
+   end_comm
+
+end_platform
+
+platform starlink_8_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 180 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_7
+      link starlink_8_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_7
+      link starlink_8_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_7
+   end_comm
+
+end_platform
+
+platform starlink_8_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 200 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_8
+      link starlink_8_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_8
+      link starlink_8_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_8
+   end_comm
+
+end_platform
+
+platform starlink_8_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 220 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_9
+      link starlink_8_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_9
+      link starlink_8_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_9
+   end_comm
+
+end_platform
+
+platform starlink_8_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 240 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_10
+      link starlink_8_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_10
+      link starlink_8_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_10
+   end_comm
+
+end_platform
+
+platform starlink_8_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 260 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_11
+      link starlink_8_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_11
+      link starlink_8_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_11
+   end_comm
+
+end_platform
+
+platform starlink_8_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 280 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_12
+      link starlink_8_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_12
+      link starlink_8_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_12
+   end_comm
+
+end_platform
+
+platform starlink_8_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 300 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_13
+      link starlink_8_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_13
+      link starlink_8_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_13
+   end_comm
+
+end_platform
+
+platform starlink_8_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 320 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_14
+      link starlink_8_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_14
+      link starlink_8_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_14
+   end_comm
+
+end_platform
+
+platform starlink_8_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 340 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_15
+      link starlink_8_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_15
+      link starlink_8_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_15
+   end_comm
+
+end_platform
+
+platform starlink_8_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 0 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_16
+      link starlink_8_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_16
+      link starlink_8_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_16
+   end_comm
+
+end_platform
+
+platform starlink_8_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 180 deg
+      true_anomaly 20 deg
+   end_mover
+   aux_data
+      int plane = 8
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_8_17
+      link starlink_8_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_8_17
+      link starlink_8_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_8_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_8_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_8_17
+   end_comm
+
+end_platform
+
+platform starlink_9_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 45 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_0
+      link starlink_9_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_0
+      link starlink_9_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_0
+   end_comm
+
+end_platform
+
+platform starlink_9_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 65 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_1
+      link starlink_9_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_1
+      link starlink_9_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_1
+   end_comm
+
+end_platform
+
+platform starlink_9_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 85 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_2
+      link starlink_9_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_2
+      link starlink_9_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_2
+   end_comm
+
+end_platform
+
+platform starlink_9_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 105 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_3
+      link starlink_9_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_3
+      link starlink_9_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_3
+   end_comm
+
+end_platform
+
+platform starlink_9_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 125 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_4
+      link starlink_9_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_4
+      link starlink_9_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_4
+   end_comm
+
+end_platform
+
+platform starlink_9_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 145 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_5
+      link starlink_9_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_5
+      link starlink_9_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_5
+   end_comm
+
+end_platform
+
+platform starlink_9_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 165 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_6
+      link starlink_9_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_6
+      link starlink_9_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_6
+   end_comm
+
+end_platform
+
+platform starlink_9_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 185 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_7
+      link starlink_9_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_7
+      link starlink_9_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_7
+   end_comm
+
+end_platform
+
+platform starlink_9_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 205 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_8
+      link starlink_9_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_8
+      link starlink_9_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_8
+   end_comm
+
+end_platform
+
+platform starlink_9_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 225 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_9
+      link starlink_9_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_9
+      link starlink_9_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_9
+   end_comm
+
+end_platform
+
+platform starlink_9_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 245 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_10
+      link starlink_9_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_10
+      link starlink_9_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_10
+   end_comm
+
+end_platform
+
+platform starlink_9_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 265 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_11
+      link starlink_9_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_11
+      link starlink_9_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_11
+   end_comm
+
+end_platform
+
+platform starlink_9_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 285 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_12
+      link starlink_9_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_12
+      link starlink_9_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_12
+   end_comm
+
+end_platform
+
+platform starlink_9_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 305 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_13
+      link starlink_9_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_13
+      link starlink_9_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_13
+   end_comm
+
+end_platform
+
+platform starlink_9_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 325 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_14
+      link starlink_9_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_14
+      link starlink_9_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_14
+   end_comm
+
+end_platform
+
+platform starlink_9_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 345 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_15
+      link starlink_9_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_15
+      link starlink_9_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_15
+   end_comm
+
+end_platform
+
+platform starlink_9_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 5 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_16
+      link starlink_9_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_16
+      link starlink_9_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_16
+   end_comm
+
+end_platform
+
+platform starlink_9_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 202.5 deg
+      true_anomaly 25 deg
+   end_mover
+   aux_data
+      int plane = 9
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_9_17
+      link starlink_9_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_9_17
+      link starlink_9_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_9_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_9_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_9_17
+   end_comm
+
+end_platform
+
+platform starlink_10_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 50 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_0
+      link starlink_10_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_0
+      link starlink_10_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_0
+   end_comm
+
+end_platform
+
+platform starlink_10_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 70 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_1
+      link starlink_10_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_1
+      link starlink_10_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_1
+   end_comm
+
+end_platform
+
+platform starlink_10_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 90 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_2
+      link starlink_10_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_2
+      link starlink_10_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_2
+   end_comm
+
+end_platform
+
+platform starlink_10_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 110 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_3
+      link starlink_10_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_3
+      link starlink_10_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_3
+   end_comm
+
+end_platform
+
+platform starlink_10_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 130 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_4
+      link starlink_10_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_4
+      link starlink_10_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_4
+   end_comm
+
+end_platform
+
+platform starlink_10_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 150 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_5
+      link starlink_10_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_5
+      link starlink_10_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_5
+   end_comm
+
+end_platform
+
+platform starlink_10_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 170 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_6
+      link starlink_10_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_6
+      link starlink_10_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_6
+   end_comm
+
+end_platform
+
+platform starlink_10_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 190 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_7
+      link starlink_10_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_7
+      link starlink_10_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_7
+   end_comm
+
+end_platform
+
+platform starlink_10_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 210 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_8
+      link starlink_10_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_8
+      link starlink_10_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_8
+   end_comm
+
+end_platform
+
+platform starlink_10_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 230 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_9
+      link starlink_10_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_9
+      link starlink_10_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_9
+   end_comm
+
+end_platform
+
+platform starlink_10_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 250 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_10
+      link starlink_10_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_10
+      link starlink_10_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_10
+   end_comm
+
+end_platform
+
+platform starlink_10_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 270 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_11
+      link starlink_10_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_11
+      link starlink_10_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_11
+   end_comm
+
+end_platform
+
+platform starlink_10_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 290 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_12
+      link starlink_10_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_12
+      link starlink_10_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_12
+   end_comm
+
+end_platform
+
+platform starlink_10_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 310 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_13
+      link starlink_10_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_13
+      link starlink_10_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_13
+   end_comm
+
+end_platform
+
+platform starlink_10_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 330 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_14
+      link starlink_10_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_14
+      link starlink_10_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_14
+   end_comm
+
+end_platform
+
+platform starlink_10_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 350 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_15
+      link starlink_10_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_15
+      link starlink_10_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_15
+   end_comm
+
+end_platform
+
+platform starlink_10_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 10 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_16
+      link starlink_10_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_16
+      link starlink_10_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_16
+   end_comm
+
+end_platform
+
+platform starlink_10_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 225 deg
+      true_anomaly 30 deg
+   end_mover
+   aux_data
+      int plane = 10
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_10_17
+      link starlink_10_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_10_17
+      link starlink_10_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_10_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_10_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_10_17
+   end_comm
+
+end_platform
+
+platform starlink_11_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 55 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_0
+      link starlink_11_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_0
+      link starlink_11_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_0
+   end_comm
+
+end_platform
+
+platform starlink_11_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 75 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_1
+      link starlink_11_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_1
+      link starlink_11_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_1
+   end_comm
+
+end_platform
+
+platform starlink_11_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 95 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_2
+      link starlink_11_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_2
+      link starlink_11_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_2
+   end_comm
+
+end_platform
+
+platform starlink_11_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 115 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_3
+      link starlink_11_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_3
+      link starlink_11_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_3
+   end_comm
+
+end_platform
+
+platform starlink_11_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 135 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_4
+      link starlink_11_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_4
+      link starlink_11_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_4
+   end_comm
+
+end_platform
+
+platform starlink_11_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 155 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_5
+      link starlink_11_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_5
+      link starlink_11_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_5
+   end_comm
+
+end_platform
+
+platform starlink_11_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 175 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_6
+      link starlink_11_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_6
+      link starlink_11_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_6
+   end_comm
+
+end_platform
+
+platform starlink_11_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 195 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_7
+      link starlink_11_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_7
+      link starlink_11_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_7
+   end_comm
+
+end_platform
+
+platform starlink_11_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 215 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_8
+      link starlink_11_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_8
+      link starlink_11_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_8
+   end_comm
+
+end_platform
+
+platform starlink_11_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 235 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_9
+      link starlink_11_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_9
+      link starlink_11_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_9
+   end_comm
+
+end_platform
+
+platform starlink_11_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 255 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_10
+      link starlink_11_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_10
+      link starlink_11_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_10
+   end_comm
+
+end_platform
+
+platform starlink_11_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 275 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_11
+      link starlink_11_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_11
+      link starlink_11_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_11
+   end_comm
+
+end_platform
+
+platform starlink_11_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 295 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_12
+      link starlink_11_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_12
+      link starlink_11_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_12
+   end_comm
+
+end_platform
+
+platform starlink_11_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 315 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_13
+      link starlink_11_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_13
+      link starlink_11_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_13
+   end_comm
+
+end_platform
+
+platform starlink_11_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 335 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_14
+      link starlink_11_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_14
+      link starlink_11_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_14
+   end_comm
+
+end_platform
+
+platform starlink_11_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 355 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_15
+      link starlink_11_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_15
+      link starlink_11_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_15
+   end_comm
+
+end_platform
+
+platform starlink_11_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 15 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_16
+      link starlink_11_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_16
+      link starlink_11_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_16
+   end_comm
+
+end_platform
+
+platform starlink_11_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 247.5 deg
+      true_anomaly 35 deg
+   end_mover
+   aux_data
+      int plane = 11
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_11_17
+      link starlink_11_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_11_17
+      link starlink_11_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_11_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_11_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_11_17
+   end_comm
+
+end_platform
+
+platform starlink_12_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 60 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_0
+      link starlink_12_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_0
+      link starlink_12_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_0
+   end_comm
+
+end_platform
+
+platform starlink_12_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 80 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_1
+      link starlink_12_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_1
+      link starlink_12_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_1
+   end_comm
+
+end_platform
+
+platform starlink_12_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 100 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_2
+      link starlink_12_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_2
+      link starlink_12_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_2
+   end_comm
+
+end_platform
+
+platform starlink_12_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 120 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_3
+      link starlink_12_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_3
+      link starlink_12_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_3
+   end_comm
+
+end_platform
+
+platform starlink_12_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 140 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_4
+      link starlink_12_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_4
+      link starlink_12_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_4
+   end_comm
+
+end_platform
+
+platform starlink_12_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 160 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_5
+      link starlink_12_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_5
+      link starlink_12_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_5
+   end_comm
+
+end_platform
+
+platform starlink_12_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 180 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_6
+      link starlink_12_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_6
+      link starlink_12_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_6
+   end_comm
+
+end_platform
+
+platform starlink_12_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 200 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_7
+      link starlink_12_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_7
+      link starlink_12_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_7
+   end_comm
+
+end_platform
+
+platform starlink_12_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 220 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_8
+      link starlink_12_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_8
+      link starlink_12_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_8
+   end_comm
+
+end_platform
+
+platform starlink_12_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 240 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_9
+      link starlink_12_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_9
+      link starlink_12_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_9
+   end_comm
+
+end_platform
+
+platform starlink_12_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 260 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_10
+      link starlink_12_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_10
+      link starlink_12_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_10
+   end_comm
+
+end_platform
+
+platform starlink_12_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 280 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_11
+      link starlink_12_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_11
+      link starlink_12_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_11
+   end_comm
+
+end_platform
+
+platform starlink_12_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 300 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_12
+      link starlink_12_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_12
+      link starlink_12_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_12
+   end_comm
+
+end_platform
+
+platform starlink_12_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 320 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_13
+      link starlink_12_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_13
+      link starlink_12_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_13
+   end_comm
+
+end_platform
+
+platform starlink_12_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 340 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_14
+      link starlink_12_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_14
+      link starlink_12_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_14
+   end_comm
+
+end_platform
+
+platform starlink_12_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 0 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_15
+      link starlink_12_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_15
+      link starlink_12_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_15
+   end_comm
+
+end_platform
+
+platform starlink_12_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 20 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_16
+      link starlink_12_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_16
+      link starlink_12_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_16
+   end_comm
+
+end_platform
+
+platform starlink_12_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 270 deg
+      true_anomaly 40 deg
+   end_mover
+   aux_data
+      int plane = 12
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_12_17
+      link starlink_12_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_12_17
+      link starlink_12_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_12_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_12_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_12_17
+   end_comm
+
+end_platform
+
+platform starlink_13_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 65 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_0
+      link starlink_13_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_0
+      link starlink_13_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_0
+   end_comm
+
+end_platform
+
+platform starlink_13_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 85 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_1
+      link starlink_13_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_1
+      link starlink_13_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_1
+   end_comm
+
+end_platform
+
+platform starlink_13_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 105 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_2
+      link starlink_13_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_2
+      link starlink_13_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_2
+   end_comm
+
+end_platform
+
+platform starlink_13_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 125 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_3
+      link starlink_13_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_3
+      link starlink_13_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_3
+   end_comm
+
+end_platform
+
+platform starlink_13_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 145 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_4
+      link starlink_13_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_4
+      link starlink_13_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_4
+   end_comm
+
+end_platform
+
+platform starlink_13_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 165 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_5
+      link starlink_13_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_5
+      link starlink_13_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_5
+   end_comm
+
+end_platform
+
+platform starlink_13_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 185 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_6
+      link starlink_13_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_6
+      link starlink_13_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_6
+   end_comm
+
+end_platform
+
+platform starlink_13_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 205 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_7
+      link starlink_13_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_7
+      link starlink_13_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_7
+   end_comm
+
+end_platform
+
+platform starlink_13_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 225 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_8
+      link starlink_13_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_8
+      link starlink_13_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_8
+   end_comm
+
+end_platform
+
+platform starlink_13_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 245 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_9
+      link starlink_13_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_9
+      link starlink_13_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_9
+   end_comm
+
+end_platform
+
+platform starlink_13_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 265 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_10
+      link starlink_13_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_10
+      link starlink_13_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_10
+   end_comm
+
+end_platform
+
+platform starlink_13_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 285 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_11
+      link starlink_13_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_11
+      link starlink_13_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_11
+   end_comm
+
+end_platform
+
+platform starlink_13_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 305 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_12
+      link starlink_13_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_12
+      link starlink_13_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_12
+   end_comm
+
+end_platform
+
+platform starlink_13_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 325 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_13
+      link starlink_13_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_13
+      link starlink_13_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_13
+   end_comm
+
+end_platform
+
+platform starlink_13_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 345 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_14
+      link starlink_13_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_14
+      link starlink_13_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_14
+   end_comm
+
+end_platform
+
+platform starlink_13_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 5 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_15
+      link starlink_13_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_15
+      link starlink_13_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_15
+   end_comm
+
+end_platform
+
+platform starlink_13_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 25 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_16
+      link starlink_13_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_16
+      link starlink_13_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_16
+   end_comm
+
+end_platform
+
+platform starlink_13_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 292.5 deg
+      true_anomaly 45 deg
+   end_mover
+   aux_data
+      int plane = 13
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_13_17
+      link starlink_13_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_13_17
+      link starlink_13_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_13_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_13_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_13_17
+   end_comm
+
+end_platform
+
+platform starlink_14_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 70 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_0
+      link starlink_14_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_0
+      link starlink_14_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_0
+   end_comm
+
+end_platform
+
+platform starlink_14_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 90 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_1
+      link starlink_14_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_1
+      link starlink_14_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_1
+   end_comm
+
+end_platform
+
+platform starlink_14_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 110 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_2
+      link starlink_14_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_2
+      link starlink_14_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_2
+   end_comm
+
+end_platform
+
+platform starlink_14_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 130 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_3
+      link starlink_14_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_3
+      link starlink_14_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_3
+   end_comm
+
+end_platform
+
+platform starlink_14_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 150 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_4
+      link starlink_14_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_4
+      link starlink_14_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_4
+   end_comm
+
+end_platform
+
+platform starlink_14_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 170 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_5
+      link starlink_14_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_5
+      link starlink_14_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_5
+   end_comm
+
+end_platform
+
+platform starlink_14_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 190 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_6
+      link starlink_14_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_6
+      link starlink_14_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_6
+   end_comm
+
+end_platform
+
+platform starlink_14_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 210 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_7
+      link starlink_14_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_7
+      link starlink_14_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_7
+   end_comm
+
+end_platform
+
+platform starlink_14_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 230 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_8
+      link starlink_14_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_8
+      link starlink_14_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_8
+   end_comm
+
+end_platform
+
+platform starlink_14_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 250 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_9
+      link starlink_14_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_9
+      link starlink_14_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_9
+   end_comm
+
+end_platform
+
+platform starlink_14_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 270 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_10
+      link starlink_14_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_10
+      link starlink_14_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_10
+   end_comm
+
+end_platform
+
+platform starlink_14_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 290 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_11
+      link starlink_14_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_11
+      link starlink_14_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_11
+   end_comm
+
+end_platform
+
+platform starlink_14_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 310 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_12
+      link starlink_14_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_12
+      link starlink_14_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_12
+   end_comm
+
+end_platform
+
+platform starlink_14_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 330 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_13
+      link starlink_14_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_13
+      link starlink_14_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_13
+   end_comm
+
+end_platform
+
+platform starlink_14_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 350 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_14
+      link starlink_14_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_14
+      link starlink_14_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_14
+   end_comm
+
+end_platform
+
+platform starlink_14_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 10 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_15
+      link starlink_14_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_15
+      link starlink_14_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_15
+   end_comm
+
+end_platform
+
+platform starlink_14_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 30 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_16
+      link starlink_14_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_16
+      link starlink_14_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_16
+   end_comm
+
+end_platform
+
+platform starlink_14_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 315 deg
+      true_anomaly 50 deg
+   end_mover
+   aux_data
+      int plane = 14
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_14_17
+      link starlink_14_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_14_17
+      link starlink_14_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_14_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_14_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_14_17
+   end_comm
+
+end_platform
+
+platform starlink_15_0 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 75 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_0
+      link starlink_15_1 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_0
+      link starlink_15_17 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_0
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_0
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_0
+   end_comm
+
+end_platform
+
+platform starlink_15_1 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 95 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_1
+      link starlink_15_2 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_1
+      link starlink_15_0 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_1
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_1
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_1
+   end_comm
+
+end_platform
+
+platform starlink_15_2 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 115 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_2
+      link starlink_15_3 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_2
+      link starlink_15_1 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_2
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_2
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_2
+   end_comm
+
+end_platform
+
+platform starlink_15_3 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 135 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_3
+      link starlink_15_4 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_3
+      link starlink_15_2 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_3
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_3
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_3
+   end_comm
+
+end_platform
+
+platform starlink_15_4 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 155 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_4
+      link starlink_15_5 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_4
+      link starlink_15_3 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_4
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_4
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_4
+   end_comm
+
+end_platform
+
+platform starlink_15_5 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 175 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_5
+      link starlink_15_6 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_5
+      link starlink_15_4 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_5
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_5
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_5
+   end_comm
+
+end_platform
+
+platform starlink_15_6 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 195 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_6
+      link starlink_15_7 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_6
+      link starlink_15_5 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_6
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_6
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_6
+   end_comm
+
+end_platform
+
+platform starlink_15_7 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 215 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_7
+      link starlink_15_8 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_7
+      link starlink_15_6 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_7
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_7
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_7
+   end_comm
+
+end_platform
+
+platform starlink_15_8 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 235 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_8
+      link starlink_15_9 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_8
+      link starlink_15_7 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_8
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_8
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_8
+   end_comm
+
+end_platform
+
+platform starlink_15_9 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 255 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_9
+      link starlink_15_10 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_9
+      link starlink_15_8 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_9
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_9
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_9
+   end_comm
+
+end_platform
+
+platform starlink_15_10 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 275 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_10
+      link starlink_15_11 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_10
+      link starlink_15_9 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_10
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_10
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_10
+   end_comm
+
+end_platform
+
+platform starlink_15_11 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 295 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_11
+      link starlink_15_12 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_11
+      link starlink_15_10 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_11
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_11
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_11
+   end_comm
+
+end_platform
+
+platform starlink_15_12 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 315 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_12
+      link starlink_15_13 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_12
+      link starlink_15_11 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_12
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_12
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_12
+   end_comm
+
+end_platform
+
+platform starlink_15_13 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 335 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_13
+      link starlink_15_14 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_13
+      link starlink_15_12 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_13
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_13
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_13
+   end_comm
+
+end_platform
+
+platform starlink_15_14 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 355 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_14
+      link starlink_15_15 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_14
+      link starlink_15_13 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_14
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_14
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_14
+   end_comm
+
+end_platform
+
+platform starlink_15_15 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 15 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_15
+      link starlink_15_16 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_15
+      link starlink_15_14 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_15
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_15
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_15
+   end_comm
+
+end_platform
+
+platform starlink_15_16 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 35 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_16
+      link starlink_15_17 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_16
+      link starlink_15_15 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_16
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_16
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_16
+   end_comm
+
+end_platform
+
+platform starlink_15_17 STARLINK
+   mover
+      inclination 53 deg
+      revs_per_day 13.3
+      raan 337.5 deg
+      true_anomaly 55 deg
+   end_mover
+   aux_data
+      int plane = 15
+   end_aux_data
+   comm crosslink1
+      network_name crosslink1_starlink_15_17
+      link starlink_15_0 crosslink2
+   end_comm
+
+   comm crosslink2
+      network_name crosslink2_starlink_15_17
+      link starlink_15_16 crosslink1
+   end_comm
+
+   comm crosslink3
+      network_name crosslink3_starlink_15_17
+   end_comm
+
+   comm crosslink4
+      network_name crosslink4_starlink_15_17
+   end_comm
+
+   comm downlink
+      network_name downlink_starlink_15_17
+   end_comm
+
+end_platform
+

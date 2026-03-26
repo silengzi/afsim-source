@@ -1,0 +1,162 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ..
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+
+ignore_block route
+ignore_block mover
+
+antenna_pattern  constAntenna
+  constant 3 db
+end_antenna_pattern
+
+sensor PASSIVE_SNSR WSF_ESM_SENSOR
+  frame_time    0.5 sec
+  azimuth_field_of_view     -180 deg 180 deg
+  elevation_field_of_view   -90 deg 90 deg
+  frequency_band   1.0 ghz  100.0 ghz
+
+  receiver
+    antenna_pattern constAntenna
+    noise_power   -120 dbm
+  end_receiver
+end_sensor
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature    UCAV_RADAR_SIG
+   optical_signature  UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+
+   sensor passive PASSIVE_SNSR
+      on
+      reports_location
+      reports_signal_to_noise
+   end_sensor
+
+end_platform_type
+
+antenna_pattern JAMMER_ANTENNA
+   sine_pattern
+      peak_gain             10.0 db
+      minimum_gain          -20.0 db
+      azimuth_beamwidth     20.0 deg
+      elevation_beamwidth   20.0 deg
+   end_sine_pattern
+end_antenna_pattern
+
+weapon JAMMER WSF_RF_JAMMER
+   transmitter
+      antenna_pattern            JAMMER_ANTENNA
+      frequency                  3 ghz
+      bandwidth                  10 mhz
+      power                      100.0 w
+      internal_loss              0.0 db
+   end_transmitter
+end_weapon
+
+platform jammer-1 WSF_PLATFORM
+
+   position 0.0n 0.0e
+   altitude 30000 ft
+   heading  0 deg
+
+   add weapon jammer JAMMER
+      on
+
+      yaw   0.0 deg
+      pitch 0.0 deg
+      roll  0.0 deg
+   end_weapon
+
+end_platform
+
+horizontal_map
+
+   platform_to_detect_name jammer-1
+
+   #pd_map_file hm-jammer-detect.pd
+   gnuplot_file hm-jammer-detect-1.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   #variable pd
+   #header_line_1 "Horizontal pd map"
+   #report_file uvav_vs_acq-soj.log # valid only if variable is pd
+
+   #variable detection_threshold
+   #header_line_1 "Detection Threshold"
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   variable signal_power
+   header_line_1 "Received signal power"
+
+   #variable clutter_power
+   #header_line_1 "Clutter power"
+
+   #variable jammer_power
+   #header_line_1 "Received jammer power"
+
+   #variable jammer_to_signal
+   #header_line_1 "J/S in dB"
+
+   #variable signal_to_noise
+   #header_line_1 "S/N Ratio in dB"
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB"
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable contrast_radiant_intensity
+   #header_line_1 "Contrast Radiant Intensity."
+
+   #variable attenuation_factor
+   #header_line_1 "Attenuation factor."
+
+   #variable propagation_factor
+   #header_line_1 "Propagation factor."
+
+   target_region
+      down_range_limits   -200 nm 200 nm
+      down_range_step        1 nm
+      cross_range_limits  -200 nm 200 nm
+      cross_range_step       1 nm
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 10 ft
+   target_speed    0 kts
+   target_pitch    0 deg
+   target_roll     0 deg
+end_horizontal_map

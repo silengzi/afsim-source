@@ -1,0 +1,197 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/beidou.txt
+
+# BEIDOU CONSTELLATION SCENARIO (CHINA-GPS)
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+platform COMPASS-G1 BEIDOU
+edit mover
+orbit
+1 36287U 10001A   17192.24952231 -.00000286  00000-0  00000-0 0  9993
+2 36287   1.4803   1.5211 0003448 156.6282   1.1030  1.00271897 27451
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-G3 BEIDOU
+edit mover
+orbit
+1 36590U 10024A   17191.49780353 -.00000357  00000-0  00000-0 0  9994
+2 36590   1.3577  23.4895 0005229 322.7578 231.9791  1.00265698 26053
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO1 BEIDOU
+edit mover
+orbit
+1 36828U 10036A   17192.29688987 -.00000089  00000-0  10000-3 0  9996
+2 36828  54.1763 193.2516 0059442 228.8894  93.8075  1.00271402 25496
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-G4 BEIDOU
+edit mover
+orbit
+1 37210U 10057A   17192.30051750 -.00000114  00000-0  00000-0 0  9994
+2 37210   0.7558  45.3192 0003992 159.1999 353.1053  1.00272566 24577
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO2 BEIDOU
+edit mover
+orbit
+1 37256U 10068A   17191.44186439 -.00000226  00000-0  10000-3 0  9991
+2 37256  53.1003 310.9889 0056945 203.1811  53.3603  1.00279466 24078
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO3 BEIDOU
+edit mover
+orbit
+1 37384U 11013A   17192.28646716 -.00000183  00000-0  10000-3 0  9998
+2 37384  57.8525  72.6852 0026321 207.9948 230.3097  1.00254304 22964
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO4 BEIDOU
+edit mover
+orbit
+1 37763U 11038A   17192.06414894 -.00000029  00000-0  10000-3 0  9991
+2 37763  54.4826 195.6208 0047819 218.0488 354.1525  1.00269942 21920
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO5 BEIDOU
+edit mover
+orbit
+1 37948U 11073A   17192.21677767 -.00000161  00000-0  10000-3 0  9999
+2 37948  53.1800 310.4601 0049437 204.2756 306.8580  1.00287124 20689
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-G5 BEIDOU
+edit mover
+orbit
+1 38091U 12008A   17192.13897815  .00000053  00000-0  00000-0 0  9992
+2 38091   2.2563  56.8994 0001969 212.7208 128.3344  1.00270013 19750
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-M3 BEIDOU
+edit mover
+orbit
+1 38250U 12018A   17192.14665117 -.00000048  00000-0  10000-3 0  9998
+2 38250  56.2578  53.3361 0021641 224.0390 160.3693  1.86234451 35525
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-M4 BEIDOU
+edit mover
+orbit
+1 38251U 12018B   17192.07559866 -.00000049  00000-0  10000-3 0  9995
+2 38251  56.1939  52.7690 0023933 217.5808 167.3033  1.86233807 35520
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-M6 BEIDOU
+edit mover
+orbit
+1 38775U 12050B   17192.12868153  .00000054  00000-0  00000-0 0  9991
+2 38775  54.8485 172.4778 0022609 238.0598  18.1798  1.86233105 32891
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-G6 BEIDOU
+edit mover
+orbit
+1 38953U 12059A   17192.00823647 -.00000180  00000-0  00000-0 0  9995
+2 38953   1.7043  80.1541 0003412 153.7362 142.2208  1.00274131 17322
+end_orbit
+end_mover
+end_platform
+
+platform BDS_I1-S BEIDOU
+edit mover
+orbit
+1 40549U 15019A   17192.25544546 -.00000179  00000-0  00000-0 0  9991
+2 40549  54.3791 333.4982 0041306 186.4467 315.8553  1.00289354  8364
+end_orbit
+end_mover
+end_platform
+
+platform BDS_M1-S BEIDOU
+edit mover
+orbit
+1 40748U 15037A   17192.13831061 -.00000051  00000-0  00000-0 0  9999
+2 40748  55.4643  52.7178 0005780 282.9955  54.4287  1.86237476 13347
+end_orbit
+end_mover
+end_platform
+
+platform BDS_M2-S BEIDOU
+edit mover
+orbit
+1 40749U 15037B   17192.06005898 -.00000051  00000-0  00000-0 0  9993
+2 40749  55.4664  52.7068 0006645 295.4612 126.8096  1.86232575 13346
+end_orbit
+end_mover
+end_platform
+
+platform BDS_I2-S BEIDOU
+edit mover
+orbit
+1 40938U 15053A   17192.25952087 -.00000138  00000-0  00000-0 0  9999
+2 40938  54.1727 296.4035 0047845 173.9313   7.1880  1.00288842  6649
+end_orbit
+end_mover
+end_platform
+
+platform BDS_M3-S BEIDOU
+edit mover
+orbit
+1 41315U 16006A   17191.94318472  .00000054  00000-0  00000-0 0  9993
+2 41315  55.0330 172.7176 0003635 299.5979  60.3376  1.86232757  9825
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-IGSO6 BEIDOU
+edit mover
+orbit
+1 41434U 16021A   17192.16619878 -.00000139  00000-0  10000-3 0  9990
+2 41434  55.5688  72.1365 0026956 180.3751 191.5302  1.00265710  4773
+end_orbit
+end_mover
+end_platform
+
+platform COMPASS-G7 BEIDOU
+edit mover
+orbit
+1 41586U 16037A   17191.68541609 -.00000250  00000-0  00000-0 0  9997
+2 41586   1.2023 318.9586 0002122 254.5791 106.5120  1.00268147  4079
+end_orbit
+end_mover
+end_platform

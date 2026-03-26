@@ -1,0 +1,94 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# AUTHOR: Michael Williams (michael.x.williams@boeing.com)
+
+### Propose wait for a state no-change
+
+sp {top-ps*propose*wait
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link.track-root <tr>
+              ^io.input-link.point-root <pr>
+              ^io.input-link.current-time <time>)
+   (<tr> -^<target> <t>)
+   (<pr> -^<point> <p>)
+-->
+   (<s> ^operator <o> + >)
+   (<o> ^name wait)
+   (<o> ^actions <a>)
+   (<a> ^do-nothing <dn>)
+   (<dn> ^nothing 0)
+   (write (crlf) |Propose wait++++++++++++++++++++++++++++++++++++++++++++++++|)
+}
+
+sp {top-ps*check1
+   (state <s> ^name RIPR-AIAI)
+-->
+   (write (crlf) |@@@  state <s> ^name RIPR-AIAI|)
+}
+
+sp {top-ps*check2
+   (state <s> ^io.input-link.track-root <tr>)
+-->
+   (write (crlf) |@@@  state <s> ^io.input-link.track-root <tr>|)
+}
+
+#sp {top-ps*check3
+#   (state <s> ^io.input-link.track-root <tr>)
+#   (<tr> -^<target> <t>)
+#-->
+#   (write (crlf) |@@@  <tr> -^<target> <t>|)
+#}
+
+#sp {top-ps*check4
+#   (state <s> ^io.input-link.point-root <pr>)
+#-->
+#   (write (crlf) |@@@  state <s> ^io.input-link.point-root <pr>|)
+#}
+
+#sp {top-ps*check5
+#   (state <s> ^io.input-link.point-root <pr>)
+#   (<pr> -^<point> <p>)
+#-->
+#   (write (crlf) |@@@  <pr> -^<point> <p>|)
+#}
+#
+
+
+
+
+
+
+
+#sp {top-ps*propose*wait
+#   "Propose wait if there is a state no-change."
+#   :default
+#   (state <s> ^attribute state
+#              ^choices none
+#             -^operator.name wait)
+#-->
+#   (<s> ^operator <o> + <)
+#   (<o> ^name wait)
+#   (<o> ^actions <a>)
+#   (<a> ^do-nothing <dn>)
+#   (<dn> ^nothing 0)
+#   (write (crlf) |Propose wait|)
+#}
+
+
+### This avoids a operator no-change after wait is selected
+### I've included it just to keep the trace simple - it never fires
+
+#sp {top-ps*apply*wait*random
+#   "Fake production just to avoid extra operator no-change."
+#   :default
+#   (state <s> ^operator <o>)
+#   (<o> ^name wait)
+#-->
+#   (<o> ^random elaboration)
+#}

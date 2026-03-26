@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once input_variables.txt
+include_once processors/gun_battery_tactics.txt
+define_path_variable BULLET_FILE $<BULLET_NAME:BULLET>$
+include_once weapons/guns/$(BULLET_FILE).txt
+include_once weapons/guns/$(BULLET_FILE)_launch_computer.txt
+
+platform_type GUN_BATTERY WSF_PLATFORM
+  icon  aaa
+  commander SELF
+  weapon gun $<BULLET_NAME:BULLET>$
+
+    quantity 200
+  end_weapon
+
+  processor gun_task_processor GUN_BATTERY_TACTICS
+
+    script_variables
+      SENSOR_NAME               = "test_sensor";
+      SENSOR_TRACK_MODE         = "default";
+      WEAPON_NAME               = "gun";
+      SALVO_SIZE                = 10;
+      MAX_RANGE                 = 2000; # dont even try to shoot farther
+    end_script_variables
+  end_processor
+
+  processor track_mgr WSF_TRACK_PROCESSOR
+    internal_link gun
+    purge_interval       60 sec
+  end_processor
+
+  sensor test_sensor WSF_GEOMETRIC_SENSOR
+     processor track_mgr
+     #update_interval 1 sec
+     on
+     azimuth_field_of_view  -180 deg 180 deg
+     elevation_field_of_view -0 deg 85 deg
+     minimum_range  50 meters
+     maximum_range 4000 meters
+     frame_time .1 secs
+     ignore_same_side
+
+     azimuth_error_sigma .1 mil
+     elevation_error_sigma .1 mil
+ #    range_error_sigma 1 meter
+
+     reports_location
+     reports_velocity
+     hits_to_establish_track 3 5
+     hits_to_maintain_track 1 5
+     track_quality 1.0
+   end_sensor
+end_platform_type

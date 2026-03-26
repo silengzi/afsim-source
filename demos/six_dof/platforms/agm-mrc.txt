@@ -1,0 +1,327 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../six_dof_types/environment/six_dof_environment.txt
+include_once ../six_dof_types/weapons/agm-mrc/agm-mrc.txt
+
+include_once ../signatures/simple_signatures.txt
+include_once ../sensors/simple_generic_seeker.txt
+
+# ------------------------------------------------------------------------------
+
+weapon_effects AGM-MRC_LETHALITY WSF_SPHERICAL_LETHALITY
+   maximum_radius 1000.0 ft
+   allow_incidental_damage
+end_weapon_effects
+
+# ------------------------------------------------------------------------------
+
+weapon AGM-MRC_RB6-WEAPON WSF_EXPLICIT_WEAPON
+   launched_platform_type AGM-MRC_RB6
+   weapon_effects AGM-MRC_LETHALITY  
+end_weapon
+
+weapon AGM-MRC_PM6-WEAPON WSF_EXPLICIT_WEAPON
+   launched_platform_type AGM-MRC_PM6
+   weapon_effects AGM-MRC_LETHALITY  
+end_weapon
+
+# ------------------------------------------------------------------------------
+
+platform_type  AGM-MRC_RB6  AGM-MRC
+
+   # Setup the RB6 mover
+   mover WSF_RIGID_BODY_SIX_DOF_MOVER
+      vehicle_type                AGM-MRC_RB6
+      update_interval             0.01 sec
+      event_core_data             30 Hz
+      event_kinematic_data        30 Hz
+      event_engine_fuel_data      10 Hz
+      event_autopilot_data         5 Hz
+      event_autopilot_limits_data  1 Hz
+      event_control_inputs_data    5 Hz
+      event_control_surfaces_data  5 Hz
+      event_force_moment_data      5 Hz	  
+   end_mover
+
+end_platform_type
+
+platform_type  AGM-MRC_PM6  AGM-MRC
+
+   # Setup the PM6 mover
+   mover WSF_POINT_MASS_SIX_DOF_MOVER
+      vehicle_type                AGM-MRC_PM6
+      update_interval             0.01 sec
+      event_core_data             30 Hz
+      event_kinematic_data        30 Hz
+      event_engine_fuel_data      10 Hz
+      event_autopilot_data         5 Hz
+      event_autopilot_limits_data  1 Hz
+      event_control_inputs_data    5 Hz
+      event_force_moment_data      5 Hz	  
+   end_mover
+
+end_platform_type
+
+# ------------------------------------------------------------------------------
+
+platform_type  AGM-MRC  WSF_PLATFORM
+
+   spatial_domain        air
+   side                  blue
+   icon                  agm109
+   radar_signature       SIMPLE_FIGHTER_RCS
+   infrared_signature    SIMPLE_FIGHTER_IR_SIG
+   optical_signature     SIMPLE_FIGHTER_OPTICAL_SIG
+
+   processor fuse WSF_WEAPON_FUSE
+      on
+      gross_update_interval        0.02 sec
+      fine_update_interval         0.01 sec
+      time_of_flight_to_arm        1.00 sec
+      gross_proximity_range      100.00 ft
+      maximum_time_of_flight    7200.00 sec
+      detonate_below_height_agl   40.00 ft
+      detonate_below_height_msl   50.00 ft
+   end_processor
+   
+   processor data_mgr WSF_TRACK_PROCESSOR
+      on
+      master_track_processor
+      #show_state_transitions
+      update_interval 0.01 sec
+      purge_interval  1 hr
+   end_processor  
+   
+   processor guidance WSF_SIX_DOF_GUIDANCE_COMPUTER
+
+      update_interval 0.1 sec      
+
+      phase LAUNCH
+         proportional_navigation_gain    0
+         velocity_pursuit_gain           0
+         g_bias                          1
+         next_phase CRUISE when altitude < 500 ft
+      end_phase
+
+      phase FLANK
+         commanded_altitude 150 ft
+         commanded_speed 450 knots
+         
+         proportional_navigation_gain    4
+         velocity_pursuit_gain           10
+         lateral_g_bias                  0.1
+         
+         next_phase INGRESS when range_to_intercept < 50 km
+      end_phase
+
+      phase CRUISE
+         allow_route_following on
+         
+         proportional_navigation_gain    4
+         velocity_pursuit_gain           10
+         
+         next_phase INGRESS when target_ground_range < 20 km
+      end_phase
+
+      phase INGRESS
+         commanded_altitude 150 ft
+         commanded_speed 450 knots
+         
+         proportional_navigation_gain    4
+         velocity_pursuit_gain           10
+         
+         next_phase TERMINAL_LOFT when range_to_intercept < 7 km
+      end_phase
+
+      phase TERMINAL_LOFT
+         commanded_speed 1000 knots
+
+         time_constant                   0.01 sec
+         proportional_navigation_gain    4
+         velocity_pursuit_gain           10
+         g_bias                          4
+         
+         next_phase TERMINAL when range_to_intercept < 5 km
+      end_phase
+      
+      phase TERMINAL
+         commanded_speed 1000 knots
+         
+         time_constant                   0 sec
+         proportional_navigation_gain    4
+         velocity_pursuit_gain           10
+         g_bias                          1
+      end_phase
+   end_processor
+   
+
+   # This will lock-on to the pre-briefed target,
+   # if a track exits.
+   processor lock_target WSF_SCRIPT_PROCESSOR
+      on      
+      update_interval 1 sec
+      
+      on_update
+         WsfTrackManager trkMgr = PLATFORM.TrackManager();
+         if(trkMgr.IsValid())
+         {
+            WsfLocalTrackList trkList = trkMgr.LocalTrackList();
+            if(trkList.IsValid())
+            {
+               foreach (WsfLocalTrack trk in trkList)
+               {
+                  if(trk.IsValid())
+                  {
+                     PLATFORM.SetCurrentTarget(trk);
+                     PROCESSOR.TurnOff();
+                  }
+               }
+            }
+         }      
+      end_on_update
+      
+   end_processor
+   
+   processor range_to_tgt WSF_SCRIPT_PROCESSOR
+      on      
+      update_interval 10 sec
+      
+      script_variables
+         double activationRange_m = 5000.0;
+      end_script_variables
+      
+      on_update
+      
+         WsfTrack trk = PLATFORM.CurrentTargetTrack();
+         if( trk.IsValid() )
+         {
+            if( !trk.IsNull() ) 
+            {
+               double rng = PLATFORM.SlantRangeTo(trk);
+               if( rng < activationRange_m )
+               {
+                  PLATFORM.Processor("pitchup").TurnOn();
+                  PLATFORM.Processor("range_to_tgt").TurnOff();
+               }
+            }
+         }
+         else
+         {
+            writeln("No current target exists!!!");
+         }
+
+      end_on_update
+      
+   end_processor
+   
+   /*
+   processor pitchup WSF_SCRIPT_PROCESSOR
+      off      
+      update_interval 0.1 sec
+      
+      script_variables
+         bool pitchUpInitiated      = false;
+         bool terminalDiveInitiated = false;
+      end_script_variables
+      
+      on_update
+      
+         if( !pitchUpInitiated )
+         {
+            WsfTrack trk = PLATFORM.CurrentTargetTrack();
+            if( trk.IsValid() )
+            {
+               if( trk.IsNull() ) { writeln(" Null Track!"); }
+
+               double rng = PLATFORM.SlantRangeTo(trk);
+               if( rng < 2200.0 )
+               {
+                  writeln("Missile begins pitchup ...");
+
+                  pitchUpInitiated = true;
+                  
+                  WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+                  if(!mover.IsNull())
+                  {
+                     mover.SetPitchGLoad(8.0);            // Pull up
+                     mover.SetAutopilotRollAngle(0.0);    // Wings level
+                     mover.SetAutopilotSpeedKTAS(1000.0); // Go fast                  
+                  }               
+               }
+            }
+         }
+         else if( !terminalDiveInitiated )
+         {
+            WsfTrack trk = PLATFORM.CurrentTargetTrack();
+            if( trk.IsValid() )
+            {
+               #WsfGeoPoint tgtPt = trk.CurrentLocation();
+               double rng = PLATFORM.SlantRangeTo(trk);
+               
+               if( rng < 1600.0 )
+               {
+                  writeln("Missile begins pushover dive ...");
+                  terminalDiveInitiated = true;
+                  
+                  if( trk.IsNull() ) { writeln(" Null Track!"); }
+
+                  PLATFORM.GoToLocation( trk.Latitude(), trk.Longitude(), trk.Altitude() );
+                  
+                  WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+                  if(!mover.IsNull())
+                  {
+                     #mover.SetPitchGLoad(-8.0);          // Pull up
+                     #mover.SetAutopilotRollAngle(0.0);    // Wings level
+                     mover.SetAutopilotSpeedKTAS(1000.0); // Go fast                                      
+                  }
+               }
+            }
+         }
+         else
+         {
+            WsfTrack trk = PLATFORM.CurrentTargetTrack();
+            if( trk.IsValid() )
+            {
+               double rng = PLATFORM.GroundRangeTo(trk);
+
+               if( rng < 100.0 )
+               {
+#                 There appears to be a problem with casting a processor to a fuse (below)               
+#                 writeln("BANG!!!! ", PLATFORM.Name(), " exploded at time = ", TIME_NOW);
+#                  WsfProcessor proc = PLATFORM.Processor("fuse");
+#                  if(proc.IsValid())
+#                  {
+#                     if(proc.IsA_TypeOf("WSF_WEAPON_FUSE"))
+#                     {
+#                        WsfWeaponFuse fuse = (WsfWeaponFuse)proc;
+#                        if(fuse.IsValid())
+#                        {
+#                           if(!fuse.IsNull())
+#                           {
+#                              fuse.Detonate();
+#                           }
+#                        }
+#                     }
+#                  }
+#                  PLATFORM.Detonate("dud");
+               }
+            }         
+         }
+
+      end_on_update
+      
+   end_processor
+   */
+end_platform_type
+
+six_dof_object_types
+   map_vehicle_to_platform AGM-MRC_RB6 AGM-MRC_RB6
+   map_vehicle_to_platform AGM-MRC_PM6 AGM-MRC_PM6
+end_six_dof_object_types

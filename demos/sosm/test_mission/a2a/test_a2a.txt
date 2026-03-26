@@ -1,0 +1,88 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+   show_status          true
+   load_atmosphere      DEFAULT        from ../../modtran/us_std_day.txt
+   load_sensor          LWIR_SENSOR    from ../../sensors/uniform_lwir.txt
+   load_target          RED_MULTIROLE_FIGHTER_3          from ../../targets/red_multirole_fighter_3/red_multirole_fighter_3.txt
+end_sosm_interface
+
+#===============================================================================
+
+sensor LWIR_SENSOR WSF_SOSM_SENSOR
+   frame_time                5 sec
+
+   azimuth_field_of_view     -90 deg 90 deg
+   elevation_field_of_view   -90 deg 90 deg
+
+   reports_bearing
+   reports_elevation
+end_sensor
+
+platform_type BLUE_MULTIROLE_FIGHTER_1 WSF_PLATFORM
+   icon F-18E
+
+   mover WSF_AIR_MOVER
+   end_mover
+
+   sensor lwir LWIR_SENSOR
+   end_sensor
+end_platform_type 
+
+#===============================================================================
+
+platform_type RED_MULTIROLE_FIGHTER_3 WSF_PLATFORM
+   icon SU-30
+
+   mover WSF_AIR_MOVER
+   end_mover
+end_platform_type
+
+#===============================================================================
+
+platform red_target RED_MULTIROLE_FIGHTER_3
+   side red
+
+   route
+      position 40.3n 90w altitude 40000 ft heading 180 deg speed 500 kts
+   end_route
+end_platform
+
+platform blue_sensor BLUE_MULTIROLE_FIGHTER_1
+   side blue
+
+   route
+      position 40n 90w altitude 40000 ft heading 0 deg speed 500 kts
+   end_route
+
+   sensor lwir
+      on
+   end_sensor
+end_platform
+
+event_output
+   file replay.evt
+   enable SENSOR_DETECTION_ATTEMPT
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_UPDATED
+   enable SENSOR_TRACK_DROPPED
+end_event_output
+
+end_time 120 secs
+
+
+
+
+
+
+
+

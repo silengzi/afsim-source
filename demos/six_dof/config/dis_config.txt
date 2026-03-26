@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+dis_interface
+
+  # Set parameters to ensure smooth RV event pipe data
+  
+  entity_position_threshold     1 m
+  entity_orientation_threshold  0.5 deg
+# heartbeat_timer               0.05 seconds  # This is an alternate approach
+  
+/* Uncomment these lines to use DIS networking and edit as required
+  # Emitter types
+  emitter_type RADAR_NAME        1111
+
+  # Entity types
+  entity_type  AIM9_SIMPLE       2:1:225:1:1:0:0   # AIM-9 Icon
+  entity_type  AIM120_SIMPLE     2:1:225:1:2:0:0   # AIM-120 Icon
+
+# suppress_cme_entity_data       # suppress cme icon mapping pdus
+
+  autostart
+
+  connections
+    multicast  228.10.10.2  10.34.209.67
+    port 3000
+  end_connections
+
+  exercise     99
+  site         22
+  application  52
+
+  # Increase the heartbeat_timer, mover_update_timer, and entity_position_threshold
+  # to cause a smaller replay file to be generated (trade precision for size)
+  #
+  # heartbeat_timer               5.0 seconds
+  # mover_update_timer            5.0 seconds
+  # entity_position_threshold     10 m           # default is 1 m
+  # entity_orientation_threshold   3 deg         # default is 3 deg
+
+  heartbeat_timer               0.01 seconds
+  mover_update_timer            0.01 sec
+  entity_position_threshold     0.03 m
+*/
+
+end_dis_interface

@@ -1,0 +1,50 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+
+platform 1000_test-ship RED_MISSILE_FRIGATE
+   side blue
+   commander SELF
+   route
+     position 30:00:00n  78:00:00w altitude 0 ft agl
+        speed 0 kts
+   end_route
+end_platform
+
+platform target RED_ASM_MSL
+   side red
+   route
+      position 30:00:00n  77:30:00w altitude 20 m agl
+         speed 573 kts
+      position 30:00:00n  78:00:00w altitude 20 m agl
+         speed 573 kts
+   end_route
+   processor fuse
+      off
+   end_processor
+end_platform
+
+platform target-1 RED_ASM_MSL
+   side red
+   icon MIG-29
+   route
+      position 30:00:00n  77:30:00w altitude 9000 m agl
+         speed 700 kts
+      position 30:00:00n  78:00:00w altitude 9000 m agl
+         speed 700 kts
+   end_route
+   processor fuse
+      off
+   end_processor
+end_platform
+

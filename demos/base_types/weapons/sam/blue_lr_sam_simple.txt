@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#           BLUE_LR_SAM - Simple (no uplink, no seeker, guide-to-truth)
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# This is a simple representation that guides perfectly to the target. There
+# is no uplink or seeker.
+#
+###############################################################################
+
+include weapons/sam/blue_lr_sam_common.txt
+
+###############################################################################
+
+platform_type BLUE_LR_SAM BLUE_LR_SAM_BASE
+end_platform_type

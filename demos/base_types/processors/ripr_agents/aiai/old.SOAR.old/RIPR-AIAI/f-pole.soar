@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+sp {propose*pursue-target*f-pole
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link.track-root <tr>
+#              ^target-name <tn>
+                           )
+   (<tr> ^<target> <t>)
+   (<t> ^target-name <tn>
+        ^weapons-in-flight <wif> > 0)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name pursue-target
+        ^target <t>
+        ^actions <a>)
+   (<a> ^pursue-target <command>)
+   (<command> ^pursuit-mode f-pole
+              ^target-name <tn>)
+}

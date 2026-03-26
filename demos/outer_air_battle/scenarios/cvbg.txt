@@ -1,0 +1,84 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform cv_1 CVN
+  side blue
+  icon Carrier
+  position 00:00:00.00n 30:00:00.00w
+  heading 90 deg
+  zone circle_zone_5190
+    circular
+    maximum_radius 100.00 nm
+#    start_angle 315.00 deg
+#    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52115
+    circular
+    maximum_radius 150.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52120
+    circular
+    maximum_radius 200.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52125
+    circular
+    maximum_radius 250.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52130
+    circular
+    maximum_radius 300.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52135
+    circular
+    maximum_radius 350.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52140
+    circular
+    maximum_radius 400.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52145
+    circular
+    maximum_radius 450.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52150
+    circular
+    maximum_radius 500.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+end_platform
+
+
+
+platform tanker1 WSF_PLATFORM
+   side blue
+   icon kc-135
+   position 00:37:55.53n 27:48:46.39w altitude 30000 ft
+end_platform
+
+platform tanker2 WSF_PLATFORM
+   side blue
+   icon kc-135
+   position 00:26:01.38s 27:45:33.25w altitude 30000 ft
+end_platform
+
+

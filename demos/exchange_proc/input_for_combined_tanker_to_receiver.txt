@@ -1,0 +1,96 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#stream_debug_on
+
+# =====================================================================================================
+# =====================================================================================================
+# This is an example scenario to exercise and debug a tanker-receiver interchange.  This example does
+# not need or use DIS, as both TANKER and RECEIVER are simulated within the same WSF instance.
+# =====================================================================================================
+# =====================================================================================================
+
+#non_realtime # For use in Warlock environment only.
+              # Since this is a self-contained (single Warlock instance)
+              # test-case, can run constructively.
+
+include receiver_definition.txt
+include tanker_definition.txt
+
+# Here we define two different platforms, moving over essentially the same path, so that
+# proximity checks will pass.  Allow them to exchange fuel from tanker to receiver.
+
+platform tanker TANKER
+   edit mover
+      route
+         position 39:11:00.0n 106:48:47.8w altitude 100 m agl
+         position 39:10:16.0n 106:47:41.0w altitude 100 m agl
+         position 39:08:36.6n 106:46:50.0w altitude 100 m agl
+         position 39:07:26.1n 106:45:06.1w altitude 100 m agl
+         stop
+      end_route
+   end_mover
+end_platform
+
+platform receiver RECEIVER
+   edit mover
+      route
+         position 39:11:00.1n 106:48:47.8w altitude 100 m agl
+         position 39:10:16.1n 106:47:41.0w altitude 100 m agl
+         position 39:08:36.7n 106:46:50.0w altitude 100 m agl
+         position 39:07:26.2n 106:45:06.1w altitude 100 m agl
+         stop
+      end_route
+   end_mover
+end_platform
+
+script void simulation_complete()
+   # Success criteria is that the tanker offers 6000 kg fuel,
+   # and the receiver actually desires and accepts (only) 5000 kg
+   # So tanker should start with 9000 kg payload, give 5000 kg, and thus end with 4000 kg payload, and
+   # Receiver should start with 3000 kg fuel, received 5000 kg, and thus end with 8000 kg fuel.
+   WsfPlatform tnkr = WsfSimulation.FindPlatform("tanker");
+   WsfPlatform rcvr = WsfSimulation.FindPlatform("receiver");
+   if (tnkr.IsValid() && rcvr.IsValid())
+   {
+      double tnkrPayload = tnkr.PayloadMass();
+      writeln("tanker payload should be 4000, is ", tnkrPayload);
+      double rcvrFuel = rcvr.FuelMass();
+      writeln("receiver fuel should be 8000, is ", rcvrFuel);
+      double error = MATH.Fabs(tnkrPayload - 4000.0) + MATH.Fabs(rcvrFuel - 8000.0);
+      writeln("error should be small, is ", error);
+      if (error < 10)
+      {
+         writeln("-PASS-");
+      }
+      else
+      {
+         writeln("-FAIL-1");
+      }
+   }
+   else
+   {
+      writeln("-FAIL-2");
+   }
+end_script
+
+event_output
+   file .\output\output_for_combined_tanker_to_receiver_exchange.evt
+   enable EXCHANGE_COMPLETED
+   enable EXCHANGE_NEGOTIATED
+   enable EXCHANGE_QUERIED
+   enable EXCHANGE_REQUEST_FAILED
+   enable EXECUTE_CALLBACK
+   enable PLATFORM_CAPABILITY_CHANGED
+end_event_output
+
+observer
+   enable SIMULATION_COMPLETE simulation_complete
+end_observer
+
+end_time 15 min

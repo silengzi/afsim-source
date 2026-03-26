@@ -1,0 +1,21 @@
+2025-12-30 15:42:03 file launch_detection.txt
+2025-12-30 15:42:03 file setup_launch_detection.txt
+2025-12-30 15:42:03 file processors/change_sig.txt
+2025-12-30 15:42:03 file processors/image_proc.txt
+2025-12-30 15:42:03 file platforms/launch_facility.txt
+2025-12-30 15:42:03 file platforms/launch_vehicle.txt
+2025-12-30 15:42:03 file platforms/commander.txt
+2025-12-30 15:42:03 file sensors/sat_sensor.txt
+2025-12-30 15:42:03 file sensors/sense_iridium.txt
+2025-12-30 15:42:03 file platforms/sat_sensor.txt
+2025-12-30 15:42:03 file platforms/iridium_satellite.txt
+2025-12-30 15:42:03 file scenarios/launch_buildup.txt
+2025-12-30 15:42:03 file scenarios/sat_sensor_constellation.txt
+2025-12-30 15:42:03 file scenarios/iridium_constellation.txt
+2025-12-30 15:42:03 AER output file: output/launch_detection.aer
+2025-12-30 15:42:03 Event output file: output/launch_detection.evt
+2025-12-30 15:42:03 variable_reference time in launch_vehicle.change_sig referenced first_stage_time from <processor>; value: 1000
+2025-12-30 15:42:03 variable_reference time in launch_vehicle.change_sig referenced second_stage_time from <processor>; value: 2000
+2025-12-30 15:42:03 variable_reference time in launch_vehicle.change_sig referenced third_stage_time from <processor>; value: 3000
+2025-12-30 15:42:03 start 1
+2025-12-30 15:42:25 complete 3500.000 22.076 44.188

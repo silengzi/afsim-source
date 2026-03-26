@@ -1,0 +1,99 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#for RED_MULTIROLE_FIGHTER_2
+include_once red_multirole_fighter_2_base.txt
+
+#for AIAI-thinker
+include_once processors/ripr_agents/aiai/aiai_processor.txt
+
+#for red_mr_a2a_rf_missile
+include_once weapons/aam/red_mr_a2a_rf_missile.txt
+
+script_interface
+   //debug
+end_script_interface
+
+
+// This is a ripr interceptor, based on red_multirole_fighter_2.
+platform_type RED_MULTIROLE_FIGHTER_2 RED_MULTIROLE_FIGHTER_2_BASE
+
+  //use a different missile for this type
+  //adjust missile ranges in int-thinker below to accomodate
+  delete weapon int_missile
+  weapon int_missile RED_MR_A2A_RF_MISSILE end_weapon
+
+   //This is the code that lets the interceptor intercept
+   processor int-thinker AIAI-thinker
+      script_variables
+         #agentProductions must be relative to working directory of application
+         #this file usually sits in scenario_name/platforms folder
+         #working directory is typically the scenario folder
+         #agentProductions = "../ripr/agents/aiai/RIPR-AIAI.soar";
+
+         mWeaponArray[0] = Map<string, Object>();
+         mWeaponArray[0].Set("name", "int_missile");
+         mWeaponArray[0].Set("weapon", PLATFORM.Weapon("int_missile"));
+         mWeaponArray[0].Set("rangeMin", 5556);
+         mWeaponArray[0].Set("rangeMax", 83340);
+         mWeaponArray[0].Set("numActiveMax", 2); // how many weapons of this type can be in play simultaneously
+      end_script_variables
+   end_processor
+
+
+
+   //don't mess around with crappy radars, just use a simple geometric sensor
+   delete sensor red_a2a_radar
+
+   sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      //azimuth_field_of_view -180.0 degrees 180.0 degrees
+      //elevation_field_of_view -90.0 degrees 90.0 degrees
+      azimuth_field_of_view -60.0 degrees 60.0 degrees
+      elevation_field_of_view -30.0 degrees 30.0 degrees
+      minimum_range 0 m
+#      maximum_range 100000 m
+      maximum_range 63000 m
+      on
+      frame_time              0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      track_quality 1.0
+      ignore_same_side
+      internal_link track_manager
+   end_sensor
+
+
+   processor incoming_threats WSF_THREAT_PROCESSOR
+     update_interval 0.1 sec
+     #update_interval 2.0 sec
+
+      #1300 knots
+      threat_velocity 668.7778 m/s
+      threat_angle_spread 10.0 deg
+      threat_time_to_intercept 240 sec
+
+      script void identified_new_threat(WsfTrack aTrack)
+         writeln("!!! me: ", PLATFORM.Name(), ", new threat: ", aTrack.TargetName());
+      end_script
+
+      script void dropped_threat(WsfTrack aTrack)
+         if (aTrack.IsValid())
+         {
+            writeln("!!! ", PLATFORM.Name(), " dropped a threat: ", aTrack.TargetName());
+         }
+         else
+         {
+            writeln("!!! ", PLATFORM.Name(), " dropped a threat");
+         }
+      end_script
+
+   end_processor
+
+end_platform_type
+

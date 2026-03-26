@@ -1,0 +1,35 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#----------------------------------------------------------------------
+# This file should be included first in each of the main input files.
+# It includes all of the 'type' definitions.
+#----------------------------------------------------------------------
+
+file_path .
+
+include event_output.txt
+include event_pipe.txt
+include terrain.txt
+
+// include type definitions
+include_once platforms/common.txt  // global sigs, datalink, and filter tactics
+include_once platforms/radar_company.txt
+include_once platforms/iads_cmdr.txt
+// EW RADAR Type definitions
+include_once platforms/s-band_ew_radar.txt
+include_once platforms/vhf_ew_radar.txt
+include_once platforms/uhf_ew_radar.txt
+// SAM Battalions
+include_once platforms/elr_sam_battalion.txt // The battalion includes all of the subordinate types
+include_once platforms/lr_sam_battalion.txt  // The battalion includes all of the subordinate types
+include_once platforms/mr_sam_battalion.txt  // The battalion includes all of the subordinate types
+include_once platforms/sr_sam_telar.txt
+
+// TBM Vehicle
+include_once platforms/tbm_launcher_vehicle.txt

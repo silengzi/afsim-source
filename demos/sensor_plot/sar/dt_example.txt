@@ -1,0 +1,75 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ============================================================================
+# 'sensor_plot' input file to generate the data necessary to create a SAR
+# 'dwell_time' plot.
+#
+# The file can be plotted with 'gnuplot dt_example.gnu -'.
+# ============================================================================
+
+include bomber_sar.txt
+
+# ============================================================================
+platform_type ISR WSF_PLATFORM
+   mover WSF_AIR_MOVER
+   end_mover
+
+   sensor left_sar  BOMBER_SAR
+      #initial_mode SPOT
+      yaw -90 deg
+      backscatter_coefficient -15 db
+   end_sensor
+
+   sensor right_sar BOMBER_SAR
+      #initial_mode SPOT
+      yaw 90 deg
+      backscatter_coefficient -15 db
+   end_sensor
+
+end_platform_type
+
+# ============================================================================
+platform isr ISR
+   route
+      position 0n 0e altitude 40000 ft heading 0 deg speed 400 kts
+   end_route
+
+   # To run ONLY one-sided plot, comment out the appropriate line.
+   #delete sensor left_sar
+   #delete sensor right_sar
+end_platform
+
+# ============================================================================
+radar_signature TARGET_RADAR_SIG
+   constant 100 m^2
+end_radar_signature
+
+optical_signature TARGET_OPTICAL_SIG
+   constant 100 m^2
+end_optical_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature   TARGET_RADAR_SIG
+   optical_signature TARGET_OPTICAL_SIG
+end_platform_type
+
+# ============================================================================
+horizontal_map
+   down_range_limits         -100 nm 100 nm
+   down_range_step           0.2 nm
+   cross_range_limits        -100 nm 100 nm
+   cross_range_step          0.2 nm
+
+   # Default target speed is 250 m/s. Must override so SAR will detect it.
+   target_speed              0 kts
+
+   gnuplot_file              dt_example.plt
+   variable                  sar_dwell_time
+
+end_horizontal_map

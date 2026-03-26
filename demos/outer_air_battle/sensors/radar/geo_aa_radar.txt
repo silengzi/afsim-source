@@ -1,0 +1,30 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+// --- * --- * ---
+//     Sensors
+// --- * --- * ---
+// N/A
+sensor GEO_AA_RADAR WSF_GEOMETRIC_SENSOR
+   azimuth_field_of_view -60.0 degrees 60.0 degrees
+   elevation_field_of_view -10.0 degrees 10.0 degrees
+   minimum_range 0 m
+   # 300 nm
+   maximum_range 125.0 nm
+
+   frame_time              0.5 sec
+   reports_location
+   reports_velocity
+   reports_iff
+   reports_bearing
+
+   track_quality 1.0
+   ignore_same_side
+end_sensor

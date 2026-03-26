@@ -1,0 +1,254 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+air_traffic
+
+  aircraft_type B-737
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 30000 ft
+    mean_cruise_speed         410 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    3500 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+  aircraft_type B-747
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 34000 ft
+    mean_cruise_speed         420 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    4000 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+  aircraft_type B-757
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 33000 ft
+    mean_cruise_speed         420 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    3800 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+# Airport locations from WORLDAERODATA.COM
+
+# BAIYUN INTL at Guanghouz # 02L/20R
+  airbase ZGGG 23.376822N 113.283497E
+    runway_length 3600 m
+    runway_heading 14.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+  end_airbase
+
+# BINHAI at Tianjin 16/34
+#  airbase ZBTJ 39.137353N 117.338208E
+#    runway_length 3200 m
+#    runway_heading 155.0
+#  end_airbase
+
+# CAPITAL INTL at Beijing 18R/36L
+  airbase ZBAA 40.102111N 116.569694E
+    runway_length 3200 m
+    runway_heading 173.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 105 min
+    destination  VHHH .4
+    destination ZSOF .3
+    destination ZGGG .2
+    destination ZSCN .1
+  end_airbase
+
+# CHANGBEI INTL at Nanchang  03/21
+  airbase ZSCN 28.853372N 115.894394E
+    runway_length 2800 m
+    runway_heading 023.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 163 min
+    destination  VHHH .5
+    destination ZGGG .5
+
+  end_airbase
+
+# CHANGLE at Fuzhou 03/21
+  airbase ZSFZ 25.920514N 119.655175E
+    runway_length 3609 m
+    runway_heading 026.7
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 175 min
+    destination  VHHH .7
+    destination ZGGG .2
+    destination ZSCN .1
+
+  end_airbase
+
+# DASHUIPO at Weihai 02/20
+#  airbase ZSWH 37.176033N 122.224261E
+#    runway_length 2600 m
+#    runway_heading 018.5
+#  end_airbase
+
+
+# GAOQI at Xiamen 05/23
+#  airbase ZSAM 24.534589N 118.114517E
+#    runway_length 3400 m
+#    runway_heading 053.0
+#  end_airbase
+
+# HONGQIAO INTL at Shanghai 18/36
+  airbase ZSSS 31.213250N 121.335444E
+    runway_length 3400 m
+    runway_heading 176.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 111 min
+    destination VHHH .4
+    destination ZSHC .3
+    destination VHHH .3
+
+  end_airbase
+
+
+# LAISHAN at Yantai ZSYT 04/22
+#  airbase ZSYT 37.391014N 121.361431E
+#    runway_length 2600 m
+#    runway_heading 037.5
+#  end_airbase
+
+
+# LISHE   ZSNB  at  Ningbo 13/31
+  airbase ZSNB 29.834594N 121.448044E
+    runway_length 3200 m
+    runway_heading 123.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 93 min
+    destination VHHH .4
+    destination ZSHC .3
+    destination VHHH .3
+  end_airbase
+
+# LIUTING   ZSQD at   Qingdao 17/35
+#  airbase ZSQD 36.280986N 120.369700E
+#    runway_length 3400 m
+#    runway_heading 166.0
+#  end_airbase
+
+# LUKOU at Nanjing ZSNJ 06/24
+  airbase ZSNJ 31.733450N 118.845906E
+    runway_length 3600 m
+    runway_heading 058.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 78 min
+    destination VHHH .5
+    destination ZSHC .3
+    destination ZSNB .2
+
+  end_airbase
+
+# LUOGANG at Hefei ZSOF 14/32
+  airbase ZSOF 31.789636N 117.287569E
+    runway_length 3000 m
+    runway_heading 135.3
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 71 min
+    destination ZBAA .5
+    destination ZSHC .3
+    destination ZSNB .2
+  end_airbase
+
+# PUDONG at Shanghai ZSPD 16/34
+  airbase ZSPD 31.159014N 121.811669E
+    runway_length 3800 m
+    runway_heading 162.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 73 min
+    destination VHHH .5
+    destination ZSHC .3
+    destination ZSNB .2
+
+  end_airbase
+
+# XIAOSHAN aka HANGZHOU ZSHC 07/25
+  airbase ZSHC 30.222119N 120.417800E
+    runway_length 3600 m
+    runway_heading 062.9
+    aircraft B-737 .3
+    aircraft B-747 .5
+    aircraft B-757 .2
+    departure_interval 65 min
+    destination VHHH .2
+    destination ZSNJ .2
+    destination ZSNB .1
+    destination ZBAA .5
+  end_airbase
+
+# YAOQIANG at Jinan ZSJN 01/19
+  airbase  ZSJN 36.840989N 117.216003E
+    runway_length 3601 m
+    runway_heading 360.0
+    aircraft B-737 .3
+    aircraft B-747 .5
+    aircraft B-757 .2
+    departure_interval 50 min
+    destination VHHH .2
+    destination ZSNJ .4
+    destination ZSNB .1
+    destination ZBAA .3
+
+  end_airbase
+
+# ZHOUSHUIZI at Dalian ZYTL 10/28
+#  airbase ZYTL 38.967131N 121.519656E
+#    runway_length 3300 m
+#    runway_heading  096.0
+#  end_airbase
+
+# HONG KONG INTL  at Hong Kong VHHH 07R/25L
+  airbase VHHH 22.296201N 113.897975E
+    runway_length 3800 m
+    runway_heading  071.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 20 min
+    destination ZBAA .2
+    destination ZGGG .1
+    destination ZSNJ .1
+    destination ZSFZ .1
+    destination ZSHC .2
+    destination RCTP .3
+  end_airbase
+
+# Taiwan Taipei added for flights to Hong Kong
+# CHIANG KAI SHEK INTL RCTP    Taipei  05/23
+  airbase RCTP 25.073081N 121.215572E
+    runway 25.073081N 121.215572E 25.094647N 121.243133E
+  #  runway_length 3660 m
+  #  runway_heading 049.0
+    aircraft B-747 .5
+    aircraft B-757 .25
+    aircraft B-737 .25
+    departure_interval 45 min
+    destination VHHH 1
+   end_airbase
+end_air_traffic

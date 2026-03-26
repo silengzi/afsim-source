@@ -1,0 +1,331 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Platform for an iridium satellite
+
+# references
+# 1) file:///C:/Users/Ablecher/Downloads/EngineeringStatement%20(1).pdf
+
+radar_signature    IRIDIUM_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+platform_type IRIDIUM_SATELLITE WSF_PLATFORM
+   icon satellite
+   radar_signature IRIDIUM_RADAR_SIG
+   side blue
+   mover WSF_SPACE_MOVER
+      revs_per_day 14.4
+      inclination 86.4 deg
+   end_mover
+   
+   //Allow crosslinks/bridges between local comm devices,
+   //regardless of network
+   add router default WSF_COMM_ROUTER
+      automated_interface_linking true
+   end_router
+   
+   comm iridium_crosslink WSF_RADIO_TRANSCEIVER
+      on
+
+      transmitter
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         alternate_frequency 1                1621 mhz   # ref 1
+         alternate_frequency 2                22.28 ghz  # ref 1
+         bandwidth                            200 mhz    # ref 1
+         polarization                         horizontal  # ref 1
+         power                                35 dbw  # ref 1
+      end_transmitter
+
+      receiver
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         frequency                            22.28 ghz  # ref 1
+         bandwidth                            200 mhz    # ref 1
+         polarization                         horizontal  # ref 1
+      end_receiver
+   end_comm
+
+   comm iridium_handheld WSF_RADIO_TRANSCEIVER
+      on
+
+      transmitter
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         frequency                           1621 mhz   # ref 1
+         bandwidth                           10.5 mhz   # ref 1
+         power                               48 dbw
+         polarization                        right_circular  # ref 1
+      end_transmitter
+
+      receiver
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         frequency                           1621 mhz  # ref 1
+         bandwidth                           10.5 mhz  # ref 1
+      end_receiver
+   end_comm
+
+   comm IRIDIUM_DOWNLINK_TX WSF_RADIO_XMTR
+
+      azimuth_field_of_view                  -180.0 deg 180.0 deg
+      elevation_field_of_view                 -90.0 deg   0.0 deg
+
+      transmitter
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         frequency                           19.5 ghz  # ref 1
+         bandwidth                           200 mhz    # ref 1
+         polarization                        left_circular  # ref 1
+         power                               30 dbw
+      end_transmitter
+   end_comm
+
+   comm IRIDIUM_UPLINK_RX WSF_RADIO_RCVR
+
+      azimuth_field_of_view                  -180.0 deg 180.0 deg
+      elevation_field_of_view                 -90.0 deg   0.0 deg
+
+      receiver
+         antenna_pattern                     UNIFORM_0DBI_PATTERN
+         frequency                           29.2 ghz  # ref 1
+         bandwidth                           200 mhz  # ref 1
+      end_receiver
+   end_comm
+
+   script_variables
+      static int sFIRST_SATELLITE = 1;
+      static int sLAST_SATELLITE = 11;
+      static int sFIRST_ORBIT    = 1;
+      static int sLAST_ORBIT     = 6;  // CHANGE TODO
+      static bool sDebug = true;
+
+      // Variables initialized / set during "initialize2".
+      bool mIsTravelingNorth;
+      bool mWasTravelingNorth;
+
+      string mNorthwardUpperLeftLink = "<none>";
+      string mNorthwardLowerRightLink = "<none>";
+
+      string mSouthwardUpperLeftLink = "<none>";
+      string mSouthwardLowerRightLink = "<none>";
+
+      int mOrbitNumber;
+      int mSatelliteNumber;
+
+   end_script_variables
+
+   // Note that the following assume the network naming convention of iridium<orbit#><satellite#>.
+   script int OrbitNumber(string aName)
+      return (int)(aName.Substring(7, 7));
+   end_script
+
+   script int SatelliteNumber(string aName)
+      return (int)(aName.Substring(8));
+   end_script
+
+   script void UpdateTravelDirection()
+      mWasTravelingNorth = mIsTravelingNorth;
+      Vec3 velWCS = PLATFORM.VelocityWCS();
+      mIsTravelingNorth = (velWCS.Z() > 0.0);
+   end_script
+
+   script void AddConnection(WsfComm aComm, string aLink)
+      WsfPlatform destinationPlatform = WsfSimulation.FindPlatform(aLink);
+      WsfComm destinationComm = destinationPlatform.Comm("iridium_crosslink");
+      aComm.AddConnection(destinationComm.GetAddress());
+   end_script
+
+   script void RemoveConnection(WsfComm aComm, string aLink)
+      WsfPlatform destinationPlatform = WsfSimulation.FindPlatform(aLink);
+      WsfComm destinationComm = destinationPlatform.Comm("iridium_crosslink");
+      aComm.RemoveConnection(destinationComm.GetAddress());
+   end_script
+
+   script void UpdateLinks()
+      WsfComm comm = PLATFORM.Comm("iridium_crosslink");
+      if (mIsTravelingNorth)
+      {
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            RemoveConnection(comm, mSouthwardUpperLeftLink);
+            AddConnection(comm, mNorthwardUpperLeftLink);
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            RemoveConnection(comm, mSouthwardLowerRightLink);
+            AddConnection(comm, mNorthwardLowerRightLink);
+         }
+      }
+      else
+      {
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            RemoveConnection(comm, mNorthwardUpperLeftLink);
+            AddConnection(comm, mSouthwardUpperLeftLink);
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            RemoveConnection(comm, mNorthwardLowerRightLink);
+            AddConnection(comm, mSouthwardLowerRightLink);
+         }
+      }
+   end_script
+
+   script void AddStaticConnections()
+         WsfComm comm = PLATFORM.Comm("iridium_crosslink");
+         string connection1 = "iridium" + (string)mOrbitNumber;
+         string connection2 = connection1;
+         if (mSatelliteNumber != sLAST_SATELLITE)
+         {
+            connection1 += (string)(mSatelliteNumber + 1);
+         }
+         else
+         {
+            connection1 += (string)sFIRST_SATELLITE;
+         }
+         if (mSatelliteNumber != sFIRST_SATELLITE)
+         {
+            connection2 += (string)(mSatelliteNumber - 1);
+         }
+         else
+         {
+            connection2 += (string)sLAST_SATELLITE;
+         }
+         //writeln(connection1, ": ", connection2);
+         AddConnection(comm, connection1);
+         AddConnection(comm, connection2);
+   end_script
+
+   processor dynamic-link-processor WSF_SCRIPT_PROCESSOR
+
+      update_interval 1 min
+      
+      script void InitIridiumComms()
+         // set up the links that don't change (links with adjacent satellites in same plane).
+         WsfComm comm = PLATFORM.Comm("iridium_crosslink");
+         string netName = comm.NetworkName();
+         mSatelliteNumber = SatelliteNumber(netName);
+         mOrbitNumber = OrbitNumber(netName);
+         bool isEvenOrbit = (Math.Mod(mOrbitNumber, 2) == 0);
+
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            if (isEvenOrbit)
+            {
+               if (mSatelliteNumber != sLAST_SATELLITE)
+               {
+                  mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber + 1);
+               }
+               else
+               {
+                  mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(sFIRST_SATELLITE);
+               }
+               mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber);
+            }
+            else // odd orbit
+            {
+               mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber);
+               if (mSatelliteNumber != sFIRST_SATELLITE)
+               {
+                  mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber - 1);
+               }
+               else
+               {
+                  mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(sLAST_SATELLITE);
+               }
+            }
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            if (isEvenOrbit)
+            {
+               mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber);
+               if (mSatelliteNumber != sLAST_SATELLITE)
+               {
+                  mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber + 1);
+               }
+               else
+               {
+                  mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(sFIRST_SATELLITE);
+               }
+            }
+            else // odd orbit
+            {
+               if (mSatelliteNumber != sFIRST_SATELLITE)
+               {
+                  mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber - 1);
+               }
+               else
+               {
+                  mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(sLAST_SATELLITE);
+               }
+               mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber);
+            }
+         }
+         Vec3 velWCS = PLATFORM.VelocityWCS();
+         mIsTravelingNorth = (velWCS.Z() > 0.0);
+         mWasTravelingNorth = mIsTravelingNorth;
+      end_script
+
+      // Goofy! Gateways are not added until 0.01 seconds, so we have to wait longer to do any dynamic routing...
+      // todo bug
+      execute at_time 0.02 s absolute
+         AddStaticConnections();
+         UpdateLinks();
+      end_execute
+
+      on_update
+         UpdateTravelDirection();
+         if (mIsTravelingNorth != mWasTravelingNorth)
+         {
+            UpdateLinks();
+         }
+      end_on_update
+
+   end_processor
+
+   category iridium
+
+   script void SendTestMessage(string aReceiver)
+   end_script
+
+#=========Uncomment this to send a test message to Iridium Ground Network==============================================
+#   execute at_interval_of 15 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#      {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#          {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "IRIDIUM_GS")
+#                 {
+#                     PLATFORM.Comm("IRIDIUM_DOWNLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#          }
+#      }
+#   end_execute
+#========================================================================================================================
+
+end_platform_type
+
+// Allow Iridium Satellites to setup linkage after the comm framework is initialized.
+script void PendingStart()
+   int platformCount = WsfSimulation.PlatformCount();
+   for(int i = 0; i < platformCount; i = i + 1)
+   {
+      WsfPlatform curPlat = WsfSimulation.PlatformEntry(i);
+      if(curPlat.IsA_TypeOf("IRIDIUM_SATELLITE"))
+      {
+         curPlat.Processor("dynamic-link-processor").Execute("InitIridiumComms");
+      }
+   }
+end_script
+
+observer
+   enable SIMULATION_STARTING PendingStart
+end_observer

@@ -1,0 +1,341 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/orbcomm.txt
+
+# Orbcomm Constellation
+
+#========Ideal constellation configuration===============================================
+platform ORBCOMM_A1 ORBCOMM
+edit mover
+   designator ORBCOMM_A1
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 45 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A2 ORBCOMM
+edit mover
+   designator ORBCOMM_A2
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 90 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A3 ORBCOMM
+edit mover
+   designator ORBCOMM_A3
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 135 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A4 ORBCOMM
+edit mover
+   designator ORBCOMM_A4
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 180 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A5 ORBCOMM
+edit mover
+   designator ORBCOMM_A5
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 225 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A6 ORBCOMM
+edit mover
+   designator ORBCOMM_A6
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 270 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A7 ORBCOMM
+edit mover
+   designator ORBCOMM_A7
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 315 deg
+end_mover
+end_platform
+
+platform ORBCOMM_A8 ORBCOMM
+edit mover
+   designator ORBCOMM_A8
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 90 deg
+      anomaly 360 deg
+end_mover
+end_platform
+
+# Plane B
+
+platform ORBCOMM_B1 ORBCOMM
+edit mover
+   designator ORBCOMM_B1
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 45 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B2 ORBCOMM
+edit mover
+   designator ORBCOMM_B2
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 90 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B3 ORBCOMM
+edit mover
+   designator ORBCOMM_B3
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 135 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B4 ORBCOMM
+edit mover
+   designator ORBCOMM_B4
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 180 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B5 ORBCOMM
+edit mover
+   designator ORBCOMM_B5
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 225 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B6 ORBCOMM
+edit mover
+   designator ORBCOMM_B6
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 270 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B7 ORBCOMM
+edit mover
+   designator ORBCOMM_B7
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 315 deg
+end_mover
+end_platform
+
+platform ORBCOMM_B8 ORBCOMM
+edit mover
+   designator ORBCOMM_B8
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 180 deg
+      anomaly 360 deg
+end_mover
+end_platform
+
+
+# Plane C
+
+platform ORBCOMM_C1 ORBCOMM
+edit mover
+   designator ORBCOMM_C1
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 45 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C2 ORBCOMM
+edit mover
+   designator ORBCOMM_C2
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 90 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C3 ORBCOMM
+edit mover
+   designator ORBCOMM_C3
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 135 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C4 ORBCOMM
+edit mover
+   designator ORBCOMM_C4
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 180 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C5 ORBCOMM
+edit mover
+   designator ORBCOMM_C5
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 225 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C6 ORBCOMM
+edit mover
+   designator ORBCOMM_C6
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 270 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C7 ORBCOMM
+edit mover
+   designator ORBCOMM_C7
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 315 deg
+end_mover
+end_platform
+
+platform ORBCOMM_C8 ORBCOMM
+edit mover
+   designator ORBCOMM_C8
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 270 deg
+      anomaly 360 deg
+end_mover
+end_platform
+
+
+# Plane D
+
+platform ORBCOMM_D1 ORBCOMM
+edit mover
+   designator ORBCOMM_D1
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 45 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D2 ORBCOMM
+edit mover
+   designator ORBCOMM_D2
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 90 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D3 ORBCOMM
+edit mover
+   designator ORBCOMM_D3
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 135 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D4 ORBCOMM
+edit mover
+   designator ORBCOMM_D4
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 180 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D5 ORBCOMM
+edit mover
+   designator ORBCOMM_D5
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 225 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D6 ORBCOMM
+edit mover
+   designator ORBCOMM_D6
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 270 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D7 ORBCOMM
+edit mover
+   designator ORBCOMM_D7
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 315 deg
+end_mover
+end_platform
+
+platform ORBCOMM_D8 ORBCOMM
+edit mover
+   designator ORBCOMM_D8
+      revs_per_day 14.76890352
+      inclination 47 deg
+      raan 360 deg
+      anomaly 360 deg
+end_mover
+end_platform
+#====================================================================================

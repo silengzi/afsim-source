@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once apache_type.txt
+
+# Define the attributes of the designation helicopter, its sensors and mover, etc.
+platform_type AH-64A APACHE
+
+   # Beginning location...
+   #position 39:12n 106:50w altitude 2000 m agl
+   position 39:11n 106:49:23w altitude 800 m agl
+   heading 240 deg
+
+   # Radar sensor which can detect the target after we get Line-Of-Sight to it.
+   add sensor laser_designator WSF_LASER_DESIGNATOR
+      azimuth_field_of_view   -10 deg 10 deg
+      elevation_field_of_view -10 deg 10 deg
+      on
+      maximum_transmission_range 10 km
+      terrain_float_distance     10 m
+      target_association_staleout_interval 10 sec
+      maximum_target_association_distance 200 m
+      frame_time          0.1 s
+      slew_mode           both
+      laser_code          1212
+      azimuth_slew_rate   10 deg/s
+      elevation_slew_rate 10 deg/s
+      reports_location
+      transmitter
+         wavelength 1.06E-6 microns
+         power 1 mw
+      end_transmitter
+      #test_platform_name_to_designate XXXX  # (Needed elsewhere for this to work!)
+   end_sensor
+
+end_platform_type
+

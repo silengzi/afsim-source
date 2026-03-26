@@ -1,0 +1,160 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Made up air to surface / surface to surface missile MACH_4_MISSILE
+# Booster with ramjet engine.
+# missile that goes 500 nmi and cruises at 72000 ft at mach 4
+# include the sensor that goes on the missile
+
+include_once ../../sensors/radar/red_missile_seeker.txt
+
+aero MACH_4_MISSILE_BOOST_AERO WSF_AERO
+   reference_area            63.62 in2
+   mach_and_cd               0.1  0.3258
+   mach_and_cd               0.6  0.3258
+   mach_and_cd               0.9  0.3554
+   mach_and_cd               1.05 0.5718
+   mach_and_cd               1.3  0.5994
+   mach_and_cd               1.51  0.5824
+   mach_and_cd               1.97  0.5639
+   mach_and_cd               2.47  0.5448
+   aspect_ratio              4.5
+   cl_max                    2.669
+end_aero
+
+aero MACH_4_MISSILE_CRUISE_AERO WSF_AERO
+   reference_area            63.62 in2
+   mach_and_cd               0.1  0.2497
+   mach_and_cd               0.8  0.2497
+   mach_and_cd               0.9  0.2727
+   mach_and_cd               1.05 0.4232
+   mach_and_cd               1.3  0.4087
+   mach_and_cd               1.51  0.4014
+   mach_and_cd               1.97  0.3257
+   mach_and_cd               2.47  0.2672
+   mach_and_cd               2.97  0.2378
+   mach_and_cd               3.96  0.2032
+   mach_and_cd               5.07  0.1855
+   aspect_ratio              4.5
+   cl_max                    2.669
+end_aero
+
+weapon_effects MACH_4_MISSILE_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 30 m 0.8
+end_weapon_effects
+
+platform_type MACH_4_MISSILE WSF_PLATFORM
+   icon missile
+   weapon_effects MACH_4_MISSILE_LETHALITY
+   mover WSF_GUIDED_MOVER
+#      debug
+#      show_status
+      update_interval        0.5 s
+      integration_timestep   0.05 s
+
+      stage 1 # get the missile up to velocity to light off ramjet
+         # Boost 1st phase
+         empty_mass          170 lb
+         fuel_mass           190 lb
+         thrust              14900.0 lbsf
+         thrust_duration     3.25 sec
+         aero                MACH_4_MISSILE_BOOST_AERO
+      end_stage
+      stage 2 # Second Stage LightOff
+         # Really only 2 stages but this shows how to apply initial thrust
+         empty_mass          0.01 lb
+         fuel_mass           10.0 lb
+         thrust              800 lbsf
+         thrust_duration     23 sec
+         aero                MACH_4_MISSILE_CRUISE_AERO
+      end_stage
+
+      stage 3 # ramjet sustain thrust
+         # cruise stage
+         empty_mass          300.00 lb
+         fuel_mass           60.00 lb
+         thrust              140 lbsf
+         thrust_duration     700 sec  # maximum thrust duration time
+         aero                MACH_4_MISSILE_CRUISE_AERO
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+      #show_status
+      #show_evaluations
+      #debug
+
+      phase LAUNCH
+         commanded_altitude      72000 ft
+         maximum_pitch_angle           30 deg
+         proportional_navigation_gain  15.0
+         velocity_pursuit_gain         15.0
+         next_phase TERMINAL if target_slant_range < 30 miles
+         next_phase CRUISE when phase_time > 100 sec
+      end_phase
+
+      phase CRUISE
+         commanded_altitude      72000 ft
+         commanded_speed         3950 fps #mach 4
+         maximum_pitch_angle           40 deg
+         proportional_navigation_gain  15.0
+         maximum_commanded_g           2 g
+         next_phase TERMINAL  when los_target_angle > 35 deg
+      end_phase
+
+      phase TERMINAL
+         commanded_speed              2200 fps
+        proportional_navigation_gain  40
+        maximum_pitch_angle           90 deg
+        maximum_commanded_g           4 g
+      end_phase
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+
+#   radar_signature VEHICLE_RADAR_SIGNATURE
+
+   comm uplink WSF_COMM_TRANSCEIVER
+      internal_link data_mgr
+   end_comm
+
+   processor task_mgr WSF_TASK_PROCESSOR
+   end_processor
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval 400 seconds
+   end_processor
+
+#   processor seeker WSF_PERFECT_TRACKER
+#      update_interval 0.5 sec
+#   end_processor
+
+   sensor seeker RED_MISSILE_SEEKER
+      # on
+      ignore_same_side
+      processor data_mgr
+   end_sensor
+
+   processor seeker_turn_on WSF_WEAPON_TRACK_PROCESSOR
+     turn_on_sensor seeker at_range 30000.0 m before_intercept
+   end_processor
+
+end_platform_type
+
+weapon MACH_4_MISSILE WSF_EXPLICIT_WEAPON
+   launched_platform_type MACH_4_MISSILE
+   weapon_effects MACH_4_MISSILE_LETHALITY
+   quantity 1
+   firing_delay 0.0 sec
+   salvo_interval 2.0 sec
+   slew_mode azimuth
+   azimuth_slew_limits -180.0 deg 180.0 deg
+   tilt 88.9 deg
+   launch_delta_v 60.0 0.0 0.0 fps
+end_weapon
+

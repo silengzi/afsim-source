@@ -1,0 +1,122 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario uses two aircraft flying the same route but the second aircraft
+# has two 300 gallon external fuel tanks attached to it. Both aircraft have
+# full internal fuel and the second aircraft is adjusted to have 250 lbs of
+# fuel in each external tank. Each aircraft maintains the same speed. Even
+# though the second aircraft has more fuel, the external fuel tanks (and 
+# fuel) results in additional drag and weight, causing it to burn more fuel
+# to produce the additional thrust required. After 5 minutes, the second
+# aircraft uses a sequencer to drop the external tanks, reducing the drag and
+# weight on the aircraft. The tanks then fall realistically down to the ground.
+# After roughly 57 minutes, both aircraft are nearly out of fuel, but the first
+# aircraft has more fuel.
+#
+# ******************************************************************************
+
+define_path_variable CASE ext_tank_test1
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 1 hr
+
+include_once p6dof_types/environment/p6dof_environment.txt
+include_once platforms/fa-lgt.txt
+include_once platforms/fa-lgt_external-tanks.txt
+include_once platforms/tnk-f16-370g.txt
+
+include p6dof_types/scripts/p6dof_simple_scripts.txt
+
+platform p6dof_1 FA-LGT
+   update_interval 0.01 sec
+   side blue
+   route
+      position   21.310n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+
+      position   21.310n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.310n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.910n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+   end_route
+   follow_vertical_track
+
+   execute at_time 3599 sec absolute
+      double totalFuel = GetTotalFuelRemaining_lbs(PLATFORM);
+      writeln("Aircraft 1 has ", totalFuel, " lbs of fuel remaining...");
+   end_execute
+
+end_platform
+
+platform p6dof_2 FA-LGT-EXTERNAL-TANKS
+   update_interval 0.01 sec
+   side blue
+   route
+      position   21.300n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+
+      position   21.300n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.300n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  157.65w  altitude 6000.0 ft  speed 450.0 kts
+      position   21.900n  158.50w  altitude 6000.0 ft  speed 450.0 kts
+   end_route
+   follow_vertical_track
+
+   # Set external tank fuel to 250 lbs in each tank
+   execute at_time 0.01 sec absolute
+      writeln("Setting external tank fuel to only 250lb in each tank");
+      SetFuelInTank_lbs(PLATFORM,"TankRgt.MainFuelTank", 250.0);
+      SetFuelInTank_lbs(PLATFORM,"TankLft.MainFuelTank", 250.0);
+   end_execute
+
+   execute at_interval_of 30 sec
+      double leftFuel  = GetFuelInTank_lbs(PLATFORM, "TankLft.MainFuelTank");
+      double rightFuel = GetFuelInTank_lbs(PLATFORM, "TankRgt.MainFuelTank");
+      double totalFuel = GetTotalFuelRemaining_lbs(PLATFORM);
+      double mainFuel  = totalFuel - rightFuel - leftFuel;
+
+      writeln("Time: ", TIME_NOW, " Main Tank : ", mainFuel, "  Left Tank : ", leftFuel, "  Right Tank : ", rightFuel, "  Total : ", totalFuel);
+   end_execute
+
+   execute at_time 5 min absolute
+      ActivateSequencer(PLATFORM, "DropExternalTanks");
+      writeln("Dropping External Fuel Tanks.");
+   end_execute
+
+   execute at_time 3599 sec absolute
+      double totalFuel = GetTotalFuelRemaining_lbs(PLATFORM);
+      writeln("Aircraft 2 has ", totalFuel, " lbs of fuel remaining...");
+   end_execute
+
+end_platform
+

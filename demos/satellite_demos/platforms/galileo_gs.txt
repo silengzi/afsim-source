@@ -1,0 +1,78 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by AFSIM Wizard
+
+include_once ../avionics/comm/GALILEOCommDef_GS.txt
+
+
+platform_type GALILEO_GS WSF_PLATFORM
+   icon C4I
+
+   sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+   end_sensor
+
+  comm GROUNDSTATION_GALILEO_UPLINKE1_TX GROUNDSTATION_GALILEO_UPLINKE1_TX
+   on
+  end_comm
+
+  comm GROUNDSTATION_GALILEO_UPLINKE5_TX GROUNDSTATION_GALILEO_UPLINKE5_TX
+   on
+  end_comm
+
+  comm GROUNDSTATION_GALILEO_UPLINKE6_TX GROUNDSTATION_GALILEO_UPLINKE6_TX
+   on
+  end_comm
+
+  comm GROUNDSTATION_GALILEO_DOWNLINKE1_RX GROUNDSTATION_GALILEO_DOWNLINKE1_RX
+   on
+  end_comm
+
+  comm GROUNDSTATION_GALILEO_DOWNLINKE5_RX GROUNDSTATION_GALILEO_DOWNLINKE5_RX
+   on
+  end_comm
+
+  comm GROUNDSTATION_GALILEO_DOWNLINKE6_RX GROUNDSTATION_GALILEO_DOWNLINKE6_RX
+   on
+  end_comm
+
+#========================Uncomment to send a test message to satellites==============================================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#              if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a Test");
+#
+#                  if (myPlatform.Type() == "GALILEO")
+#                  {
+#                  PLATFORM.Comm("GROUNDSTATION_GALILEO_UPLINKE1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+##                  if (myPlatform.Type() == "GALILEO")
+##                  {
+##                  PLATFORM.Comm("GROUNDSTATION_GALILEO_UPLINKE5_TX").SendUnicastMessage(myMessage, myPlatform);
+##                  }
+##                  if (myPlatform.Type() == "GALILEO")
+##                  {
+##                  PLATFORM.Comm("GROUNDSTATION_GALILEO_UPLINKE6_TX").SendUnicastMessage(myMessage, myPlatform);
+##                  }
+#              }
+#          }
+# end_execute
+#=======================================================================================================================================
+
+ end_platform_type
+

@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform INTELSAT_603_(IS-603)(20523) INTELSAT
+   orbit
+1 20523U 90021A   14243.36795801 -.00000243  00000-0  00000+0 0  5802
+2 20523  10.3396  44.6141 0004846 126.4158 220.3354  1.00273888 82506
+   end_orbit
+end_platform
+
+platform GALAXY_26_(G-26)(25626) INTELSAT
+   orbit
+1 25626U 99005A   14243.38391809  .00000019  00000-0  00000+0 0  5444
+2 25626   2.6730  87.0977 0007814  43.3502 244.6840  0.98995231 56922
+   end_orbit
+end_platform
+
+platform DIRECTV_1R(25937) INTELSAT
+   orbit
+1 25937U 99056A   14243.53390811 -.00000035  00000-0  00000+0 0  8569
+2 25937   1.7691  74.3816 0005900  93.8761 207.4605  0.98961466 54551
+   end_orbit
+end_platform
+
+platform SIRIUS-1(26390) INTELSAT
+   orbit
+1 26390U 00035A   14241.44676458  .00000079  00000-0  00000+0 0  3791
+2 26390  59.9846 238.8225 2670127 270.2691 252.8342  1.00281095 51889
+   end_orbit
+end_platform
+
+platform SIRIUS-2(26483) INTELSAT
+   orbit
+1 26483U 00051A   14241.29391193  .00000040  00000-0  00000+0 0  9980
+2 26483  64.2308 118.8335 2672021 269.8297 319.2258  1.00276384 51210
+   end_orbit
+end_platform
+
+platform SIRIUS-3(26626) INTELSAT
+   orbit
+1 26626U 00077A   14243.49968602 -.00000109  00000-0  00000+0 0  3437
+2 26626  64.4850 358.6661 2706852 267.8045 159.4224  1.00278671 50372
+   end_orbit
+end_platform
+

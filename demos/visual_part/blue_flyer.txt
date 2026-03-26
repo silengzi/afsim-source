@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform_type blue_flyer_type WSF_PLATFORM
+   icon F-18e
+   side blue
+
+   add mover WSF_AIR_MOVER end_mover
+end_platform_type
+
+platform blue_flyer blue_flyer_type
+   route
+      position 30n 90w altitude 3000 ft msl speed 300 kts
+      position 30.20n 90.35w altitude 100 ft msl
+      position 30n 90:30w altitude 500 ft msl
+      position 29:40n 90w altitude 1000 ft msl
+      position 29:50n 89:40w altitude 2000 ft msl
+      position 30n 90:40w altitude 3000 ft msl
+   end_route
+end_platform

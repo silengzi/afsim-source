@@ -1,0 +1,581 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE passive_detector_df_demo
+log_file output/$(CASE).log
+
+
+comm PASSIVE_DATALINK WSF_COMM_TRANSCEIVER
+end_comm
+
+radar_signature NARROW_BODY_RADAR_SIGNATURE
+  use_bisector_for_bistatic true
+  constant 10 dbsm
+end_radar_signature
+
+platform_type PASSENGER_JET WSF_PLATFORM
+   radar_signature NARROW_BODY_RADAR_SIGNATURE
+   mover WSF_AIR_MOVER
+   end_mover
+end_platform_type
+
+antenna_pattern BISTATIC_TX_ANTENNA
+  sine_pattern
+    peak_gain             0 dB
+    minimum_gain        -20 db
+    azimuth_beamwidth   360 deg
+    elevation_beamwidth  45 deg
+end_antenna_pattern
+
+antenna_pattern BISTATIC_RX_ANTENNA
+  sine_pattern
+    peak_gain             0 dB
+    minimum_gain        -20 db
+    azimuth_beamwidth   360 deg
+    elevation_beamwidth  45 deg
+end_antenna_pattern
+
+sensor BISTATIC_SENSOR_RCVR WSF_RADAR_SENSOR
+   #debug
+
+   maximum_range          120 nm
+
+   receive_only
+
+   antenna_height          0.0 m
+
+   frame_time              10.0 sec
+
+   receiver
+      antenna_pattern          BISTATIC_RX_ANTENNA
+      beam_tilt                  0 deg
+      frequency                 525 mhz
+      bandwidth                950.0 mhz
+      noise_power              -175 dbm
+      instantaneous_bandwidth    10 mhz
+
+      check_transmitter_masking false
+   end_receiver
+
+   #compute_measurement_errors true
+
+   error_model_parameters
+      azimuth_beamwidth      90 deg  # quadrant detection
+      elevation_beamwidth    90 deg
+      receiver_bandwidth     50 mhz
+   end_error_model_parameters
+
+   detection_threshold 3 db
+   #probability_of_false_alarm     1.0e-6
+   #required_pd                    0.9
+   #swerling_case                  1
+
+   #reports_range
+   reports_bearing
+   #reports_signal_to_noise
+   #reports_elevation
+   #reports_iff
+end_sensor
+
+sensor BISTATIC_SENSOR_XMTR WSF_RADAR_SENSOR
+
+   transmit_only
+
+   antenna_height                 0.0 m
+
+   frame_time                     10.0 sec
+
+   transmitter
+      antenna_pattern             BISTATIC_TX_ANTENNA
+      power                        1.0 w
+      frequency                  525 mhz
+      bandwidth                    2.0 mhz
+   end_transmitter
+end_sensor
+
+platform_type C4I_PLATFORM WSF_PLATFORM
+
+   comm datalink PASSIVE_DATALINK
+      network_name <local:master>
+      internal_link direction_finder
+   end_comm
+
+   processor direction_finder WSF_DIRECTION_FINDER_PROCESSOR
+      debug
+      processor               track_processor
+      collect_replacement_interval  30 sec
+      maximum_time_difference 10 sec
+      use_truth_altitude      true
+      filter_bypass
+      test true
+   end_processor
+
+   processor track_processor WSF_TRACK_PROCESSOR
+   end_processor
+end_platform_type
+
+platform c4i C4I_PLATFORM
+   icon c4i
+   side red
+   commander SELF
+
+   position 38:30:00n 90:30:00w
+
+   # ---------------------------------------------
+   # Draw track for Tracks
+   # ---------------------------------------------
+   script_variables
+      # Create a WsfDraw object.
+      WsfDraw draw = WsfDraw();
+   end_script_variables
+
+   execute at_interval_of 10.0 s
+      foreach (WsfTrack track in MasterTrackList())
+      {
+         if (track.IsValid())
+         {
+            string str = write_str("T=", (string)track.UpdateTime(), " Lat=", (string)track.Latitude(), " Lon=", (string)track.Longitude());
+            #writeln("T=" + track.UpdateTime().ToString() + "Count=" + track.UpdateCount().ToString() + " SNR=" + (string)Math.LinearToDB(track.SignalToNoise()));
+            #writeln(str);
+            # use the track ID as a unique draw ID
+            # a track icon and a line to the track icon
+            # is drawn at each track update
+            string trackId = track.TrackId().ToString();
+            draw.SetId(trackId);
+            draw.SetDuration(10.0); # this is faster than calling erase every time
+            draw.SetColor(0,0,1);
+            draw.BeginIcons(track.Heading(), "Wedge");
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+
+            # Draw a line to the track
+            draw.SetLineStyle("dashed");
+            draw.BeginLines();
+            draw.Vertex(PLATFORM);
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+
+            # draw the text for the track
+            string bearing = " Bearing: " + (string)track.Bearing() + " deg";
+            draw.BeginText(str);
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+         }
+      }
+   end_execute
+end_platform
+
+platform_type RCVR_PLATFORM WSF_PLATFORM
+
+   sensor rcvr BISTATIC_SENSOR_RCVR
+      on
+      internal_link data_manager
+      ignore_same_side
+   end_sensor
+
+   comm datalink PASSIVE_DATALINK
+      network_name <local:slave>
+   end_comm
+
+   processor data_manager WSF_TRACK_PROCESSOR
+      report_to commander via datalink
+      raw_track_reporting on
+   end_processor
+
+   #processor data_manager WSF_LINKED_PROCESSOR
+   #   report_to commander via datalink
+   #end_processor
+end_platform_type
+
+platform arch RCVR_PLATFORM
+   icon C4I
+   side red
+
+   commander c4i
+
+   position 38:37:29n 90:11:05w
+   sensor rcvr
+      location 0 0 -630 ft
+   end_sensor
+end_platform
+
+platform casino RCVR_PLATFORM
+   icon C4I
+   side red
+
+   commander c4i
+
+   position 38:45:46n 90:29:05w
+   sensor rcvr
+      location 0 0 -150 ft
+   end_sensor
+end_platform
+
+#platform six_flags RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 38:30:53.7n 90:40:38.1w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#platform house_springs RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 38:24:31.2n 90:34:59.3551w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#platform elseberry RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 39:07:33.3n 90:46:56.419w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#platform hilsboro RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 38:14:08n 90:34:54w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#platform jonesburg RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 38:51:21n 91:18:53w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#platform litchfield RCVR_PLATFORM
+#   icon C4I
+#   side red
+#
+#   commander c4i
+#
+#   position 39:10:22.5n 89:39:47.63w
+#   sensor rcvr
+#      location 0 0 -150 ft
+#   end_sensor
+#end_platform
+
+#Effective Radiated Power 42,000 Watts
+#Height above Avg. Terrain 225 meters (738 feet)
+#Height above Ground Level 164 meters (538 feet)
+#Height above Sea Level 401 meters (1316 feet)
+#Antenna Pattern Non-Directional
+#Transmitter Location 38 25' 01" N, 90 25' 59" W
+platform 88p1 WSF_PLATFORM
+   side red
+
+   position 38:25:01n 90:25:59w altitude 164 m agl
+   add sensor 88p1_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     42000 w  // ERP
+         #frequency  88.1 mhz
+         bandwidth 200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+#Horizontal Effective Radiated Power 50,000 Watts
+#Vertical Effective Radiated Power 41,000 Watts
+#Height above Avg. Terrain 152 meters (499 feet)
+#Height above Ground Level 128 meters (420 feet)
+#Height above Sea Level 302 meters (991 feet)
+#Antenna Pattern Directional
+#Transmitter Location 38 47' 06" N, 89 59' 10" W
+platform 88p7 WSF_PLATFORM
+   side red
+
+   position 38:47:06n 89:59:10w altitude 128 m agl
+   add sensor 88p7_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     50000 w  // ERP
+         frequency  88.7 mhz
+         bandwidth 200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+#Effective Radiated Power 100,000 Watts
+#Height above Avg. Terrain 317 meters (1040 feet)
+#Height above Ground Level 128 meters (420 feet)
+#Height above Sea Level 625 meters (2051 feet)
+#Antenna Pattern Non-Directional
+#Transmitter Location 37 43' 07" N, 90 33' 01" W
+platform 98p5 WSF_PLATFORM
+   side red
+
+   position 37:43:07n 90:33:01w altitude 128 m agl
+   add sensor 98p5_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     100000 w  // ERP
+         frequency     98.5 mhz
+         bandwidth    200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+#Effective Radiated Power 250 Watts
+#Height above Ground Level 204 meters (669 feet)
+#Height above Sea Level 341 meters (1119 feet)
+#Antenna Pattern Non-Directional
+#Transmitter Location 38 34' 28" N, 90 19' 32" W
+platform 103p7 WSF_PLATFORM
+   side red
+
+   position 38:34:28n 90:19:32w altitude 204 m agl
+   add sensor 103p7_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     250 w  // ERP
+         frequency 103.7 mhz
+         bandwidth 200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+#Effective Radiated Power 53,140 Watts
+#Height above Avg. Terrain 254.4 meters (835 feet)
+#Height above Ground Level 269.8 meters (885 feet)
+#Height above Sea Level 407 meters (1335 feet)
+#Antenna Pattern Non-Directional
+#Transmitter Location 38 34' 28" N, 90 19' 32" W
+platform 105p7 WSF_PLATFORM
+   side red
+
+   position 38:34:28n 90:19:32w altitude 269.8 m agl
+   add sensor 105p7_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     53140 w  // ERP
+         frequency 105.7 mhz
+         bandwidth 200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+#Effective Radiated Power 90,000 Watts
+#Height above Avg. Terrain 309 meters (1014 feet)
+#Height above Ground Level 325 meters (1066 feet)
+#Height above Sea Level 462.2 meters (1516 feet)
+#Antenna Pattern Non-Directional
+#Transmitter Location 38 34' 28" N, 90 19' 32" W
+platform 106p5 WSF_PLATFORM
+   side red
+
+   position 38:34:28n 90:19:32w altitude 325 m agl
+   add sensor 106p5_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     90000 w  // ERP
+         frequency 106.5 mhz
+         bandwidth 200 khz
+      end_transmitter
+   end_sensor
+end_platform
+
+# 38.345 -90.1945
+# 1000 watts
+# 578 mhz
+platform chan30_kdnl WSF_PLATFORM
+   side red
+
+   position 38:20:42n 90:11:40w altitude 100 m agl
+   add sensor kdnl_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     1000 w  // ERP
+         frequency 578 mhz
+         bandwidth   6 mhz
+      end_transmitter
+   end_sensor
+end_platform
+
+# 38.214 -90.3254
+# 1000 watts
+# 476 mhz
+platform chan24_knlc WSF_PLATFORM
+   side red
+
+   position 38:12:50n 90:19:31w altitude 100 m agl
+   add sensor knlc_xmtr BISTATIC_SENSOR_XMTR
+      on
+      transmitter
+         power     1000 w  // ERP
+         frequency 476 mhz
+         bandwidth   6 mhz
+      end_transmitter
+   end_sensor
+end_platform
+
+
+platform passenger_jet PASSENGER_JET
+   side blue
+   icon B-747
+
+   route
+      position 38:30:00n 91:30:00w altitude 500 ft msl
+        speed 200 kts
+      position 38:30:00n 90:00:00w altitude 500 ft msl
+        speed 200 kts
+      position 39:45:00n 90:00:00w altitude 500 ft msl
+        speed 200 kts
+      position 38:30:00n 91:30:00w altitude 500 ft msl
+        speed 200 kts
+   end_route
+end_platform
+
+event_pipe
+   file output/$(CASE).aer
+   use_preset default
+end_event_pipe
+
+event_output
+   #enable COMM_TURNED_OFF
+   #enable COMM_TURNED_ON
+   #enable JAMMING_ATTEMPT
+   #enable JAMMING_REQUEST_CANCELED
+   #enable JAMMING_REQUEST_INITIATED
+   #enable JAMMING_REQUEST_UPDATED
+   #enable LOCAL_TRACK_CORRELATION
+   #enable LOCAL_TRACK_DECORRELATION
+   #enable LOCAL_TRACK_INITIATED
+   #enable LOCAL_TRACK_UPDATED
+   #enable LOCAL_TRACK_DROPPED
+   #enable MESSAGE_DISCARDED
+   #enable MESSAGE_UPDATED
+   #enable MESSAGE_QUEUED
+   #enable MESSAGE_RECEIVED
+   #enable MESSAGE_TRANSMITTED
+   #enable OPERATING_LEVEL_CHANGED
+   #enable PLATFORM_ADDED
+   #enable PLATFORM_DELETED
+   #enable PLATFORM_BROKEN
+   #enable PROCESSOR_TURNED_OFF
+   #enable PROCESSOR_TURNED_ON
+   enable SENSOR_DETECTION_ATTEMPT
+   #enable SENSOR_FREQUENCY_CHANGED
+   #enable SENSOR_MODE_ACTIVATED
+   #enable SENSOR_MODE_DEACTIVATED
+   #enable SENSOR_REQUEST_CANCELED
+   #enable SENSOR_REQUEST_INITIATED
+   #enable SENSOR_REQUEST_UPDATED
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_UPDATED
+   enable SENSOR_TRACK_DROPPED
+   #enable SENSOR_TURNED_ON
+   #enable SENSOR_TURNED_OFF
+   #enable TASK_ASSIGNED
+   #enable TASK_CANCELED
+   #enable TASK_COMPLETED
+   #enable WEAPON_FIRE_ABORTED
+   #enable WEAPON_FIRE_REQUESTED
+   #enable WEAPON_FIRED
+   #enable WEAPON_HIT
+   #enable WEAPON_MISSED
+   #enable WEAPON_RELOAD_STARTED
+   #enable WEAPON_RELOAD_ENDED
+   #enable WEAPON_TERMINATED
+   #enable WEAPON_TURNED_OFF
+   #enable WEAPON_TURNED_ON
+  file output/$(CASE).evt
+end_event_output
+/*
+script void SensorDetectionAttempt(WsfPlatform          aPlatform,
+                                   WsfSensor            aSensor,
+                                   WsfPlatform          aTarget,
+                                   WsfSensorInteraction aResult)
+   if (aResult.Detected())
+   {
+      string mystring = write_str("T=", TIME_NOW,
+                                  ",", "SensorDetectionAttempt",
+                                  ",", aResult.RcvrPlatformName(),
+                                  ",", aResult.XmtrPlatformName(),
+                                  ",", aResult.TargetPlatformName());
+      writeln(mystring);
+   }
+end_script
+
+
+script void SensorTrackInitiated(WsfPlatform aPlatform, WsfSensor aSensor, WsfTrack aTrack)
+   string mystring = write_str("T=", TIME_NOW,
+                               ",", "SensorTrackInitiated",
+                               ",", aPlatform.Name(),
+                               ",", aTrack.StartTime(),
+                               ",", aTrack.SensorName(),
+                               ",", aTrack.TargetName());
+   writeln(mystring);
+end_script
+
+script void SensorTrackUpdated(WsfPlatform aPlatform, WsfSensor aSensor, WsfTrack aTrack)
+   string mystring = write_str("T=", TIME_NOW,
+                               ",", "SensorTrackUpdated",
+                               ",", aPlatform.Name(),
+                               ",", aTrack.StartTime(),
+                               ",", aTrack.SensorName(),
+                               ",", aTrack.TargetName());
+   writeln(mystring);
+end_script
+
+script void SensorTrackDropped(WsfPlatform aPlatform, WsfSensor aSensor, WsfTrack aTrack)
+   string mystring = write_str("T=", TIME_NOW,
+                               ",", "SensorTrackDropped",
+                               ",", aPlatform.Name(),
+                               ",", aTrack.StartTime(),
+                               ",", aTrack.SensorName(),
+                               ",", aTrack.TargetName());
+   writeln(mystring);
+end_script
+
+observer
+   enable SENSOR_DETECTION_ATTEMPT SensorDetectionAttempt
+   #enable SENSOR_TRACK_INITIATED   SensorTrackInitiated
+   #enable SENSOR_TRACK_UPDATED     SensorTrackUpdated
+   #enable SENSOR_TRACK_DROPPED     SensorTrackDropped
+end_observer
+*/
+# Specify parameters for a dis_interface record object
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe
+
+terrain
+   #load_cme_terrain
+end_terrain
+
+end_time 75 min

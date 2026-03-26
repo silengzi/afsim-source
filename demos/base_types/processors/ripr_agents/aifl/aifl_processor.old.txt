@@ -1,0 +1,894 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#with a commander:
+#bids on "zone" and "flank" jobs
+#creates "pursue-target" and "pursue-point" jobs
+#does not perform any jobs
+#without a commander:
+#creates "pursue-target" jobs from threats in it's tracklist
+#does not perform any jobs
+
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+
+
+processor AIFL-thinker WSF_AIFL_PROCESSOR
+
+  #script_debug_writes off
+
+  #debug
+  script_debug_writes on
+
+  update_interval 3.0 sec
+
+  script_variables
+
+    bool windowToggle = false;
+    WsfDraw draw = WsfDraw();
+
+    bool mDrawFlankLines = false;
+
+    Array<string> mEscortNames = Array<string>();
+    string  mEscortName        = "";
+    double mEscortProtectRange = 1E8;
+    string mEscortZoneName = "";
+    // We need to keep references to all the jobs we create so they don't get
+    // garbage collected when they go out of scope
+    Map<string, WsfRIPRJob> mTrackJobMap = Map<string, WsfRIPRJob>();
+    Map<int, WsfGeoPoint> mFlankJobIdToFlankPointMap = Map<int, WsfGeoPoint>();
+    int maxJobWinnersForPursueTrack  = 1;
+    int maxJobWinnersForWeaponUplink = 1;
+    double cPursuePointPriority  = 0.00001;
+    double cFlankPointPriority   = 25000.0;
+    double cPursueTargetPriority = 10000.0;
+  //bool   fastAndDirtyBidding   = false;
+    bool   fastAndDirtyBidding   = true;
+
+    double cFlankWeighting       = 100000.0;
+
+    string cPreferredFlank       = "auto";  //or "left" or "right"
+
+    int cMaxPeersToComeAlong     = 1000;
+
+    WsfRIPRJob      mCurrentJob;
+    WsfRIPRJob      mLastJob;
+    double          mJobStickiness = 1.0;
+    Array<string> mZoneNames = Array<string>();   #dlc
+
+      bool           mUseThreatTypeEngageZones = true;
+      Map<string, string> ThreatTypeEngageZone = Map<string, string>();
+      ThreatTypeEngageZone["unknown"] = "";
+      ThreatTypeEngageZone["uav"]     = "";
+      ThreatTypeEngageZone["sam"]     = "";
+      ThreatTypeEngageZone["ship"]    = "";
+      ThreatTypeEngageZone["awacs"]   = "";
+      ThreatTypeEngageZone["bomber"]  = "";
+      ThreatTypeEngageZone["jammer"]  = "";
+      ThreatTypeEngageZone["fighter"] = "";
+      ThreatTypeEngageZone["missile"] = "";
+      ThreatTypeEngageZone["missile_fast"] = "";
+
+      ##extern string DeterminePlatformCategory(WsfPlatform);
+      # string catg = DeterminePlatformCategory(target);
+      # WsfGeoPoint  WsfPlatform.Location()
+      # bool  WsfGeoPoint.WithinZone(string aZoneName)  #Return true if the point is within the global zone.
+
+  end_script_variables
+
+
+
+  script bool CreateGuidanceJobFor(WsfPlatform activeWeapon, WsfTrack target)
+      string uniqueName = activeWeapon.Name() + "_uplink";
+      if ( ! mTrackJobMap.Exists(uniqueName) )
+      {
+        double jobPriority = cPursueTargetPriority * 3.0;
+        WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                             "weapon_uplink",
+                                             uniqueName,
+                                             jobPriority,
+                                             maxJobWinnersForWeaponUplink);
+
+        temp.SetData("weaponPlatformIndex", activeWeapon.Index());
+        temp.SetData("targetPlatformIndex", target.TargetIndex());
+        temp.SetData("targetTrackName", target.TargetName());
+
+        AddJob(temp);
+        mTrackJobMap.Set(uniqueName, temp);
+        string NewComment = "AIFL - new job: " + temp.Name() + " - " + temp.GetDescription();
+        PLATFORM.Comment(NewComment);
+        //writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", uniqueName );
+        writeln_d(NewComment);
+        return true;
+      }
+      else
+      {
+        writeln_d("Guidance job already exists: ", uniqueName);
+        return false;
+      }
+  end_script
+
+
+
+  script void CreateJobsIndependently()
+
+    WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+    Map<string, int> updatedTracks = Map<string, int>();
+
+    WsfPlatform escortPlatform = WsfSimulation.FindPlatform( mEscortName );
+
+    writeln_d("    Flight Lead, Considering Num Tracks: ", localTracks.Count() );
+
+    foreach (WsfTrack x in localTracks)
+    {
+      //writeln_d("    Considering: ", x.TargetName());
+      WsfTrackId tid = x.TrackId();
+      writeln_d("    Considering: ", tid.Name(), ".", tid.Number(), " -> ", x.TargetName());
+      updatedTracks.Set(x.TargetName(), 0);
+
+      // if the track is not a foe or is damaged, we'll ignore it
+      if (!(x.IsValid())) // || !x.IFF_Foe())// || x.TargetDamaged() > 0)
+      {
+        writeln_d("!!! Need to remove track: ", !(x.IsValid()), ", ", !x.IFF_Foe(), ", ", x.TargetDamaged() > 0);
+        continue;
+      }
+
+     #extern string DetermineTrackCategory(WsfTrack);
+      string category = DetermineTrackCategory(x);
+
+      if (category == "unknown")
+      {
+        writeln_d("    - Unknown type: ", x.TargetName(), " - ", x.TargetType() );
+        continue;
+      }
+      if (ThreatTypeEngageZone.Exists(category) && ThreatTypeEngageZone[category].Length()>0)
+      {
+        writeln_d(PLATFORM.Name(), " checking target ", x.TargetName(), " in zone ", ThreatTypeEngageZone[category]);
+        if ( ! x.CurrentLocation().WithinZone(ThreatTypeEngageZone[category]))
+        {
+          writeln_d("aifl ", PLATFORM.Name(),", target ", x.TargetName(), " outside of category ", category," zone ", ThreatTypeEngageZone[category], ".  not considering for a job.");
+          continue;
+        }
+        else
+        {
+          writeln_d("aifl ", PLATFORM.Name(),", target ", x.TargetName(), " inside category ", category," zone ", ThreatTypeEngageZone[category], ".  updating job!!!");
+        }
+      }
+      else
+      {
+        writeln_d(PLATFORM.Name(), " no zone to check for category ", category);
+      }
+
+      updatedTracks.Set(x.TargetName(), 1);
+      if ( ! mTrackJobMap.Exists(x.TargetName()) )
+      {
+        double jobPriority = cPursueTargetPriority;
+        if( escortPlatform.IsValid() )
+        {
+          jobPriority = cPursueTargetPriority / (1 + x.SlantRangeTo( escortPlatform ) );
+        }
+
+        WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                             "pursue-target",
+                                             "pursue-target-" + x.TargetName(),
+                                             jobPriority,
+                                             maxJobWinnersForPursueTrack);
+
+        writeln_d("    - Setting targetTrack, name: ", x.TargetName());
+        temp.SetData("targetTrack", x);
+        temp.SetData("targetTrackName", x.TargetName());
+        writeln_d("    - Adding job");
+        AddJob(temp);
+        mTrackJobMap.Set(x.TargetName(), temp);
+
+        //writeln_d("    - Creating job pursue-target-", x.TargetName());
+        writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", x.TargetName() );
+
+        string NewComment = "AIFL - new job: " + temp.Name() + " - " + temp.GetDescription();
+        PLATFORM.Comment(NewComment);
+      }
+      else
+      {
+        if( escortPlatform.IsValid() )
+        {
+          double jobPriority = cPursueTargetPriority / (1 + x.SlantRangeTo( escortPlatform ) );
+          WsfRIPRJob updateJob = mTrackJobMap.Get( x.TargetName() );
+          updateJob.Priority( jobPriority );
+        }
+      }
+
+
+    }
+    Array<WsfRIPRJob> jobs = GetJobs();
+    foreach (WsfRIPRJob x in jobs)
+    {
+      Map<string, Object>tempData = x.GetData();
+      string name = (string)tempData["targetTrackName"];
+
+      if (updatedTracks[name] == 0)
+      {
+        if (mTrackJobMap[name].IsValid())
+        {
+           //writeln_d("    - Removing non-updated track: ", name);
+           string temp = write_str("--- ", PLATFORM.Name(), " job change, REMOVE: ", mTrackJobMap[name].Name());
+           writeln_d(temp);
+           PLATFORM.Comment(temp);
+           RemoveJob(mTrackJobMap[name]);
+           mTrackJobMap.Erase(name);
+        }
+      }
+    }
+    writeln_d("    - mTrackJobMap.Size() = ", mTrackJobMap.Size());
+
+  end_script
+
+
+
+  query_bid
+    if (PLATFORM.Subordinates().Count() <= 0)
+    {
+      return -MATH.DOUBLE_MAX();
+    }
+    //only bid on jobs that air platforms can perform
+    if (1 != ((int)JOB.GetData("for_air")))
+    {
+      writeln_d("aifl, job NOT for air!");
+      return -MATH.DOUBLE_MAX();
+    }
+    Map<string, Object> jobData = JOB.GetData();
+    //determine the job type & bid appropriately
+    if( JOB.Name() == "zone" )
+    {
+      double maxBid = -MATH.DOUBLE_MAX();
+      //iterate over all targets in the zone cluster
+      //find out what my subordinates would bid on each of these targets
+      //return the best bid from my subordinate on one target as my own bid on the whole cluster of targets
+      WsfRIPRJob tempJob = WsfRIPRJob.Create(PROCESSOR,"pursue-target","job description",1.0,1);
+      Array<string> targetNames = (Array<string>)JOB.GetData("ZoneThreatNameArray");
+      writeln_d("job ", JOB.GetDescription(),  " -> number of target names considering: ", targetNames.Size());
+      foreach(string targetName in targetNames)
+      {
+        tempJob.SetData("targetTrackName", targetName);
+        if (fastAndDirtyBidding)
+        {
+          Array<WsfRIPRProcessor> subs = GetRIPRSubordinateProcessors();
+          if (subs.Size() > 0)
+          {
+            WsfRIPRProcessor sub = subs.Get(0);
+            maxBid = sub.QueryBid(tempJob);
+          }
+          break;
+        }
+        else
+        {
+           //by default this expands through job-pass-through agents to get all bids
+           double curBid = QuerySubordinatesMaxBid(tempJob);
+
+#######
+        WsfPlatform target = WsfSimulation.FindPlatform(targetName);
+        if (target.IsValid())
+        {
+         #extern string DeterminePlatformCategory(WsfPlatform);
+          string category = DeterminePlatformCategory(target);
+          if (ThreatTypeEngageZone.Exists(category) && ThreatTypeEngageZone[category].Length()>0)
+          {
+            if ( ! target.Location().WithinZone(ThreatTypeEngageZone[category]))
+            {
+              curBid = -MATH.DOUBLE_MAX();
+              writeln_d("aifl ", PLATFORM.Name(),", target ", targetName, " outside of category ", category," zone ", ThreatTypeEngageZone[category], ".  bid = -DOUBLE_MAX.");
+            }
+            else
+            {
+              writeln_d("aifl ", PLATFORM.Name(),", target ", targetName, " inside category ", category," zone ", ThreatTypeEngageZone[category], ".  bid as usual!!!");
+            }
+          }
+
+          foreach ( string aZone in mZoneNames)
+          {
+            if ( !target.WithinZoneOf(PLATFORM, aZone) )
+            {
+              curBid = -MATH.DOUBLE_MAX();
+              writeln_d("ai flight lead, target ", targetName, " outside of defined zone ", aZone, " curBid from subordinate set to -DOUBLE_MAX.");
+            }
+            else
+            {
+              writeln_d("ai flight lead, target ", targetName, " inside of defined zone ", aZone, " curBid unchanged.");
+            }
+          }
+        }
+
+#######
+        # Escorts only bid on targets within a certain radius of the escorted platform
+        #WsfPlatform escortPlatform = WsfSimulation.FindPlatform(mEscortName);
+        #if ( escortPlatform.IsValid() && target.IsValid() )
+        #{
+        #  if ( escortPlatform.SlantRangeTo(target)>mEscortProtectRange )
+        #  {
+        #    curBid = -MATH.DOUBLE_MAX();
+        #    writeln(" Target outside escort protect range" );
+        #  }
+        #}
+
+#######
+        # Escorts only bid on targets within a zone on the escorted platform
+        if ( mEscortZoneName != "" )
+        {
+          WsfPlatform escortPlatform = WsfSimulation.FindPlatform(mEscortName);
+          if ( escortPlatform.IsValid() && target.IsValid() )
+          {
+          #writeln_d("$$$3", " ", target.WithinZoneOf(escortPlatform, mEscortZoneName), " ", escortPlatform.SlantRangeTo(target)*(1/MATH.M_PER_NM()));
+            writeln_d("    slantrange from protected platform ", escortPlatform.Name(), " and target ", target.Name(), " is ", escortPlatform.SlantRangeTo(target)*(1/MATH.M_PER_NM()), " nmi");
+            if ( !target.WithinZoneOf(escortPlatform, mEscortZoneName) )
+            {
+              curBid = -MATH.DOUBLE_MAX();
+              writeln_d("       target not within protected platform zone");
+            }
+            else
+            {
+              writeln_d("       target is within protected platform zone");
+            }
+          }
+        }
+           writeln_d("ai flight lead, max bid on ", targetName," from subordinates: ", curBid);
+           if (curBid > maxBid)
+           {
+              maxBid = curBid;
+           }
+        }
+      }
+      return maxBid;
+    }
+    else if( JOB.Name() == "flank" )
+    {
+
+      //first determine if this squadron is already in a flank position
+
+      #string zoneName = (string)jobData.Get("FlankZoneName");
+      ####string FlankZoneName = JOB.Name();
+      #string FlankZoneName = zoneName;
+      #WsfPlatform zoneOwner = JOB.GetAssigner().Platform();
+      #//writeln_d("@@@ num subs: ", PLATFORM.Subordinates().Count());
+      #Array<string> zoneNames = zoneOwner.ZoneNames();
+      #foreach( string zName in zoneNames)
+      #{
+      #  writeln(zoneOwner.Name(), " has zone: ", zName);
+      #}
+
+      #### put this part in the script that performs the job, not bids on the job
+      #foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      #{
+      #  if( sub.WithinZoneOf( zoneOwner, FlankZoneName ) )
+      #  {
+      #    ### writeln_d( "@@@ aifl subordinate ", sub.Name(), " inside flank zone: ", FlankZoneName );
+      #    ### //mark job as complete (progress == 1.0)
+      #    ### JOB.SetProgress( PROCESSOR, 1.0 );
+      #    return -MATH.DOUBLE_MAX();
+      #  }
+      #}
+
+      WsfGeoPoint zonePoint   = (WsfGeoPoint)JOB.GetData("ZonePoint");
+      double      zoneBearing = (double)     JOB.GetData("ZoneBearing");
+      WsfZone     flankZone   = (WsfZone)    JOB.GetData("FlankZone");
+
+      if (mDrawFlankLines)
+      {
+         //writeln("flank zone point: ", zonePoint.ToString(), ", bearing (rad): ", zoneBearing*MATH.RAD_PER_DEG());
+         flankZone.DebugDrawZone(zonePoint, zoneBearing*MATH.RAD_PER_DEG());
+      }
+
+      #foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      #{
+      #   if (flankZone.PointIsInside(sub.Location(), zonePoint, zoneBearing*MATH.RAD_PER_DEG(), 0.0))
+      #   {
+      #      #mark the job as complete elsewhere, probably where it would be performed
+      #      return -MATH.DOUBLE_MAX();
+      #   }
+      #}
+
+      //determine which side to flank on, based on subordinate that is closest to flank point
+      //find closest subordinate & then calculate relative geometry
+      #writeln_d("@@@ aiFL - commander flank job ", JOB.GetId() ," for zone: ", zoneName );
+      WsfGeoPoint fPoint = (WsfGeoPoint)jobData.Get("ZonePoint");
+      double flankDistance = (double)jobData.Get( "FlankDistance" );
+      WsfPlatform ClosestFlanker;
+
+      ###writeln("cluster: bearing=", clusterBearingTrue, ", distance=", flankDistance);
+
+      if( fPoint.IsValid() )
+      {
+
+        if (mDrawFlankLines)  //draw flank point of interest (target we are flanking), white dot
+        {
+           draw.BeginPoints();
+              draw.SetColor(1.0, 1.0, 1.0);
+              draw.Vertex(fPoint);
+           draw.End();
+        }
+
+       #writeln("cluster ZonePoint is valid!");
+        double MinRange = MATH.DOUBLE_MAX();
+        double NumSubordinates = (double)(PLATFORM.Subordinates().Count());
+        foreach (WsfPlatform sub in PLATFORM.Subordinates())
+        {
+          double range = sub.SlantRangeTo( fPoint );
+          #writeln("sub ", sub.Name(), " slant range to cluster point: ", range);
+          if( range < MinRange )
+          {
+            MinRange = range;
+            ClosestFlanker = sub;
+          }
+        }
+
+        bool clusterBearingValid = (bool)jobData.Get( "ZoneBearingValid" );
+        double tempBearing = (double)jobData.Get( "ZoneBearing" );
+        ###double clusterBearingTrue = MATH.NormalizeAngle0_360( (double)jobData.Get( "ZoneBearing" ) );
+        double clusterBearingTrue = 0.0;
+        if (clusterBearingValid)
+        {
+          #writeln("cluster bearing valid, bearing: ", tempBearing);
+
+          ### cluster heading is with reference to east (instead of north), so subtract 90 degrees
+
+
+         #clusterBearingTrue = MATH.NormalizeAngle0_360( tempBearing - 90.0 );
+          clusterBearingTrue = MATH.NormalizeAngle0_360( tempBearing );
+
+
+         WsfGeoPoint bPoint = WsfGeoPoint(fPoint);
+         bPoint.Extrapolate( clusterBearingTrue, flankDistance );
+
+         if (mDrawFlankLines) //draw red-orange line to represent heading of target's flight
+         {
+            draw.BeginLines();
+            draw.SetColor(1.0, 0.3, 0.1);
+            draw.Vertex(fPoint);
+            draw.Vertex(bPoint);
+            draw.End();
+         }
+
+        }
+        else
+        {
+          writeln("cluster bearing invalid, bearing: ", tempBearing);
+          //assume cluster is flying straight at me, flank to side I'm already oriented towards
+          clusterBearingTrue = ClosestFlanker.TrueBearingTo( fPoint ) - 180.0;
+        }
+
+        //don't need to normalize it here, the next line catches it
+        double angle = ClosestFlanker.TrueBearingTo( fPoint ) - 180.0;
+        double relativeFlankBearing = MATH.NormalizeAngle0_360( angle - clusterBearingTrue );
+        double flankAngle = 90.0;
+        if( relativeFlankBearing > 180.0 )
+        {
+          flankAngle = 270.0;
+        }
+
+        if (cPreferredFlank == "left")
+        {
+          flankAngle = 90.0;
+        }
+        else if(cPreferredFlank == "right")
+        {
+          flankAngle = 270.0;
+        }
+
+        double flankBearing = MATH.NormalizeAngle0_360( clusterBearingTrue + flankAngle );
+
+        #writeln("angle: ", angle, ", relativeFlankBearing: ", relativeFlankBearing, ", cluster: bearing=", flankBearing, ", minRange=", MinRange);
+
+        WsfGeoPoint ePoint = WsfGeoPoint(fPoint);
+        ePoint.Extrapolate( flankBearing, flankDistance );
+
+        if (mDrawFlankLines)  //draw green line to the flank point, and to the side we are flying towards
+        {
+
+            draw.BeginLines();
+               draw.SetColor(0.1, 1.0, 0.4);
+               draw.Vertex(fPoint);
+               draw.Vertex(ePoint);
+               draw.Vertex(fPoint);
+               draw.Vertex(ClosestFlanker);
+            draw.End();
+        }
+
+        //save off the flank point, in case we win this job
+        mFlankJobIdToFlankPointMap.Set( JOB.GetId(), ePoint );
+
+        //find the range to the place we will fly so as to flank the target
+        MinRange = ClosestFlanker.SlantRangeTo( ePoint );
+
+     ###double JobBidValue = NumSubordinates / MATH.Sqrt(MinRange);
+        double JobBidValue = NumSubordinates * flankDistance / MinRange;
+        JobBidValue = JobBidValue + cFlankWeighting;
+        #writeln_d("!!!   Bid for flanking job: ", JOB.Name(), ", bid: ", JobBidValue );
+        return JobBidValue;
+      }
+      else
+      {
+        writeln_d("!!!   Invalid point in flank job");
+      }
+    }
+    //can't make a bid, return max negative
+    return -MATH.DOUBLE_MAX();
+  end_query_bid
+
+
+
+
+  script void CreateJobsFromCommander()
+
+    //writeln_d("!!!  Creating jobs from commanders jobs!" );
+
+    Array<WsfRIPRJob> jobs = GetRIPRCommanderProcessor().GetJobs();
+
+    writeln_d(PLATFORM.Name(), " jobs.Size() = ", jobs.Size());
+
+    foreach (WsfRIPRJob aJob in jobs)
+    {
+      if( aJob.IsValid() )
+      {
+        double bidValue = QueryBid(aJob);
+
+        writeln_d(PLATFORM.Name(), " bid on job ", aJob.GetDescription(), " == ", bidValue, ", priority = ",  aJob.GetPriority());
+
+        if (bidValue == -MATH.DOUBLE_MAX())
+        {
+          if (aJob.GetProgress( PROCESSOR) < 1.0)
+          {
+            aJob.UnbidJob( PROCESSOR );
+          }
+        }
+        else
+        {
+          aJob.BidJob( PROCESSOR, bidValue );
+        }
+
+#         aJob.SetProgress( PROCESSOR, 1.0 );
+#         GetRIPRCommanderProcessor().RemoveJob(aJob)
+
+      }
+    }
+
+    // now check the board to see what we've won!
+    mCurrentJob = GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR);
+
+    if( mCurrentJob.IsValid() )
+    {
+      if( (!mLastJob.IsValid()) || mCurrentJob.GetId() != mLastJob.GetId() )
+      {
+        string NewComment = "AIFL - Won new job: " + mCurrentJob.Name() + " - " + mCurrentJob.GetDescription();
+        PLATFORM.Comment(NewComment);
+      }
+      mLastJob = mCurrentJob;
+
+      if( mCurrentJob.Name() == "zone" )
+      {
+        Map<string, int> updatedTracks = Map<string, int>();
+        Array<string> targetNames = (Array<string>)mCurrentJob.GetData("ZoneThreatNameArray");
+        writeln_d(PLATFORM.Name(), " targetNames.Size() = ", targetNames.Size());
+        WsfGeoPoint point;
+
+        #WsfCluster cluster = WsfCluster.Create();
+
+        foreach(string targetName in targetNames)
+        {
+          WsfPlatform target = WsfSimulation.FindPlatform(targetName);
+          if (target.IsValid())
+          {
+           #extern string DeterminePlatformCategory(WsfPlatform);
+            string category = DeterminePlatformCategory(target);
+            if (ThreatTypeEngageZone.Exists(category) && ThreatTypeEngageZone[category].Length()>0)
+            {
+              if ( ! target.Location().WithinZone(ThreatTypeEngageZone[category]))
+              {
+                #make sure no job exists for him
+                continue;
+              }
+            }
+            updatedTracks.Set( targetName, 1 );
+
+            #cluster.Add(target.MakeTrack());
+
+            #save any target's location, to send along extra subordinates later
+            point = target.Location();
+
+            if (!mTrackJobMap.Exists(targetName))
+            {
+              WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                                  "pursue-target",
+                                                  "pursue-target-" + targetName,
+                                                  cPursueTargetPriority,
+                                                  maxJobWinnersForPursueTrack);
+              temp.SetData("targetTrackName", targetName);
+              AddJob(temp);
+              mTrackJobMap.Set(targetName, temp);
+              writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", targetName);
+            }
+          }
+        }
+
+        Array<WsfRIPRProcessor> subs = GetRIPRSubordinateProcessors();
+        int NumSubordinates = subs.Size();
+        string zName = (string)mCurrentJob.GetData("ZoneName");
+
+        //create a pursue-point job that allows for enough winners to send the whole squadron
+        //this is useful in case some subordinates don't have a track for some of the threats
+        //or if there are less threats than there are subordinates, so the whole squadron will be sent
+
+        //writeln_d("!!!  Not enough tracks inside zone for all subordinates! Using default zone point too!" );
+
+        #if (cluster.Count()>0)
+        if (point.IsValid())
+        {
+          updatedTracks.Set( zName, 1 );
+          #WsfGeoPoint point = (WsfGeoPoint)mCurrentJob.GetData("ZonePoint");
+          #WsfGeoPoint realPoint = cluster.MeanLocation();
+
+          if( ! mTrackJobMap.Exists( zName ) )
+          {
+            if (NumSubordinates > cMaxPeersToComeAlong)
+            {
+              NumSubordinates = cMaxPeersToComeAlong;
+            }
+            if (NumSubordinates > 0)
+            {
+              //set max job winners to number of subordinates (so all can proceed into zone)
+              WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                                  "pursue-point",
+                                                  "pursue-point-" + zName,
+                                                  cPursuePointPriority,
+                                                  NumSubordinates);
+              temp.SetData( "targetTrackName", zName ); //hack for now, so other code here works
+              temp.SetData( "targetPoint", point );
+              #temp.SetData( "targetPoint", realPoint );
+              #writeln(PLATFORM.Name(), " using cluster point: ", realPoint.ToString());
+              AddJob(temp);
+              mTrackJobMap.Set( zName, temp );
+              writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", zName );
+            }
+          }
+          else
+          {
+            //update the job?
+            mTrackJobMap.Get( zName ).SetData( "targetPoint" , point );
+            #mTrackJobMap.Get( zName ).SetData( "targetPoint" , realPoint );
+          }
+        }
+        else
+        {
+          writeln(PLATFORM.Name(), " has no valid targets, not creating pursue-point job either!");
+        }
+
+        Array<WsfRIPRJob> jobs = GetJobs();
+        foreach (WsfRIPRJob x in jobs)
+        {
+          string name = (string)x.GetData("targetTrackName");
+          if (updatedTracks.Get(name) != 1)
+          {
+            writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", name);
+            RemoveJob(mTrackJobMap[name]);
+            mTrackJobMap.Erase(name);
+          }
+        }
+
+        #writeln(PLATFORM.Name(), " final line in zone job processing!");
+
+      }
+      else if( mCurrentJob.Name() == "flank" )
+      {
+        writeln_d("    Flight Lead, Won job for flank ", mCurrentJob.Name() );
+
+
+        #//see if any subordinates are in the flank zone, if they are... flanking is done
+        ####string FlankZoneName = mCurrentJob.Name();
+        #string FlankZoneName = (string)(mCurrentJob.GetData().Get("FlankZoneName"));
+        #writeln_d( "@@@ aifl flank zone: ", FlankZoneName );
+        #WsfPlatform zoneOwner = mCurrentJob.GetAssigner().Platform();
+        #writeln("@@@ aifl flank zone owner: ", zoneOwner.Name());
+
+
+         WsfGeoPoint zonePoint   = (WsfGeoPoint)mCurrentJob.GetData("ZonePoint");
+         double      zoneBearing = (double)     mCurrentJob.GetData("ZoneBearing");
+         WsfZone     flankZone   = (WsfZone)    mCurrentJob.GetData("FlankZone");
+
+         foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+         {
+            if (flankZone.PointIsInside(sub.Location(), zonePoint, zoneBearing*MATH.RAD_PER_DEG(), 0.0))
+            {
+               writeln_d( "@@@ aifl subordinate ", sub.Name(), " inside flank zone!");
+               mCurrentJob.SetProgress( PROCESSOR, 1.0 );   #mark the job as complete
+               return;
+            }
+         }
+
+
+        WsfGeoPoint point = mFlankJobIdToFlankPointMap.Get( mCurrentJob.GetId() );
+        int NumSubordinates = PLATFORM.Subordinates().Count();
+
+        #foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+        #{
+        #  if( sub.GroundRangeTo(point) < 1500 )
+        #  {
+        #    writeln_d( "@@@ aifl subordinate ", sub.Name(), " close to flank point!");
+        #    mCurrentJob.SetProgress( PROCESSOR, 1.0 );
+        #    #mCurrentJob.UnbidJob( PROCESSOR );
+        #    return;
+        #  }
+        #  else
+        #  {
+        #    writeln_d( "@@@ aifl subordinate ", sub.Name(), " NOT close to flank point!");
+        #  }
+        #}
+
+
+      ##string zName = (string)mCurrentJob.GetData("ZoneName");
+        string zName = (string)mCurrentJob.GetData("FlankZoneName");
+
+        //if flank job doesn't exist yet, create it
+        if( ! mTrackJobMap.Exists( zName ) )
+        {
+          if (NumSubordinates > cMaxPeersToComeAlong)
+          {
+            NumSubordinates = cMaxPeersToComeAlong;
+          }
+          if (NumSubordinates > 0)
+          {
+            //set max job winners to number of subordinates (so all can proceed into zone)
+            WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                                "pursue-point",
+                                                "pursue-point-" + zName,
+                                                cFlankPointPriority,
+                                                NumSubordinates);
+            temp.SetData( "targetTrackName", zName ); //hack for now, so other code here works
+            temp.SetData( "targetPoint", point );
+            AddJob(temp);
+            mTrackJobMap.Set( zName, temp );
+            writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", zName );
+          }
+        }
+        else
+        {
+          mTrackJobMap.Get( zName ).SetData( "targetPoint" , point );
+          writeln_d("   aiFL - updated flank pursue-point job ", zName, ", ( ", point.Latitude(), ", ", point.Longitude(), " )" );
+        }
+
+        //remove all jobs that aren't involved with flanking
+        Array<WsfRIPRJob> jobs = GetJobs();
+        foreach (WsfRIPRJob x in jobs)
+        {
+          Map<string, Object>jobData = x.GetData();
+          string name = (string)jobData.Get("targetTrackName");
+          if ( name != zName )
+          {
+            //writeln_d("    - Removing job not related to flanking, target: ", name);
+            writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", name);
+            RemoveJob(mTrackJobMap[name]);
+            mTrackJobMap.Erase(name);
+          }
+        }
+      }
+      else
+      {
+        writeln("ERROR: UNRECOGNIZED JOB TYPE: ", mCurrentJob.Name(), " !!!");
+      }
+    }
+    else
+    {
+      writeln_d("---  mCurrentJob NOT VALID!!!!!  Removing all my aifl jobs.");
+      Array<WsfRIPRJob> jobs = GetJobs();
+      foreach (WsfRIPRJob x in jobs)
+      {
+        Map<string, Object>jobData = x.GetData();
+        string name = (string)jobData.Get("targetTrackName");
+        writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", name);
+        RemoveJob(mTrackJobMap[name]);
+        mTrackJobMap.Erase(name);
+      }
+    }
+
+    #writeln(PLATFORM.Name(), " final line in CreateJobsFromCommander method!");
+
+  end_script
+
+
+
+  on_initialize2
+    draw.SetPointSize(5);
+    draw.SetDuration(PROCESSOR.UpdateInterval());  //try it here, after the processor is setup
+  end_on_initialize2
+
+
+  on_initialize
+
+     SetJobAllocationMode(0);    #spread (Default -- every subordinate is given the highest priority job that he has the highest bid for. If there are more subordinates than jobs, some subordinates will be left idle. )
+    #SetJobAllocationMode(1);    #greedy (Every subordinate is given the job he bids highest on with the highest priority, without regard for the maximum number of winners that the job allows. Every subordinate will get a job. (Disregards Job Stickiness value) )
+    #SetJobAllocationMode(2);    #coverthengreedy (Like spread, but remaining unassigned subordinates will be given the job they bid highest on with the highest priority, even if that results in the job having more winners that the maximum specified. )
+    #SetJobAllocationMode(3);    #coverthenspread (Like spread, but remaining unassigned subordinates will be spread out over the pool of jobs with no job getting two extra winners before all jobs have one extra winner. )
+    #SetJobAllocationMode(4);    #strictpriority (Like spread, awards the highest priority job to the highest bidder regardless of the bidder's highest overall bid. )
+
+    #SetJobStickiness(mJobStickiness);
+
+    Array<WsfZone> zoneList = PLATFORM.Zones();
+    foreach (WsfZone z in zoneList)
+    {
+       mZoneNames.PushBack(z.Name());
+    }
+    foreach( string x in mZoneNames )
+    {
+      writeln_d("~~~ Flight Lead ", PLATFORM.Name(), " now monitoring retrieved zone: ", x );
+    }
+
+    if( mZoneNames.Size() == 0 )
+    {
+      writeln_d( "~~~ Flight Lead ", PLATFORM.Name(), " has no zone defined." );
+    }
+
+  end_on_initialize
+
+
+
+  on_update
+
+/*
+    if (windowToggle)
+    {
+      SetJobWindowOpen(true);
+      SetBidWindowOpen(false);
+      windowToggle = false;
+    }
+    else
+    {
+      SetJobWindowOpen(false);
+      SetBidWindowOpen(true);
+      windowToggle = true;
+    }
+*/
+
+
+#######
+    mEscortName = "";
+    if ( !mEscortNames.Empty() )
+    {
+      foreach ( string sEscortName in mEscortNames )
+      {
+        if ( WsfSimulation.FindPlatform(sEscortName).IsValid() )
+        {
+          mEscortName = sEscortName;
+          #writeln("$$$2", " ", PLATFORM.Name(), " ", mEscortName);
+          break;
+        }
+        #else
+        #{
+        #  mEscortNames.Erase(mEscortName);
+        #}
+      }
+    }
+
+    if (  mEscortName != "" ) writeln_d("~~~ Flight Lead ", PLATFORM.Name(), " is assigned to escort ", mEscortName);
+
+    double duration = 0.0;
+    double lStartTime = GetWallClockTime();
+    writeln_d("--- aifl_update Platform: ", PLATFORM.Name(), ", Time: ", TIME_NOW);
+    if (GetRIPRCommanderProcessor().IsValid())
+    {
+      writeln_d("...CreateJobsFromCommander()");
+      CreateJobsFromCommander();
+    }
+    else
+    {
+      writeln_d("...CreateJobsIndependently()");
+      CreateJobsIndependently();
+    }
+    duration = GetWallClockTime() - lStartTime;
+    writeln_d("--- on_update Platform: ", PLATFORM.Name(), ", Process Time: ", duration);
+  end_on_update
+
+
+end_processor

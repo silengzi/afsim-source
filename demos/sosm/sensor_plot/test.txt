@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ------------------------------------------------------------------------------
+
+sosm_interface
+#  load_atmosphere      DEFAULT                          from ../../sosm/modtran/us_std_day.txt
+   load_sensor          LWIR                             from ../../sosm/sensors/uniform_lwir.txt
+   load_target          RED_MULTIROLE_FIGHTER_3          from ../../sosm/targets/red_multirole_fighter_3/red_multirole_fighter_3.txt
+
+   map_sensor_type      IRST           LWIR
+   map_target_type      TARGET         RED_MULTIROLE_FIGHTER_3
+   load_atmosphere      DEFAULT        from ../../sosm/modtran/mid_lat_summer_day.txt
+
+   debug_level 1
+   show_iripp_data
+#   spectral_print_format wavelength
+end_sosm_interface
+
+# ------------------------------------------------------------------------------
+
+platform_type TARGET WSF_PLATFORM
+end_platform_type
+
+platform_type TARGET_PLATFORM_TYPE TARGET
+end_platform_type
+
+sensor IRST WSF_SOSM_SENSOR
+   frame_time 1.0 sec
+   reports_range
+   reports_bearing
+   #debug
+end_sensor
+
+# ------------------------------------------------------------------------------
+
+platform sensor WSF_PLATFORM
+   position 0n 0e altitude 40000 ft heading 0 deg
+   add sensor irst IRST
+   end_sensor
+end_platform
+
+# ------------------------------------------------------------------------------
+
+horizontal_map
+   gnuplot_file              test.plt
+   variable                  optical_signature
+   variable                  infrared_signature
+   variable                  background_radiant_intensity
+   variable                  contrast_radiant_intensity
+   variable                  signal_to_noise
+   variable                  pd
+
+   target_region
+   down_range_limits         0 nm 0 nm
+   down_range_step           1 nm
+   cross_range_limits        0 nm 0 nm
+   cross_range_step          1 nm
+   end_target_region
+
+   target_altitude           30000 ft
+   target_heading            180 deg
+   target_mach               1.2
+end_horizontal_map
+

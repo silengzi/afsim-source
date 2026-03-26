@@ -1,0 +1,19 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once ../weapons/ssm/tbm3.txt
+
+platform_type TBM3_LAUNCHER WSF_PLATFORM
+   icon Scud_Launcher
+
+   weapon tbm3-missile WSF_EXPLICIT_WEAPON
+      launched_platform_type TBM3
+      weapon_effects         TBM3_LETHALITY
+   end_weapon
+end_platform_type
+

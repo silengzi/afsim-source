@@ -1,0 +1,275 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once common_timeline_scripts.txt
+include_once air_combat_maneuvers.txt
+include_once weapon_defs.txt
+
+
+behavior timeline_engage
+
+   script_debug_writes off
+
+   script_variables
+      WsfQuantumTaskerProcessor processor;
+
+      bool mWaitForLatestShot      = false;   #if false: shoots asap once at %rmax
+      bool mDontShootIfCantSupport = false;   #if true: doesn't shoot unless there is time to support the shot
+
+
+      WsfLocalTrack mEngageTarget;
+
+   end_script_variables
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         processor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition  timeline_engage,  T=", TIME_NOW);
+      if (!processor.IsValid())
+      {
+         return Failure("behavior not attached to a WSF_QUANTUM_TASKER_PROCESSOR");
+      }
+      WsfTask timeline = GetTimeLineTask(processor);
+      if (!timeline.IsValid())
+      {
+         return Failure("not assigned a TIMELINE task");
+      }
+
+      string RISK = timeline.AuxDataString("RISK");
+      extern WsfLocalTrack mNearestTimeLineTarget;
+      extern bool mConsiderPeersWeapons;
+
+      #look for the soonest intercepting target that we don't already have a weapon active or pending against
+      extern Array<WsfLocalTrack> mTimeLineLocalTargets;   #sorted list of local track timeline targets
+      #check for no active or pending weapons
+
+
+      #pursue something, hopefully a shootable guy
+      extern Array<WsfLocalTrack> mTimeLineLocalTargetsToShoot;
+      if (mTimeLineLocalTargetsToShoot.Size() > 0)
+      {
+         mEngageTarget = mTimeLineLocalTargetsToShoot.Front();
+         return true;
+      }
+
+      foreach(WsfLocalTrack target in mTimeLineLocalTargets)
+      {
+         if (FiredOn(PLATFORM, target, mConsiderPeersWeapons))
+         {
+            continue;
+         }
+         extern double mGeesToTurnWith;
+         extern double mEngageSpeed;
+
+
+#         extern bool mRequiredToSupportWeapons;
+#         if (mRequiredToSupportWeapons == true && RISK != "HIGH")   #can support any shot when risk is high (won't be dragging)
+#         {
+#            double gate = timeline.AuxDataDouble("DOR");  #range (meters)
+#            if (RISK == "MEDIUM")
+#            {
+#               gate = timeline.AuxDataDouble("MAR");  #range (meters)
+#            }
+#
+#            #calculate if we have time to support a shot to this target:
+#            extern double mOffsetAngle;
+#            extern double mDelaySpeed;
+#
+#            #figure out weapon range & time of flight
+#            double weaponMaxRange = 0.0;
+#            WsfWeapon maxRangeWeapon;
+#            for (int i=0; i < PLATFORM.WeaponCount(); i+=1)
+#            {
+#               WsfWeapon weapon = PLATFORM.WeaponEntry(i);
+#               if (WeaponCapableAvailableAgainstThreat(weapon, target))
+#               {
+#                  double weaponRange = MaxRange(PLATFORM,weapon,target);
+#                  if (weaponRange > weaponMaxRange)
+#                  {
+#                     weaponMaxRange = weaponRange;
+#                     maxRangeWeapon = weapon;
+#                  }
+#               }
+#            }
+#            if (!maxRangeWeapon.IsValid())
+#            {
+#               continue;   #no weapon for this target
+#            }
+#            #estimate time before we can shoot
+#            #hypothetical shot
+#            #estimate time cranking (based on weapon travel time)
+#            #does this leave us enough time to turn to drag?
+#            double range = PLATFORM.GroundRangeTo(mNearestTimeLineTarget.CurrentLocation());
+#
+#            double weaponTOF = TimeToHit(PLATFORM, maxRangeWeapon, target);
+#            if (weaponTOF <= 0)
+#            {
+#               #good weapon data no found
+#               continue;
+#            }
+#            double firingRange = DefaultPercentRangeMax * weaponMaxRange;
+#            double targetRange = PLATFORM.GroundRangeTo(target.CurrentLocation());
+#            double rangeToGo = targetRange - firingRange;
+#            double timeTilShot = 0.0;
+#            double closingSpeed = 0.0;
+#            if (rangeToGo > 0)
+#            {
+#               #subtract off closing distance to nearest target during the time before shot
+#               timeTilShot = rangeToGo / PLATFORM.ClosingSpeedOf(target);
+#               closingSpeed = PLATFORM.Speed() + mNearestTimeLineTarget.Speed();
+#               range -= (timeTilShot * closingSpeed);
+#            }
+#
+#            #subtract off closing distance to nearest target during the time of weapon's flight
+#            closingSpeed = (mDelaySpeed * MATH.Cos(mOffsetAngle)) + mNearestTimeLineTarget.Speed();
+#            range -= (weaponTOF * closingSpeed);
+#
+#            #calculate time to turn to drag (after cranking)
+#            Array<double> vals = Array<double>();
+#            double turnAngle = 180 - mOffsetAngle;
+#            TurnAngleTimeAndDistance(turnAngle, mEngageSpeed, mGeesToTurnWith, vals);
+#            double turnTime = vals[0];
+#            double distSep  = vals[1];
+#            #subtract off closing distance to nearest target during the time of turning to drag
+#            range += distSep;
+#            range -= (turnTime*mNearestTimeLineTarget.Speed());
+#
+#            if (range >= gate)
+#            {
+#               mEngageTarget = target;
+#               return true;
+#            }
+#         }
+#         else
+         {
+            mEngageTarget = target;
+            return true;
+         }
+      }
+      return Failure("no timeline targets left to engage");
+   end_precondition
+
+#   script double GetLaunchPercentRangeMaxOnThreat(string weaponName, WsfTrack threat)
+#      WsfPlatform plat = WsfSimulation.FindPlatform( threat.TargetName() );
+#      if (plat.IsValid())
+#      {
+#         if (WeaponThreatRmaxMap.Exists(weaponName))
+#         {
+#            Map<string, double> categoryRangeMap = WeaponThreatRmaxMap.Get(weaponName);
+#            foreach (string aCategory : double percent in categoryRangeMap)
+#            {
+#               if( plat.CategoryMemberOf( aCategory ) )
+#               {
+#                  return percent;
+#               }
+#            }
+#         }
+#      }
+#      return DefaultPercentRangeMax;
+#   end_script
+
+
+   script bool TryToFireOn(WsfLocalTrack target)
+      extern double  DefaultPercentRangeMax;
+      extern double DefaultPercentRangeMin;
+      WsfWeapon weapon;
+      bool weaponUsable = false;
+      #first weapon found will be used
+      for (int i=0; i < PLATFORM.WeaponCount(); i+=1)
+      {
+         weapon = PLATFORM.WeaponEntry(i);
+         writeln_d("checking if weapon ", weapon.Name(), " is usable.");
+         if (WeaponCapableAvailableAgainstThreat(weapon, target) &&
+            #InRangeToFire(PLATFORM, weapon, target, GetLaunchPercentRangeMaxOnThreat(weapon.Name(), target), DefaultPercentRangeMin))
+             InRangeToFire(PLATFORM, weapon, target, DefaultPercentRangeMax, DefaultPercentRangeMin))
+         {
+            weaponUsable = true;
+            break;
+         }
+      }
+      if (weaponUsable == false)
+      {
+         writeln_d("no usable weapon found!");
+         return false;
+      }
+
+      bool launched = false;
+      if (weapon.IsTurnedOn())
+      {
+         writeln_d("    Attempting launch at ", target.TargetName());
+         launched = weapon.Fire(target);
+      }
+      writeln_d("    launched == ", launched, ", weapon: ", weapon.Name());
+      if(launched == false)
+      {
+         writeln_d("   ", PLATFORM.Name(), " could NOT fire at track: ", target.TargetName(), " at time: ", TIME_NOW);
+      }
+      return launched;
+   end_script
+
+   on_new_execute
+      PLATFORM.Comment("engage");
+   end_on_new_execute
+
+   execute
+      #mEngageTarget;
+      extern double mDefaultAltitude;
+
+      #check if we need to fly offset to get on proper side of engagement separation line
+      extern double mEngageSpeed;
+      extern double mGeesToTurnWith;
+      extern bool   mSeparateEngagement;
+      if (mSeparateEngagement == true)
+      {
+         extern string mSeparateSide;  # "LEFT" or "RIGHT"
+         extern double mEngagementTrueBearing;
+         extern double mOffsetAngle;
+         double delta = PLATFORM.TrueBearingTo(mEngageTarget) - mEngagementTrueBearing;
+         if (delta < 0 && mSeparateSide == "LEFT")
+         {
+            #we're out of position, crank left
+            Offset(PLATFORM, mEngageTarget.CurrentLocation(), -mOffsetAngle, mDefaultAltitude, mEngageSpeed, mGeesToTurnWith);
+         }
+         else if (delta > 0 && mSeparateSide == "RIGHT")
+         {
+            #we're out of position, crank right
+            Offset(PLATFORM, mEngageTarget.CurrentLocation(),  mOffsetAngle, mDefaultAltitude, mEngageSpeed, mGeesToTurnWith);
+         }
+         else
+         {
+            #engage straight way - intercept the target
+            Engage(PLATFORM, mEngageTarget, "lead", mEngageSpeed, mDefaultAltitude, mGeesToTurnWith);
+         }
+      }
+      else
+      {
+         #engage straight way - intercept the target
+         Engage(PLATFORM, mEngageTarget, "lead", mEngageSpeed, mDefaultAltitude, mGeesToTurnWith);
+      }
+
+      #TODO - check for shot range, prep for shot if appropriate?
+
+#      #if possible, fire a weapon at the target
+#      TryToFireOn(mEngageTarget);
+
+      #try for shots on all shootable targets
+      foreach (WsfLocalTrack target in mTimeLineLocalTargetsToShoot)
+      {
+         TryToFireOn(target);
+      }
+
+   end_execute
+
+end_behavior
+

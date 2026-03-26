@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include ../../aea_iads/sensors/radar/ew_radar.txt
+include ../../iads/signatures/ucav_radar_sig.txt
+
+radar_signature TARGET_RADAR_SIG
+   constant -10 dbsm
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+   #radar_signature TARGET_RADAR_SIG
+end_platform_type
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   sensor sensor EW_RADAR
+      #debug
+   end_sensor
+end_platform_type
+
+use_default_radar_frequencies true
+
+horizontal_coverage
+   required_pd 0.5
+
+   target_speed 450 kts
+   target_heading 0 deg
+   target_pitch 0 deg
+   target_roll  0 deg
+
+   azimuth_limits 0.0 deg 360.0 deg
+   #azimuth_limits -180.0 deg 180.0 deg
+   azimuth_step 0.1 deg
+
+   #maximum_range 100 km # comment out for auto range finding
+   large_range_step 5000 m
+   small_range_step  100 m
+
+   output_file hcd-ew_radar.hcd
+   altitude_units ft
+   range_units km
+   x_units km
+   y_units km
+
+   altitude 30 kft
+
+   output_min_range
+   output_max_range
+end_horizontal_coverage

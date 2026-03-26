@@ -1,0 +1,120 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#for BLUE_ADV_FIGHTER_1
+include_once platforms/blue_adv_fighter_1_base.txt
+
+#for AIAI-thinker
+include_once processors/ripr_agents/aiai/aiai_processor.txt
+
+include_once weapons/aam/simple_short_range_missile.txt
+include_once weapons/aam/super_long_range_missile.txt
+include_once weapons/aam/blue_lr_a2a_rf_missile.txt
+
+platform_type blue_adv_fighter_1 BLUE_ADV_FIGHTER_1_BASE
+
+  //use a longer range missile for this type
+  //adjust missile ranges in int-thinker below to accomodate
+
+  delete weapon int_missile
+
+ #weapon int_missile SUPER_LONG_RANGE_MISSILE end_weapon
+ #weapon int_missile SIMPLE_LONG_RANGE_MISSILE end_weapon
+ #weapon aim9    SIMPLE_SHORT_RANGE_MISSILE end_weapon
+ #weapon jdradm  SUPER_LONG_RANGE_MISSILE end_weapon
+
+  weapon blue_lr_a2a_rf_missile SIMPLE_BLUE_LR_A2A_RF_MISSILE
+    quantity 8
+  end_weapon
+
+#   edit weapon blue_sr_a2a_ir_missile
+#      quantity 2
+#   end_weapon
+#   edit weapon jdradm
+#      quantity 6
+#   end_weapon
+
+  //This is the code that lets the interceptor intercept
+  processor int-thinker AIAI-thinker
+     script_variables
+
+        #mWeaponArray[0] = Map<string, Object>();
+        #mWeaponArray[0].Set("name", "blue_sr_a2a_ir_missile");
+        #mWeaponArray[0].Set("weapon", PLATFORM.Weapon("blue_sr_a2a_ir_missile"));
+        #mWeaponArray[0].Set("rangeMin", 1000);
+        #mWeaponArray[0].Set("rangeMax", 65000); // ~35 miles
+
+         mWeaponArray[0] = Map<string, Object>();
+         mWeaponArray[0].Set("name", "blue_lr_a2a_rf_missile");
+         mWeaponArray[0].Set("weapon", PLATFORM.Weapon("blue_lr_a2a_rf_missile"));
+         mWeaponArray[0].Set("rangeMin", 1000);
+         mWeaponArray[0].Set("rangeMax", 111120); // ~60 miles
+         mWeaponArray[0].Set("numActiveMax", 2); // how many weapons of this type can be in play simultaneously
+         mWeaponArray[0].Set("AIR",  1);          // DOMAIN CAPABLE, yes, this weapon can hit air (default true)
+         mWeaponArray[0].Set("LAND", 0);          // DOMAIN CAPABLE, no, this weapon can NOT hit land (default false)
+
+/*
+         mWeaponArray[1] = Map<string, Object>();
+        #mWeaponArray[1].Set("name", "blue_lr_a2a_rf_missile");
+        #mWeaponArray[1].Set("weapon", PLATFORM.Weapon("blue_lr_a2a_rf_missile"));
+         mWeaponArray[1].Set("name", "jdradm");
+         mWeaponArray[1].Set("weapon", PLATFORM.Weapon("jdradm"));
+         mWeaponArray[1].Set("rangeMin", 9260);
+        #mWeaponArray[1].Set("rangeMax", 111120); // ~60 miles
+         mWeaponArray[1].Set("rangeMax", 296320); // ~160 miles
+         mWeaponArray[1].Set("numActiveMax", 1); // how many weapons of this type can be in play simultaneously
+*/
+     end_script_variables
+  end_processor
+
+  sensor geo_sensor WSF_GEOMETRIC_SENSOR
+     azimuth_field_of_view -180.0 degrees 180.0 degrees
+     elevation_field_of_view -90.0 degrees 90.0 degrees
+     //azimuth_field_of_view -60.0 degrees 60.0 degrees
+     //elevation_field_of_view -30.0 degrees 30.0 degrees
+     minimum_range 0 m
+     #maximum_range 100000 m
+     #maximum_range 138900 m #about 75 nm, 75% of missile range
+     maximum_range 185200 m #about 100 nm
+     on
+     frame_time              0.5 sec
+     reports_location
+     reports_velocity
+     reports_iff
+     track_quality 1.0
+     ignore_same_side
+     internal_link track_manager
+  end_sensor
+
+  processor incoming_threats WSF_THREAT_PROCESSOR
+    update_interval 0.1 sec
+    #update_interval 2.0 sec
+
+    #1300 knots
+    threat_velocity 668.7778 m/s
+    threat_angle_spread 20.0 deg
+
+     script void identified_new_threat(WsfTrack aTrack)
+        writeln("!!! me: ", PLATFORM.Name(), ", new threat: ", aTrack.TargetName(), ", speed: ", aTrack.Speed());
+     end_script
+
+     script void dropped_threat(WsfTrack aTrack)
+        if (aTrack.IsValid())
+        {
+           writeln("!!! ", PLATFORM.Name(), " dropped a threat: ", aTrack.TargetName());
+        }
+        else
+        {
+           writeln("!!! ", PLATFORM.Name(), " dropped a threat");
+        }
+     end_script
+
+  end_processor
+
+end_platform_type

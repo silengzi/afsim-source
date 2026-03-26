@@ -1,0 +1,182 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario shows a medium range Surface-to-Air Missile (SAM) launched at
+# multiple launch angles. The missiles fly a ballistic trajectory (no
+# autopilot/guidance controls).  The maximum range launch angle will be computed
+# and displayed along with other data about the max range flight.
+#
+# This scenario can be modified to test other missiles.
+# Simply change the included model file path and the PLATFORM_TYPE to the
+# desired model.
+# ******************************************************************************
+
+define_path_variable CASE sam_launch
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 6 min
+
+# ------------------------------------------------------------------------------
+# Change the mover type include file here
+include_once platforms/sam-mr.txt
+
+$define PLATFORM_TYPE SAM-MR_PM6
+# define PLATFORM_TYPE SAM-MR_RB6
+
+# ------------------------------------------------------------------------------
+# Change these variables to control the number of shots fired
+script_variables
+   double MIN_LAUNCH_ANGLE_DEG = 10;
+   double MAX_LAUNCH_ANGLE_DEG = 80;
+   double LAUNCH_ANGLE_INCREMENT = 2.5;
+   # Recommended not to use 0 here, as it may "impact" the ground and the
+   # model would be marked dead.
+   double INITIAL_ALTITUDE_FT = 1000;
+end_script_variables
+# ------------------------------------------------------------------------------
+
+include_once six_dof_types/environment/six_dof_environment.txt
+
+script_struct DataStruct
+   script_variables
+      double maxAltitude_m = 0;
+      double timeMaxAltitude_sec = 0;
+      double maxSpeed_mps = 0;
+      double timeMaxSpeed_sec = 0;
+      double maxRange_km = 0;
+      double totalFlightTime_sec = -1;
+      double launchAngle_deg = 0;
+   end_script_variables
+end_script_struct
+
+script_variables
+   Map<int, struct> mData = Map<int, struct>();
+end_script_variables
+
+platform_type SAM_TEST_PLATFORM $<PLATFORM_TYPE:SAM-MR_RB6>$
+
+   six_dof_ned_heading           0 deg
+   six_dof_position              21.4  -158.0
+   six_dof_set_velocity_ned_fps  0 0 0
+
+   include scripts/six_dof_testing_scripts.txt
+
+   enable_controls false
+
+   on_update
+      foreach (int key : struct value in mData)
+      {
+         WsfPlatform platform = WsfSimulation.FindPlatform(key);
+         if(!platform.IsNull())
+         {
+            double time = TIME_NOW;
+
+            double altitude = platform.Altitude();
+            if(altitude > value->maxAltitude_m)
+            {
+               value->maxAltitude_m = altitude;
+               value->timeMaxAltitude_sec = time;
+            }
+            double speed = platform.Speed();
+            if(speed > value->maxSpeed_mps)
+            {
+               value->maxSpeed_mps = speed;
+               value->timeMaxSpeed_sec = time;
+            }
+            value->maxRange_km = GetRangeSinceStart_km(platform);
+         }
+      }
+   end_on_update
+
+end_platform_type
+
+//Create the test platforms
+execute at_time .01 sec absolute
+
+   double iterations = (MAX_LAUNCH_ANGLE_DEG - MIN_LAUNCH_ANGLE_DEG) / LAUNCH_ANGLE_INCREMENT;
+   for(int i = 0; i <= iterations; i = i + 1)
+   {
+      double launchAngle = LAUNCH_ANGLE_INCREMENT * i + MIN_LAUNCH_ANGLE_DEG;
+      WsfPlatform platform1 = WsfSimulation.CreatePlatform("SAM_TEST_PLATFORM");
+      string initString = write_str("six_dof_ned_pitch ", launchAngle, " deg six_dof_alt ", INITIAL_ALTITUDE_FT, " ft");
+      platform1.ProcessInput(initString);
+      WsfPlatform platform2 = WsfSimulation.AddPlatform(platform1, "");
+      struct temp = struct.New("DataStruct");
+      temp->launchAngle_deg = launchAngle;
+      mData.Set(platform2.Index(), temp);
+   }
+end_execute
+
+script void SimulationComplete()
+
+   foreach (int key : struct value in mData)
+   {
+      //If object flew the entire time.
+      if(value->totalFlightTime_sec == -1)
+      {
+         value->totalFlightTime_sec = TIME_NOW;
+         writeln("Warning: Platform Id : ", key, " did not terminate, range data may be inaccurate.");
+      }
+   }
+   /*
+   foreach (int key : struct value in mData)
+   {
+      writeln("Platform Id : ", key, "  Launch Angle : ", value->launchAngle_deg, " deg");
+      writeln(" max altitude = ", value->maxAltitude_m, " ft @ ", value->timeMaxAltitude_sec, " sec");
+      writeln(" max speed = ", value->maxSpeed_mps, " mps @ ", value->timeMaxAltitude_sec, " sec");
+      writeln(" range = ", value->maxRange_km, " km");
+      writeln(" flightTime = ", value->totalFlightTime_sec, " sec");
+   }*/
+
+   double time = 0;
+   double range = 0;
+   double angle = 0;
+   double speed = 0;
+   double apogee = 0;
+
+   foreach (int key : struct value in mData)
+   {
+      if(value->maxRange_km > range)
+      {
+         time = value->totalFlightTime_sec;
+         range = value->maxRange_km;
+         angle = value->launchAngle_deg;
+         speed = value->maxSpeed_mps;
+         apogee = value->maxAltitude_m;
+      }
+   }
+
+   writeln("***************************************");
+   writeln("   Max Range Shot Information");
+   writeln("Launch Angle : ", angle,  " deg");
+   writeln("Max Range    : ", range,  " km");
+   writeln("Flight Time  : ", time,   " sec");
+   writeln("Max Speed    : ", speed,  " mps");
+   writeln("Apogee       : ", apogee, " m");
+   writeln("***************************************");
+
+end_script
+
+script void CrashedIntoGround(WsfPlatform aPlatform)
+   if(mData.Exists(aPlatform.Index()))
+   {
+      mData[aPlatform.Index()]->totalFlightTime_sec = TIME_NOW;
+   }
+end_script
+
+observer
+   enable SIMULATION_COMPLETE SimulationComplete
+   enable CRASHED_INTO_GROUND CrashedIntoGround
+end_observer
+
+

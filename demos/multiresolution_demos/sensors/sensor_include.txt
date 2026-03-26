@@ -1,0 +1,60 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+sensor GENERIC_IRST WSF_IRST_SENSOR
+   atmospheric_attenuation   0.05 per km
+   background_radiance       500 microwatts/cm^2/sr
+   band                      medium
+   noise_equivalent_irradiance  1.0E-12 w/cm^2
+   detection_threshold         3.0
+
+   azimuth_error_sigma         0.001 deg
+   elevation_error_sigma       0.001 deg
+   range_error_sigma           7.0 m
+   hits_to_establish_track     3 5
+   hits_to_maintain_track      1 4
+end_sensor
+
+sensor GEOM_SENSOR WSF_GEOMETRIC_SENSOR
+end_sensor
+
+multiresolution_sensor MR_SENSOR WSF_MULTIRESOLUTION_SENSOR
+   model low_res_sensor
+      fidelity_range 0.0 0.5
+      sensor WSF_GEOMETRIC_SENSOR
+         internal_link track_mgr
+      end_sensor
+   end_model
+  
+   model high_res_sensor
+      fidelity_range 0.5 1.0
+      sensor GENERIC_IRST
+         internal_link image_proc
+      end_sensor
+   end_model
+  
+   common
+      on
+      reports_range
+      frame_time               10 sec
+      azimuth_field_of_view   -45.0 deg 45.0 deg  
+      elevation_field_of_view -45.0 deg 45.0 deg  
+      maximum_range            50 nm
+     
+      slew_mode                 azimuth_and_elevation
+      azimuth_slew_limits     -45 deg 45 deg    
+      elevation_slew_limits   -45 deg 45 deg    
+      azimuth_slew_rate         5 deg/s
+      elevation_slew_rate       5 deg/s 
+      selection_mode            single
+      ignore_same_side
+   end_common
+end_multiresolution_sensor

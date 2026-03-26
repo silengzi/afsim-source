@@ -1,0 +1,259 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior create_flank_jobs
+
+   script_debug_writes  off
+
+
+   script_variables
+      WsfDraw draw = WsfDraw();
+
+      Array<Vec3> mBowTieZonePoints = Array<Vec3>();
+
+      Map<int, int> mFlankToClusterMap = Map<int, int>();
+      Map<int, int> mClusterToFlankMap = Map<int, int>();
+      Array<string> mCompletedFlanks   = Array<string>();
+      Map<string, double> mFlankNameToTimeCompleteMap = Map<string, double>();
+
+      int mMaxTotalFlankJobsEverToCreate =  1;
+      int mMaxJobWinnersForFlank         =  2;
+      double mFlankJobPriorityScale      =  1.5;  // make > 1 for more important than clusters
+      double cFLANK_DISTANCE             = 60.0;  // flank towards a point approximately this many nm to the side of target
+      int mFlankJobsCreated              =  0;    // utility variable, not a constant to set
+      int mFlankJobsCompleted            =  0;    // utility variable, not a constant to set
+
+      //after a completed flank on a cluster, don't do another on that same cluster until this time passes
+      double mFlankRepeatDelay = 300.0; //in units of seconds
+
+   end_script_variables
+
+
+   on_init
+      double FlankDistanceMeters = cFLANK_DISTANCE * MATH.M_PER_NM();
+      //create simple bowtie shape, based on specified size parameters
+      double w1 = 2.0  * FlankDistanceMeters; //Bow Tie Width (meters)
+      double h2 = 0.75 * FlankDistanceMeters; //Bow Tie Outter Thickness (meters)
+      double h1 = 0.5  * h2;                  //Bow Tie Inner Thickness (meters)
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h1,   0, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h2,  w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h2,  w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h1,   0, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct( -h2, -w1, 0));
+      mBowTieZonePoints.PushBack(Vec3.Construct(  h2, -w1, 0));
+   end_on_init
+
+
+#   #
+#   #  script callback method for when a flank job is completed
+#   #  the job board calls this when a flank job that it owns has been marked as complete
+#   #
+#   script void aigci_flank_complete(int jobID)
+#      //save job in completed array
+#      //remove job from created array
+#      WsfRIPRJob aJob = PROCESSOR.GetJobById( jobID );
+#      writeln_d("~~~ Flank Job Completed: ", aJob.GetDescription());
+#      mCompletedFlanks.PushBack( aJob.Name() );
+#
+#      mFlankNameToTimeCompleteMap.Set( aJob.Name(), TIME_NOW );
+#
+#      int clusterId = mFlankToClusterMap.Get( jobID );
+#      mFlankToClusterMap.Erase( jobID );
+#      mClusterToFlankMap.Erase( clusterId );
+#
+#      mFlankJobsCompleted = mFlankJobsCompleted + 1;
+#   end_script
+
+
+
+   precondition
+      writeln_d("precondition create_flank_jobs");
+
+      //check if this gci is done creating & updating the flank jobs
+      if( mFlankJobsCompleted >= mMaxTotalFlankJobsEverToCreate )
+      {
+         writeln_d( "~~~ aiGCI - Max Flank Jobs Completed, return now!" );
+         return Failure("max number of flank jobs already created and completed");
+      }
+
+      draw.SetDuration(PROCESSOR.UpdateInterval());
+      return true;
+   end_precondition
+
+
+
+
+
+   execute
+      writeln_d("executing create_flank_jobs");
+
+
+      ########################################################################
+      ##  check for clusters that went away & we can't flank them anymore
+      ##  otherwise, update any existing flank jobs
+      ########################################################################
+      foreach( int flankJobId : int clusterJobId in mFlankToClusterMap )
+      {
+         WsfRIPRJob flankJob   = PROCESSOR.GetJobById( flankJobId );
+         WsfRIPRJob clusterJob = PROCESSOR.GetJobById( clusterJobId );
+
+         if( clusterJob.IsValid() )
+         {
+            if( flankJob.IsValid() )
+            {
+               if (flankJob.GetBestProgress() >= 1.0 )
+               {
+                  writeln("GCI removing completed flank job!!!");
+                  mCompletedFlanks.PushBack( flankJob.Name() );
+                  mFlankNameToTimeCompleteMap.Set( flankJob.Name(), TIME_NOW );
+                  int flankId   = flankJob.GetId();
+                  int clusterId = mFlankToClusterMap.Get( flankId );
+                  mFlankToClusterMap.Erase( flankId );
+                  mClusterToFlankMap.Erase( clusterId );
+                  mFlankJobsCompleted = mFlankJobsCompleted + 1;
+                  mFlankToClusterMap.Remove( flankId );
+                  mClusterToFlankMap.Remove( clusterId );
+                  PROCESSOR.RemoveJob( flankJob );
+               }
+               else
+               {
+                  writeln_d( "~~~ aiGCI - updating flank job ", flankJob.Name(), " with cluster ", clusterJob.Name(), "!!!" );
+                  writeln_d("best flank progress: ", flankJob.GetBestProgress());
+                  WsfGeoPoint point = (WsfGeoPoint)clusterJob.GetData("ZonePoint");
+                  double bearing = (double)clusterJob.GetData("ZoneBearing");
+                  bool bearingValid = (bool)clusterJob.GetData("ZoneBearingValid");
+                  //writeln_d( "~~~ aiGCI - flank job BEARING: ", bearing );
+                  string flankZoneName = "flank" + clusterJob.Name();
+
+                  //writeln(PLATFORM.Name(), " UpdateFlankZone( ", TIME_NOW, ", ", flankZoneName, ", ", point.ToString(), ", ", bearing, ", ", cFLANK_DISTANCE);
+
+                  //now the wsfzone can be treated as a relative zone, and doesn't need updating
+                  //UpdateFlankZone( TIME_NOW, flankZoneName, point, bearing, cFLANK_DISTANCE );
+                  //update the flank job with relevant cluster information
+                  flankJob.Priority( (mFlankJobPriorityScale * clusterJob.GetPriority()) );
+                  flankJob.SetData( "FlankZoneName", flankZoneName );
+                  flankJob.SetData( "ZonePoint", WsfGeoPoint(point) );
+                  flankJob.SetData( "ZoneBearing", bearing );
+                  flankJob.SetData( "ZoneBearingValid", bearingValid );
+                  flankJob.SetData( "ZoneNumThreats", (int)clusterJob.GetData("ZoneNumThreats") );
+               }
+            }
+            else
+            {
+               writeln_d( "~~~ aiGCI - cluster valid, but flank not valid!" );
+            }
+         }
+         else
+         {
+            //remove flank job, cluster went away
+            if (flankJob.IsValid())
+            {
+              writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", flankJob.Name() );
+
+              PROCESSOR.RemoveJob( flankJob );
+
+            if( mFlankJobsCreated > 0 )
+            {
+               mFlankJobsCreated = mFlankJobsCreated - 1;
+              }
+            }
+            mFlankToClusterMap.Remove( flankJobId );
+            mClusterToFlankMap.Remove( clusterJobId );
+         }
+      }
+
+      //check if only the updates were needed, or if we can create more flank jobs
+      if( mFlankJobsCreated >= mMaxTotalFlankJobsEverToCreate )
+      {
+         writeln_d( "~~~ aiGCI - max flank jobs created, no need for more!" );
+         return;
+      }
+
+
+      ########################################################################
+      ##  create a new flank job if a cluster exists that never had one
+      ##  locate the nearest available cluster
+      ########################################################################
+      double DistClosestCluster = MATH.DOUBLE_MAX();
+      WsfRIPRJob JobWithClusterToFlank;
+      Array<WsfRIPRJob> jobs = PROCESSOR.GetJobs();
+      foreach (WsfRIPRJob aJob in jobs)
+      {
+         //if job is a cluster job (not a flank job) & is not being flanked already
+         //then consider it as a candidate for flanking, else continue
+         if( mFlankToClusterMap.Exists( aJob.GetId() ) || mClusterToFlankMap.Exists( aJob.GetId() ) )
+         {
+            //writeln_d( "~~~ aiGCI - job ", aJob.Name(), " is either a flank job or a zone thats already being flanked!" );
+            continue;
+         }
+
+         //if enough time hasn't elapsed since the last flank performed on this cluster, then continue
+         //this prevents the agent from re-creating flank jobs that were just completed and removed
+         string newFlankName = "flank" + aJob.Name();
+         if( mFlankNameToTimeCompleteMap.Exists( newFlankName ) )
+         {
+            double lastFlankTime = mFlankNameToTimeCompleteMap.Get( newFlankName );
+            if( TIME_NOW < (lastFlankTime + mFlankRepeatDelay) )
+            {
+               continue;
+            }
+         }
+
+         WsfGeoPoint cPoint = (WsfGeoPoint)aJob.GetData("ZonePoint");
+         double dist = PLATFORM.GroundRangeTo(cPoint);
+         if( dist < DistClosestCluster )
+         {
+            JobWithClusterToFlank = aJob;
+         }
+      }
+      if( JobWithClusterToFlank.IsValid() )
+      {
+         WsfGeoPoint clusterPoint = (WsfGeoPoint)JobWithClusterToFlank.GetData("ZonePoint");
+         double clusterBearing = (double)JobWithClusterToFlank.GetData("ZoneBearing");
+         bool clusterBearingValid = (bool)JobWithClusterToFlank.GetData("ZoneBearingValid");
+         int clusterOccupants = (int)JobWithClusterToFlank.GetData("ZoneNumThreats");
+         string clusterZoneName = (string)JobWithClusterToFlank.GetData("ZoneName");
+
+         string flankZoneName = "flank" + JobWithClusterToFlank.Name();
+
+
+         WsfRIPRJob NewFlankJob = WsfRIPRJob.Create(  PROCESSOR,
+                                                      "flank",
+                                                      flankZoneName,
+                                                      (mFlankJobPriorityScale * JobWithClusterToFlank.GetPriority()),
+                                                      mMaxJobWinnersForFlank );
+         NewFlankJob.SetData( "ZoneName", clusterZoneName );
+         NewFlankJob.SetData( "FlankZoneName", flankZoneName );
+         NewFlankJob.SetData( "ZonePoint", WsfGeoPoint(clusterPoint) );
+         NewFlankJob.SetData( "ZoneBearing", clusterBearing );
+         NewFlankJob.SetData( "ZoneBearingValid", clusterBearingValid );
+         NewFlankJob.SetData( "ZoneNumThreats", clusterOccupants );
+         double FlankDistanceMeters = cFLANK_DISTANCE * MATH.M_PER_NM();
+         NewFlankJob.SetData( "FlankDistance", (1.8 * FlankDistanceMeters) );  //pursue a point 10% inside the flank zone, the flank width is 2*FlankDist
+        #NewFlankJob.SetData( "OnJobComplete", "aigci_flank_complete" );
+         NewFlankJob.SetData( "for_air", 1 );
+
+         WsfZone flankZone = WsfZone.CreatePolygonal(PLATFORM, mBowTieZonePoints); //creates a relative zone
+         NewFlankJob.SetData( "FlankZone", flankZone );
+
+         PROCESSOR.AddJob(NewFlankJob);
+
+         writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", NewFlankJob.Name() );
+
+         mFlankJobsCreated = mFlankJobsCreated + 1;
+         //save link between the flank & the cluster thats being flanked
+         mFlankToClusterMap.Set( NewFlankJob.GetId(), JobWithClusterToFlank.GetId() );
+         mClusterToFlankMap.Set( JobWithClusterToFlank.GetId(), NewFlankJob.GetId() );
+      }
+
+   end_execute
+
+end_behavior

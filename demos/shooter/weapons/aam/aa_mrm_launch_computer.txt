@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# launch computer for the aa_mrm
+# Tests the target if it is in the launch envelope of the AA_MRM.
+#
+script bool AA_MRM_LaunchComputer(WsfTrack aTrack,
+                                 WsfPlatform aLauncher,
+                                 double aLaunchDelay)
+
+   bool canIntercept = false;
+
+   #
+   double tgtAlt = aLauncher.RelativeAltitudeOf(aTrack);
+   double launcherAlt = aLauncher.Altitude(); # get the launcher altitude
+
+   double shootDelay = 0.0;
+
+   # simple wpn-spd data for now
+   double maxRng = 100000; # set the range to 100 km
+   double maxTOF = 120.0;  # set the time of flight to 120 sec
+   double avgSpd = maxRng / maxTOF; # average speed to 833 meters per second (mach 2.513)
+   double maxAltDiff = 10000;  # Maximum altitude difference to target
+
+   WsfWaypoint intercept = WsfWaypoint();
+   double tti = aLauncher.InterceptLocation2D(aTrack, intercept, avgSpd, aLaunchDelay + shootDelay);
+   if ((tti > 0.0) && (tti < maxTOF)  && (launcherAlt + maxAltDiff > tgtAlt))
+   {
+      canIntercept = true;
+   }
+   writeln_d("Intercept value =  ", canIntercept);
+   return canIntercept;
+end_script

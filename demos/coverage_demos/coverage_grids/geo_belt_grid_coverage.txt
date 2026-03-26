@@ -1,0 +1,57 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: coverage_grids/geo_belt_grid_coverage.txt
+
+# Define grid type and properties
+grid geo_grid WSF_LAT_LON_GRID 
+   origin 0.0n 120w 
+   longitude_spacing 8 deg
+   latitude_spacing 1 deg
+   latitude_span 3.0n 3.0s
+   longitude_span 180w 180.0e
+   altitude 35786 km msl
+   asset WSF_PLATFORM none
+   grid_data_file output/geo_grid_data.txt
+end_grid
+
+coverage demo_coverage WSF_SENSOR_COVERAGE
+
+   # Specify grid to be used
+   grid geo_grid
+   
+   # Specify platform and sensor on which coverage will be based
+   assets   
+      platform_type SAT sat_sensor
+      platform_type GROUND_STATION ground_sensor
+   end_assets
+   
+   # Specify start and stop time for coverage to be computed
+   start_epoch jul 07 2020 00:00:00.00       
+   end_epoch jul 07 2020 02:00:00.00
+   
+   # Specify where output data is written  
+   output_dir ./coverage_data
+   raw_data_file raw_intervals_geo.csv
+   
+   # Define measures of effectiveness
+   moe simple_geo WSF_SIMPLE_COVERAGE_MOE
+      output data end_output
+      output grid_stats end_output  
+      output lat_lon_stats end_output
+   end_moe
+
+   moe revisit_geo WSF_REVISIT_TIME_MOE
+      subtype maximum 
+      output data end_output
+   end_moe
+   
+   # Create heatmap to visualize coverage results.
+   # Load this file using the Coverage Overlay view in Wizard, Warlock, or Mystic.
+   overlay_file overlay_geo
+end_coverage

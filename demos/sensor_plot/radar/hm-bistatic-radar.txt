@@ -1,0 +1,174 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+radar_signature TARGET_RADAR_SIGNATURE
+  constant 10 dbsm
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature TARGET_RADAR_SIGNATURE
+end_platform_type
+
+antenna_pattern BISTATIC_TX_ANTENNA
+  sine_pattern
+    peak_gain              15 dB
+    minimum_gain           -20.0 db
+    azimuth_beamwidth      30 deg
+    elevation_beamwidth    20 deg
+end_antenna_pattern
+
+antenna_pattern BISTATIC_RX_ANTENNA
+  sine_pattern
+    peak_gain              20 dB
+    minimum_gain           -20.0 db
+    azimuth_beamwidth      20 deg
+    elevation_beamwidth    20 deg
+end_antenna_pattern
+
+sensor BISTATIC_SENSOR_RCVR WSF_RADAR_SENSOR
+   receive_only
+
+   antenna_height                 25.0 m
+
+   frame_time                     10.0 sec
+
+   receiver
+      antenna_pattern             BISTATIC_RX_ANTENNA
+      beam_tilt                   0 deg
+      frequency                   400 mhz
+      bandwidth                   2.0 mhz
+      noise_power                 -175 dBw
+   end_receiver
+
+   detection_threshold 3 db
+   #probability_of_false_alarm     1.0e-6
+   #required_pd                    0.9
+   #swerling_case                  1
+
+   reports_range
+   reports_bearing
+   reports_elevation
+   reports_iff
+end_sensor
+
+sensor BISTATIC_SENSOR_XMTR WSF_RADAR_SENSOR
+   transmit_only
+
+   antenna_height                 25.0 m
+
+   frame_time                     10.0 sec
+
+   transmitter
+      antenna_pattern             BISTATIC_TX_ANTENNA
+      beam_tilt                   25 deg
+      power                       100.0 w
+      frequency                   400 mhz
+      bandwidth                   2.0 mhz
+   end_transmitter
+
+   reports_range
+   reports_bearing
+   reports_elevation
+   reports_iff
+end_sensor
+
+platform bistatic_rcvr WSF_PLATFORM
+   position 0n 0e heading 90 deg
+   add sensor bistatic_rcvr BISTATIC_SENSOR_RCVR
+      on
+      #debug
+   end_sensor
+
+   // uncomment below and comment out other platform to model as a single platform
+   #add sensor bistatic_xmtr BISTATIC_SENSOR_XMTR
+   #   location 40 0 0 km
+   #   yaw -180 deg
+   #   on
+   #end_sensor
+end_platform
+
+platform bistatic_xmtr WSF_PLATFORM
+   position 0n 0.3597e heading -90 deg
+   add sensor bistatic_xmtr BISTATIC_SENSOR_XMTR
+      on
+   end_sensor
+end_platform
+
+horizontal_map
+   pd_map_file hm-bistatic-radar.pd
+   gnuplot_file hm-bistatic-radar.plt
+   gnuplot_player_file players-bistatic.plt
+   output_column_limit 100
+
+   exclude sensor_type BISTATIC_SENSOR_XMTR
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   variable pd
+   header_line_1 "Horizontal pd map"
+   defended_area_report_file bistatic-radar.log # valid only if variable is pd
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   #variable signal_power
+   #header_line_1 "signal power in watts"
+
+   variable signal_to_noise
+   header_line_1 "S/N Ratio in dB"
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB"
+
+   #variable detection_threshold
+   #header_line_1 "DT"
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable azimuth_angle
+   #variable angle
+   #variable grazing_angle
+
+   target_region
+      down_range_limits   0 km 42 km
+      down_range_step     0.1 km
+      cross_range_limits  -10 km 10 km
+      cross_range_step    0.1 km
+   end_target_region
+
+   #target_region
+   #   latitude_limits  3s 3n
+   #   latitude_step     0.01
+   #   longitude_limits  2w 2e
+   #   longitude_step    0.01
+   #end_target_region
+
+   target_heading  270 deg
+   target_altitude 2 km
+   target_speed    450 kts
+   target_pitch 0 deg
+   target_roll 0 deg
+
+end_horizontal_map

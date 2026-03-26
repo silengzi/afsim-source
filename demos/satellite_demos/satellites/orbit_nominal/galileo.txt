@@ -1,0 +1,192 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+include_once platforms/galileo.txt
+
+# galileo CONSTELLATION SCENARIO (Europe-GPS)
+
+#====================================================================================
+#              Ideal Constellation Configuration
+#====================================================================================
+
+
+# plane 1
+
+platform GALILEO11 GALILEO
+edit mover
+raan 120 deg
+anomaly 45 deg
+end_mover
+end_platform
+
+platform GALILEO12 GALILEO
+edit mover
+raan 120 deg
+anomaly 90 deg
+end_mover
+end_platform
+
+platform GALILEO13 GALILEO
+edit mover
+raan 120 deg
+anomaly 135 deg
+end_mover
+end_platform
+
+platform GALILEO14 GALILEO
+edit mover
+raan 120 deg
+anomaly 180 deg
+end_mover
+end_platform
+
+platform GALILEO15 GALILEO
+edit mover
+raan 120 deg
+anomaly 225 deg
+end_mover
+end_platform
+
+platform GALILEO16 GALILEO
+edit mover
+raan 120 deg
+anomaly 270 deg
+end_mover
+end_platform
+
+platform GALILEO17 GALILEO
+edit mover
+raan 120 deg
+anomaly 315 deg
+end_mover
+end_platform
+
+platform GALILEO18 GALILEO
+edit mover
+raan 120 deg
+anomaly 360 deg
+end_mover
+end_platform
+
+# plane 2
+
+platform GALILEO21 GALILEO
+edit mover
+raan 240 deg
+anomaly 45 deg
+end_mover
+end_platform
+
+platform GALILEO22 GALILEO
+edit mover
+raan 240 deg
+anomaly 90 deg
+end_mover
+end_platform
+
+platform GALILEO23 GALILEO
+edit mover
+raan 240 deg
+anomaly 135 deg
+end_mover
+end_platform
+
+platform GALILEO24 GALILEO
+edit mover
+raan 240 deg
+anomaly 180 deg
+end_mover
+end_platform
+
+platform GALILEO25 GALILEO
+edit mover
+raan 240 deg
+anomaly 225 deg
+end_mover
+end_platform
+
+platform GALILEO26 GALILEO
+edit mover
+raan 240 deg
+anomaly 270 deg
+end_mover
+end_platform
+
+platform GALILEO27 GALILEO
+edit mover
+raan 240 deg
+anomaly 315 deg
+end_mover
+end_platform
+
+platform GALILEO28 GALILEO
+edit mover
+raan 240 deg
+anomaly 360 deg
+end_mover
+end_platform
+
+# plane 3
+
+platform GALILEO31 GALILEO
+edit mover
+raan 360 deg
+anomaly 45 deg
+end_mover
+end_platform
+
+platform GALILEO32 GALILEO
+edit mover
+raan 360 deg
+anomaly 90 deg
+end_mover
+end_platform
+
+platform GALILEO33 GALILEO
+edit mover
+raan 360 deg
+anomaly 135 deg
+end_mover
+end_platform
+
+platform GALILEO34 GALILEO
+edit mover
+raan 360 deg
+anomaly 180 deg
+end_mover
+end_platform
+
+platform GALILEO35 GALILEO
+edit mover
+raan 360 deg
+anomaly 225 deg
+end_mover
+end_platform
+
+platform GALILEO36 GALILEO
+edit mover
+raan 360 deg
+anomaly 270 deg
+end_mover
+end_platform
+
+platform GALILEO37 GALILEO
+edit mover
+raan 360 deg
+anomaly 315 deg
+end_mover
+end_platform
+
+platform GALILEO38 GALILEO
+edit mover
+raan 360 deg
+anomaly 360 deg
+end_mover
+end_platform

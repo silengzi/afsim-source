@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# Launch computer generator for RED_ICBM_1.
+###############################################################################
+#
+# This is a three step process:
+#
+# 1) Run once with a large loft angle sweep and no burn time constraint. Examine
+#    the output file to determine the loft angle that results in the maximum range.
+#
+# 2) Rerun with a finer loft angle sweep that brackets the maximum range. Again
+#    examine the output file to determine the loft angle that results in the
+#    maximum range.
+#
+# 3) Run one more time, specifying a single loft angle equal to the maximum loft
+#    angle equal to the value from step 2 that resulted in the maximum range.
+#    Also specify a burn time range that encompasses the second stage.
+#    the loft angle
+###############################################################################
+
+include red_icbm_1.txt
+
+platform_type LAUNCH_PLATFORM_TYPE WSF_PLATFORM
+   side red
+   weapon red_icbm_1 RED_ICBM_1
+   end_weapon
+end_platform_type
+
+tool BALLISTIC_MISSILE_LAUNCH_COMPUTER_GENERATOR # ballistic_missile_launch_computer_generator
+   tool_debug
+
+   # altitude 1 m choosen to correspond with typical scenario altitudes
+   #position 0n 0e altitude 1 m
+   position 50:19n 123:51e heading 40 deg altitude 1 m
+
+   surface_target_file red_icbm_1_launch_data.txt
+
+   # Step 1
+   #loft_angles from 70 deg to 80 deg by  2 deg
+
+   # Step 2
+   #loft_angles from 72.0 deg to 73.0 deg by 0.05 deg
+
+   # Step 3
+   loft_angle 72.1 deg
+   burn_times from 151 sec to 250 sec by 0.5 sec
+end_tool
+
+#event_pipe
+#   file replay.aer
+#end_event_pipe
+

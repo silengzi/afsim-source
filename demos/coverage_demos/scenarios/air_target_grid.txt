@@ -1,0 +1,49 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: scenarios/air_target_grid.txt
+
+platform mover1 flock
+   route
+      position 40:00:00.000n 103:00:00.000w altitude 40000.00 ft msl
+         speed 300 nm/h
+      position 40:00:00.000n 92:00:00.000w altitude 40000.00 ft msl
+   end_route
+end_platform
+
+platform mover2 flock
+   route
+      position 39:00:00.000n 103:00:00.000w altitude 40000.00 ft msl
+         speed 300 nm/h
+      position 39:00:00.000n 92:00:00.000w altitude 40000.00 ft msl
+   end_route
+end_platform
+
+platform mover3 flock
+   route
+      position 41:00:00.000n 103:00:00.000w altitude 40000.00 ft msl
+         speed 300 nm/h
+      position 41:00:00.000n 92:00:00.000w altitude 40000.00 ft msl
+   end_route
+end_platform
+
+platform mover4 flock
+   route
+      position 38:00:00.000n 103:00:00.000w altitude 40000.00 ft msl
+         speed 300 nm/h
+      position 38:00:00.000n 92:00:00.000w altitude 40000.00 ft msl
+   end_route
+end_platform
+
+platform mover5 flock
+   route
+      position 42:00:00.000n 103:00:00.000w altitude 40000.00 ft msl
+         speed 300 nm/h
+      position 42:00:00.000n 92:00:00.000w altitude 40000.00 ft msl
+   end_route
+end_platform

@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# NOAA SATELLITE DEFINITION
+
+include ../avionics/comm/NOAACommDef.txt
+
+# references
+# 1)
+
+radar_signature NOAA_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+platform_type NOAA WSF_PLATFORM
+  icon satellite
+  radar_signature NOAA_RADAR_SIG
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+
+  comm NOAA_DOWNLINK1_TX NOAA_DOWNLINK1_TX
+   on
+  end_comm
+
+  comm NOAA_UPLINK_RX NOAA_UPLINK_RX
+   on
+  end_comm
+
+#===========Uncomment this to send a test message to Ground stations=================================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("Blah blah blah");
+#
+#	      if (myPlatform.Type() == "NOAA_GS")
+#                  {
+#                  PLATFORM.Comm("NOAA_DOWNLINK1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+ end_platform_type
+

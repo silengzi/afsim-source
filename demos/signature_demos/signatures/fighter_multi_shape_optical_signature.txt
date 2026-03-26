@@ -1,0 +1,40 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+
+optical_signature FIGHTER_MULTI_SHAPE_OPTICAL_SIG WSF_COMPOSITE_OPTICAL_SIGNATURE
+
+   # wing
+   surface box
+      size 3 m 10 m 0.2 m    # chord, span, thickness
+      temperature adiabatic_wall
+   end_surface
+
+   # Nose
+   surface cone
+      length 1 m
+      radius 0.7 m
+      temperature adiabatic_wall
+   end_surface
+
+   # Body
+   surface cylinder
+      length 10.0 m
+      radius 0.7 m
+      temperature adiabatic_wall
+   end_surface
+
+   # Jet plume
+   surface plume
+      temperature 700 K
+      length 5 m
+      radius 0.5 m
+   end_surface
+end_optical_signature

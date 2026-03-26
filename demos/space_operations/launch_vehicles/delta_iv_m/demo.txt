@@ -1,0 +1,11 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include ../../demo_delta_iv_m.txt
+
+end_time 0.5 hrs # Only run long enough to test launch computer

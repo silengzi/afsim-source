@@ -1,0 +1,105 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# -----------------------------------------------------------------------------
+# A non-traditional use of sensor_plot/horizontal_map for 'comm' application.
+#
+# This example creates a horizontal map that shows the signal-to-noise ratio
+# of the signal received by a 'comm' receiver that was transmitted by a 'comm'
+# transmitter that is sequentially placed a grid points in a target region.
+#
+# The comm receiver is simulated by use of an ESM sensor and the comm trans-
+# mitter is simulated by use of a RADAR sensor. The sensor-under-test is the
+# ESM sensor and the target is the sensor (i.e.: we're determining where the
+# ESM can detect the target).
+#
+# For this example the receiver is on the ground and the transmitter is in the
+# air. To reverse it, simply change the altitude of the 'rcvr' platform and
+# change the 'target_altitude' in the 'horizontal_map' block to the desired
+# values.
+# -----------------------------------------------------------------------------
+
+antenna_pattern TX_ANTENNA_PATTERN
+   constant 3 db
+end_antenna_pattern
+
+sensor FAKE_RADIO_XMTR WSF_RADAR_SENSOR
+   frame_time 1.0 sec
+
+   transmitter
+      power                  1 kw
+      frequency              1.2 ghz
+      bandwidth              1 mhz
+      antenna_pattern        TX_ANTENNA_PATTERN
+   end_transmitter
+
+   reports_location          # A sensor must report something.
+end_sensor
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   sensor xmtr FAKE_RADIO_XMTR
+      on
+   end_sensor
+end_platform_type
+
+# -----------------------------------------------------------------------------
+# Define the 'receiver'.
+
+antenna_pattern RX_ANTENNA_PATTERN
+   constant 3 db
+end_antenna_pattern
+
+sensor FAKE_RADIO_RCVR WSF_ESM_SENSOR
+   frame_time 1.0 sec
+
+   frequency_band            1 ghz 2 ghz
+
+   receiver
+      frequency              1.2 ghz
+      bandwidth              1 mhz
+      antenna_pattern        RX_ANTENNA_PATTERN
+      noise_power            -145 dbw
+   end_receiver
+
+   reports_location          # A sensor must report something
+end_sensor
+
+# -----------------------------------------------------------------------------
+
+platform rcvr WSF_PLATFORM
+   position 40n 90w altitude 1 m
+   add sensor rcvr FAKE_RADIO_RCVR end_sensor
+end_platform
+
+# -----------------------------------------------------------------------------
+horizontal_map
+
+   exclude sensor_type FAKE_RADIO_XMTR
+
+   gnuplot_file              comm.plt
+   variable                  signal_to_noise
+   header_line_1             "S/N Ratio in dB"
+
+   # Define the sample grid over which the transmitter will be placed.
+
+   target_region
+      down_range_limits      -100 nm 100 nm
+      down_range_step        1 nm
+      cross_range_limits     -100 nm 100 nm
+      cross_range_step       1 nm
+   end_target_region
+
+   # Define the heading, altitude, speed, pitch and roll to be assigned to the
+   # target as it is placed at each grid point defined by 'target_region'.
+
+   target_heading            270 deg             # Default 0 deg
+   target_altitude           20000 ft            # Default 0 ft
+   target_speed              0 kts               # Default 0 kts
+   target_pitch              0 deg               # Default 0 deg
+   target_roll               0 deg               # Default 0 deg
+end_horizontal_map

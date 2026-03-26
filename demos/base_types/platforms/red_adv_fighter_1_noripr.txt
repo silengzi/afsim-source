@@ -1,0 +1,16 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#for RED_ADV_FIGHTER_1
+include_once red_adv_fighter_1_base.txt
+
+
+platform_type RED_ADV_FIGHTER_1 RED_ADV_FIGHTER_1_BASE
+   //nothing new for now
+end_platform_type

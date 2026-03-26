@@ -1,0 +1,45 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once scripts/tapsolver.txt
+
+# Solve the traveling astronaut problem (TAP)
+#
+# The platform performing the TAP will visit each platform listed in aTargets. The starting
+# time of the route is given by aCompTime. Note that this is not the time when the computation
+# is performed, but when the route is to begin. To specify an operation that will be performed
+# at the moment of the rendezvous provide the name of a script function as aOperation.
+#
+# This is one-size-fits-many function that uses the more complete and flexible TAPSolver
+# struct. For more control over the solution, please see that object.
+#
+# returns true if there is a solution; false otherwise
+script bool TravelingAstronaut(string aCenter, Array<string> aTargets, double aCompTime, string aOperation)
+   bool ok = false;
+
+   WsfPlatform centerPlatform = WsfSimulation.FindPlatform(aCenter);
+   if (!centerPlatform.IsValid())
+   {
+      writeln("ERROR: no platform with name ", aCenter, " is currently valid.");
+   }
+   else
+   {
+      TAPSolver ctx = {};
+      ctx->Initialize(centerPlatform, aTargets, aCompTime);
+      ctx->InitializeOperation(0.0, aOperation);
+
+      ok = ctx->FindMinimum();
+      if (ok)
+      {
+         ctx->ReportOptimalPath();
+         ctx->PerformSchedule(centerPlatform);
+      }
+   }
+   return ok;
+end_script

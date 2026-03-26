@@ -1,0 +1,31 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior manage-signature
+
+   script_debug_writes off
+
+   script_variables
+   end_script_variables
+
+
+   precondition
+      writeln_d("precondition manage-signature");
+      return false;
+   end_precondition
+
+
+   execute
+      writeln_d("executing manage-signature");
+   end_execute
+
+end_behavior
+

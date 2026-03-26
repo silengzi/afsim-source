@@ -1,0 +1,116 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario shows how differently a p6dof mover will fly as compared to an
+# air mover. In this demo, there is one air mover and three p6dof movers, with
+# all aircraft flying the same route, but with different bank angle limits and
+# with "follow_vertical_track" enabled/disabled.
+#
+# The red aircraft (P6DOF Mover 1) has no max bank angle limits set and has
+# follow_vertical_track set. The blue aircraft (P6DOF Mover 2) has max bank
+# angle limits set for some turns and has follow_vertical_track set. The
+# yellow aircraft (P6DOF Mover 3) has max bank angle limits set for some turns
+# and does not follow_vertical_track set. The green aircraft is an Air Mover.
+#
+# ******************************************************************************
+
+define_path_variable CASE waypoint_test
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 60 min
+
+include_once p6dof_types/environment/p6dof_environment.txt
+include_once platforms/fa-lgt.txt
+
+platform_type AIRMOVER_PLATFORM WSF_PLATFORM
+   spatial_domain air
+   icon           f15e
+   
+   mover WSF_AIR_MOVER
+   end_mover
+   
+end_platform_type
+
+platform air_mover AIRMOVER_PLATFORM
+   update_interval 0.01 sec
+   side green
+   route
+      position   21.320n  158.50w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  157.90w  altitude 10000.0 ft speed 500.0 kts
+      position   21.520n  157.90w  altitude 8000.0 ft  speed 500.0 kts
+      position   21.520n  157.60w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  157.60w  altitude 7000.0 ft  speed 500.0 kts
+      position   22.120n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   22.120n  157.30w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.720n  157.90w  altitude 7000.0 ft  speed 500.0 kts
+      position   21.920n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   21.320n  158.20w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  158.50w  altitude 8000.0 ft  speed 500.0 kts
+   end_route
+end_platform
+
+platform p6dof_mover_1 FA-LGT
+   update_interval 0.01 sec
+   side red
+   route
+      position   21.320n  158.50w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  157.90w  altitude 10000.0 ft speed 500.0 kts
+      position   21.520n  157.90w  altitude 8000.0 ft  speed 500.0 kts
+      position   21.520n  157.60w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  157.60w  altitude 7000.0 ft  speed 500.0 kts
+      position   22.120n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   22.120n  157.30w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.720n  157.90w  altitude 7000.0 ft  speed 500.0 kts
+      position   21.920n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   21.320n  158.20w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  158.50w  altitude 8000.0 ft  speed 500.0 kts
+   end_route
+   follow_vertical_track
+end_platform
+
+platform p6dof_mover_2 FA-LGT
+   update_interval 0.01 sec
+   side blue
+   route
+      position   21.320n  158.50w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 20.0 deg
+      position   21.320n  157.90w  altitude 10000.0 ft speed 500.0 kts bank_angle_limit 40.0 deg
+      position   21.520n  157.90w  altitude 8000.0 ft  speed 500.0 kts bank_angle_limit 30.0 deg
+      position   21.520n  157.60w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   21.320n  157.60w  altitude 7000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   22.120n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   22.120n  157.30w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   21.720n  157.90w  altitude 7000.0 ft  speed 500.0 kts
+      position   21.920n  158.20w  altitude 8000.0 ft  speed 500.0 kts bank_angle_limit 30.0 deg
+      position   21.320n  158.20w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  158.50w  altitude 8000.0 ft  speed 500.0 kts
+   end_route
+   follow_vertical_track
+end_platform
+
+platform p6dof_mover_3 FA-LGT
+   update_interval 0.01 sec
+   side yellow
+   route
+      position   21.320n  158.50w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 20.0 deg
+      position   21.320n  157.90w  altitude 10000.0 ft speed 500.0 kts bank_angle_limit 40.0 deg
+      position   21.520n  157.90w  altitude 8000.0 ft  speed 500.0 kts bank_angle_limit 30.0 deg
+      position   21.520n  157.60w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   21.320n  157.60w  altitude 7000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   22.120n  158.20w  altitude 8000.0 ft  speed 500.0 kts
+      position   22.120n  157.30w  altitude 6000.0 ft  speed 500.0 kts bank_angle_limit 60.0 deg
+      position   21.720n  157.90w  altitude 7000.0 ft  speed 500.0 kts
+      position   21.920n  158.20w  altitude 8000.0 ft  speed 500.0 kts bank_angle_limit 30.0 deg
+      position   21.320n  158.20w  altitude 6000.0 ft  speed 500.0 kts
+      position   21.320n  158.50w  altitude 8000.0 ft  speed 500.0 kts
+   end_route
+end_platform

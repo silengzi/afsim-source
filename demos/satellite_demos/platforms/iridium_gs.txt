@@ -1,0 +1,80 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# IRIDIUM GROUND STAION
+
+
+# references
+# 1) file:///C:/Users/Ablecher/Downloads/EngineeringStatement%20(1).pdf
+
+
+platform_type IRIDIUM_GS WSF_PLATFORM
+   icon C4I
+
+  comm GROUNDSTATION_IRIDIUM_UPLINK_TX WSF_RADIO_XMTR
+   on
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   -90.0 deg  90.0 deg
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           29.2 ghz  # ref 1
+      bandwidth                           195 mhz  # ref 1
+      polarization                        right_circular  # ref 1
+      power                               45 dbw
+   end_transmitter
+
+  end_comm
+
+  comm GROUNDSTATION_IRIDIUM_DOWNLINK_RX WSF_RADIO_RCVR
+   on
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           19.5 ghz  # ref 1
+      bandwidth                           195 mhz  # ref 1
+   end_receiver
+
+  end_comm
+
+#=======================Uncomment this to send a test message to satellites=========================================
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#      {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#          {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "IRIDIUM_SATELLITE")
+#                 {
+#                  PLATFORM.Comm("GROUNDSTATION_IRIDIUM_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#
+#          }
+#       }
+# end_execute
+#=====================================================================================================================
+
+   sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+   end_sensor
+#
+ end_platform_type
+
+

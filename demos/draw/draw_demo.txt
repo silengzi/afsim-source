@@ -1,0 +1,234 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once sensors/radar/generic_fighter_radar.txt
+include_once sensors/human/generic_eyeball.txt
+include_once weapons/agm/bomb_1000_lb.txt
+
+################################################################################
+# Define the platform type for the notional Fighter aircraft
+platform_type FIGHTER WSF_PLATFORM
+   mover WSF_AIR_MOVER
+     maximum_radial_acceleration 1.5 g # Makes for a smooth turn
+     maximum_linear_acceleration 1.3 g
+     roll_rate_limit 1 deg/s # smooth turn
+   end_mover
+
+   sensor radar GENERIC_FIGHTER_RADAR
+     on
+     mode 20X50
+       azimuth_field_of_view   -20.0 deg  20.0 deg
+       elevation_field_of_view -45.0 deg  5.0 deg
+       range_product             194.4 dBsm            # ~39.1 nm
+       // one_m2_detect_range    39.1 nm
+     end_mode
+     initial_mode 20X50
+     ignore weapon
+     processor track-proc
+
+     modifier_category fighter-radar-modifier
+   end_sensor
+
+   sensor eyeball GENERIC_EYEBALL
+     on
+     ignore weapon
+     processor attack-proc
+     modifier_category fighter-eyeball-modifier
+   end_sensor
+
+   processor track-proc WSF_TRACK_PROCESSOR
+   end_processor
+
+   processor attack-proc WSF_SCRIPT_PROCESSOR
+      #debug
+      update_interval 1.0 sec
+
+      script_variables
+        string mWeaponName = "1000_lb_bomb";
+        Map<string, bool> mTargetMap = Map<string, bool>();
+        WsfDraw mPlatDraw = WsfDraw();
+        WsfDraw mRadarDraw = WsfDraw();
+        WsfDraw mEyeballDraw = WsfDraw();
+        bool mOnce = true;
+      end_script_variables
+
+      script bool InInterceptEnvelopeOf(WsfWeapon aWeapon, WsfTrack aTrack)
+        bool canIntercept = false;
+        double maxRng = 800;
+        double minRng = 300;
+        WsfTrackId id = aTrack.TrackId();
+        double targetrange = PLATFORM.SlantRangeTo(aTrack);
+        if ((targetrange > minRng) && (targetrange < maxRng))
+        {
+           canIntercept = true;
+        }
+        return canIntercept;
+      end_script
+
+      on_update
+
+        if (mOnce)
+        {
+          mOnce = false;
+
+          mPlatDraw.SetLayer(PLATFORM.Name());
+          mPlatDraw.SetColor(0.0, 0.2, 0.8, 0.25);
+          mPlatDraw.BeginEllipse(0.0, 100.0, 300.0);
+            mPlatDraw.Vertex(PLATFORM);
+          mPlatDraw.End();
+        }
+
+        foreach (WsfTrack track in PLATFORM.MasterTrackList())
+        {
+          WsfWeapon weapon = PLATFORM.Weapon(mWeaponName);
+          if (! mTargetMap[track.TargetName()] &&
+              InInterceptEnvelopeOf(weapon, track))
+          {
+            bool launched = weapon.FireSalvo(track, 1);
+            if (launched)
+            {
+               writeln("*** T=", TIME_NOW, " ", PLATFORM.Name(), " ",
+                       track.TargetName(), " range=", PLATFORM.SlantRangeTo(track),
+                       " FIRE!!!!");
+               PLATFORM.Comment("Released weapon targeting " + track.TargetName());
+               mTargetMap[track.TargetName()] = true;
+            }
+          }
+        }
+
+        mRadarDraw.SetLayer("radar-layer");
+        mRadarDraw.SetDuration(1.0);
+        mRadarDraw.SetColor(1, 0, 0);
+        mRadarDraw.SetLineSize(5);
+        foreach (WsfTrack track in PLATFORM.MasterTrackList())
+        {
+           mRadarDraw.BeginLines();
+              mRadarDraw.Vertex(PLATFORM);
+              mRadarDraw.Vertex(track.CurrentLocation());
+           mRadarDraw.End();
+        }
+      end_on_update
+
+      on_message
+        type WSF_TRACK_MESSAGE
+          script
+            WsfTrack track = ((WsfTrackMessage)MESSAGE).Track();
+            if (track.IsValid())
+            {
+               mEyeballDraw.SetLayer("eyeball-layer");
+               mEyeballDraw.SetDuration(1.0);
+               mEyeballDraw.SetColor(1, 1, 0);
+               mEyeballDraw.SetLineSize(2);
+               mEyeballDraw.BeginLines();
+                  mEyeballDraw.Vertex(PLATFORM);
+                  mEyeballDraw.Vertex(track.CurrentLocation());
+               mEyeballDraw.End();
+
+               //double lat = (PLATFORM.Latitude() + track.CurrentLocation().Latitude()) / 2.0;
+               //double lon = (PLATFORM.Longitude() + track.CurrentLocation().Longitude()) / 2.0;
+               //double alt = (PLATFORM.Altitude() + track.CurrentLocation().Altitude()) / 2.0;
+
+               //mEyeballDraw.SetColor(1, 0, 1);
+               //mEyeballDraw.SetPointSize(10);
+               //mEyeballDraw.BeginPoints();
+               //   mEyeballDraw.VertexLLA(lat, lon, alt);
+               //mEyeballDraw.End();
+            }
+          end_script
+      end_on_message
+   end_processor
+
+   weapon 1000_lb_bomb BOMB_1000_LB
+   end_weapon
+end_platform_type
+
+################################################################################
+# And now the scenario
+
+platform strike-1 FIGHTER
+  side blue
+  route
+    position 31:17:38.0n 45:13:54.9e altitude 500.00 ft agl
+      speed 250 kts
+      climb_rate 41 ft/s
+    position 31:18:30.4n 45:13:53.8e altitude 500.00 ft agl
+      speed 270 kts
+      climb_rate 107 ft/s
+    position 31:18:49.30n 45:13:44.80e altitude 1000.00 ft agl
+      speed 300 kts
+      climb_rate 410 ft/s
+    position 31:19:26.4n 45:13:18.6e altitude 10000.00 ft agl
+      speed 310 kts
+    position 31:23:55.2n 45:09:46.4e altitude 10000.00 ft agl
+      speed 330 kts
+  end_route
+
+  weapon 1000_lb_bomb
+    quantity 4
+    firing_interval 2 sec
+  end_weapon
+  heading 359 deg
+end_platform
+
+
+# Three ground targets
+radar_signature     TARGET_RADAR_SIGNATURE
+   constant  10 m^2
+end_radar_signature
+
+
+platform red_1 WSF_PLATFORM
+  icon M1A1
+  side red
+  radar_signature  TARGET_RADAR_SIGNATURE
+  position 31:18:21.61n 45:13:52.78e altitude 0.00 ft agl
+  heading 280 deg
+  commander SELF
+end_platform
+
+platform red_2 WSF_PLATFORM
+  icon M1A1
+  side red
+  radar_signature  TARGET_RADAR_SIGNATURE
+  position 31:18:29.610n 45:13:53.440e altitude 0.00 ft agl
+  heading 10 deg
+  commander SELF
+end_platform
+
+platform red_3 WSF_PLATFORM
+  icon M1A1
+  side red
+  radar_signature  TARGET_RADAR_SIGNATURE
+  position 31:18:42.24n 45:13:47.34e altitude 0.00 ft agl
+  heading 345 deg
+  commander SELF
+end_platform
+
+
+##############################################################################
+# Simulation Level Control and Environment Commands
+##############################################################################
+event_pipe
+   file output/draw_demo.aer
+end_event_pipe
+
+event_output
+   file output/draw_demo.evt
+   enable all
+end_event_output
+
+script_interface
+   debug
+end_script_interface
+
+terrain
+  #no_terrain_loaded_for_now
+end_terrain
+
+end_time 20 sec

@@ -1,0 +1,218 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#This file defines a specific Walker solution
+#for 3 satellites in 8 different orbits = 24 total.
+
+platform_type SBR WSF_PLATFORM
+
+  icon Satellite
+  mover WSF_SPACE_MOVER
+  end_mover
+
+end_platform_type
+
+platform sat-11 SBR
+  orbit
+TEST-11
+1 99999U          03152.50000000 -.00000008  00000-0 -27915-5 0 00003
+2 99999 053.0210 000.0223 0000000 264.6216 095.4053 14.36607145000012
+  end_orbit
+end_platform
+
+platform sat-12 SBR
+  orbit
+TEST-12
+1 99999U          03152.50000000  .00000007  00000-0  23189-5 0 00009
+2 99999 053.0211 000.0223 0000000 264.6063 215.4207 14.36607102000013
+end_orbit
+end_platform
+
+platform sat-13 SBR
+  orbit
+TEST-13
+1 99999U          03152.50000000  .00000052  00000-0  17639-4 0 00001
+2 99999 053.0210 000.0222 0000000 264.5139 335.5140 14.36606876000018
+  end_orbit
+end_platform
+
+platform sat-21 SBR
+  orbit
+TEST-21
+1 99999U          03152.50000000 -.00000067  00000-0 -22553-4 0 00000
+2 99999 053.0081 045.0265 0000004 264.5336 155.4864 14.36606828000012
+  end_orbit
+end_platform
+
+platform sat-22 SBR
+  orbit
+TEST-22
+1 99999U          03152.50000000 -.00000007  00000-0 -24279-5 0 00002
+2 99999 053.0081 045.0266 0000002 264.5947 275.4260 14.36606579000015
+  end_orbit
+end_platform
+
+platform sat-23 SBR
+  orbit
+TEST-23
+1 99999U          03152.50000000 -.00000014  00000-0 -48537-5 0 00003
+2 99999 053.0082 045.0265 0000003 264.5787 035.4422 14.36606584000018
+  end_orbit
+end_platform
+
+platform sat-31 SBR
+  orbit
+TEST-31
+1 99999U          03152.50000000 -.00000014  00000-0 -46974-5 0 00006
+2 99999 053.0005 090.0362 0000009 264.5665 215.4388 14.36606246000017
+  end_orbit
+end_platform
+
+platform sat-32 SBR
+  orbit
+TEST-32
+1 99999U          03152.50000000  .00000038  00000-0  12953-4 0 00009
+2 99999 053.0005 090.0361 0000008 264.5065 335.4997 14.36605991000014
+  end_orbit
+end_platform
+
+platform sat-33 SBR
+  orbit
+TEST-33
+1 99999U          03152.50000000  .00000003  00000-0  11036-5 0 00003
+2 99999 053.0004 090.0362 0000005 264.6115 095.3943 14.36606128000015
+  end_orbit
+end_platform
+
+platform sat-41 SBR
+  orbit
+TEST-41
+1 99999U          03152.50000000 -.00000014  00000-0 -48053-5 0 00006
+2 99999 053.0030 135.0454 0000009 264.6112 275.3782 14.36606380000018
+  end_orbit
+end_platform
+
+platform sat-42 SBR
+  orbit
+TEST-42
+1 99999U          03152.50000000  .00000022  00000-0  74172-5 0 00004
+2 99999 053.0031 135.0458 0000006 264.5752 035.4149 14.36606171000019
+  end_orbit
+end_platform
+
+platform sat-43 SBR
+  orbit
+TEST-43
+1 99999U          03152.50000000 -.00000003  00000-0 -10145-5 0 00005
+2 99999 053.0029 135.0456 0000001 264.5987 155.3911 14.36606282000011
+  end_orbit
+end_platform
+
+platform sat-51 SBR
+  orbit
+TEST-51
+1 99999U          03152.50000000 -.00000038  00000-0 -12736-4 0 00000
+2 99999 053.0139 180.0491 0000004 264.6667 335.3155 14.36606980000016
+  end_orbit
+end_platform
+
+platform sat-52 SBR
+  orbit
+TEST-52
+1 99999U          03152.50000000  .00000034  00000-0  11545-4 0 00001
+2 99999 053.0138 180.0491 0000009 264.5664 095.4172 14.36606609000017
+  end_orbit
+end_platform
+
+platform sat-53 SBR
+  orbit
+TEST-53
+1 99999U          03152.50000000 -.00000013  00000-0 -43484-5 0 00008
+2 99999 053.0138 180.0493 0000005 264.5518 215.4306 14.36606862000017
+  end_orbit
+end_platform
+
+platform sat-61 SBR
+  orbit
+TEST-61
+1 99999U          03152.50000000  .00000002  00000-0  80762-6 0 00005
+2 99999 053.0269 225.0450 0000009 264.5732 035.4156 14.36607373000018
+  end_orbit
+end_platform
+
+platform sat-62 SBR
+  orbit
+TEST-62
+1 99999U          03152.50000000  .00000047  00000-0  15683-4 0 00002
+2 99999 053.0269 225.0450 0000006 264.6920 155.2976 14.36607173000014
+  end_orbit
+end_platform
+
+platform sat-63 SBR
+  orbit
+TEST-63
+1 99999U          03152.50000000 -.00000001  00000-0 -34052-6 0 00007
+2 99999 053.0270 225.0449 0000008 264.5686 275.4200 14.36607435000010
+  end_orbit
+end_platform
+
+platform sat-71 SBR
+  orbit
+TEST-71
+1 99999U          03152.50000000 -.00000003  00000-0 -95450-6 0 00008
+2 99999 053.0344 270.0353 0000007 264.5393 095.4649 14.36607743000019
+  end_orbit
+end_platform
+
+platform sat-72 SBR
+  orbit
+TEST-72
+1 99999U          03152.50000000  .00000011  00000-0  38745-5 0 00008
+2 99999 053.0344 270.0353 0000003 264.6151 215.3892 14.36607703000017
+  end_orbit
+end_platform
+
+platform sat-73 SBR
+  orbit
+TEST-73
+1 99999U          03152.50000000 -.00000057  00000-0 -19350-4 0 00000
+2 99999 053.0344 270.0352 0000007 264.7012 335.3020 14.36608025000011
+  end_orbit
+end_platform
+
+platform sat-81 SBR
+  orbit
+TEST-81
+1 99999U          03152.50000000 -.00000033  00000-0 -11040-4 0 00002
+2 99999 053.0319 315.0259 0000007 264.6146 155.4050 14.36607775000011
+  end_orbit
+end_platform
+
+platform sat-82 SBR
+  orbit
+TEST-82
+1 99999U          03152.50000000 -.00000014  00000-0 -47536-5 0 00001
+2 99999 053.0320 315.0260 0000009 264.6099 275.4097 14.36607727000015
+  end_orbit
+end_platform
+
+platform sat-83 SBR
+  orbit
+TEST-83
+1 99999U          03152.50000000  .00000009  00000-0  30743-5 0 00005
+2 99999 053.0320 315.0259 0000007 264.5539 035.4664 14.36607581000011
+  end_orbit
+end_platform
+
+start_date Jun 1 2003
+start_time 12:00:00
+
+#timestep 10 sec
+#end_time 10 hr
+
+#include event_pipe.txt

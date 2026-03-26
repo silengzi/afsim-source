@@ -1,0 +1,68 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE traveling_astronaut
+file_path .
+
+include_once platforms/tapsatellite.txt
+
+include_once scripts/cascade.txt
+include_once scripts/tap.txt
+
+# This is the operation that will be performed at each rendezvous. This is
+# but one example; other operations are possible. The TAP solution can call
+# any script routine and will pass in the name of the target platform.
+script void RemoveJunk(string aPlatName)
+   writeln("REMOVING ", aPlatName, " at TIME ", TIME_NOW);
+   WsfSimulation.DeletePlatform(aPlatName);
+end_script
+
+# Create a platform that will act as the interceptor.
+platform central TAPSATELLITE
+   icon satellite
+   side blue
+
+   mover
+      position 0n 90w altitude 1687.83 km heading 55 degrees
+
+      # The TAP solution will resepct the maximum allowed delta V of the central platform.
+      maneuvering simple
+         delta_v 16 km/s
+      end_maneuvering
+   end_mover
+
+   script_variables
+      Array<string> targets = {};
+   end_script_variables
+
+   execute at_time 1 min absolute
+      # To change the number of targets, either change the final argument to CreateJunk,
+      # or modify the parameters in script/cascade.txt.
+      targets = CreateJunk(PLATFORM.LocationECI(), PLATFORM.VelocityECI(), "junk_", 3.0);
+      writeln(targets.Size(), " Pieces of junk created.");
+   end_execute
+
+   execute at_time 10 min absolute
+      writeln("Solving for optimal junk retrieval route...");
+
+      # To select a different operation, replace the final argument with the name of the
+      # script method (as a string).
+      TravelingAstronaut("central", targets, TIME_NOW, "RemoveJunk");
+   end_execute
+
+end_platform
+
+event_pipe file output/$(CASE).aer end_event_pipe
+event_pipe file output/$(CASE).aer end_event_pipe
+
+# This is another method that can change the number of realized objects.
+random_seed 42
+
+start_date mar 21 2017
+end_time 20 hour

@@ -1,0 +1,60 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This only considers Cd (drag).
+
+aero_data
+
+   ref_area_sqft              0
+
+   aero_center_x              0 ft
+   aero_center_y              0 ft
+   aero_center_z              0 ft
+   
+   use_legacy_derivatives   true
+   use_reduced_frequency    false
+   
+   cd_alpha_mach_table
+      irregular_table
+         independent_variable mach precision float
+         independent_variable alpha units deg
+         dependent_variable precision float
+         mach  0.000
+            alpha     -90.0   0.0    90.0
+            values    0       0      0
+         mach  30.000
+            alpha     -90.0   0.0    90.0
+            values    0       0      0
+      end_irregular_table
+   end_cd_alpha_mach_table
+
+   aero_mode  PostStaging
+
+      ref_area_sqft           19.63
+
+      aero_center_x           0 ft
+      aero_center_y           0 ft
+      aero_center_z           0 ft
+
+      cd_alpha_mach_table
+         irregular_table
+            independent_variable mach precision float
+            independent_variable alpha units deg
+            dependent_variable precision float
+            mach  0.000
+               alpha     -90.0   0.0    90.0
+               values    1.0     1.0    1.0
+            mach  30.000
+               alpha     -90.0   0.0    90.0
+               values    1.0     1.0    1.0
+         end_irregular_table
+      end_cd_alpha_mach_table
+
+   end_aero_mode
+
+end_aero_data

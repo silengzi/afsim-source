@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Common script to be an observer for the MOVER_BURNED_OUT event
+include_once print_orbital_elements.txt
+
+script void MoverBurnedOut(WsfPlatform aPlatform,
+                           WsfMover    aMover)
+   # Only show the launch vehicle
+   if (!aPlatform.IsA_TypeOf("DELTA_IV_M")) return;
+
+   # The information displayed here should be reasonable close to the launch computer prediction.
+
+   writeln("T=", TIME_NOW, " ", aPlatform.Name(), ": Boost complete, entering orbit");
+   writeln("  Time of Flight: ", TIME_NOW - aPlatform.CreationTime());
+   writeln("  Location      : ", aPlatform.Location());
+   writeln("  Speed         : ", aPlatform.Speed(), " m/s");
+   writeln("  Heading       : ", aPlatform.Heading());
+   writeln("  Pitch         : ", aPlatform.Pitch());
+   Array<double> oe = WsfOrbitalLaunchComputer.ComputeOrbitalElements(aPlatform.LocationECI(),
+                                                                      aPlatform.VelocityECI(),
+                                                                      TIME_NOW);
+   PrintOrbitalElements(oe, "  ");
+end_script

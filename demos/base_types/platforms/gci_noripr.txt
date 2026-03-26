@@ -1,0 +1,17 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#for gci base
+include_once gci_base.txt
+
+
+platform_type GCI GCI_BASE
+
+end_platform_type

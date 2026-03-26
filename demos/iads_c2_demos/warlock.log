@@ -1,0 +1,45 @@
+2024-06-04 15:10:48 file D:/BaiduNetdiskDownload/AFSIM/afsim2.9_src/demos/iads_c2_demos/basic_iads.txt
+2024-06-04 15:10:48 version wsf 2.9.0
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\basic_iads.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\utils/BM_Utilities.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\setup/setup.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\setup\event_output.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\setup/terrain.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\processors/asset_manager.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\processors/disseminate_c2.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\processors/battle_manager.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\processors/simple_sensors_manager.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\processors/weapons_manager_sam.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\comm/datalinks.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/common.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/target.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/iads_cmdr.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/radar_company.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/ew_radar.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms\asv_radar.txt
+2024-06-04 15:10:48 file sensors/ew_radar.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/acq_radar.txt
+2024-06-04 15:10:48 file sensors/acq_radar.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/tt_radar.txt
+2024-06-04 15:10:48 file sensors/ttr_radar.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/sam_battalion.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/sam_launcher.txt
+2024-06-04 15:10:48 file weapons/sam.txt
+2024-06-04 15:10:48 file weapons/sam_launch_computer.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\platforms/ucav.txt
+2024-06-04 15:10:48 file signatures/ucav_sigs.txt
+2024-06-04 15:10:48 file signatures/ucav_infrared_sig.txt
+2024-06-04 15:10:48 file signatures/ucav_optical_sig.txt
+2024-06-04 15:10:48 file signatures/ucav_radar_sig.txt
+2024-06-04 15:10:48 file sensors/ucav_esm.txt
+2024-06-04 15:10:48 file sensors/ucav_sar.txt
+2024-06-04 15:10:48 file weapons/agm/blue_gps_bomb_2.txt
+2024-06-04 15:10:48 file weapons/agm/blue_gps_bomb_1.txt
+2024-06-04 15:10:48 file weapons/agm/blue_glide_bomb_1.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\scenarios/iads_laydown_asv_full_bm.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\scenarios/single_sam_chain.txt
+2024-06-04 15:10:48 file D:\BaiduNetdiskDownload\AFSIM\afsim2.9_src\demos\iads_c2_demos\scenarios/single_ucav.txt
+2024-06-04 15:10:48 AER output file: output/basic_iads.aer
+2024-06-04 15:10:48 Event output file: output/basic_iads.evt
+2024-06-04 15:10:48 start 1
+2024-06-04 15:28:33 terminated 1064.750 1064.754 147.328

@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform cmd-1 COMMAND_POST_STATIC
+  side red
+  route
+    position 39:31:42.42n 91:38:31.111w
+  end_route
+end_platform
+
+platform red_srbm-1 RED_SRBM_LAUNCHER_STATIC
+  side red
+  route
+    position 39:31:42.42n 91:38:21.111w
+  end_route
+end_platform
+
+platform red_srbm-2 RED_SRBM_LAUNCHER_STATIC
+  side red
+  route
+    position 39:31:42.42n 91:38:41.111w
+  end_route
+end_platform
+
+platform radar-1 GROUND_RADAR_STATIC
+  side red
+  route
+    position 39:31:42.42n 91:38:35.111w
+  end_route
+end_platform
+
+

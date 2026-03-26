@@ -1,0 +1,87 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform_type TBM3 WSF_PLATFORM
+   icon Scud_Missile
+
+   // The following 3 scripts are totally optional and will be invoked by the
+   // TBM mover if they are defined. You can put pretty much whatever they want
+   // in here. The single argument to each is the stage number [1..n].
+   //
+   // For instance, you could alter the signature state of the vehicle to
+   // reflect the conditions (assuming, of course, that you define multiple
+   // signatures for your platform!).
+
+   script void on_stage_ignition(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " ignition  ",
+              ", alt=", PLATFORM.Altitude() / MATH.M_PER_MI(), " mi");
+   end_script
+
+   script void on_stage_burnout(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " burnout   ",
+              ", alt=", PLATFORM.Altitude() / MATH.M_PER_MI(), " mi");
+   end_script
+
+   script void on_stage_separation(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " separation",
+              ", alt=", PLATFORM.Altitude() / MATH.M_PER_MI(), " mi");
+   end_script
+
+   mover WSF_TBM_MOVER
+      show_status
+      stage 1
+         empty_mass             613 lb
+         fuel_mass              3474 lb
+         ballistic_coefficient  5000 lbf/ft^2
+         thrust                 53900 lbf
+         thrust_duration        16.1 sec
+      end_stage
+      stage 2
+         fuel_mass              1685 lb
+         empty_mass             397 lb            # 297 lb structure + 100 lb payload
+         ballistic_coefficient  5000 lbf/ft^2
+         thrust                 7946 lbf
+         thrust_duration        53 sec
+      end_stage
+   end_mover
+
+   # The fuse will detonate just before it hits the ground
+   processor fuse WSF_GROUND_TARGET_FUSE
+      coast_time_on_loss_of_target   10000.0 secs   # No target specified.
+    #  debug
+   end_processor
+
+   processor max-alt WSF_SCRIPT_PROCESSOR
+      update_interval 1 sec
+
+      script_variables
+         double maxAlt = -10000.; # initialize it to a very low value
+      end_script_variables
+
+      on_update 
+         double alt = PLATFORM.Altitude();
+         if (alt >= maxAlt)
+         {
+            maxAlt = alt;
+         }
+         else
+         {
+            writeln("T=", TIME_NOW, " ", PLATFORM.Name(), " Max alt=", maxAlt / MATH.M_PER_MI(), "  mi");
+            PROCESSOR.TurnOff();
+         }
+      end_on_update
+    end_processor
+
+end_platform_type
+
+# The weapon will damage targets within 150 meters of the impact point.
+
+weapon_effects TBM3_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 150 m 1.0
+end_weapon_effects
+

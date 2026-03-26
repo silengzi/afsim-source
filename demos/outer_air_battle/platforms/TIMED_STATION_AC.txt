@@ -1,0 +1,75 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This file defines an aircraft type called TIMED_STATION_AC
+# that follows a specific mission profile.
+#
+# It uses the STATION_TIMER processor to control orbit times
+
+include_once processors/station_timer.txt
+
+script_interface
+#   debug
+end_script_interface
+
+platform_type TIMED_STATION_AC WSF_PLATFORM
+
+  icon F-15
+  side BLUE
+
+#  The AIR_MOVER needs to be defined, so the route commands are recognized
+#  later.
+  mover WSF_AIR_MOVER end_mover
+
+
+# These are the default values for the user variables.
+# Values assigned at instatiation overwrite these values.
+  script_variables
+    double time_before_refueling  = 1000.0;
+    double total_station_time     = 3000.0;
+    string refuel_waypoint_label  = "cap_refuel";
+    string go_home_waypoint_label = "go_home";
+  end_script_variables
+
+
+
+#  This script is defined here, instead of in the processor, because it is
+#  "called" by the aircraft, as part of the route.
+
+  script void OnStation()
+#  This script sets the ON_STATION_TIME variables
+#  The two variables are checked each time because this script might be called
+#  each time the aircraft goes around the orbit. The check prevents the
+#  variables from being reset every time.
+
+#   If this is the first time that the aircraft has hit this CAP station,
+#   then set the flag for "on CAP".
+    if ( PLATFORM.AuxDataDouble("NOW_ON_CAP") < 0.0 )
+      {
+        PLATFORM.SetAuxData("NOW_ON_CAP", TIME_NOW);
+      }
+
+#   If the aircraft is just arriving at this CAP station, then set the flag.
+    if ( PLATFORM.AuxDataDouble("ON_STATION_TIME") < 0.0 )
+      {
+        PLATFORM.SetAuxData("ON_STATION_TIME", TIME_NOW);
+      }
+  end_script # OnStation
+
+
+
+
+# This processor manages the station timing
+  processor station_timer STATION_TIMER
+
+  end_processor # station_timer
+
+
+end_platform_type
+

@@ -1,0 +1,66 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#    * * ************************************** * *
+#    *   ****** Demonstration input file ******   *
+#    *   ******      UNCLASSIFIED        ******   *
+#    * * ************************************** * *
+
+
+route cap_orbit
+  label start
+     offset  20   0 km speed 450 kts altitude 35000 ft msl
+        radial_acceleration 2 g
+     offset  20   5 km speed 450 kts altitude 35000 ft msl
+        radial_acceleration 2 g
+     offset  0    5 km speed 450 kts altitude 35000 ft msl
+        radial_acceleration 2 g
+     offset  0    0 km speed 450 kts altitude 35000 ft msl
+        radial_acceleration 2 g
+   goto start
+end_route
+
+
+#    ----------------------------------------------------------------
+#                        SOJ Jammers & Escorts
+#    ----------------------------------------------------------------
+
+platform north_cap_lead FLIGHT_LEAD
+  side red
+  position 38:34:47.97n 89:21:40.97w
+  commander SELF
+  icon Command_Truck
+  heading 100 deg
+end_platform
+
+
+platform north_cap_1 STRIKER
+   side red
+   icon weasel
+   commander north_cap_lead
+   route
+      position 38:24:24.12n 89:42:36.24w altitude 35000.00 ft msl speed 450 kts
+      position 38:37:03.59n 90:04:25.68w altitude 35000.00 ft msl speed 450 kts
+     insert_route cap_orbit reference_heading 180.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+platform north_cap_2 STRIKER
+   side red
+   icon weasel
+   commander north_cap_lead
+   route
+      position 38:21:12.86n 89:43:39.17w altitude 35000.00 ft msl speed 450 kts
+      position 38:33:36.18n 90:04:56.27w altitude 35000.00 ft msl speed 450 kts
+     insert_route cap_orbit reference_heading 180.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+

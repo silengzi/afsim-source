@@ -1,0 +1,64 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Sensing satellite
+platform_type  SAT_SENSOR  WSF_PLATFORM
+   side blue
+   icon stereo_satellite
+   category sat_sensor
+
+   # Approximately LEO
+   mover WSF_SPACE_MOVER
+      revs_per_day 11
+      inclination 55 deg
+   end_mover
+
+   execute at_time 1 s absolute
+      WsfPlatform platform = WsfSimulation.FindPlatform("launch_facility");
+      PLATFORM.Sensor("sat_sensor").CueToPoint(platform.Location());
+   end_execute
+
+   sensor sense_iridium SENSE_IRIDIUM
+      on
+      internal_link track_mgr
+   end_sensor
+
+   processor track_mgr WSF_TRACK_PROCESSOR
+      master_track_processor
+      on_message
+         type WSF_TRACK_DROP_MESSAGE
+            script
+               WsfTrackDropMessage dropMessage = (WsfTrackDropMessage)MESSAGE;
+               string name = WsfSimulation.FindPlatform(dropMessage.TargetIndex()).Name();
+#               writeln(PLATFORM.Name() + "had dropped tracking: " + name);
+
+               WsfComm otherComm = WsfSimulation.FindPlatform(name).CommEntry(0);
+               WsfComm myComm = PLATFORM.Comm(PLATFORM.Name());
+               if(myComm.IsConnectedTo(otherComm.GetAddress()))
+               {
+                  myComm.RemoveConnection(otherComm.GetAddress());
+               }
+            end_script
+         type WSF_TRACK_MESSAGE
+            script
+               WsfTrackMessage trackMessage = (WsfTrackMessage)MESSAGE;
+               string name = trackMessage.Track().Target().Name();
+#               writeln(PLATFORM.Name() + "is now tracking: " + name);
+
+               WsfComm otherComm = WsfSimulation.FindPlatform(name).CommEntry(0);
+               WsfComm myComm = PLATFORM.Comm(PLATFORM.Name());
+               if(!myComm.IsConnectedTo(otherComm.GetAddress()))
+               {
+                  myComm.AddConnection(otherComm.GetAddress());
+               }
+            end_script
+      end_on_message
+   end_processor
+
+end_platform_type
+

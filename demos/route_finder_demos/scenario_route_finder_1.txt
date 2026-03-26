@@ -1,0 +1,89 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+event_pipe file route_finder_1.aer end_event_pipe
+
+end_time 2000 seconds
+
+platform target WSF_PLATFORM
+  icon bullseye
+  position 00.31532n 00.73940e altitude 10000 ft msl
+end_platform
+
+
+script void DrawRoute(WsfRoute aRoute)
+   if (aRoute.IsValid())
+   {
+      WsfDraw mDraw = WsfDraw();
+      mDraw.SetDuration(2000);
+      mDraw.SetColor(1,1,1);   #white
+      mDraw.SetLineSize(1);
+      mDraw.SetLineStyle("solid");
+      mDraw.BeginPolyline();
+      for (int i=0; i<aRoute.Size(); i=i+1)
+      {
+         mDraw.Vertex(aRoute.Waypoint(i).Location());
+      }
+      mDraw.End();
+   }
+end_script
+
+
+platform blue_1 WSF_PLATFORM
+   side blue
+   icon F-18E
+
+   add mover WSF_AIR_MOVER
+      update_interval 1 sec
+      at_end_of_path stop
+   end_mover
+
+   route
+      position 00.32462n 03.86294e altitude 10000 ft msl speed 250 m/s
+      position 00.32462n 02.86294e altitude 10000 ft msl speed 250 m/s
+   end_route
+
+   script_variables
+      WsfRouteFinder finder = WsfRouteFinder();
+   end_script_variables
+
+   on_initialize2
+
+         finder.SetImpossibleRouteResponse("SHRINK");
+        #finder.SetImpossibleRouteResponse("SHIFT");
+        #finder.SetImpossibleRouteResponse("IGNORE");
+         finder.SetMaxArcLength(4000); #a little over 2 nm (in meters)
+         WsfGeoPoint src = PLATFORM.Location();
+         WsfGeoPoint tgt = WsfSimulation.FindPlatform("target").Location();
+         finder.Avoid(WsfGeoPoint.Construct( 0.46222, 2.87111, 0), 1852*20);
+
+         finder.Avoid(WsfGeoPoint.Construct(-0.06667, 2.88222, 0), 1852*20);
+         finder.Avoid(WsfGeoPoint.Construct( 0.91667, 3.16667, 0), 1852*20);
+         ##different option than the previous two avoidances, to show "shrink" and "shift" responses
+         #finder.Avoid(WsfGeoPoint.Construct(-0.62784, 3.33309, 0), 1852*100);
+         #finder.Avoid(WsfGeoPoint.Construct( 0.91667, 3.16667, 0), 1852*80);
+         ##extra to force a northern path
+         #finder.Avoid(WsfGeoPoint.Construct( -1.07825, 3.19900, 0), 1852*50);
+         ##extra to force a southern path
+         #finder.Avoid(WsfGeoPoint.Construct( 2.00000, 3.20000, 0), 1852*100);
+
+         finder.Avoid(WsfGeoPoint.Construct( 0.77000, 1.95833, 0), 1852*10);
+        #finder.Avoid(WsfGeoPoint.Construct(-0.07333, 1.91500, 0), 1852*10);
+         finder.Avoid(WsfGeoPoint.Construct(-0.13500, 1.91500, 0), 1852*10);
+         WsfRoute path = finder.Route(TIME_NOW, src, tgt, 250); #250 met/sec ~500 knots
+
+         PLATFORM.SetRoute(path);
+         finder.DrawAvoidances(2000, Vec3.Construct(0.4, 0.4, 0.4));
+         finder.DrawGraph(250, Vec3.Construct(0.0, 0.65, 0.0));   #only show whole graph for part of the time
+         DrawRoute(path);
+   end_on_initialize2
+
+end_platform
+

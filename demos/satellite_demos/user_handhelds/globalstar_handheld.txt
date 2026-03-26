@@ -1,0 +1,37 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/globalstar_handheld.txt
+
+# Example GLOBALSTAR Handheld sites
+
+platform GLOBALSTAR_HANDHELD2 GLOBALSTAR_HANDHELD
+  position 39.895688n 116.452504e altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform GLOBALSTAR_CITY_HANDHELD2 GLOBALSTAR_HANDHELD
+  position 29.344163n  47.953338e altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform BERLIN2_HANDHELD2 GLOBALSTAR_HANDHELD
+  position  52.518932n  13.398890e altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform RIO2_HANDHELD2 GLOBALSTAR_HANDHELD
+  position  22.915000s  43.197393w altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform

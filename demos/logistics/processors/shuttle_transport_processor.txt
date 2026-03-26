@@ -1,0 +1,270 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# DESCRIPTION:  THIS type of processor is a state machine that controls
+# when a platform moves toward a platform to either receive from it, or
+# supply to it... and then reverses the process to shuttle product from
+# one place to another.  The hard-coded assumption is that the attached
+# platform has a container of product or service, and is always trying to
+# receive from one side, and provide to the other.
+# TWO INSTANCES:  FuelSemi_1 & _2, and GalvestonBasedTanker_1 and _2
+
+processor SHUTTLE_TRANSPORT_PROCESSOR WSF_STATE_MACHINE
+
+   script_variables
+      bool        stpIsInitialized      = false;
+      bool        stpPlatsAreResolved   = false;
+      bool        stpRunSilent          = false;
+      bool        stpIsFuelController   = true;  // else repair controller
+      bool        stpIsBoundForClient   = false;
+      string      stpCurrentState       = "ST_IDLE";
+      double      stpProximityLimit     = 20.0;  //meters
+      string      stpClientName         = "";
+      string      stpSupplierName       = "";
+      Transactor  stpOfferTransactor;
+      Transactor  stpRequestTransactor;
+      Container   stpContainer;
+      WsfPlatform stpClient;
+      WsfPlatform stpSupplier;
+   end_script_variables
+
+   script void Say(string aMsg)
+      if ((stpRunSilent || gDebugNone) && (! gDebugAll)) return;
+      writeln("At t=", TIME_NOW,", ",PLATFORM.Name(), " - ",aMsg);
+   end_script
+
+   script bool IsCloseToServer()
+      return stpPlatsAreResolved && PLATFORM.GroundRangeTo(stpSupplier) <= stpProximityLimit;
+   end_script
+
+   script bool IsCloseToClient()
+      return stpPlatsAreResolved && PLATFORM.GroundRangeTo(stpClient) <= stpProximityLimit;
+   end_script
+
+   script bool IsStationary()
+      return PLATFORM.Speed() < 0.1;
+   end_script
+
+   script void ExecuteMoveToServer()
+      WsfRoute routeToJob = WsfRoute();
+      routeToJob.Append(PLATFORM.LocationAsWaypoint());
+      routeToJob.Append(stpSupplier.LocationAsWaypoint());
+      routeToJob.Back().SetEndOfPathOption("STOP");
+      PLATFORM.GoToSpeed(1000.0, 3.0); // will be limited by mover.
+      PLATFORM.FollowRoute(routeToJob);
+   end_script
+
+   script void ExecuteMoveToClient()
+      WsfRoute routeToJob = WsfRoute();
+      routeToJob.Append(PLATFORM.LocationAsWaypoint());
+      routeToJob.Append(stpClient.LocationAsWaypoint());
+      routeToJob.Back().SetEndOfPathOption("STOP");
+      PLATFORM.GoToSpeed(1000.0, 3.0); // will be limited by mover.
+      PLATFORM.FollowRoute(routeToJob);
+   end_script
+
+   script string GetState()
+      return stpCurrentState;
+   end_script
+
+   #show_state_transitions
+
+   state ST_IDLE
+      on_entry
+         Say("STP Entering state ST_IDLE.");
+         PLATFORM.Comment("STP Entering state ST_IDLE.");
+      end_on_entry
+      next_state STATIONARY_AT_SERVER
+         if (stpPlatsAreResolved && ! stpIsBoundForClient && IsCloseToServer() && IsStationary())
+         {
+            string msg = "STP is stopped close to server " + stpSupplier.Name();
+            Say(msg);
+            PLATFORM.Comment(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+      next_state STATIONARY_AT_CLIENT
+         if (stpIsBoundForClient && stpIsBoundForClient && IsCloseToClient() && IsStationary())
+         {
+            string msg = "STP is stopped close to client " + stpClient.Name();
+            Say(msg);
+            PLATFORM.Comment(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+      next_state IN_TRANSIT_TO_SERVER
+         return stpPlatsAreResolved && ! stpIsBoundForClient && ! IsCloseToServer();
+      end_next_state
+      next_state IN_TRANSIT_TO_CLIENT
+         return stpPlatsAreResolved && stpIsBoundForClient && ! IsCloseToServer();
+      end_next_state
+   end_state
+
+   state IN_TRANSIT_TO_SERVER
+      on_entry
+         Say("STP Entering state IN_TRANSIT_TO_SERVER.");
+         PLATFORM.Comment("STP Entering state IN_TRANSIT_TO_SERVER.");
+         ExecuteMoveToServer();
+      end_on_entry
+      next_state STATIONARY_AT_SERVER
+         if (IsCloseToServer() && IsStationary())
+         {
+            string msg = "STP is switching to STATIONARY_AT_SERVER, as I am close to server " + stpSupplier.Name();
+            Say(msg);
+            PLATFORM.Comment(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+   state STATIONARY_AT_SERVER
+      on_entry
+         Say("STP Entering state STATIONARY_AT_SERVER.");
+         PLATFORM.Comment("STP Entering state STATIONARY_AT_SERVER.");
+      end_on_entry
+      next_state IN_TRANSIT_TO_CLIENT
+         return stpIsBoundForClient;
+      end_next_state
+   end_state
+
+   state IN_TRANSIT_TO_CLIENT
+      on_entry
+         Say("STP Entering state IN_TRANSIT_TO_CLIENT (Attempting to FollowRoute to client).");
+         PLATFORM.Comment("STP Entering state IN_TRANSIT_TO_CLIENT.");
+         WsfRoute routeToJob = WsfRoute();
+         routeToJob.Append(PLATFORM.LocationAsWaypoint());
+         routeToJob.Append(stpClient.LocationAsWaypoint());
+         routeToJob.Back().SetEndOfPathOption("STOP");
+         PLATFORM.GoToSpeed(1000.0, 3.0); // will be limited by mover.
+         PLATFORM.FollowRoute(routeToJob);
+      end_on_entry
+      next_state STATIONARY_AT_CLIENT
+         return IsCloseToClient() && IsStationary();
+      end_next_state
+   end_state
+
+   state STATIONARY_AT_CLIENT
+      on_entry
+         Say("STP Entering state STATIONARY_AT_CLIENT.  Waiting for empty container.");
+         PLATFORM.Comment("STP Entering state STATIONARY_AT_CLIENT.   Waiting for empty container.");
+      end_on_entry
+      next_state IN_TRANSIT_TO_SERVER
+         return stpContainer.IsEmpty();
+      end_next_state
+   end_state
+
+   script bool STP_Init(Transactor aOfferTransactor,
+                        Transactor aRequestTransactor,
+                        Container  aContainer,
+                        bool       aRunSilent,
+                        bool       aIsFuelController,
+                        string     aSupplierName,
+                        string     aClientName)
+
+      bool success = true;
+
+      stpRunSilent = aRunSilent;
+      stpIsFuelController = aIsFuelController;
+      stpSupplierName = aSupplierName;
+      stpClientName = aClientName;
+      stpOfferTransactor = aOfferTransactor;
+      stpRequestTransactor = aRequestTransactor;
+      stpContainer = aContainer;
+
+      if (! stpOfferTransactor.IsValid())
+      {
+         Say("STP Provided ppOfferTransactor was not valid.");
+         success = false;
+      }
+
+      if (! stpRequestTransactor.IsValid())
+      {
+         Say("STP Provided ppRequestTransactor was not valid.");
+         success = false;
+      }
+
+      if (! stpContainer.IsValid())
+      {
+         Say("STP Provided ppContainer was not valid.");
+         success = false;
+      }
+
+      if (success)
+      {
+         Say("STP_Init() succeeded");
+         stpIsInitialized = true;
+      }
+      else
+      {
+         Say("STP_Init() FAILED");
+      }
+      return success;
+
+   end_script
+
+   on_update
+
+      if (stpIsInitialized && ! stpPlatsAreResolved)
+      {
+         WsfPlatform s = WsfSimulation.FindPlatform(stpSupplierName);
+         WsfPlatform r = WsfSimulation.FindPlatform(stpClientName);
+
+         if (s.IsValid() && r.IsValid())
+         {
+            stpSupplier = s;
+            stpClient = r;
+            stpPlatsAreResolved = true;
+         }
+      }
+
+      if (stpIsInitialized && stpPlatsAreResolved)
+      {
+         bool prevBFC = stpIsBoundForClient;
+
+         # But now set which direction we wish to go.
+         # If our container is empty, then we MUST go get more.
+         # If our container is full, then we MUST go supply product.
+         # Otherwise, go to the closest of our known platforms.
+         if (stpContainer.IsEmpty())
+         {
+            stpIsBoundForClient = false;
+         }
+         else if (stpContainer.IsFull())
+         {
+            stpIsBoundForClient = true;
+         }
+         else
+         {
+            double grndRngToSupplier = PLATFORM.GroundRangeTo(stpSupplier);
+            double grndRngToClient = PLATFORM.GroundRangeTo(stpClient);
+            stpIsBoundForClient = (grndRngToClient < grndRngToSupplier);
+         }
+
+         if (prevBFC != stpIsBoundForClient)
+         {
+            string value = "FALSE";
+            if (stpIsBoundForClient) value = "TRUE";
+            string msg = "STP has changed BoundForClient to " + value;
+            Say(msg);
+            PLATFORM.Comment(msg);
+         }
+
+         stpCurrentState = STATE_MACHINE.Evaluate(stpCurrentState);
+         #string msg = " current STP State is " + stpCurrentState;
+         #Say(msg);
+      }
+
+   end_on_update
+
+   update_interval 100 sec
+
+end_processor

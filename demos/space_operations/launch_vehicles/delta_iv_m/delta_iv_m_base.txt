@@ -1,0 +1,151 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                        Delta IV Medium (Delta 9040)
+#
+# This is the base vehicle. Users should edit stage 4 in their definition to
+# set the desired value of the payload mass.
+#==============================================================================
+
+# Note: aspect_ratio and cl_max are not specified as we always thrust vectoring.
+aero DELTA_IV_M_STAGE_1_AERO WSF_AERO
+   reference_area            19.63 m^2           # 5 m diameter
+
+   # Follow is a really rough Saturn IV. (www.braeunig.us/apollo/Saturn5.htm)
+   cd_zero_subsonic          0.27
+   subsonic_cd_slope         0.0
+   mach_begin_cd_rise        0.8
+   cd_zero_supersonic        0.55
+   mach_end_cd_rise          1.4
+   mach_max_supersonic       4.5       # Cd is about 0.2 here
+   supersonic_cd_slope       0.3871    # (0.2 - 1.4) / (4.5 - 1.4)
+end_aero
+
+aero DELTA_IV_M_STAGE_2_AERO WSF_AERO
+   reference_area            12.57 m^2           # 4 m diameter
+   zero_lift_cd              0.2
+end_aero
+
+aero DELTA_IV_M_PAYLOAD_AERO WSF_AERO
+   reference_area            12.57 m^2           # 4 m diameter
+   zero_lift_cd              0.2
+end_aero
+
+platform_type DELTA_IV_M_BASE WSF_PLATFORM
+   icon HARM
+
+   mover WSF_GUIDED_MOVER
+      #show_status
+      integration_timestep 0.01 sec
+      update_interval      0.01 sec
+      coordinate_frame     eci
+      check_for_ground_impact          # Don't require a fuse on the platform
+
+      # Payload fairing (PF): ~2800 kg
+      ejectable payload_fairing
+         mass   2800 kg
+         time   275 sec
+      end_ejectable
+
+      stage 1
+         aero DELTA_IV_M_STAGE_1_AERO
+         total_mass                    226400 kg           # Wiki
+         sea_level_thrust              3137000 nt          # UG
+         #vacuum_thrust                 3560000 nt
+         sea_level_specific_impulse    362.95794943820224719101123595506 s
+         #vacuum_specific_impulse       411.9 s             # UG
+         nozzle_exit_area              4.1744794236652521464521859271687 m2
+         thrust_duration               245 sec
+         thrust_vectoring_angle_limit  5 deg
+         lateral_thrust_gain           5.0
+         pre_separation_coast_time     6 sec               # UG
+      end_stage
+
+      # RL10B-2, 4-meter tanks
+      stage 2
+         aero DELTA_IV_M_STAGE_2_AERO
+         total_mass                    24170 kg            # Wiki
+         fuel_mass                     20410 kg            # UG
+         thrust                        110000 nt           # UG
+         # Calculated automatically from fuel_mass and thrust_duration.
+         #specific_impulse              465 sec             # UG
+         thrust_duration               850 sec             # UG says 'approximately'
+         thrust_vectoring_angle_limit  5 deg
+         lateral_thrust_gain           10.0                # Need a bigger value for small engine
+         pre_ignition_coast_time       14 sec              # UG
+      end_stage
+
+      # The next-to-last stage contains ONLY the mass of the 'consumable' hardware
+      #  associated with attachment and deployment of the payload.
+      #
+      # Payload attach fitting (PAF): 240 kg
+
+      stage 3
+         aero none
+         total_mass                    240 kg              # TODO_TEMP no PAF
+      end_stage
+
+      # The last stage represents the final delivered payload (i.e.: the satellite).
+      # It should include nothing extra.
+      stage 4
+         aero none
+         total_mass                    9180 kg             # UG, max to LEO (9420 kg-PAF)
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+
+     # During the initial launch phase no guidance is performed.
+     # The phase is exited when the vertical speed is enough to start pitch over.
+
+      phase LAUNCH
+         program NULL_PROGRAM end_program        # No guidance
+         next_phase PITCH_OVER when vertical_speed > 50 m/s
+      end_phase
+
+      # Pitch-over starts shortly after launch. A gentle turn is performed until
+      # the desired flight path angle (selected in the launch computer) is reached,
+      # at which point it exits the phase and starts a gravity turn.
+
+      phase PITCH_OVER
+         program FLIGHT_PATH_ANGLE_PROGRAM
+            # The launch computer will define the flight path angle that is used.
+            pitch_rate 0.124 deg/sec
+         end_program
+         next_phase ORBIT_INSERTION when program FLIGHT_PATH_ANGLE_PROGRAM complete
+      end_phase
+
+      phase ORBIT_INSERTION
+         program ORBIT_INSERTION_PROGRAM
+         end_program
+         next_phase ORBIT when program ORBIT_INSERTION_PROGRAM complete
+      end_phase
+
+      phase ORBIT
+         program NULL_PROGRAM end_program        # No guidance
+      end_phase
+
+   end_processor
+
+end_platform_type
+
+#==============================================================================
+# Configure the default weapon. A user creating a derived vehicle from the base
+# vehicle above would also override this and set the launched platform type.
+# See 'delta_iv_m.txt' for an example.
+
+weapon DELTA_IV_M_BASE WSF_EXPLICIT_WEAPON
+   launched_platform_type DELTA_IV_M_BASE
+   tilt 90 deg
+   launch_delta_v 0.0 0.0 0.0 m/s
+   quantity 1
+end_weapon
+

@@ -1,0 +1,148 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+##############################################################################
+#                      SAM type and subsystem definitions
+##############################################################################
+
+include_once sensors/radar/sam_radar.txt
+
+antenna_pattern COMM_RX_ANTENNA
+  uniform_pattern
+    peak_gain                 3 db
+    azimuth_beamwidth       360 degrees
+    elevation_beamwidth     180 degrees
+  end_uniform_pattern
+end_antenna_pattern
+
+antenna_pattern COMM_TX_ANTENNA
+  uniform_pattern
+    peak_gain                15 db
+    azimuth_beamwidth       360 degrees
+    elevation_beamwidth     180 degrees
+  end_uniform_pattern
+end_antenna_pattern
+
+comm COMM_RADIO WSF_COMM_TRANSCEIVER
+  transfer_rate              1 kbits/sec
+end_comm
+
+platform_type sam_regiment WSF_PLATFORM
+  icon Command_Truck
+
+  comm red-net COMM_RADIO
+    processor thinker
+    processor track_processor
+  end_comm
+
+  sensor sam_radar SAM_RADAR
+    on
+    processor track_processor
+    ignore ignored-by-iads-radar
+  end_sensor
+
+  processor track_processor WSF_TRACK_PROCESSOR
+    purge_interval 1 min
+  end_processor
+
+  processor thinker WSF_TASK_PROCESSOR
+    //show_state_transitions
+    //show_task_messages
+
+    script_variables
+      int maxSubsAssigned = 1;
+      int maxSubOngoingAssignments = 1;
+    end_script_variables
+
+    // script to determine if sub is operational
+    script bool SubOperational(WsfPlatform aSub)
+      bool operational = false;
+      int numWeapons = aSub.WeaponCount();
+      for (int i=0; i < numWeapons; i=i+1)
+      {
+        if (aSub.WeaponEntry(i).IsOperational())
+        {
+          operational=true;
+          break;
+        }
+      }
+      return operational;
+    end_script
+
+    evaluation_interval DETECTED 14.92537 sec      // (1/0.067)
+    time_to_evaluate    DETECTED 0.1 sec
+    state DETECTED
+      next_state ASSIGNED
+        if (TRACK.IFF_Friend() ||
+            (TRACK.Type() != "BOMBER")) return false;
+
+        Array<WsfPlatform> filter2 = Array<WsfPlatform>();
+        Array<WsfPlatform> filter3 = Array<WsfPlatform>();
+
+        foreach (WsfPlatform sub in PLATFORM.Subordinates("red-net"))
+        {
+          if (SubOperational(sub) &&
+              (TasksAssignedTo(sub) < maxSubOngoingAssignments) &&
+              TRACK.WithinZoneOf(sub, "sam_zone") &&
+              (sub.RelativeHeadingOf(TRACK) < 68.754935) &&
+              (sub.GroundRangeTo(TRACK) < 45000))
+          {
+            if ((sub.GroundRangeTo(TRACK) < 30000) &&
+                (TasksAssignedFor(TRACK.TrackId(), "Engage") < maxSubsAssigned))
+            {
+              filter3.PushBack(sub);
+            }
+            else
+            {
+              filter2.PushBack(sub);
+            }
+          }
+        }
+
+        bool assigned = false;
+        foreach (WsfPlatform sub in filter3)
+        {
+          if (TasksAssignedFor(TRACK.TrackId()," Engage") >= maxSubsAssigned) break;
+          if (AssignTask(TRACK, "Engage", sub, "red-net")) assigned = true;
+        }
+        foreach (WsfPlatform sub in filter2)
+        {
+          if (TasksAssignedFor(TRACK.TrackId(), "Engage") >= maxSubsAssigned) break;
+          if (AssignTask(TRACK, "Engage", sub, "red-net")) assigned = true;
+        }
+
+        return assigned;
+      end_next_state
+    end_state
+
+    evaluation_interval ASSIGNED 14.92537 sec      // (1/0.067)
+    time_to_evaluate    ASSIGNED 0.1 sec
+    state ASSIGNED
+      next_state DETECTED
+        WsfPlatform sub = AssigneeForTask(TRACK.TrackId(), "Engage");
+        if (sub.IsValid())
+        {
+            if ((! SubOperational(sub))                    ||
+                (! TRACK.WithinZoneOf(sub, "sam_zone"))    ||
+                (sub.RelativeHeadingOf(TRACK) > 114.59156) ||
+                (sub.GroundRangeTo(TRACK) > 50000))
+            {
+              CancelTask(sub, TRACK.TrackId(), "Engage");
+            }
+        }
+        // return to DETECTED state if no assignments for the track.
+        return (TasksAssignedFor(TRACK.TrackId(), "Engage") == 0);
+      end_next_state
+    end_state
+
+  end_processor
+
+  category ignored-by-iads-radar
+  category ignored-by-bomber-radar
+end_platform_type
+

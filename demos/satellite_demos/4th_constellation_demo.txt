@@ -1,0 +1,238 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###############################################################################
+# 4th_constellation_demo.txt
+# This example demonstrates how to easily create a notional satellite
+# constellation with only a basic understanding of orbital elements.
+#
+# Duplicate the GPS constellation
+#
+# MEO: SMA 26600 km
+#    (2 Sidereal Revs/Day)
+# 4 satellites in 6 orbits
+# 55 degree inclination
+# 60 degree separations in right ascension of ascending node          (x6 = 360 deg)
+# 90 degree anomaly separations (x4)
+# Note: One may have to play with the anomalies to get the phases correct among
+#       the 4 GPS orbits.
+###############################################################################
+
+define_path_variable CASE constellation_demo
+log_file output/$(CASE).log
+
+file_path .
+file_path ../base_types
+
+include event_pipe.txt
+include event_output.txt
+include terrain.txt
+
+# include the platform type definitions
+include_once platforms/simple_gps_satellite.txt
+
+# Optionally, uncomment the following for a "reality check":
+# include_once scenarios/gps_satellites.txt
+
+#The event and replay file are stated last just in
+#case a previous file setup default files.
+
+# define the platform type with the SMA we need
+platform_type NOTIONAL_GPS WSF_PLATFORM
+   side blue
+   icon satellite
+   mover WSF_SPACE_MOVER
+      revs_per_day 2.0
+      inclination 55 deg
+   end_mover
+end_platform_type
+
+# First orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 0 degrees
+platform gps-11 NOTIONAL_GPS
+   edit mover
+      raan 0.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-12 NOTIONAL_GPS
+   edit mover
+      raan 0.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-13 NOTIONAL_GPS
+   edit mover
+      raan 0.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-14 NOTIONAL_GPS
+   edit mover
+      raan 0.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+# Second orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 60 degrees
+platform gps-21 NOTIONAL_GPS
+   edit mover
+      raan 60.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-22 NOTIONAL_GPS
+   edit mover
+      raan 60.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-23 NOTIONAL_GPS
+   edit mover
+      raan 60.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-24 NOTIONAL_GPS
+   edit mover
+      raan 60.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+# Third orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 120 degrees
+platform gps-31 NOTIONAL_GPS
+   edit mover
+      raan 120.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-32 NOTIONAL_GPS
+   edit mover
+      raan 120.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-33 NOTIONAL_GPS
+   edit mover
+      raan 120.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-34 NOTIONAL_GPS
+   edit mover
+      raan 120.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+# Fourth orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 180 degrees
+platform gps-41 NOTIONAL_GPS
+   edit mover
+      raan 180.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-42 NOTIONAL_GPS
+   edit mover
+      raan 180.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-43 NOTIONAL_GPS
+   edit mover
+      raan 180.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-44 NOTIONAL_GPS
+   edit mover
+      raan 180.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+# Fifth orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 240 degrees
+platform gps-51 NOTIONAL_GPS
+   edit mover
+      raan 240.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-52 NOTIONAL_GPS
+   edit mover
+      raan 240.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-53 NOTIONAL_GPS
+   edit mover
+      raan 240.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-54 NOTIONAL_GPS
+   edit mover
+      raan 240.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+# Sixth orbit, 4 anomalies (0, 90, 180, 240 deg) at raan = 300 degrees
+platform gps-61 NOTIONAL_GPS
+   edit mover
+      raan 300.0 deg
+      anomaly 0.0 deg
+   end_mover
+end_platform
+
+platform gps-62 NOTIONAL_GPS
+   edit mover
+      raan 300.0 deg
+      anomaly 90.0 deg
+   end_mover
+end_platform
+
+platform gps-63 NOTIONAL_GPS
+   edit mover
+      raan 300.0 deg
+      anomaly 180.0 deg
+   end_mover
+end_platform
+
+platform gps-64 NOTIONAL_GPS
+   edit mover
+      raan 300.0 deg
+      anomaly 270.0 deg
+   end_mover
+end_platform
+
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+# how long should the sim run
+end_time 43200 sec
+
+# When running satellites, the start date and time are required
+start_date sep 1 2014
+start_time 00:00:00

@@ -1,0 +1,73 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#for BLUE_MULTIROLE_FIGHTER_1
+include_once platforms/blue_multirole_fighter_1_base.txt
+
+#for AIAI-thinker
+include_once processors/ripr_agents/aiai/aiai_processor.txt
+
+platform_type blue_multirole_fighter_1 BLUE_MULTIROLE_FIGHTER_1
+
+
+   //This is the code that lets the interceptor intercept
+   processor int-thinker AIAI-thinker
+      script_variables
+         mWeaponArray[0] = Map<string, Object>();
+         mWeaponArray[0].Set("name", "int_missile");
+         mWeaponArray[0].Set("weapon", PLATFORM.Weapon("int_missile"));
+         mWeaponArray[0].Set("rangeMin", 1000);
+         mWeaponArray[0].Set("rangeMax", 65000); // ~35 miles
+         mWeaponArray[0].Set("numActiveMax", 1); // how many weapons of this type can be in play simultaneously
+      end_script_variables
+   end_processor
+
+
+   //don't mess around with crappy radars, use a simple geometric sensor
+   delete sensor blue_a2a_radar
+   delete sensor esm-1
+   sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      azimuth_field_of_view -180.0 degrees 180.0 degrees
+      elevation_field_of_view -90.0 degrees 90.0 degrees
+      minimum_range 0 m
+      maximum_range 100000 m
+      on
+      frame_time              0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      track_quality 1.0
+      ignore_same_side
+      internal_link track_manager
+   end_sensor
+
+   processor incoming_threats WSF_THREAT_PROCESSOR
+     update_interval 0.1 sec
+     #update_interval 2.0 sec
+
+      #1300 knots
+      threat_velocity          668.7778 m/s
+
+      script void identified_new_threat(WsfTrack aTrack)
+         writeln("!!! me: ", PLATFORM.Name(), ", new threat: ", aTrack.TargetName());
+      end_script
+
+      script void dropped_threat(WsfTrack aTrack)
+         if (aTrack.IsValid())
+         {
+            writeln("!!! ", PLATFORM.Name(), " dropped a threat: ", aTrack.TargetName());
+         }
+         else
+         {
+            writeln("!!! ", PLATFORM.Name(), " dropped a threat");
+         }
+      end_script
+
+   end_processor
+
+end_platform_type

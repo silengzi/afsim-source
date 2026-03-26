@@ -1,0 +1,676 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: scenarios/sat_con_geo_autogen.txt
+
+# New file created by AFSIM Wizard using the Constellation Maker
+/*
+{
+    "Anomaly Alias": "15 degrees",
+    "Constellation Name": "sat_con",
+    "Inclination": "85 degrees",
+    "Initial Anomaly": "0 degrees",
+    "Initial RAAN": "0 degrees",
+    "Number of Planes": "6",
+    "Path to generated files": "scenarios",
+    "Platform Type": "SAT",
+    "RAAN Range": "180 degrees",
+    "Revs. Per Day": "15",
+    "Satellites per Plane": "12"
+}
+*/
+
+platform sat_con_0_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 0 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 30 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 60 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 90 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 120 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 150 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 180 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 210 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 240 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 270 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 300 degrees
+   end_mover
+end_platform
+
+platform sat_con_0_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 0 degrees
+      true_anomaly 330 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 15 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 45 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 75 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 105 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 135 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 165 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 195 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 225 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 255 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 285 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 315 degrees
+   end_mover
+end_platform
+
+platform sat_con_1_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 30 degrees
+      true_anomaly 345 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 30 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 60 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 90 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 120 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 150 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 180 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 210 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 240 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 270 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 300 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 330 degrees
+   end_mover
+end_platform
+
+platform sat_con_2_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 60 degrees
+      true_anomaly 0 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 45 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 75 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 105 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 135 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 165 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 195 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 225 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 255 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 285 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 315 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 345 degrees
+   end_mover
+end_platform
+
+platform sat_con_3_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 90 degrees
+      true_anomaly 15 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 60 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 90 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 120 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 150 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 180 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 210 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 240 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 270 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 300 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 330 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 0 degrees
+   end_mover
+end_platform
+
+platform sat_con_4_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 120 degrees
+      true_anomaly 30 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_0 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 75 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_1 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 105 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_2 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 135 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_3 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 165 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_4 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 195 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_5 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 225 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_6 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 255 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_7 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 285 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_8 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 315 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_9 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 345 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_10 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 15 degrees
+   end_mover
+end_platform
+
+platform sat_con_5_11 SAT
+   mover
+      inclination 85 degrees
+      revs_per_day 15
+      raan 150 degrees
+      true_anomaly 45 degrees
+   end_mover
+end_platform
+
+

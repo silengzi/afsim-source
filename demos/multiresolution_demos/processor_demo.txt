@@ -1,0 +1,58 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###################################################################################
+# processor_demo.txt
+# This example demonstrates a simple use of multiresolution_processor. Two 
+# different implementations of a WSF_TASK_PROCESSOR are include as options in a 
+# multiresolution_processor model. One model simply sets the achilles platform to
+# go to a given location at a given speed. The other sets the achilles platform to
+# advance to the location at which it detected the tortoise platform indefinitely.
+###################################################################################
+
+define_path_variable CASE processor_demo
+log_file output/$(CASE).log
+
+include_once processors/processor_include.txt
+
+event_pipe file 
+   output/$(CASE).aer
+   maximum_mover_update_interval 0 sec
+end_event_pipe
+
+end_time 1 hour
+
+platform tortoise WSF_PLATFORM
+   add mover WSF_AIR_MOVER end_mover
+   route
+      position 0.5n 0e altitude 20000 ft heading 0 deg speed 100 kts
+      position 10.0n 0e altitude 20000 ft speed 450 kts
+   end_route
+end_platform
+
+platform achilles WSF_PLATFORM
+   add processor track_mgr WSF_TRACK_PROCESSOR end_processor
+   add sensor GEOM_SENSOR WSF_GEOMETRIC_SENSOR
+      internal_link track_mgr
+      on
+      reports_location
+      maximum_range 50 nm
+      frame_time 1 sec
+   end_sensor
+
+   position 0n 0e altitude 20000 ft 
+   heading 0 deg
+   add mover WSF_AIR_MOVER end_mover
+   
+   add multiresolution_processor task_processor MR_TASK_PROCESSOR 
+      fidelity 1.0
+   end_multiresolution_processor
+end_platform

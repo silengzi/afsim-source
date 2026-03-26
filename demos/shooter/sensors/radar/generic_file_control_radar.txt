@@ -1,0 +1,63 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# made up fire control radar
+
+antenna_pattern GENERIC_FIRE_CONTROL_RADAR_ANTENNA_PATTERN
+  sine_pattern
+    azimuth_beamwidth           4.0 deg
+    elevation_beamwidth         4.0 deg
+    peak_gain           30 dB
+  end_sine_pattern
+end_antenna_pattern
+
+sensor GENERIC_FIRE_CONTROL_RADAR WSF_RADAR_SENSOR
+#  off                               # default
+   on
+  no_debug                          # default
+#  debug
+  slew_mode               azimuth_and_elevation
+  azimuth_slew_limits     -45.0 degrees  45 degrees
+  elevation_slew_limits   -45.0 degrees  45 degrees
+  scan_mode               azimuth_and_elevation
+  azimuth_scan_limits     -15 degrees  15 degrees
+  elevation_scan_limits   -15 degrees  15 degrees
+
+  minimum_range                 2  km
+  maximum_range                 90  km
+
+#  show_calibration_data             # display radar characteristics
+  frame_time                    1 sec
+
+  transmitter
+      antenna_pattern             GENERIC_FIRE_CONTROL_RADAR_ANTENNA_PATTERN
+      power                       250 kw
+      frequency                   3 ghz
+      pulse_repetition_frequency  250 hz
+      pulse_width		  8 usec
+  end_transmitter
+
+  receiver
+     antenna_pattern             GENERIC_FIRE_CONTROL_RADAR_ANTENNA_PATTERN
+     bandwidth                   1 mhz
+  end_receiver
+
+  azimuth_error_sigma           0.3 deg
+  elevation_error_sigma         0.3 deg
+  range_error_sigma             4 m
+
+    #-- Track Formation Commands
+  reports_bearing
+  reports_elevation
+  reports_location
+  reports_velocity
+  track_quality             1.0  # Perfect track quality
+  hits_to_establish_track   2 2  # 2 of last 3 scans to establish track
+  hits_to_maintain_track    1 2  # 1 of last 2 scans to maintain  track
+end_sensor
+

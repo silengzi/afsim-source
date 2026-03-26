@@ -1,0 +1,63 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform_type TBM_TARGET WSF_PLATFORM
+   icon Bullseye
+end_platform_type
+
+platform tbm_target01 TBM_TARGET
+   side blue
+   position 39:32:48.50n 104:55:20.68w
+end_platform
+
+platform tbm_launcher_vehicle_1 TBM_LAUNCHER_VEHICLE
+   side red
+   icon tbm_launcher_icon
+   heading 317 deg
+   commander SELF
+   
+   processor launch_ssm_processor
+      script_variables
+         #TIME_TO_LAUNCH = 180 ; // sim time in seconds you want it to launch
+         #LAUNCH_RANDOM = 1;     // uncomment this if you want to randomize the launch time
+         #MIN_TIME      = 10;    // minimum random launch time for this weapon
+         #MAX_TIME      = 500;   // maximum random launch time for this weapon
+      end_script_variables
+   end_processor
+   
+   route
+      position 45:19:40.71n 121:54:36.17w altitude 3.00 ft msl speed 40 kts
+      position 45:20:02.91n 121:55:05.58w radial_acceleration 0.134793 g
+      position 45:20:26.58n 121:55:56.90w
+      position 45:20:44.29n 121:57:14.84w
+      position 45:21:22.85n 121:59:14.43w
+      position 45:22:11.45n 122:00:45.83w
+      position 45:22:36.26n 122:02:12.60w
+      position 45:22:47.25n 122:02:56.33w
+      position 45:22:45.73n 122:03:46.75w
+      position 45:22:35.79n 122:04:31.42w speed 40 kts
+      position 45:22:57.45n 122:05:11.23w speed 5 kts radial_acceleration 0.034793 g
+         pause_time 30 min
+      position 45:22:35.79n 122:04:31.42w speed 40 kts
+      position 45:22:45.73n 122:03:46.75w
+      position 45:22:47.25n 122:02:56.33w
+      position 45:22:36.26n 122:02:12.60w
+      position 45:22:11.45n 122:00:45.83w
+      position 45:21:22.85n 121:59:14.43w
+      position 45:20:44.29n 121:57:14.84w
+      position 45:20:26.58n 121:55:56.90w
+      position 45:20:02.91n 121:55:05.58w
+      position 45:19:40.71n 121:54:36.17w speed 1 knots
+         remove
+   end_route
+
+   track
+      platform tbm_target01
+   end_track
+end_platform

@@ -1,0 +1,252 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once platforms/tapsatellite.txt
+
+include_once scripts/createsat.txt
+
+# The schedule object represents a certain schedule for visiting the target objects.
+script_struct Schedule
+   script_variables
+      double        mDeltaV   = 0.0;   # total schedule delta V
+      double        mDeltaT   = 0.0;   # total schedule time to completion
+      int           mNSched   = 0;     # the current number of scheduled stops
+      Array<int>    mRoute    = {};    # the target numbers of each target visited
+      Array<double> mIntTimes = {};    # the time of the intercept burn
+      Array<double> mOpTimes  = {};    # the time of the operation for each target
+      Array<double> mStepDV   = {};    # the cumulative delta V for each step
+      Vec3          mLocation = {};    # the location of the satellite after latest maneuver
+      Vec3          mVelocity = {};    # the velocity of the satellite after latest maneuver
+   end_script_variables
+
+   # Create the initial route. The route will begin with all stops represented,
+   # and will used mNSched to indicate how many entries in mRoute have actually
+   # been scheduled.
+   script void Init(int aTotal, WsfPlatform aProto)
+      mDeltaV = 0.0;
+      mDeltaT = 0.0;
+      mNSched = 0;
+      for (int i = 0; i < aTotal; i = i + 1)
+      {
+         mRoute.PushBack(i);
+      }
+      mLocation = aProto.LocationECI();
+      mVelocity = aProto.VelocityECI();
+      mStepDV.PushBack(0.0);
+   end_script
+
+   # Add given stop to schedule.
+   script void AddStop(int aWhich)
+      int w = aWhich + mNSched;
+      int temp = mRoute[mNSched];
+      mRoute[mNSched] = mRoute[w];
+      mRoute[w] = temp;
+      mNSched += 1;
+   end_script
+
+   script int BranchCount()
+      return mRoute.Size() - mNSched;
+   end_script
+
+   script int Length()
+      return mNSched;
+   end_script
+
+   script bool Complete()
+      return mNSched == mRoute.Size();
+   end_script
+
+   # Returns the index of the final target so far scheduled.
+   script int FinalTarget()
+      if (mNSched > 0)
+      {
+         return mRoute[mNSched - 1];
+      }
+      else
+      {
+         return -1;
+      }
+   end_script
+
+   script int Get(int aIndex)
+      return mRoute[aIndex];
+   end_script
+
+   script double DeltaT()
+      return mDeltaT;
+   end_script
+
+   script double DeltaV()
+      return mDeltaV;
+   end_script
+
+   script void AddToDeltaT(double aDelta)
+      mDeltaT += aDelta;
+   end_script
+
+   script void AddToDeltaV(double aDelta)
+      mDeltaV += aDelta;
+   end_script
+
+   script void SetRV(Vec3 aLocationECI, Vec3 aVelocityECI)
+      mLocation = aLocationECI;
+      mVelocity = aVelocityECI;
+   end_script
+
+   script Vec3 Location()
+      return mLocation;
+   end_script
+
+   script Vec3 Velocity()
+      return mVelocity;
+   end_script
+
+   script void AddOperationTime(double aTime)
+      mOpTimes.PushBack(aTime);
+   end_script
+
+   script void AddIntTime(double aTime)
+      mIntTimes.PushBack(aTime);
+   end_script
+
+   script double OperationTime(int aWhich)
+      return mOpTimes[aWhich];
+   end_script
+
+   script void SetStepDeltaV(double aDeltaV)
+      mStepDV.PushBack(aDeltaV);
+   end_script
+
+   script double StepDeltaV(int aIndex)
+      return mStepDV[aIndex];
+   end_script
+
+   # Update the schedule based on the results of the maneuver computation.
+   script void UpdateFromComputation(double aDeltaT, double aDeltaV, double aBaseTime)
+      AddIntTime(DeltaT() + aBaseTime);
+      AddToDeltaT(aDeltaT);
+      AddToDeltaV(aDeltaV);
+      SetStepDeltaV(DeltaV());
+      AddOperationTime(DeltaT() + aBaseTime);
+   end_script
+
+   # Print out a text description of the current route.
+   script string RouteText()
+      string retval;
+      for (int i = 0; i < mNSched; i += 1)
+      {
+         retval = retval + (string)mRoute[i];
+         if (i < mNSched - 1)
+         {
+            retval += " -> ";
+         }
+      }
+      return retval;
+   end_script
+
+   script string InterceptTimes()
+      string retval;
+      for (int i = 0; i < mNSched; i += 1)
+      {
+         retval = retval + (string)mIntTimes[i];
+         if (i < mNSched - 1)
+         {
+            retval += " -> ";
+         }
+      }
+      return retval;
+   end_script
+
+   script string OperationTimes()
+      string retval;
+      for (int i = 0; i < mNSched; i += 1)
+      {
+         retval = retval + (string)mOpTimes[i];
+         if (i < mNSched - 1)
+         {
+            retval += " -> ";
+         }
+      }
+      return retval;
+   end_script
+
+   # Print out detailed output of schedule. Useful for comparing all possible schedules.
+   script void DetailedOutput(bool first)
+      if (!first)
+      {
+         writeln("    ,");
+      }
+      writeln("    [");
+      writeln("      [", mIntTimes[0], ", ", mStepDV[0], ", -1],");
+      for (int i = 0; i < mNSched; i += 1)
+      {
+         string tail = "]";
+         if (i < mNSched - 1)
+         {
+            tail += ",";
+         }
+         writeln("      [", mOpTimes[i], ", ", mStepDV[i + 1], ", ", mRoute[i], tail);
+      }
+      writeln("    ]");
+   end_script
+
+end_script_struct // Schedule
+
+script Schedule CloneSchedule(Schedule aSched)
+   Schedule retval = {};
+   retval->mDeltaV = aSched->mDeltaV;
+   retval->mDeltaT = aSched->mDeltaT;
+   retval->mNSched = aSched->mNSched;
+
+   Array<int> ref  = aSched->mRoute;
+   Array<int> sRef = retval->mRoute;
+   for (int i = 0; i < ref.Size(); i += 1)
+   {
+      sRef.PushBack(ref[i]);
+   }
+
+   Array<double> dops  = aSched->mOpTimes;
+   Array<double> sDops = retval->mOpTimes;
+   for (int i = 0; i < dops.Size(); i += 1)
+   {
+      sDops.PushBack(dops[i]);
+   }
+
+   Array<double> ints  = aSched->mIntTimes;
+   Array<double> sInts = retval->mIntTimes;
+   for (int i = 0; i < ints.Size(); i += 1)
+   {
+      sInts.PushBack(ints[i]);
+   }
+
+   Array<double> dvs = aSched->mStepDV;
+   Array<double> sDvs = retval->mStepDV;
+   for (int i = 0; i < dvs.Size(); i += 1)
+   {
+      sDvs.PushBack(dvs[i]);
+   }
+
+   retval->mLocation = aSched->mLocation;
+   retval->mVelocity = aSched->mVelocity;
+
+   return retval;
+end_script
+
+script Array<Schedule> BranchSchedule(Schedule aSched)
+   Array<Schedule> retval = {};
+
+   for (int i = 0; i < aSched->BranchCount(); i += 1)
+   {
+      Schedule added = CloneSchedule(aSched);
+      added->AddStop(i);
+      retval.PushBack(added);
+   }
+
+   return retval;
+end_script

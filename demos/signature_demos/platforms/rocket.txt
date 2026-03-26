@@ -1,0 +1,253 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+include_once movers/ssm_base.txt
+include_once signatures/rocket_optical_signature.txt
+
+script_variables
+   int gTEST_COUNT = 0;
+   int gFAIL_COUNT = 0;
+end_script_variables
+
+script void SamplePoint(WsfPlatform aPlatform,
+                        double aViewAz,
+                        double aViewEl)
+   double r =  10000.0;
+   double z  = - Math.Sin(aViewEl) * r;
+   double xy = Math.Cos(aViewEl) * r;
+   double x =  Math.Cos(aViewAz) * xy;
+   double y =  Math.Sin(aViewAz) * xy;
+   Vec3 obsLocECS = Vec3.Construct(x, y, z);
+   Vec3 obsLocWCS = aPlatform.ConvertECSToWCS(obsLocECS);
+   WsfGeoPoint obsLoc = WsfGeoPoint.ConstructWCS(obsLocWCS);
+   double az = aPlatform.RelativeAzimuthOf(obsLoc);
+   double el = aPlatform.RelativeElevationOf(obsLoc);
+   if (Math.Fabs(az) < 1.0E-4) az = 0.0;
+   if (Math.Fabs(el) < 1.0E-4) el = 0.0;
+   string strAzEl = Format.Fixed(az, 1) + "/" + Format.Fixed(el, 1);
+   writeln(" Az/El: ", strAzEl.Pad(10),
+         ", Area: ", Format.Fixed(aPlatform.ProjectedArea(obsLoc, 1.0), 2).Pad(7), " m2",
+         ", Vis: ", Format.Scientific(aPlatform.RadiantIntensity(obsLoc, 1.0, "visual"), 4), " W/sr",
+         ", SW: ", Format.Scientific(aPlatform.RadiantIntensity(obsLoc, 1.0, "short"), 4), " W/sr",
+         ", MW: ", Format.Scientific(aPlatform.RadiantIntensity(obsLoc, 1.0, "medium"), 4), " W/sr",
+         ", LW: ", Format.Scientific(aPlatform.RadiantIntensity(obsLoc, 1.0, "long"), 4), " W/sr");
+end_script
+
+platform_type ROCKET WSF_PLATFORM
+   icon Missile
+   optical_signature ROCKET_OPTICAL_SIG
+
+   # Switch the signature stage based on what stage separated
+   script void on_stage_separation(int aStage)
+      if (aStage == 1) SetOpticalSigState("STAGE_2_RV");
+      if (aStage == 2) SetOpticalSigState("RV_ONLY");
+   end_script
+
+   mover SSM_MOVER_BASE
+      # Treat this as a simple launch vehicle and not a weapon (no 'weapon_effects' or fuse)
+      check_for_ground_impact
+
+      stage 1
+         # Add some coast between stages so we can see the plume change
+         pre_separation_coast_time 4.0 sec
+      end_stage
+   end_mover
+
+   processor guidance SSM_GUIDANCE_BASE
+      phase ASCENT
+         guidance_delay 5000.0 sec
+      end_phase
+   end_processor
+   script void DoSample()
+      writeln("T=", TIME_NOW, " (", TIME_NOW - CreationTime(), ") ", Name(),
+              ", Altitude = ", Format.Fixed(Altitude(), 1), " m", ", Mach = ", Format.Fixed(MachNumber(), 2),
+              ", FPA = ", Format.Fixed(Pitch(), 2), " deg");
+      SamplePoint(PLATFORM, 0.0, 0.0);
+      SamplePoint(PLATFORM, 90.0, 0.0);
+      SamplePoint(PLATFORM, 180.0, 0.0);
+   end_script
+
+   script void TestArea(double aViewAngle,
+                        double aExpectedArea)
+      gTEST_COUNT = gTEST_COUNT + 1;
+      double r = 10000.0;
+      Vec3 obsLocECS = Vec3.Construct(r * Math.Cos(aViewAngle), r * Math.Sin(aViewAngle), 0.0);
+      Vec3 obsLocWCS = ConvertECSToWCS(obsLocECS);
+      WsfGeoPoint obsLoc = WsfGeoPoint.ConstructWCS(obsLocWCS);
+      double area = ProjectedArea(obsLoc, 1.0);
+      if (Math.Fabs(area - aExpectedArea) > 0.01)
+      {
+         gFAIL_COUNT = gFAIL_COUNT + 1;
+         writeln("-FAIL- T=", TIME_NOW, " (", TIME_NOW - CreationTime(), ")",
+                 ", angle=", aViewAngle, " area=", area, ", expected=", aExpectedArea);
+      }
+   end_script
+
+   script void TestAreas(double aExpected_0,
+                         double aExpected_90,
+                         double aExpected_180)
+      TestArea(0.0, aExpected_0);
+      TestArea(90.0, aExpected_90);
+      TestArea(180.0, aExpected_180); # porjected area is the same for 0 deg and 180 deg view angles
+   end_script
+
+   script_variables
+   # head on = 0 deg, cRV_0 < cSTAGE_x_PLUME_0 (since the plume has a larger diameter than the RV)
+      double cRV_0 = Math.PI() * 0.7 * 0.7;            # head on to RV cone: A_circle =  pi*r^2 = pi*(0.7^2)
+      double cRV_90 = 1.0 * 0.7;                       # RV @ 90 deg: 2*A_triangle = length*radius = 1.0*0.7
+      double cSTAGE_12_90 = (2.0 * 0.7) * 10.0;        # Stage 1+2 cylinder @ 90 deg: A_rect = 2*r*h = 2*0.7*10.0
+      double cSTAGE_2_90  = (2.0 * 0.7) * 4.0;         # Stage 2 cylinder @ 90 deg: A_rect = 2*r*h = 2*0.7*4.0
+      double cSTAGE_1_PLUME_0 = Math.PI() * 1.0 * 1.0; # head on to plume: A_circle =  pi*r^2 = pi*(0.1^2)
+      double cSTAGE_1_PLUME_90 = (2.0 * 1.0)* 50.0;    # Plume @ 90 deg: A_rect = 2*r*h = 2*1.0*50.0
+      double cSTAGE_2_PLUME_0  = cSTAGE_1_PLUME_0;     # Plume is same dimensions for stage 1 and 2
+      double cSTAGE_2_PLUME_90 = cSTAGE_1_PLUME_90;
+   end_script_variables
+
+   # Midway through 1st stage (0-90)
+   execute at_time  45 sec relative
+      DoSample();
+      
+      # draw point midway through 1st stage
+      WsfDraw mid1st = WsfDraw();
+      mid1st.SetId("mid1st");
+      mid1st.SetPointSize(10);
+      mid1st.BeginPoints();
+      mid1st.Vertex(PLATFORM.Location());
+      mid1st.End();
+      
+      mid1st.BeginText("mid 1st stage");
+      mid1st.Vertex(PLATFORM.Location());
+      mid1st.End();
+   end_execute
+   execute at_time  45 sec relative
+     TestAreas(cSTAGE_1_PLUME_0,
+               cRV_90 + cSTAGE_12_90 + cSTAGE_1_PLUME_90,
+               cSTAGE_1_PLUME_0);
+   end_execute
+
+   # Midway through pre-separation coast (90-94)
+   execute at_time  92 sec relative
+      DoSample();
+      
+      # draw point midway through pre-separation coast
+      WsfDraw midPreSepCoast = WsfDraw();
+      midPreSepCoast.SetId("midPreSepCoast");
+      midPreSepCoast.SetPointSize(10);
+      midPreSepCoast.BeginPoints();
+      midPreSepCoast.Vertex(PLATFORM.Location());
+      midPreSepCoast.End();
+      
+      midPreSepCoast.BeginText("mid pre-separation coast");
+      midPreSepCoast.Vertex(PLATFORM.Location());
+      midPreSepCoast.End();
+   end_execute
+   execute at_time  92 sec relative
+     TestAreas(cRV_0,
+               cRV_90 + cSTAGE_12_90,
+               cRV_0);
+   end_execute
+
+   # Midway through 2nd stage (94-130)
+   execute at_time 117 sec relative
+      DoSample();
+      
+      # draw point midway through 2nd stage
+      WsfDraw mid2ndDraw = WsfDraw();
+      mid2ndDraw.SetId("mid2nd");
+      mid2ndDraw.SetPointSize(10);
+      mid2ndDraw.BeginPoints();
+      mid2ndDraw.Vertex(PLATFORM.Location());
+      mid2ndDraw.End();
+      
+      mid2ndDraw.BeginText("mid 2nd stage");
+      mid2ndDraw.Vertex(PLATFORM.Location());
+      mid2ndDraw.End();
+   end_execute
+   execute at_time 117 sec relative
+     TestAreas(cSTAGE_2_PLUME_0,
+               cRV_90 + cSTAGE_2_90 + cSTAGE_2_PLUME_90,
+               cSTAGE_2_PLUME_0);
+   end_execute
+
+   # After burnout (130)
+   execute at_time 140 sec relative
+      DoSample();
+      
+      # draw the post burnout point
+      WsfDraw postBurnoutDraw = WsfDraw();
+      postBurnoutDraw.SetId("postburnout");
+      postBurnoutDraw.SetPointSize(10);
+      postBurnoutDraw.BeginPoints();
+      postBurnoutDraw.Vertex(PLATFORM.Location());
+      postBurnoutDraw.End();
+      
+      postBurnoutDraw.BeginText("post burnout");
+      postBurnoutDraw.Vertex(PLATFORM.Location());
+      postBurnoutDraw.End();
+   end_execute
+   
+   execute at_time 140 sec relative
+     TestAreas(cRV_0,
+               cRV_90,
+               cRV_0);
+   end_execute
+
+   # Near apogee (FPA ~ 0)
+   execute at_time 480 sec relative
+      DoSample();
+      
+      # draw the apogee point
+      WsfDraw apogeeDraw = WsfDraw();
+      apogeeDraw.SetId("apogee");
+      apogeeDraw.SetColor(0.0,1.0,0.0);
+      apogeeDraw.SetPointSize(10);
+      apogeeDraw.BeginPoints();
+      apogeeDraw.Vertex(PLATFORM.Location());
+      apogeeDraw.End();
+      
+      apogeeDraw.BeginText("apogee");
+      apogeeDraw.Vertex(PLATFORM.Location());
+      apogeeDraw.End();
+   end_execute
+
+   # Coming back in to the atmosphere (Altitude ~83 KM)
+   execute at_time 830 sec relative
+      DoSample();
+      
+      # draw the atmospheric reentry point
+      WsfDraw reentryDraw = WsfDraw();
+      reentryDraw.SetId("reentry");
+      reentryDraw.SetPointSize(10);
+      reentryDraw.BeginPoints();
+      reentryDraw.Vertex(PLATFORM.Location());
+      reentryDraw.End();
+      
+      reentryDraw.BeginText("reentry");
+      reentryDraw.Vertex(PLATFORM.Location());
+      reentryDraw.End();
+   end_execute
+
+   # Near impact
+   execute at_time 880 sec relative
+      DoSample();
+      
+      # draw the near impact point
+      WsfDraw impactDraw = WsfDraw();
+      impactDraw.SetId("impact");
+      impactDraw.SetPointSize(10);
+      impactDraw.BeginPoints();
+      impactDraw.Vertex(PLATFORM.Location());
+      impactDraw.End();
+      
+      impactDraw.BeginText("impact");
+      impactDraw.Vertex(PLATFORM.Location());
+      impactDraw.End();
+   end_execute
+end_platform_type

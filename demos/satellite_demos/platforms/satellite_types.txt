@@ -1,0 +1,183 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform_type SPACE_STATION WSF_PLATFORM
+  side yellow
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type NOAA WSF_PLATFORM
+  side light_yellow
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type BEIDOU WSF_PLATFORM
+  side green
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type EDUCATION WSF_PLATFORM
+  side light_green
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type ENGINEERING WSF_PLATFORM
+  side yellow
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GALILEO WSF_PLATFORM
+  side orange
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GEO WSF_PLATFORM
+  side blue
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GLONASS WSF_PLATFORM
+  side red
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GLOBALSTAR WSF_PLATFORM
+  side blue
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GOES WSF_PLATFORM
+  side orange
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type GPS WSF_PLATFORM
+  side green
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type INTELSAT WSF_PLATFORM
+  side pink
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type IRIDIUM WSF_PLATFORM
+  side brown
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type MOLNIYA WSF_PLATFORM
+  side magenta
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type RUSSIA_LEO_NAV WSF_PLATFORM
+  side red
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type NAVY_NAV WSF_PLATFORM
+  side blue
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type ORBCOMM WSF_PLATFORM
+  side light_blue
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type RESOURCE WSF_PLATFORM
+  side light_green
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type SEARCH_RESCUE WSF_PLATFORM
+  side yellow
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type SCIENCE WSF_PLATFORM
+  side violet
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type TDRSS WSF_PLATFORM
+  side gray
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type WEATHER WSF_PLATFORM
+  side violet
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type X-COMM WSF_PLATFORM
+  side brown
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type AMATEUR WSF_PLATFORM
+  side gray
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+
+platform_type CUBESAT WSF_PLATFORM
+  side light_blue
+  icon satellite
+  mover WSF_NORAD_SPACE_MOVER
+  end_mover
+end_platform_type
+

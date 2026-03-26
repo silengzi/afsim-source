@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#           BLUE_SR_SAM - Simplified (no uplink, no seeker, guide-to-truth)
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# This is a 'simplified' BLUE_SR_SAM (guide-to-truth, no uplink, no seeker). It uses
+# the base BLUE_SR_SAM from blue_sr_sam_common.txt
+#
+###############################################################################
+
+include blue_sr_sam_common.txt
+
+###############################################################################
+
+platform_type BLUE_SR_SAM BLUE_SR_SAM_BASE
+end_platform_type

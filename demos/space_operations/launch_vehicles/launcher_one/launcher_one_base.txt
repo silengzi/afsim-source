@@ -1,0 +1,194 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+# PRELIMINARY!!!!!!!! (READ NOTES BELOW!)
+#
+#                          Virgin Orbit LauncherOne
+#
+# This file defines the LAUNCHER_ONE_BASE, which can be used as a base for specific payloads.
+# Include this definition and derive a specific type as follows:
+#
+#      include once launcher_one_base.txt
+#
+#      platform_type LAUNCHER_ONE_400KG LAUNCHER_ONE_BASE
+#         edit mover
+#            stage 5
+#               total_mass 400 kg        # 400 kg payload
+#            end_stage
+#         end_mover
+#      end_platform_type
+#
+#==============================================================================
+#
+# From http://space.skyrocket.de/doc_lau/launcherone.htm
+#  After lift-off with the carrier aircraft, LauncherOne will be released from the airplane at
+#  an altitude of approximately 15 km above mean sea level. LauncherOne will free fall for
+#  approximately four seconds before the first stage ignites. The two stages operate in sequence,
+#  with the potential for the second stage to relight, and the payload is delivered to a designated
+#  low-earth orbit.
+#
+#==============================================================================
+#
+# NOTES:
+#
+# There is VIRTUALY NOTHING known about empty mass, fuel mass or burn time or anything else
+# we really need! I was unable to achieve the altitudes they quote with what I used below.
+#
+# Anyhow, I will try my best and attempt to derive some reasonable data as follows:
+#
+# For the first stage:
+#   The diameter is given as 1.8 meters. From the drawing, the ratio of the length to diameter
+#   is about 5.8, so the length is about 1.8 * 5.8 = 10.44 m and the volume is 26.57 m^3
+#   We'll call it 26 m^3
+#
+# For the second stage:
+#   The diameter is given as 1.5 meters. From the drawing, the ratio of the length to diameter
+#   is about 1.7, so the length is about 1.7 * 1.5 = 2.55 m, and the volume is 6.00 m^3
+#
+# The diameter of the nozzle appears to be about 2/3 of the first stage diameter so the area
+# would be about 1.88 m^2
+#
+# RP-1 has a density of about 810 kg/m^3 (0.81 g/ml)
+# LOX  has a density of about 1411 kg/m^3 (1.1141 g/ml)
+# Typical mixture is 2.56 parts LOX with 1.00 parts RP-1
+#
+# The combined density is (2.56 * 1,411 + 1.0 * 810) / (2.56 + 1.0)
+#                         (3612.16 + 810) / 3.56 = 4422.16 / 3.56 = ~1242 kg/m^3
+#
+# For the first stage:
+#   Assuming 0.75 of the volume is fuel, 26 m^3 * 0.75 * 1,242 kg/m^3 ~= 24,220 kg
+#   Assuming 0.80 of the volume is fuel, 26 m^3 * 0.80 * 1,242 kg/m^3 ~= 25,830 kg
+#   Assuming 0.85 of the volume is fuel, 26 m^3 * 0.85 * 1,242 kg/m^3 ~= 27,450 kg
+#   Assuming 0.90 of the volume is fuel, 26 m^3 * 0.90 * 1,242 kg/m^3 ~= 29,060 kg
+#   Assume a structure and engine of 1,000 kg.
+#
+# For the second stage:
+#   Assuming 0.75 of the volume is fuel, 6 m^3 * 0.75 * 1,242 kg/m^3 ~= 5,590 kg
+#   Assuming 0.80 of the volume is fuel, 6 m^3 * 0.80 * 1,242 kg/m^3 ~= 5,960 kg
+#   Assuming 0.85 of the volume is fuel, 6 m^3 * 0.85 * 1,242 kg/m^3 ~= 6,334 kg
+#   Assuming 0.90 of the volume is fuel, 6 m^3 * 0.90 * 1,242 kg/m^3 ~= 6,710 kg
+
+aero LAUNCHER_ONE_AERO WSF_AERO
+   reference_area 2.63 m^2   # diameter 72 inches / 1.8(3) m d
+
+   # Reasonable data according to Dan Schueths
+   mach_and_cd 0.1  0.15      # 0.12-0.18
+   mach_and_cd 0.9  0.23
+   mach_and_cd 0.98 0.4
+   mach_and_cd 1.0  3.2
+   mach_and_cd 1.2  2.0
+   mach_and_cd 5.0  0.21
+
+   cl_max 10
+end_aero
+
+platform_type LAUNCHER_ONE_BASE WSF_PLATFORM
+
+    mover WSF_GUIDED_MOVER
+
+       # ejectables are the interstage between stages and payload shroud.
+
+       integration_timestep 0.01 sec
+       update_interval      0.01 sec
+       coordinate_frame     eci
+       check_for_ground_impact          # Don't require a fuse on the platform
+
+       # Dummy stage for the fall after release
+       stage 1
+          aero LAUNCHER_ONE_AERO
+          total_mass                0.0 kg
+          pre_separation_coast_time 4.0 sec
+       end_stage
+
+       # NewtonThree engine
+       # diameter 1.8 m / 72 in
+       stage 2
+          aero LAUNCHER_ONE_AERO
+
+          empty_mass               2000 kg
+          fuel_mass                27500 kg    # 80% of volume is fuel
+
+          vacuum_thrust            327000 nt
+          vacuum_specific_impulse  311 sec
+          nozzle_exit_area         1.88 m^2
+
+          thrust_vectoring_angle_limit  10 deg
+          lateral_thrust_gain      100.0
+       end_stage
+
+       # Interstage
+       stage 3
+          aero none
+          total_mass               500 kg
+          pre_separation_coast_time 2.0 sec
+       end_stage
+
+       # NewtonFour engine
+       # diameter 1.5 m/ 59 in
+       stage 4
+          aero none
+
+          empty_mass               750 kg
+          fuel_mass                6000 kg   # 80% of the volume is fuel
+
+          # Use unreferenced thrust and specific_impulse commands when both aren't given
+          thrust                   22000 nt
+          specific_impulse         311 sec
+
+          thrust_vectoring_angle_limit  10 deg
+          lateral_thrust_gain      100.0
+       end_stage
+
+       stage 5
+          aero none
+          total_mass 300 kg
+       end_stage
+
+    end_mover
+
+    processor guidance WSF_GUIDANCE_COMPUTER
+
+       phase DROP
+          program NULL_PROGRAM end_program
+          next_phase PITCH_UP when phase_time >= 4 sec
+       end_phase
+
+       phase PITCH_UP
+          program FLIGHT_PATH_ANGLE_PROGRAM
+             # flight_path_angle is gotten from the launch_computer.
+             pitch_rate 0.15 deg/sec
+          end_program
+          next_phase ORBIT_INSERTION when program FLIGHT_PATH_ANGLE_PROGRAM complete
+       end_phase
+
+       phase ORBIT_INSERTION
+          program ORBIT_INSERTION_PROGRAM
+             #show_orbit true
+          end_program
+          next_phase IN_ORBIT when program ORBIT_INSERTION_PROGRAM complete
+       end_phase
+
+       phase IN_ORBIT
+          on_entry
+             #writeln("T=", TIME_NOW, " start insertion, alt=", PLATFORM.Altitude(), ", speed=", PLATFORM.Speed(), ", pitch=", PLATFORM.Pitch());
+             SetCommandedThrottle(0.0);
+          end_on_entry
+          program NULL_PROGRAM end_program
+       end_phase
+    end_processor
+
+end_platform_type
+
+weapon LAUNCHER_ONE_BASE WSF_EXPLICIT_WEAPON
+   launched_platform_type LAUNCHER_ONE_BASE
+end_weapon
+
+

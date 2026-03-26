@@ -1,0 +1,995 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#always requires a commander
+#bids on & performs "pursue-target" jobs
+#does not create any jobs
+
+
+include_once processors/ripr_agents/common/common_platform_script.txt
+include_once weapons/sam/sam_launch_computer.txt
+
+
+processor AISS-thinker WSF_RIPR_PROCESSOR
+
+   #debug
+   #script_debug_writes on
+   script_debug_writes off
+
+   update_interval 1.0 sec
+
+   script_variables
+
+      int     mMaxJobChannels           = 1;
+      int     mSalvoSize                = 2;
+      string  mTargetTrackingSensor     = "ttr";
+      string  mTTSensorMode             = "TRACK";
+      string  mAcqSensorMode            = "ACQUIRE";
+      string  mAcquisitionSensorType    = "ACQ_RADAR";
+      string  mAcquisitionCategory      = "ACQUISITION";
+      string  mTaskManagerName          = "task_mgr";
+      string  mWeaponNameOnSubordinates = "sam";
+
+      string  mEnvelopeName_Outer       = "full_kinematic";
+      string  mEnvelopeName_Inner       = "quarter_kinematic";
+
+      double  mAcquireTimeout           = 15.0;  //seconds
+      double  mTrackingTimeout          = 15.0;  //seconds
+      double  mRelativeOffsetLimit      = 90.0;  //degrees
+      double  mRelativeHeadingLimit     = 90.0;  //degrees
+      double  mTrackerAngleAdjustLimit  =  0.0;  //degrees (more if target radar can rotate)
+
+      double  mDeadZoneRange            = 1852;  //arbitrary: in meters (1852 meters == 1 nautical mile)
+                                                   //go silent when threats are in the "dead zone" inner circle
+      double  mNeededAcquisitionTrackQuality = 0.75;
+      double  mNeededTargetingTrackQuality   = 0.95;
+
+      string mAcqTrkTaskStr             = "AcqTrk";
+      string mCueTaskStr                = "Cue";
+
+      Map<string, double> mStateDurations         = Map<string, double>();  //the minimum time of evaluation for each state
+      mStateDurations.Set( "DETECTED",       1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "TRY_ACQUIRE",    1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "ACQUIRE",        1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "TRY_TRACK",      1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "TRACK",          1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "TRY_FIRE",       1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "FIRE",           1.0 ); //arbitrary: seconds
+      mStateDurations.Set( "WEAPONS_ACTIVE", 1.0 ); //arbitrary: seconds
+
+      Map<int, string>  mJobCurrentState        = Map<int, string>();         //keeps each jobs current engagement state
+      Map<int, double>  mJobStateTimes          = Map<int, double>();         //records when each job entered its current state
+
+      WsfTrack          mLastCuedTrack;                                       // stores the last cued track
+      Map<WsfTrackId, double> mLastCueStartTime = Map<WsfTrackId, double>();  // records the last time a pedestal cue was envoked
+
+      Array<int>        mChannelJobs            = Array<int>();               //array index is job channel, array value is job id
+      Array<WsfTrackId> mChannelTracks          = Array<WsfTrackId>();        //array index is job channel, array value is trackId
+      int               mCurrentBiddingChannel  = -1;
+
+      WsfDraw           draw = WsfDraw();
+   end_script_variables
+
+   on_initialize
+
+      SetNumJobChannels( mMaxJobChannels );
+      writeln_d("AISS on_init - Starting multi channel guy ", PLATFORM.Name(), " with ", GetNumJobChannels(), " total job channels" );
+
+      for (int i = 0; i < GetNumJobChannels(); i = i + 1)
+      {
+         mChannelJobs.PushBack( -1 );
+
+         WsfTrackId tempTrackId = WsfTrackId();
+         mChannelTracks.PushBack( tempTrackId );
+      }
+   end_on_initialize
+
+   // ----------------------------------------
+   // return the task manager object
+   script WsfTaskManager GetTaskManager()
+      static WsfTaskManager taskMgr;
+      if( !taskMgr.IsValid() )
+      {
+         taskMgr = (WsfTaskManager)PLATFORM.Processor(mTaskManagerName);
+      }
+      return taskMgr;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Get the track object to from the corresponding job
+   script WsfTrack GetJobsTrack(WsfRIPRJob aJob)
+
+      string name = (string)aJob.GetData("targetTrackName");
+     #extern WsfTrack GetTrackByName(WsfPlatform, string);
+      WsfTrack track = GetTrackByName(PLATFORM, name);
+      return track;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Change the current state
+   script bool TransitionEngagementState(int aJobId, string aDesiredState)
+      string currentState = mJobCurrentState.Get(aJobId);
+
+      double duration = TIME_NOW - mJobStateTimes.Get(aJobId);
+      double required = mStateDurations.Get(currentState);
+      if (duration < required)
+      {
+         return false;
+      }
+
+      mJobCurrentState.Set(aJobId, aDesiredState);
+      mJobStateTimes.Set(aJobId, TIME_NOW);
+
+      string comment = "Job " + (string)aJobId + ", " + PLATFORM.Name() + " transition -> " + aDesiredState;
+      PLATFORM.Comment(comment);
+      writeln_d(comment, ",  TIME = ", TIME_NOW);
+
+      return true;
+   end_script
+
+   // ----------------------------------------
+   // Return the track quality from sensor tracks associated with the given track
+   script double SensorTrackQuality(WsfTrack track)
+
+      if( !track.IsValid() )
+      {
+         return 0.0;
+      }
+
+      WsfLocalTrack finalTrack;
+      WsfLocalTrackList localTrackList = PLATFORM.MasterTrackList();
+      if( localTrackList.Count() > 0 )
+      {
+         finalTrack = localTrackList.FindTrack( track.TrackId() );
+      }
+
+      if( finalTrack.IsValid() )
+      {
+         double quality = 0.0;
+         for (int trackIndex = 0; trackIndex < finalTrack.RawTrackCount(); trackIndex = trackIndex + 1)
+         {
+            WsfTrack rawTrack = finalTrack.RawTrack(trackIndex);
+            double rtQuality = rawTrack.TrackQuality();
+
+            // Indirect reports will be assigned a maximum quality of 0.5
+            if (rawTrack.SensorType() == "")
+            {
+               rtQuality = MATH.Min(0.5, rtQuality);
+            }
+
+            quality = MATH.Max(quality, rtQuality);
+         }
+
+         return quality;
+      }
+
+      return track.TrackQuality();
+   end_script
+
+   // ----------------------------------------
+   // Returns true if altitude data is known.
+   script bool AltitudeKnown(WsfTrack target)                     // height data is available
+      return (target.LocationValid() || target.ElevationValid());
+   end_script
+
+   // ----------------------------------------
+   // Returns true if intercept results are known
+   // (i.e. weapons have terminated for this TRACK)
+   script bool InterceptResultsKnown(WsfTrack target)
+      return (GetTaskManager().TimeSinceWeaponLastTerminatedFor(target.TrackId()) > 0.0);
+   end_script
+
+   // ----------------------------------------
+   // Return 'true' if the target is in the 'dead-zone'
+   script bool InDeadZone( WsfTrack track )
+      return ( PLATFORM.SlantRangeTo(track) < mDeadZoneRange );
+   end_script
+
+   // ----------------------------------------
+   // Returns true if the given track is inside the given intercept envelope using the launch computer.
+   script bool InInterceptEnvelopeOf( WsfTrack track, string aEnvelopeName )
+     #extern bool SAM_LaunchComputer(WsfTrack, WsfPlatform, string, double);
+
+      return SAM_LaunchComputer(track, PLATFORM, aEnvelopeName, 0.0);
+   end_script
+
+   // ----------------------------------------
+   // returns true if the given track has a bearing in the direction of the platform
+   script bool TrackIsBearingTowardPlatform( WsfTrack target )
+
+//       writeln_d( "AISS TrackIsBearingTowardPlatform() - track=", target.TargetName(), " | bearing=", target.RelativeBearingTo(PLATFORM) );
+      return ( target.RelativeBearingTo(PLATFORM) < 90.0 &&
+               target.RelativeBearingTo(PLATFORM) > -90.0 );
+
+   end_script
+
+   // ----------------------------------------
+   // returns true if the given track is inside an appropriate envelope
+   script bool IsInEnvelope( WsfTrack target )
+      if( GetTaskManager().HaveFiredAt( target.TrackId() ) )
+      {
+         writeln_d( "AISS IsInEnvelope() - target=", target.TargetName(), " | InnerEnvelope=", mEnvelopeName_Inner );
+         return ( GetTaskManager().TimeSinceWeaponLastTerminatedFor( target.TrackId() ) > 0.0 &&
+                  InInterceptEnvelopeOf( target, mEnvelopeName_Inner ) );
+      }
+
+      writeln_d( "AISS IsInEnvelope() - target=", target.TargetName(), " | OuterEnvelope=", mEnvelopeName_Outer, " | Range=", PLATFORM.SlantRangeTo(target) );
+      return InInterceptEnvelopeOf( target, mEnvelopeName_Outer );
+   end_script
+
+   // ----------------------------------------
+   // returns true if the given platform is within the multiple target zone specified on the sensor
+   script bool WithinMultipleTargetZone(WsfPlatform aPlatform, WsfTrack target)
+
+      if (! aPlatform.IsValid())
+      {
+         writeln_d("***** WARNING: Null platform in WithinMultipleTargetZone");
+         return false;
+      }
+
+      bool result = target.WithinZoneOf(aPlatform, "multiple_target_zone", mTargetTrackingSensor);
+      writeln_d("AISS WithinMultipleTargetZone() - aPlatform=", aPlatform.Name(), " | target=", target.TargetName(), " | result=", result );
+      return result;
+   end_script
+
+   // ----------------------------------------
+   // Platform type specific WithinZoneOf logic
+   script bool WithinZoneOf(string aZone, WsfTrack target)
+      bool result = false;
+
+      WsfPlatform subPlatform;
+      foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      {
+         WsfSensor sensor = sub.Sensor(mTargetTrackingSensor);
+         if ( sensor.IsValid() )
+         {
+            subPlatform = sub;
+            break;
+         }
+      }
+
+      if ( subPlatform.IsValid() && GetNumJobChannels() > 1 ) // can engage multiple targets
+      {
+         result = WithinMultipleTargetZone(subPlatform, target);
+      }
+      else
+      {
+         // Multiple targets not supported - just check to see if within the supplied zone.
+         result = InInterceptEnvelopeOf(target, aZone);
+      }
+
+      writeln_d("AISS WithinZoneOf() - subPlatform=", subPlatform.Name(), " | aZone=", aZone, " | target=", target.TargetName(), " | jobchannels=", GetNumJobChannels(), " | result=", result );
+      return result;
+   end_script
+
+   // ----------------------------------------
+   // Determine the number of available weapons.
+   script int WeaponsAvailable()
+      int quantity = 0;
+      foreach (WsfPlatform sub in PLATFORM.Subordinates())
+      {
+         WsfWeapon weapon = sub.Weapon(mWeaponNameOnSubordinates);
+         if (weapon.IsTurnedOn())
+         {
+            quantity = quantity + weapon.QuantityRemaining();
+         }
+      }
+      return quantity;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Determine the number of active weapons
+   script int NumWeaponsActive(WsfTrack aTrack)
+      return GetTaskManager().WeaponsActiveFor(aTrack.TrackId());
+   end_script
+
+   // -------------------------------------------------------------------------
+   // turn on all subordinate sensors
+   script void ActivateSensors()
+   {
+      for (int entry = 0; entry < PLATFORM.SensorCount(); entry = entry + 1)
+      {
+         //writeln_d( "AISS ActivateSensors() - attempting to activate ", PLATFORM.SensorEntry(entry).Name() );
+         if( !PLATFORM.SensorEntry(entry).IsTurnedOn() )
+         {
+            if( PLATFORM.SensorEntry(entry).TurnOn() )
+            {
+               writeln_d( "AISS ActivateSensors() - ", PLATFORM.SensorEntry(entry).Name(), " activated." );
+            }
+         }
+      }
+
+      // now activate subordinate subordinate sensors
+      foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      {
+         for (int entry = 0; entry < sub.SensorCount(); entry = entry + 1)
+         {
+            //writeln_d( "AISS ActivateSensors() - attempting to activate ", sub.SensorEntry(entry).Name() );
+            if( !sub.SensorEntry(entry).IsTurnedOn() )
+            {
+               if( sub.SensorEntry(entry).TurnOn() )
+               {
+                  writeln_d( "AISS ActivateSensors() - ", sub.SensorEntry(entry).Name(), " activated." );
+               }
+            }
+         }
+      }
+   }
+   end_script
+
+   // -------------------------------------------------------------------------
+   // turn off all subordinate sensors
+   script void DeactivateSensors()
+   {
+      for (int entry = 0; entry < PLATFORM.SensorCount(); entry = entry + 1)
+      {
+         writeln_d( "AISS DeactivateSensors() - attempting to deactivate ", PLATFORM.SensorEntry(entry).Name() );
+         if( PLATFORM.SensorEntry(entry).IsTurnedOn() )
+         {
+            if( PLATFORM.SensorEntry(entry).TurnOff() )
+            {
+               writeln_d( "AISS DeactivateSensors() - ", PLATFORM.SensorEntry(entry).Name(), " deactivated." );
+            }
+         }
+      }
+
+      // now deactivate subordinate subordinate sensors
+      foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      {
+         for (int entry = 0; entry < sub.SensorCount(); entry = entry + 1)
+         {
+            writeln_d( "AISS DeactivateSensors() - attempting to deactivate ", sub.SensorEntry(entry).Name() );
+            if( sub.SensorEntry(entry).IsTurnedOn() )
+            {
+               if( sub.SensorEntry(entry).TurnOff() )
+               {
+                  writeln_d( "AISS DeactivateSensors() - ", sub.SensorEntry(entry).Name(), " deactivated." );
+               }
+            }
+         }
+      }
+   }
+   end_script
+
+   // -------------------------------------------------------------------------
+   // cancel tasks and stop tracking on the given track
+   script void CancelTaskOnTrack( WsfTrackId trackId, string taskStr )
+
+      if( !trackId.IsValid() )
+      {
+         writeln_d( "AISS CancelTaskOnTrack() - invalid TrackId" );
+         return;
+      }
+
+      foreach( WsfPlatform sub in PLATFORM.Subordinates() )
+      {
+         // cancel tasks
+         if( ( GetTaskManager().TasksAssignedTo(sub, trackId, taskStr) ) > 0 )
+         {
+            if( GetTaskManager().CancelTask(trackId, taskStr) )
+            {
+               writeln_d( "AISS CancelTaskOnTrack() - cancel task ", taskStr, " on ", sub.Name() );
+            }
+         }
+      }
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Update the pedestal cue (if possible).
+   script void UpdatePedestalCue(WsfSensor aSensor, WsfTrack target)
+      // Don't allow the pedestal to be re-cued if it is actively being used.
+
+      if ( aSensor.IsValid() && target.IsValid() )
+      {
+         writeln_d( "AISS UpdatePedestalCue() - TasksAssigned=", GetTaskManager().TasksAssignedTo(aSensor.Platform(), mCueTaskStr),
+                     " | RequestCount=", aSensor.ActiveRequestCount() );
+         if( GetTaskManager().TasksAssignedTo(aSensor.Platform(), mCueTaskStr) == 0 &&
+            (aSensor.ActiveRequestCount() == 0) )
+         {
+            writeln_d( "AISS UpdatePedestalCue() - Bearing=", target.RelativeBearingTo(PLATFORM),
+                        " | !InDeadZone?=", !InDeadZone(target),
+                        " | InEnvelope?=", InInterceptEnvelopeOf(target, "engagement_zone") );
+            WsfPlatform sub = aSensor.Platform();
+            if (  TrackIsBearingTowardPlatform(target) &&
+                  !InDeadZone(target) &&
+                  InInterceptEnvelopeOf(target, "engagement_zone") )
+            {
+               // Indicate this task has this pedestal
+               GetTaskManager().AssignTask( target, mCueTaskStr, aSensor.Platform() );
+               //aSensor.CueToTrack( target );
+               aSensor.SetYaw( PLATFORM.RelativeBearingTo(target) );
+
+               mLastCuedTrack = target;
+               mLastCueStartTime[target.TrackId()] = TIME_NOW;
+
+               PLATFORM.SetAuxData("ENGAGED", true);          // For RED_SAM_MOVEMENT
+
+               writeln_d("***** T=", TIME_NOW, " Cue pedestal ", sub.Name(), " to ", target.TargetName(),
+                        " R=", sub.SlantRangeTo(target),
+                        ", RelBrg=", aSensor.Yaw(), " deg", ", AbsBrg=", sub.TrueBearingTo(target), " deg");
+
+               /*
+               // draw a line in the new facing direction
+               WsfGeoPoint look = PLATFORM.Location();
+
+               look.Offset( sub.TrueBearingTo(target), 120000, 0, 0 );
+
+               writeln_d("AISS UpdatePedestalCue() - PLATFORM.Location()=", PLATFORM.Location().X(), "::", PLATFORM.Location().Y(), "::", PLATFORM.Location().Z(), " | ", PLATFORM.Location().ToString() );
+               writeln_d("AISS UpdatePedestalCue() - target.CurrentLocation()=", target.CurrentLocation().X(), "::", target.CurrentLocation().Y(), "::", target.CurrentLocation().Z(), " | ", target.CurrentLocation().ToString() );
+               writeln_d("AISS UpdatePedestalCue() - look=", look.X(), "::", look.Y(), "::", look.Z(), " | ", look.ToString() );
+
+               draw.Reset();
+               draw.BeginLines();
+                  draw.SetLineStyle("dash_dot2");
+                  draw.SetLineSize(20);
+                  draw.SetColor(0.0,1.0,0.0);
+                  draw.Vertex(PLATFORM.Location());
+                  draw.Vertex(look);
+               draw.End();
+               */
+            }
+         }
+      }
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Release the pedestal if appropriate.
+   script void ReleasePedestal()
+
+      if( !mLastCuedTrack.IsValid() )
+      {
+         return;
+      }
+
+      writeln_d( "AISS ReleasePedestal() - TasksAssigned=", GetTaskManager().TasksAssignedFor( mLastCuedTrack.TrackId(), mCueTaskStr), " | mLastCuedTrack=", mLastCuedTrack.TargetName() );
+      if ( GetTaskManager().TasksAssignedFor( mLastCuedTrack.TrackId(), mCueTaskStr) != 0 )
+      {
+         // This track has the pedestal. Determine if it should be released.
+         WsfPlatform sub = GetTaskManager().AssigneeForTask(mLastCuedTrack.TrackId(), mCueTaskStr);
+         if (sub.IsValid())
+         {
+            double timeSinceLastCueStart = TIME_NOW - mLastCueStartTime[mLastCuedTrack.TrackId()];
+
+            WsfSensor sensor = sub.Sensor(mTargetTrackingSensor);
+
+            writeln_d( "AISS ReleasePedestal() - sensor=", sensor.Name(),
+                        " | RequestCount=", sensor.ActiveRequestCount(),
+                        " | timeSinceLastCueStart=", timeSinceLastCueStart );
+            if ( sensor.IsValid() &&
+                (sensor.ActiveRequestCount() == 0) &&          // No active search, acq or trk requests
+                (timeSinceLastCueStart > 30.0))
+            {
+
+               writeln_d( "AISS ReleasePedestal() - BelievedDead?=", mLastCuedTrack.BelievedDead(),
+                           " | !WMTZ=", !WithinMultipleTargetZone(sub, mLastCuedTrack) );
+               if ( mLastCuedTrack.BelievedDead() || (!WithinMultipleTargetZone(sub, mLastCuedTrack)) )
+               {
+                  GetTaskManager().CancelTask(mLastCuedTrack.TrackId(), mCueTaskStr);
+                  //sensor.ClearCueing();
+
+                  writeln_d("***** T=", TIME_NOW, " Release pedestal ", sub.Name(), " from ", mLastCuedTrack.TargetName());
+                  writeln_d("      TSE=", timeSinceLastCueStart, " InMTZ=", WithinMultipleTargetZone(sub, mLastCuedTrack));
+               }
+            }
+         }
+      }
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Release resources (sensor, pedestal) that have been assigned to the target.
+   script void ReleaseResources(WsfTrack track)
+      writeln_d( "AISS ReleaseResources() - track=", track.TargetName() );
+      CancelTaskOnTrack( track.TrackId(), mAcqTrkTaskStr );
+      ReleasePedestal();
+   end_script
+
+   // -------------------------------------------------------------------------
+   // try to Acquire the given target
+   script bool TryAcquire( WsfTrack target )
+      writeln_d("AISS TryAcquire() - target=", target.TargetName() );
+
+      foreach (WsfPlatform sub in PLATFORM.Subordinates())
+      {
+         WsfSensor sensor = sub.Sensor(mTargetTrackingSensor);
+         if (! sensor.IsValid()) continue;
+
+         UpdatePedestalCue(sensor, target);
+
+         writeln_d( "     - sensor=", sensor.Name(), " | RequestCount(Acquire)=", sensor.ActiveRequestCount(mAcqSensorMode), " | MaxRequestCount(Acquire)=", sensor.MaximumRequestCount(mAcqSensorMode) );
+         writeln_d( "     - sensor=", sensor.Name(), " | RequestCount(Track)=", sensor.ActiveRequestCount(mTTSensorMode), " | MaxRequestCount(Track)=", sensor.MaximumRequestCount(mTTSensorMode) );
+
+         // Check number of requests for acquisition.
+         if ( sensor.ActiveRequestCount(mAcqSensorMode) >= sensor.MaximumRequestCount(mAcqSensorMode) )
+         {
+            writeln_d("     - sensor has too many requests in ", mAcqSensorMode, " mode" );
+            continue;
+         }
+
+         // Check number of requests for track.
+         if ( sensor.ActiveRequestCount(mTTSensorMode) >= sensor.MaximumRequestCount(mTTSensorMode) )
+         {
+            writeln_d("     - sensor has too many requests in ", mTTSensorMode, " mode" );
+            continue;
+         }
+
+         if ( WithinZoneOf("engagement_zone", target) && IsInEnvelope(target) )
+         {
+            // Acquire the target
+            if ( GetTaskManager().StartTracking(target, mAcqTrkTaskStr, sensor.Name(), mAcqSensorMode, sub) )
+            {
+               writeln_d("     - Start Acquiring Target" );
+               return true;
+            }
+            else
+            {
+               writeln_d( "     - sensor tried but FAILED to start Acquiring" );
+            }
+         }
+         else
+         {
+            writeln_d( "     - target is NOT in envelope" );
+         }
+      }
+
+      writeln_d( "     - unable to Acquire target" );
+      return false;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Try to track the given target
+   script bool TryTrack(WsfTrack target)
+      writeln_d("AISS TryTrack() - target=", target.TargetName() );
+
+      if ( WeaponsAvailable() == 0 )
+      {
+         writeln_d("AISS TryTrack() - Bingo on Ammo" );
+         return false;                     // no weapons available
+      }
+
+      foreach (WsfPlatform sub in PLATFORM.Subordinates())
+      {
+         WsfSensor sensor = sub.Sensor(mTargetTrackingSensor);
+         if (! sensor.IsValid())
+         {
+            continue;
+         }
+
+         writeln_d( "     - sensor=", sensor.Name(), " | RequestCount(Track)=", sensor.ActiveRequestCount(mTTSensorMode), " | MaxRequestCount(Track)=", sensor.MaximumRequestCount(mTTSensorMode) );
+
+         if (sensor.ActiveRequestCount(mTTSensorMode) >= sensor.MaximumRequestCount(mTTSensorMode))
+         {
+            writeln_d("     - sensor has too many requests in ", mTTSensorMode, " mode" );
+            continue;
+         }
+
+         if ( WithinZoneOf("engagement_zone", target) && !InDeadZone(target) )
+         {
+            if( IsInEnvelope(target) &&
+                TrackIsBearingTowardPlatform(target) )
+            {
+               // Track the target
+               if ( GetTaskManager().StartTracking(target, mAcqTrkTaskStr, sensor.Name(), mTTSensorMode, sub) )
+               {
+                  writeln_d("     - Start Tracking Target" );
+
+                  writeln_d( "     - sensor=", sensor.Name(), " | RequestCount(Acquire)=", sensor.ActiveRequestCount(mAcqSensorMode), " | MaxRequestCount(Acquire)=", sensor.MaximumRequestCount(mAcqSensorMode) );
+                  writeln_d( "     - sensor=", sensor.Name(), " | RequestCount(Track)=", sensor.ActiveRequestCount(mTTSensorMode), " | MaxRequestCount(Track)=", sensor.MaximumRequestCount(mTTSensorMode) );
+
+                  return true;
+               }
+               else
+               {
+                  writeln_d( "     - sensor tried but FAILED to start tracking" );
+               }
+            }
+            else
+            {
+               writeln_d( "     - target is NOT in envelope" );
+            }
+         }
+         else
+         {
+            writeln_d( "     - target is in Dead Zone" );
+         }
+      }
+
+      writeln_d( "     - unable to Track target" );
+      return false;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // launch a weapon at the target, the weapon must be:
+   // - available and turned on
+   // - have sufficient rounds
+   // - have a target not already being fired on
+   script bool LaunchWeaponAt(WsfTrack target)
+
+      writeln_d("AISS LaunchWeaponAt() - attempting to launch weapon at ", target.TargetName());
+      foreach (WsfPlatform sub in PLATFORM.Subordinates())
+      {
+         WsfWeapon weapon = sub.Weapon(mWeaponNameOnSubordinates);
+         if (weapon.IsValid())
+         {
+            writeln_d( "AISS LaunchWeaponAt() - ", PLATFORM.Name(), ".LaunchWeaponAt() - weapon=", weapon.Name(),
+               " | WeaponOn=", weapon.IsTurnedOn(),
+               " | TimeSinceFired=", weapon.TimeSinceLastFired(),
+               " | QuantityRemaining=", weapon.QuantityRemaining() );
+
+            if ( weapon.IsTurnedOn() &&
+                  weapon.QuantityRemaining() >= mSalvoSize &&
+                  (GetTaskManager().TasksAssignedTo( sub, "", weapon.Name() )) == 0 )
+            {
+               if ( GetTaskManager().Fire(target, "Shoot", weapon.Name(), mSalvoSize, sub) )
+               {
+                  writeln_d("*** T=", TIME_NOW, "  ",PLATFORM.Name()," -> ", sub.Name(), " FIRING ON ", target.TargetName(), "!!!");
+                  return true;
+               }
+            }
+         }
+      }
+      return false;
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Can the target be self-engaged
+   script void ProcessEngagement(WsfRIPRJob aJob, int currChannel)
+
+      if (!aJob.IsValid())
+      {
+         return;
+      }
+
+      WsfTrack jobTrack = GetJobsTrack(aJob);
+      if (!jobTrack.IsValid() )
+      {
+         return;
+      }
+
+      int      jobID    = aJob.GetId();
+      string   jobState = mJobCurrentState.Get(jobID);
+
+      writeln_d( "AISS ProcessEngagement() - platform=", PLATFORM.Name(), " | jobState=", jobState, " | jobTrack=", jobTrack.TargetName() );
+      if( jobTrack.BelievedDead() )
+      {
+         writeln_d( "AISS ProcessEngagement() - track, ", jobTrack.TargetName(), " is believed dead." );
+
+         aJob.SetProgress( PROCESSOR, currChannel, 1.0 );
+
+         ReleaseResources(jobTrack);
+         PLATFORM.SetAuxData("FIRING", false);
+         return;
+      }
+
+      if( !AltitudeKnown(jobTrack) )
+      {
+         writeln_d( "AISS ProcessEngagement() - track, ", jobTrack.TargetName(), " unknown altitude." );
+
+         ReleaseResources(jobTrack);
+         PLATFORM.SetAuxData("FIRING", false);
+         return;
+      }
+
+      /*
+      if( !WithinZoneOf("engagement_zone", jobTrack) )
+      {
+         writeln_d( "AISS ProcessEngagement() - track, ", jobTrack.TargetName(), " is out of engagement zone." );
+
+         ReleaseResources(jobTrack);
+         PLATFORM.SetAuxData("FIRING", false);
+         return;
+      }
+      */
+
+      if (jobState == "DETECTED")
+      {
+         PLATFORM.SetAuxData("FIRING", false);
+         ReleasePedestal();
+
+         //if threat is one to be tracked & fired on, try to acquire it
+         if (  jobTrack.IFF_Foe() )
+         {
+            TransitionEngagementState(jobID, "TRY_ACQUIRE");
+         }
+      }
+      else if (jobState == "TRY_ACQUIRE")
+      {
+         ReleasePedestal();
+
+         if( TryAcquire(jobTrack) )
+         {
+            //turned on an acquisition radar, make transition
+            TransitionEngagementState(jobID, "ACQUIRE");
+         }
+      }
+      else if (jobState == "ACQUIRE")
+      {
+         // look for an acquisition track of sufficient quality
+         writeln_d( "AISS ProcessEngagement() - SensorTrackQuality()=", SensorTrackQuality(jobTrack), " | mNeededAcquisitionTrackQuality=", mNeededAcquisitionTrackQuality );
+         if ( SensorTrackQuality(jobTrack) >= mNeededAcquisitionTrackQuality )
+         {
+            TransitionEngagementState(jobID, "TRY_TRACK");
+
+            ReleaseResources(jobTrack);
+            return;
+         }
+
+         double timeInAcquireState = TIME_NOW - mJobStateTimes[jobID];
+         if( timeInAcquireState > mAcquireTimeout )
+         {
+            writeln_d( "AISS ProcessEngagement() - ACQUIRE TIMEOUT: timeInAcquireState=", timeInAcquireState );
+            TransitionEngagementState(jobID, "TRY_ACQUIRE");
+
+            ReleaseResources(jobTrack);
+         }
+      }
+      else if (jobState == "TRY_TRACK")
+      {
+         if( TryTrack( jobTrack ) )
+         {
+            TransitionEngagementState(jobID, "TRACK");
+         }
+      }
+      else if (jobState == "TRACK")
+      {
+         //look for this target track of sufficient quality
+         writeln_d( "AISS ProcessEngagement() - SensorTrackQuality()=", SensorTrackQuality(jobTrack), " | mNeededTargetingTrackQuality=", mNeededTargetingTrackQuality );
+         if ( SensorTrackQuality(jobTrack) >= mNeededTargetingTrackQuality )
+         {
+            //found it & its good for firing on (target quality)
+            TransitionEngagementState(jobID, "TRY_FIRE");
+            return;
+         }
+
+         double timeInTrackState = TIME_NOW - mJobStateTimes[jobID];
+         if( timeInTrackState > mTrackingTimeout )
+         {
+            writeln_d( "AISS ProcessEngagement() - TRACK TIMEOUT: timeInTrackState=", timeInTrackState );
+            TransitionEngagementState(jobID, "TRY_ACQUIRE");
+
+            ReleaseResources(jobTrack);
+         }
+      }
+      else if (jobState == "TRY_FIRE")
+      {
+
+         if( TrackIsBearingTowardPlatform(jobTrack) &&
+             !InDeadZone(jobTrack) &&
+             WithinZoneOf("full_kinematic", jobTrack) )
+         {
+            TransitionEngagementState(jobID, "FIRE");
+         }
+
+         // break off if we are no longer tracking
+         if( SensorTrackQuality(jobTrack) < mNeededTargetingTrackQuality )
+         {
+            TransitionEngagementState(jobID, "TRY_ACQUIRE");
+
+            ReleaseResources(jobTrack);
+         }
+      }
+      else if (jobState == "FIRE")
+      {
+         writeln_d( "AISS ProcessEngagement() - IsInEnvelope()=", IsInEnvelope(jobTrack), " | NumWeaponsActive()=", NumWeaponsActive(jobTrack) );
+         if ( IsInEnvelope( jobTrack ) && NumWeaponsActive( jobTrack ) < 1 )
+         {
+            if( LaunchWeaponAt(jobTrack) )
+            {
+               PLATFORM.SetAuxData("HAVE_FIRED", true);
+               PLATFORM.SetAuxData("FIRING", true);
+               TransitionEngagementState(jobID, "WEAPONS_ACTIVE");
+            }
+         }
+      }
+      else if (jobState == "WEAPONS_ACTIVE")
+      {
+         // check if we should fire again
+         if( NumWeaponsActive( jobTrack ) < 1 )
+         {
+            PLATFORM.SetAuxData("FIRING", false);
+            TransitionEngagementState(jobID, "TRY_FIRE");
+         }
+      }
+
+   end_script
+
+   // -------------------------------------------------------------------------
+   // Perform the given job
+   script void DoJob(WsfRIPRJob aJob, int aChannel)
+      writeln_d( "AISS DoJob() - platform=", PLATFORM.Name(), " | job=", aJob.GetDescription(), " | aChannel=", aChannel );
+      if (aJob.IsValid())
+      {
+         WsfTrack track = GetJobsTrack(aJob);
+
+         if (!track.IsValid())
+         {
+            writeln_d( "     track invalid" );
+            return;
+         }
+
+         draw.BeginLines();
+            draw.SetLineStyle("dashed");
+            draw.SetLineSize(30);
+            draw.SetDuration(1.0);
+            draw.SetColor(1.0,0.0,0.0);
+            draw.Vertex(track.CurrentLocation());
+            draw.Vertex(PLATFORM.Location());
+         draw.End();
+
+         if (mChannelJobs.Get(aChannel) != aJob.GetId())  //write a line to output if the job changed
+         {
+            writeln_d( "     Job Change: ", PLATFORM.Name(), " channel ", aChannel, " new job(", aJob.GetId(), "): ", aJob.GetDescription(), " new track: ", track.TrackId().ToString());
+            writeln_d( "     aChannel=", aChannel, " | mChannelJobs.Size()=", mChannelJobs.Size(), " | mChannelTracks.Size()=", mChannelTracks.Size() );
+
+           #extern WsfTrack GetTrackById(WsfPlatform, WsfTrackId);
+            WsfTrack oldTrack = GetTrackById( PLATFORM, mChannelTracks.Get(aChannel) );
+            if( oldTrack.IsValid() )
+            {
+               ReleaseResources(oldTrack);
+            }
+
+            // store the new job data
+            mChannelJobs.Set(aChannel, aJob.GetId());
+            mChannelTracks.Set(aChannel, track.TrackId());
+
+            //transition job to DETECTED
+            TransitionEngagementState( aJob.GetId(), "DETECTED");
+         }
+      }
+      else
+      {
+         writeln_d( "     job invalid" );
+      }
+   end_script
+
+   on_update
+      writeln_d( "AISS on_update - ", PLATFORM.Name(), " GetNumJobChannels()=", GetNumJobChannels() );
+
+      WsfRIPRProcessor cmdr = GetRIPRCommanderProcessor();
+      if (!cmdr.IsValid())
+      {
+         writeln_d("AISS on_update - Invalid commander for platform, ", PLATFORM.Name() );
+         return;
+      }
+
+      Array<WsfRIPRJob> jobs = cmdr.GetJobs();
+
+      // if there are no jobs, turn off all sensors
+      if( jobs.Size() < 1 )
+      {
+         DeactivateSensors();
+      }
+      else
+      {
+         writeln_d( "AISS on_update - Bid and Do jobs" );
+         ActivateSensors();
+
+         writeln_d( "     - Jobs up for bid" );
+         foreach (WsfRIPRJob debugJob in jobs)
+         {
+            writeln_d("          ~ ", debugJob.GetDescription() );
+         }
+
+         for (int jobChannel = 0; jobChannel < GetNumJobChannels(); jobChannel = jobChannel + 1)
+         {
+            // bid on each job from our commander
+            foreach (WsfRIPRJob aJob in jobs)
+            {
+               mCurrentBiddingChannel = jobChannel;
+               double bidVal = QueryBid(aJob);
+               if( bidVal > 0 )
+               {
+                  // scale down bid value as channels increase
+                  //bidVal = bidVal * MATH.Pow(0.97,(double)jobChannel);
+                  aJob.BidJob(PROCESSOR, jobChannel, bidVal);
+               }
+            }
+
+            writeln_d( "AISS on_update - ", cmdr.Name(), ".GetJobFor(", TIME_NOW, ", ", PLATFORM.Name(), ".", PROCESSOR.Name(), ", ", jobChannel, ")" );
+            WsfRIPRJob jobWon = cmdr.GetJobFor(TIME_NOW, PROCESSOR, jobChannel);
+            if( jobWon.IsValid() )
+            {
+               DoJob(jobWon, jobChannel);
+               ProcessEngagement(jobWon, jobChannel);
+            }
+            else
+            {
+               writeln_d( "AISS on_update - no job assigned for channel, ", jobChannel );
+            }
+         }
+      }
+
+      mCurrentBiddingChannel = -1;
+
+      //extra debug stuff
+
+      // draw the current facing direction of the platform
+      WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+      writeln_d( "AISS on_update - multi channel guy ",PLATFORM.Name()," track count: ",localTracks.Count());
+      writeln_d( "AISS on_update - multi channel guy ",PLATFORM.Name()," job count: ",jobs.Size());
+      writeln_d( "AISS on_update - ", PLATFORM.Name(), " GetNumJobChannels()=", GetNumJobChannels() );
+   end_on_update
+
+   query_bid_type pursue-target
+
+      if (!JOB.IsValid())
+      {
+         writeln_d("AISS query_bid - job not valid for platform", PLATFORM.Name() );
+         return -MATH.DOUBLE_MAX();
+      }
+
+      WsfTrack track = GetJobsTrack(JOB);
+      if (!track.IsValid())
+      {
+         writeln_d("AISS query_bid - track not valid for job: ", JOB.Name(), " - ", JOB.GetDescription(), " on platform: ", PLATFORM.Name() );
+         return -MATH.DOUBLE_MAX();
+      }
+
+      if( track.BelievedDead() )
+      {
+         writeln_d("AISS query_bid - track is believed dead: ", JOB.Name(), " - ", JOB.GetDescription(), " on platform: ", PLATFORM.Name() );
+         return -MATH.DOUBLE_MAX();
+      }
+
+      if( !TrackIsBearingTowardPlatform(track) )
+      {
+         writeln_d("AISS query_bid - track bearing is away from platform: ", JOB.Name(), " - ", JOB.GetDescription(), " on platform: ", PLATFORM.Name() );
+         return -MATH.DOUBLE_MAX();
+      }
+
+      writeln_d( "AISS query_bid - JOB=", JOB.GetDescription(), " | PLATFORM=", PLATFORM.Name(), " | TRACK=", track.TargetName(), " | mCurrentBiddingChannel=", mCurrentBiddingChannel );
+
+      // don't bid on the job if the other channel already won it
+      if( mCurrentBiddingChannel > -1 )
+      {
+         for( int currChannel=0; currChannel<GetNumJobChannels(); currChannel = currChannel + 1 )
+         {
+            if( currChannel != mCurrentBiddingChannel )
+            {
+               WsfRIPRProcessor cmdr = GetRIPRCommanderProcessor();
+               if( cmdr.IsValid() )
+               {
+                  WsfRIPRJob channelJob = cmdr.GetJobFor(TIME_NOW, PROCESSOR, currChannel);
+                  if( channelJob.IsValid() )
+                  {
+                     int JobId = channelJob.GetId();
+                     if( JobId == JOB.GetId() )
+                     {
+                        writeln_d( "     - channel ", currChannel, " has already won this job" );
+                        return -MATH.DOUBLE_MAX();
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      writeln_d( "     - SlantRangeTo(", track.TargetName(), ")=", PLATFORM.SlantRangeTo(track),
+                  " | platformLoc=", PLATFORM.Location().X(), ":", PLATFORM.Location().Y(), ":", PLATFORM.Location().Z(),
+                  " | trackLoc=", track.CurrentLocation().X(), ":", track.CurrentLocation().Y(), ":", track.CurrentLocation().Z() );
+      if ( InInterceptEnvelopeOf(track, "engagement_zone") ) // tracking range is the max
+      {
+         // bid max on jobs that we have fired on
+         if( NumWeaponsActive( track ) > 0 )
+         {
+            writeln_d( "     - platform: ", PLATFORM.Name(), " has no active weapons." );
+            return MATH.DOUBLE_MAX();
+         }
+
+         //bids based on range to the job's track
+         double JobBidValue = 1.0 / PLATFORM.SlantRangeTo(track);
+         writeln_d("     - platform: ", PLATFORM.Name(), " bidding: ", JobBidValue, " on job: ", JOB.Name(), " - ", JOB.GetDescription() );
+         return JobBidValue;
+      }
+
+      writeln_d("     - platform: ", PLATFORM.Name(), " out of range of track ", track.TargetName() );
+      return -MATH.DOUBLE_MAX();
+   end_query_bid_type
+
+end_processor

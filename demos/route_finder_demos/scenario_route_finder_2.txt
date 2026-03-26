@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+file_path .
+# types
+include_once platforms/striker.txt
+include_once platforms/flight_lead.txt
+
+# used by "pursue-target_route_finder" behavior
+script_variables
+   Array<WsfGeoPoint> gAvoidPoints = Array<WsfGeoPoint>();
+   Array<double>      gAvoidRadii  = Array<double>();
+   gAvoidPoints[0] = WsfGeoPoint.Construct( 0.71289, 3.85272, 10000);   //lat, lon, alt
+   gAvoidRadii[0]  = 1852*17.5; //17.5 nm
+end_script_variables
+
+# laydown
+
+platform  blue_lead  FLIGHT_LEAD
+   icon bomber-b
+   side blue
+   commander SELF
+   position 0.000n 6.5e altitude 0 ft agl
+end_platform
+
+platform  blue_1  STRIKER
+   indestructible
+   icon        F-22
+   side        blue
+   commander   blue_lead
+   route
+      position 0.75n 4.29e altitude 30000 ft msl speed 450 kts
+      position 0.75n 2.56e altitude 30000 ft msl speed 450 kts
+   end_route
+end_platform
+
+
+platform  red_1  STRIKER
+   indestructible
+   side red
+   icon SU-27
+   heading 300 deg
+   commander   SELF
+   route
+      position 0.78n 3.75e altitude 30000 ft speed 450 kts
+      position 1.45n 2.60e altitude 30000 ft speed 450 kts
+   end_route
+   edit processor task_mgr off end_processor
+end_platform
+
+event_pipe file route_finder_2.aer end_event_pipe
+
+end_time  8.0 min

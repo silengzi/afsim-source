@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Execute a target query
+# ==============================================================================
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+
+   load_atmosphere      DEFAULT from ../../modtran/mid_lat_summer_day.txt
+   load_sensor          SENSOR  from ../../sensors/uniform_lwir.txt
+   load_target          TARGET  from ../../targets/red_multirole_fighter_3/red_multirole_fighter_3.txt
+
+   spectral_print_format wavelength
+
+   test query_target
+      target_altitude                  30000 ft
+      target_to_sensor_azimuth         0 deg
+      target_to_sensor_elevation       0 deg
+   end_test
+
+end_sosm_interface

@@ -1,0 +1,252 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ./logistics_platform.txt
+
+platform_type STATIONARY_STORAGE_DEPOT LOGISTICS_PLATFORM
+
+   # DESCRIPTION:  A stationary storage depot (SSD) sits stationary at an assigned location.
+   # When a receiver approaches, and makes a request, the SSD generally will (most of the
+   # time) have the commodity, but will have to go retrieve it, which takes some time.
+   # The Depot may or may not have a limitless supply of the product, but if not, will
+   # attempt to request a top-off of product to any supplier that happens to pass close
+   # by, provided one is known.
+
+   # NOTE:  Since this depot is stationary, it has no need of a Transport Processor, which
+   # is a script variable reference in the parent LOGISTICS_PLATFORM class.  The reference
+   # will never become valid, so don't use it here.
+
+   # ==================================================
+   on_initialize2
+
+      bool success = LP_Init();
+
+      if (success)
+      {
+         Say("STATIONARY_STORAGE_DEPOT on_initialize2() successful.");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("STATIONARY_STORAGE_DEPOT on_initialize2() FAILED.");
+      }
+
+   end_on_initialize2
+
+   # ==================================================
+   execute at_interval_of 207 sec
+
+      if (isInitialized && ! allPlayersResolved)
+      {
+         allPlayersResolved = ResolvePlayersToAdd();
+         if (! allPlayersResolved)
+         {
+            Say("STATIONARY_STORAGE_DEPOT has not yet resolved all players.");
+            return;
+         }
+      }
+
+      if (isInitialized && allPlayersResolved)
+      {
+         # An identified Receiver will stay a Receiver until another Receiver is 100 meters CLOSER than
+         # the current receiver (which means the current receiver voluntarily departed my location.)
+
+         double distToCurrent = 200.0;
+         bool foundNewGuy = false;
+         WsfPlatform closerGuy;
+
+         #    ====== SUPPLY LOGIC (FUEL) ==========
+         if (doIntendToSupplyFuel)
+         {
+            # Update a couple of critical flags:
+            if (fuelContainer.IsEmpty() && haveFuelToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT ran out of fuel to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveFuelToGive = false;
+               fuelIsReserved = false;
+            }
+            if (fuelContainer.IsFull() && ! haveFuelToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT now has a full load of fuel to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveFuelToGive = true;
+            }
+            else if (! fuelContainer.IsEmpty() && ! haveFuelToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT has a partial load of fuel to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveFuelToGive = true;
+            }
+            if (haveFuelToGive && ! fuelIsReserved)
+            {
+               fuelIsReserved = fuelOfferTransactor.ReserveAll();
+               if (fuelIsReserved)
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Fuel Reserve was successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+               else
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Fuel Reserve was NOT successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+            }
+
+            # === Resolve who to supply to....
+            if (fuelRequestingPlatform.IsValid())
+            {
+               distToCurrent = PLATFORM.GroundRangeTo(fuelRequestingPlatform);
+            }
+            foreach(WsfPlatform plat in fuelPossibleReceivers)
+            {
+               if (plat.IsValid() && plat != fuelRequestingPlatform)
+               {
+                  double distToNew = PLATFORM.GroundRangeTo(plat);
+                  if (distToNew + 100.0 < distToCurrent)
+                  {
+                     closerGuy = plat;
+                     foundNewGuy = true;
+                  }
+               }
+            }
+            if (foundNewGuy)
+            {
+               SetFuelRequestingPlatform(closerGuy);
+            }
+         }
+
+         #    ====== SUPPLY LOGIC (REPAIRS) ==========
+         if (doIntendToSupplyRepair)
+         {
+            # Update a couple of critical flags:
+            if (repairContainer.IsEmpty() && haveRepairsToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT ran out of repairs to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveRepairsToGive = false;
+               repairsAreReserved = false;
+            }
+            if (repairContainer.IsFull() && ! haveRepairsToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT now has a full load of repairs to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveRepairsToGive = true;
+            }
+            else if (! repairContainer.IsEmpty() && ! haveRepairsToGive)
+            {
+               string msg = "STATIONARY_STORAGE_DEPOT has a partial load of repairs to give.";
+               Say(msg);
+               PLATFORM.Comment(msg);
+               haveRepairsToGive = true;
+            }
+            if (haveRepairsToGive && ! repairsAreReserved)
+            {
+               repairsAreReserved = repairOfferTransactor.ReserveAll();
+               if (repairsAreReserved)
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Repairs Reserve was successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+               else
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Repairs Reserve was NOT successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+            }
+
+            distToCurrent = 200.0;
+            foundNewGuy = false;
+
+            # === Resolve who to supply to....
+            if (repairRequestingPlatform.IsValid())
+            {
+               distToCurrent = PLATFORM.GroundRangeTo(repairRequestingPlatform);
+            }
+            foreach(WsfPlatform plat in repairPossibleReceivers)
+            {
+               if (plat.IsValid() && plat != repairRequestingPlatform)
+               {
+                  double distToNew = PLATFORM.GroundRangeTo(plat);
+                  if (distToNew + 100.0 < distToCurrent)
+                  {
+                     closerGuy = plat;
+                     foundNewGuy = true;
+                  }
+               }
+            }
+            if (foundNewGuy)
+            {
+               SetRepairRequestingPlatform(closerGuy);
+            }
+         }
+
+         #    ====== REQUEST LOGIC (FUEL) ==========
+         if (doIntendToReceiveFuel)
+         {
+            distToCurrent = 200.0;
+            foundNewGuy = false;
+
+            # === Resolve who to request from....
+            if (fuelRequestingPlatform.IsValid())
+            {
+               distToCurrent = PLATFORM.GroundRangeTo(fuelRequestingPlatform);
+            }
+            foreach(WsfPlatform plat in fuelPossibleReceivers)
+            {
+               if (plat.IsValid() && plat != fuelRequestingPlatform)
+               {
+                  double distToNew = PLATFORM.GroundRangeTo(plat);
+                  if (distToNew + 100.0 < distToCurrent)
+                  {
+                     closerGuy = plat;
+                     foundNewGuy = true;
+                  }
+               }
+            }
+            if (foundNewGuy)
+            {
+               SetFuelRequestingPlatform(closerGuy);
+            }
+
+            if (FuelRequestingPlatform().IsValid() &&
+                ! fuelContainer.IsFull() &&
+                 fuelRequestTransactor.IsReady())
+            {
+               isRequestingFuel = fuelRequestTransactor.RequestFrom(FuelRequestingPlatform(),
+                                     fuelRequestTransactor.Container().TenderNeeded());
+               if (isRequestingFuel)
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Fuel Request was successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+               else
+               {
+                  string msg = "STATIONARY_STORAGE_DEPOT Fuel Request NOT successful.";
+                  Say(msg);
+                  PLATFORM.Comment(msg);
+               }
+            }
+         }
+      }
+
+   end_execute
+
+end_platform_type
+

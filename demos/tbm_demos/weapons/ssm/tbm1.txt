@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+################################################################################
+#                Theater Ballistic Missile (TBM) Demonstration
+#
+# This example launches a theater ballistic missile (TBM).
+################################################################################
+
+################################################################################
+#                     Define the platform type for the TBM
+
+platform_type TBM1 WSF_PLATFORM
+   icon Scud_Missile
+
+   mover WSF_TBM_MOVER
+      # The TOTAL launch mass (structure, warhead, fuel/propellant)
+      total_mass             6481 kg
+      # Fraction of the launch mass that is fuel/propellant
+      fuel_mass_fraction     0.751
+      specific_impulse       253 sec
+      ballistic_coefficient  98000.0 nt/m^2
+      thrust_duration        79.2 sec
+      trajectory_type        lofted
+      show_status
+#      debug
+   end_mover
+
+   # The fuse will detonate just before it hits the ground
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+# The weapon will damage targets within 150 meters of the impact point.
+
+weapon_effects TBM1_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 150 m 1.0
+end_weapon_effects
+

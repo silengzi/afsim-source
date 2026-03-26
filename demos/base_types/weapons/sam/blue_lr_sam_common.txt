@@ -1,0 +1,377 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#                                 BLUE_LR_SAM
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# NOTE: If you modify any parameter in this file, you must rerun 'weapon_tools'
+#       with 'blue_lr_sam_lcg.txt' as input to regenerate the launch computer data.
+#
+###############################################################################
+#
+# References: (PDF files contained in the subdirectory blue_lr_sam_ref)
+#
+# 1) http://www.mda.mil/mdaLink/pdf/38112.pdf
+#       User Operational Evaluation System (UOES) THAAD Missile Configuration
+#       (NOTE: This document has vanished, but the captured wiki page in Ref 4
+#        has the same picture).
+#
+# 2) http://search.janes.com/Search/documentView.do?docId=/content1/janesdata/binder/jsws/jsws0203.htm@current&pageSelected=allJanes&keyword=THAAD&backPath=http://search.janes.com/Search&Prod_Name=JSWS&
+#       Jane's (JSWS) THAAD
+#       Launch weight: 630 kg
+#       Length and diameter same as Ref 1
+#       Range: 300 km
+#       Uses HTPB propellant
+#
+#       There is some contradiction between the Jane's JSWS and JLAD documentation
+#       with regards to launch weight (630 kg vs. 800 kg), .
+#
+# 3) http://www.army-technology.com/projects/thaad/specs.html
+#    Launch weight:                 900 kg
+#    Velocity:                      2,800 m/s
+#    Range:                         > 200 km
+#    Maximum altitude of intercept: 150 km
+#
+# 4) http://en.wikipedia.org/wiki/Terminal_High_Altitude_Area_Defense
+#
+# 5) http://en.wikipedia.org/wiki/Space_Shuttle_Solid_Rocket_Booster
+#       Because there is no data that gives the mass of the propellant, it is
+#       assumed that it will follow the ratio of the fuel mass/total mass for
+#       the Space Shuttle solid rockets:
+#
+#          Propellant Mass: 500,000 kg
+#          Inert (empty) Mass: 91,000 kg
+#          Fuel Mass / Total Mass = 500,000 / 591,000 = 0.846
+#
+# 6) http://en.wikipedia.org/wiki/Solid-fuel_rocket
+#       Indicates 'a typical solid fuel rocket motor may have a specific impulse
+#       of 265 sec'. But we'll assume the use of 'High Energy Composite (HEC)
+#       propellants, which is indicated a specific impulse of 275 sec.
+###############################################################################
+
+###############################################################################
+#           Support for explicit representation of spent stages
+#
+# Platforms will be created for spent stages if one the global script variables
+# is defined as follows:
+#
+# script_variables
+#    SHOW_SPENT_STAGES["ALL"] = true;            # For any weapon
+#    SHOW_SPENT_STAGES["BLUE_LR_SAM"] = true;          # For just this weapon type
+# end_script_variables
+###############################################################################
+
+include_once ../ssm/show_spent_stages.txt
+
+aero BLUE_LR_SAM_SPENT_BOOSTER_AERO WSF_AERO
+   reference_area            0.09079 m^2         # Ref 1
+   aspect_ratio              1.0
+   cl_max                    5.0
+#  zero_lift_cd              0.7
+   cd_zero_subsonic          1.5                 # Extreme cd
+   cd_zero_supersonic        3.0                 # Extreme cd
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       6.00
+end_aero
+
+infrared_signature BLUE_LR_SAM_SPENT_BOOSTER_INFRARED_SIGNATURE
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  BLUE_LR_SAM_SPENT_BOOSTER_OPTICAL_SIGNATURE
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    BLUE_LR_SAM_SPENT_BOOSTER_RADAR_SIGNATURE
+   constant 1 m^2
+end_radar_signature
+
+platform_type BLUE_LR_SAM_SPENT_BOOSTER WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature BLUE_LR_SAM_SPENT_BOOSTER_INFRARED_SIGNATURE
+   optical_signature  BLUE_LR_SAM_SPENT_BOOSTER_OPTICAL_SIGNATURE
+   radar_signature    BLUE_LR_SAM_SPENT_BOOSTER_RADAR_SIGNATURE
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep   0.01 secs
+      stage 1
+         aero                BLUE_LR_SAM_SPENT_BOOSTER_AERO
+         total_mass          128.0 kg                      # Total - fuel
+      end_stage
+   end_mover
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+###############################################################################
+# Signature data is unknown...
+
+infrared_signature BLUE_LR_SAM_INFRARED_SIGNATURE
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  BLUE_LR_SAM_OPTICAL_SIGNATURE
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    BLUE_LR_SAM_RADAR_SIGNATURE
+   constant 1 m^2
+end_radar_signature
+
+# Nominal lethality data.
+
+weapon_effects BLUE_LR_SAM_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 100.0 m 0.9
+
+   # This script will reduce the effectiveness if the impact geometry is not desirable.
+
+   script void on_weapon_target_engagement(WsfPlatform aTarget)
+      WsfPlatform weapon = WeaponPlatform();
+      if (! (aTarget.IsValid() && weapon.IsValid())) return;
+
+      // Compute the angle between the velocity vectors. A head-on hit would be 180 degrees.
+      // (velocity vectors in opposite directions).
+      Vec3 weaponVel = weapon.VelocityWCS();
+      Vec3 targetVel = aTarget.VelocityWCS();
+      double weaponVelMag = weaponVel.Magnitude();
+      double targetVelMag = targetVel.Magnitude();
+      if ((weaponVelMag > 1.0) && (targetVelMag > 1.0))
+      {
+         double cosAngle = Vec3.Dot(weaponVel, targetVel) / (weaponVelMag * targetVelMag);
+         if (cosAngle < -1.0) cosAngle = -1.0;
+         if (cosAngle >  1.0) cosAngle =  1.0;
+         double angle = Math.ACos(cosAngle);
+         writeln("Angle=", angle);
+         //TODO if (angle < xxx) SetPkDegrade(0.6);
+      }
+   end_script
+end_weapon_effects
+
+###############################################################################
+
+aero BLUE_LR_SAM_BOOSTER_AERO WSF_AERO
+   # Booster is actually 340 mm in diameter, but kill vehicle masks it.
+   reference_area            0.10752 m^2         # Ref 1 - 370 mm diameter
+   #aspect_ratio              2.0
+   #cl_max                    6.0
+
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.35
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       6.00
+end_aero
+
+aero BLUE_LR_SAM_KILL_VEHICLE_AERO WSF_AERO
+   reference_area            0.10752 m^2         # Ref 1 - 370 mm diameter
+   #aspect_ratio              2.0
+   #cl_max                    6.0
+
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.35
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       6.00
+end_aero
+
+mover BLUE_LR_SAM_MOVER WSF_GUIDED_MOVER
+   integration_timestep      0.001 secs
+   update_interval           0.01 secs
+
+  # 20 sec of divert @ 1.5 G or 6 sec of divert @ 5.0 G
+  # (assuming empty mass of 80kg)
+  #
+  # Thrust = 80 kg (empty mass) * 9.80665 m/s^2 (g) * 5 = 3922.66 Nt
+  # Assume a specific impulse (I) of 267 sec
+  # m(dot) = thrust / I / g = 1.4979 Kg/s
+  # m = 5 sec * 1.4545 = 7.4894 kg
+
+  divert_thrust                        3922.66 Nt
+  divert_fuel_mass                     7.4894 kg
+  divert_fuel_mass                     10.0 kg             # Gave it a little more for testing (bad initial conditions)
+  divert_fuel_flow_rate                1.4979 kg/s
+  divert_altitude_limits               80 km 500 km
+
+  # The nozzle exit area and nozzle throat area were derived by ratios using the picture in Ref 1.
+  # The measured diameters (NOT ACTUAL) from the picture were:
+  #
+  #    Booster:       41.0 mm
+  #    Nozzle Throat:  7.2 mm
+  #    Nozzle Exit:   23.5 mm
+  #
+  # The derived values are then:
+  #
+  #    Nozzle Throat: Diameter = 0.340 m * (7.2 / 41.0) = 0.0597 m, Area = 0.0938 m^2
+  #    Nozzle Exit  : Diameter = 0.340 m * (23.5 / 41.0) = 0.195 m, Area = 0.305 m^2
+  #
+  # The volume of the fuel mass is also calculated from the drawing
+  #
+  #    Inside length:     6.170 * (91 / 185) ~= 3.035 m
+  #    Inside diameter: = 0.340 * (39 / 41) ~= 0.3234 m
+  #    Inside volume    = 3.168 * (pi * (0.3234/2)^2) ~= .2408 m^3
+  #
+  # HTPB has a density of 0.92 g/ml, but is typically mixed with aluminum (2.7 g/ml) and
+  # ammonium perchlorate (1.95 g/ml). An HTPB/AP/AL mixture of 12%/68%/20% resulted in a
+  # density 1.98 g/ml which resulted in a fuel mass of 476 kg. The mass fraction will be
+  # assumed to be 0.8 instead of the 0.85 of the Space Shuttle because of the increased
+  # acceleration. This gives a mass of 595 kg. An addition 5 kg will be added for the
+  # interstage and the shroud for a total of 600 kg.
+
+  stage 1
+     aero                              BLUE_LR_SAM_BOOSTER_AERO
+     nozzle_exit_area                  0.305 m^2           # See calculations above
+
+     total_mass                        600 kg              # See calculations above
+     fuel_mass                         485 kg              # See calculations above
+     #thrust_duration                   11.0 sec
+     #sea_level_specific_impulse        265 sec             # Ref 6
+
+     thrust_duration                   18 sec              # Adjusted to get close to 2800 m/s
+     sea_level_specific_impulse        250 sec             # Adjusted to get close to 2800 m/s
+  end_stage
+
+  stage 2
+     aero                              BLUE_LR_SAM_KILL_VEHICLE_AERO
+
+     total_mass                        30 kg               # Just the kill vehicle (630 - 600)
+  end_stage
+
+end_mover
+
+###############################################################################
+
+processor BLUE_LR_SAM_GUIDANCE WSF_GUIDANCE_COMPUTER
+
+   # No datalink or seeker is being used, so we must guide to the true target
+   guide_to_truth                      true
+
+   phase LAUNCH
+      commanded_flight_path_angle      from_launch_computer
+      proportional_navigation_gain     0.0                 # Don't guide to target
+      velocity_pursuit_gain            0.0                 # Don't guide to target
+      maximum_commanded_g              2.0 g
+      next_phase MIDCOURSE when on_commanded_flight_path_angle
+   end_phase
+
+   phase MIDCOURSE
+      # no guidance (just use gravity turn)
+      guidance_delay                   1000.0 sec
+      next_phase TERMINAL when target_slant_range < 140.0 km
+   end_phase
+
+   phase TERMINAL
+      proportional_navigation_gain     10.0
+      proportional_navigation_method   augmented
+
+      # Disable velocity pursuit. The angle which controls the switch between
+      # velocity pursuit and pronav are too sensitive at short ranges.
+      velocity_pursuit_gain            0.0
+
+      # Disable g-bias. The target is also falling, so we don't want to fight
+      # against it! (this is assuming terminal intercept, not boost)
+      g_bias                           0.0
+   end_phase
+end_processor
+
+###############################################################################
+
+platform_type BLUE_LR_SAM_BASE WSF_PLATFORM
+  icon SA-10_Missile  
+
+  infrared_signature BLUE_LR_SAM_INFRARED_SIGNATURE
+  optical_signature  BLUE_LR_SAM_OPTICAL_SIGNATURE
+  radar_signature    BLUE_LR_SAM_RADAR_SIGNATURE
+
+  weapon_effects     BLUE_LR_SAM_EFFECT
+
+  mover BLUE_LR_SAM_MOVER
+     #show_status
+  end_mover
+
+  processor guidance BLUE_LR_SAM_GUIDANCE
+     #show_status
+     #show_graphics
+  end_processor
+
+  processor fuse WSF_AIR_TARGET_FUSE
+     detonate_below_mach 1.0
+  end_processor
+
+   weapon booster WSF_EXPLICIT_WEAPON
+      launched_platform_type BLUE_LR_SAM_SPENT_BOOSTER
+      launch_delta_v         -50.0 0.0 0.0 m/s
+      quantity 1
+   end_weapon
+
+   script void on_stage_separation(int aStage)
+      extern Map<string, bool> SHOW_SPENT_STAGES;
+      if (SHOW_SPENT_STAGES["ALL"] ||
+          SHOW_SPENT_STAGES["BLUE_LR_SAM"])
+      {
+         if (aStage == 1) Weapon("booster").Fire(WsfTrack());
+      }
+   end_script
+end_platform_type
+
+###############################################################################
+
+launch_computer BLUE_LR_SAM_LAUNCH_COMPUTER WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER
+   surface_to_air_table      weapons/sam/blue_lr_sam_launch_data.txt
+   integration_time_step     0.05 sec
+
+   # Disallow intercepts at unreasonable angles
+   maximum_intercept_angle   60 deg
+end_launch_computer
+
+###############################################################################
+
+weapon BLUE_LR_SAM WSF_EXPLICIT_WEAPON
+
+   # The location offset puts the weapon center at half the length - 1 m.
+   # This assumes the scenario creator puts the launching platform at 1 m agl.
+
+   location 0.0 0.0 -2.085 m                     # Ref 1, length = 6170 mm
+
+   launched_platform_type BLUE_LR_SAM
+
+   launch_computer BLUE_LR_SAM_LAUNCH_COMPUTER
+   end_launch_computer
+
+   tilt 75 deg
+
+   # This causes a call to the launch computer to compute the predicted intercept.
+   # The launcher will then be cued to the proper angles (Subject to the slewing
+   # limits defined below). This is a bit of a hack until the guidance computer
+   # is changed...
+
+   cue_to_predicted_intercept true
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+
+   quantity 8
+
+   # Abort the launch if the launch computer didn't provide the required data
+   require_loft_angle
+
+end_weapon

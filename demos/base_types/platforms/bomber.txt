@@ -1,0 +1,58 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+platform_type BOMBER WSF_PLATFORM
+
+#  icon EA-6B
+   icon B-52
+
+   mover WSF_AIR_MOVER
+
+      # WAGs - Luke Miklos
+      roll_rate_limit               0.7 rad/sec
+      default_linear_acceleration   0.7 g
+      default_radial_acceleration   2.5 g
+      default_climb_rate            300 fps
+
+      # Mach 0.9 (516.0 kts) at altitude, Janes Reference
+      maximum_speed                 516.0 knots
+
+      # Ceiling, Janes Reference
+      maximum_altitude              55000 ft
+      minimum_altitude              1000 ft
+
+      # WAG - Luke Miklos
+      maximum_linear_acceleration   7 g
+
+      #no_pitch
+      at_end_of_path extrapolate
+
+   end_mover
+
+   fuel WSF_VARIABLE_RATE_FUEL
+      #rough calculation for fuel rate: based on max range, cruising speed, & max fuel
+      rate 4.0 lb/s
+      # Janes Reference, max fuel
+      # 46000 gallons internal, plus two 700 gallon underwing drop tanks
+      # jet fuel is 6 lb per gallon
+      initial_quantity 284400 lb
+      maximum_quantity 284400 lb
+   end_fuel
+
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval  60 sec
+      update_interval 2 sec
+   end_processor
+
+end_platform_type

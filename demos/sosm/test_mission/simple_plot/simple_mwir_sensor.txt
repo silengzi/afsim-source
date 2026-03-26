@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =============================================================================
+# Used by 'test_stp.txt' (the simple target plot).
+#
+# A trivial mid-wave (3 um - 5 um) sensor (Uniform response)
+# =============================================================================
+
+sensor_model default
+   response_limits 3 um 5 um
+
+   response_curve
+      wavelength 3 um  1.0
+      wavelength 5 um  1.0
+   end_response_curve
+
+   noise_equivalent_irradiance    1.0E-10 w/m2
+   detection_threshold            6.0 db
+
+#   show_response true
+end_sensor_model
+

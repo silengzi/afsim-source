@@ -1,0 +1,67 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch of a delta_iv_m to carry a satellite into orbit
+
+include_once scripts/attempt_orbital_launch.txt
+
+script_variables
+   bool staging_failure = false;
+end_script_variables
+
+# =============================================================================
+# Modify the launch vehicle so it will launch off a new satellite body on orbit insertion.
+platform_type DELTA_IV_M_MOD DELTA_IV_M
+   script_variables  # Identify the satellite stage number and platform_type to 'launch_payload.txt'
+      int mPayloadStage = 4;
+      string mPayloadType = "SATELLITE";
+   end_script_variables
+
+   include scripts/launch_payload.txt
+end_platform_type
+
+# =============================================================================
+
+platform LAUNCHER WSF_PLATFORM
+   icon Wedge
+   side red
+
+   # Cape Canaveral, SLC-37 (Eastern Range Launch Site), inclinations 28-57
+   position 28.531986n 80.566821w altitude 1 m agl heading 0 deg
+
+   add weapon launcher DELTA_IV_M
+      launch_computer WSF_ORBITAL_LAUNCH_COMPUTER
+         leo_data ../launch_vehicles/delta_iv_m/delta_iv_m_ccafs_leo.txt
+      end_launch_computer
+      launched_platform_type DELTA_IV_M_MOD
+   end_weapon
+
+   execute at_time 1.0 sec absolute
+      AttemptOrbitalLaunch(PLATFORM, "launcher", 402290.0, 28.6);
+   end_execute
+end_platform
+
+# =============================================================================
+
+# Actual staging failure determined by ignition_failure_probability set in the platform definition
+# for delta_iv_m
+script void MoverBroken(WsfPlatform aPlatform, WsfMover aMover)
+   writeln("!!!Do something here ", TIME_NOW);
+   staging_failure = true; #This tells interceptor to cue into launch vehicle path and attempt to intercept
+end_script
+
+observer
+   enable MOVER_BROKEN MoverBroken
+end_observer
+
+# ==============================================================================
+# Observer to capture and display information for specific events. Could have
+# used 'event_output', but this makes for a little better output.
+observer
+   enable MOVER_BURNED_OUT MoverBurnedOut
+end_observer

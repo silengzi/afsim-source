@@ -1,0 +1,48 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to generate the orbital launch computer for launch from
+# Cape Canaveral Air Force Station (CCAFS)
+#==============================================================================
+
+include launcher_one.txt
+
+platform_type LAUNCHER_ONE_MOD LAUNCHER_ONE
+   edit mover
+      #show_status
+   end_mover
+   edit processor guidance
+      #show_status
+      #show_diagnostics
+      #show_commands
+   end_processor
+end_platform_type
+
+# The launch platform is a Boeing 747-400 named 'Cosmic Girl'
+platform_type COSMIC_GIRL WSF_PLATFORM
+   add weapon rocket WSF_EXPLICIT_WEAPON
+      launched_platform_type LAUNCHER_ONE_MOD
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file launcher_one_ccafs_leo.txt
+
+   launch_platform_type COSMIC_GIRL
+
+   # CCAFS
+   position 28.608422n 80.604133w altitude 35000 ft heading 90 deg speed 400 kts pitch 10 deg
+
+   # The documentation says they handle inclinations of about 28-57.
+   launch_headings from 40 deg to 90 deg by 10 deg     # gives inc ~57.5-27.8
+   loft_angles from 25 deg to 45 deg by 0.2 deg
+
+   tool_debug
+end_tool
+

@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+script_interface
+#  debug
+end_script_interface
+
+script void platformkilled(WsfPlatform aPlatform)
+   double platformalt = aPlatform.Altitude();
+   WsfGeoPoint location = aPlatform.Location();
+   if (aPlatform.Name() == "target3")
+   {
+      writeln("*T=,", TIME_NOW,
+                     ",Platform=,", aPlatform.Name(),
+                     ",PlatformAlt=,", platformalt,
+                     ",PlatformSpeed=,", aPlatform.Speed(),
+                     ",PlatformHeading=,", aPlatform.Heading(),
+                     ",PlatformLat=,", location.Latitude(),
+                     ",PlatformLon=,", location.Longitude(),
+                     ",PlatformXpos,", aPlatform.X(),
+                     ",PlatformYpos,", aPlatform.Y(),
+                     ",PlatformZpos,", aPlatform.Z());
+   }
+end_script
+
+
+script_variables
+  global Map< int, double > mPlatformDamageFactor = Map< int, double >();
+end_script_variables
+
+script void WeaponTerminated(WsfWeaponEngagement aWeaponEngagement)
+  extern Map< int, double > mPlatformDamageFactor;
+  // Save the platform damage truth information
+  WsfPlatform platform = aWeaponEngagement.TargetPlatform();
+  if (platform.IsValid() && platform.Name() == "target3")
+  {
+     int platformIndex  = platform.Index();
+     mPlatformDamageFactor[platformIndex] = platform.DamageFactor();
+     writeln(",Platform Damage=," , platform.DamageFactor(),
+            ",Platform Name=," , platform.Name(),
+            ",Platform Speed=," , platform.Speed(),
+            ",Platform Heading=," , platform.Heading());
+  }
+end_script
+
+observer
+  enable WEAPON_TERMINATED
+  enable PLATFORM_BROKEN platformkilled
+end_observer

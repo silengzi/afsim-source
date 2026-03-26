@@ -1,0 +1,240 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Platform for an iridium satellite
+
+platform_type IRIDIUM_SATELLITE WSF_PLATFORM
+   icon satellite
+   side blue
+   mover WSF_SPACE_MOVER
+      revs_per_day 14.4
+      inclination 86.4 deg
+   end_mover
+
+   comm iridium_comm WSF_COMM_TRANSCEIVER
+   end_comm
+
+   script_variables
+      static int sFIRST_SATELLITE = 1;
+      static int sLAST_SATELLITE = 11;
+      static int sFIRST_ORBIT    = 1;
+      static int sLAST_ORBIT     = 6;  // CHANGE TODO
+      static bool sDebug = true;
+
+      // Variables initialized / set during "initialize2".
+      bool mIsTravelingNorth;
+      bool mWasTravelingNorth;
+
+      string mNorthwardUpperLeftLink = "<none>";
+      string mNorthwardLowerRightLink = "<none>";
+
+      string mSouthwardUpperLeftLink = "<none>";
+      string mSouthwardLowerRightLink = "<none>";
+
+      int mOrbitNumber;
+      int mSatelliteNumber;
+
+   end_script_variables
+
+   // Note that the following assume the network naming convention of iridium<orbit#><satellite#>.
+   script int OrbitNumber(string aName)
+      return (int)(aName.Substring(7, 7));
+   end_script
+
+   script int SatelliteNumber(string aName)
+      return (int)(aName.Substring(8));
+   end_script
+
+   script void UpdateTravelDirection()
+      mWasTravelingNorth = mIsTravelingNorth;
+      Vec3 velWCS = PLATFORM.VelocityWCS();
+      mIsTravelingNorth = (velWCS.Z() > 0.0);
+   end_script
+
+script void AddConnection(WsfComm aSourceComm,
+                          string aDestinationPlatformName,
+                          string aDestCommName)
+
+   WsfAddress sourceAddress = aSourceComm.GetAddress();
+   if(!aSourceComm.IsConnectedTo(WsfSimulation.FindPlatform(aDestinationPlatformName).Comm(aDestCommName).GetAddress()))
+   {
+      aSourceComm.AddConnection(WsfSimulation.FindPlatform(aDestinationPlatformName).Comm(aDestCommName).GetAddress());
+   }
+end_script
+
+script void RemoveConnection(WsfComm aSourceComm,
+                             string aDestinationPlatformName,
+                             string aDestCommName)
+   WsfAddress sourceAddress = aSourceComm.GetAddress();
+   if(aSourceComm.IsConnectedTo(WsfSimulation.FindPlatform(aDestinationPlatformName).Comm(aDestCommName).GetAddress()))
+   {
+      aSourceComm.RemoveConnection(WsfSimulation.FindPlatform(aDestinationPlatformName).Comm(aDestCommName).GetAddress());
+   }
+end_script
+
+   script void UpdateLinks()
+      WsfComm comm = PLATFORM.Comm("iridium_comm");
+      if (mIsTravelingNorth)
+      {
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            WsfComm myComm = PLATFORM.Comm("iridium_comm");
+            RemoveConnection(myComm, mSouthwardUpperLeftLink, "iridium_comm");
+            AddConnection(myComm, mNorthwardUpperLeftLink, "iridium_comm");
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            WsfComm myComm = PLATFORM.Comm("iridium_comm");
+            RemoveConnection(myComm, mSouthwardLowerRightLink, "iridium_comm");
+            AddConnection(myComm, mNorthwardLowerRightLink, "iridium_comm");
+         }
+      }
+      else
+      {
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            WsfComm myComm = PLATFORM.Comm("iridium_comm");
+            RemoveConnection(myComm, mNorthwardUpperLeftLink, "iridium_comm");
+            AddConnection(myComm, mSouthwardUpperLeftLink, "iridium_comm");
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            WsfComm myComm = PLATFORM.Comm("iridium_comm");
+            RemoveConnection(myComm, mNorthwardLowerRightLink, "iridium_comm");
+            AddConnection(myComm, mSouthwardLowerRightLink, "iridium_comm");
+         }
+      }
+   end_script
+
+   script void AddStaticConnections()
+         WsfComm comm = PLATFORM.Comm("iridium_comm");
+         string connection1 = "iridium" + (string)mOrbitNumber;
+         string connection2 = connection1;
+         if (mSatelliteNumber != sLAST_SATELLITE)
+         {
+            connection1 += (string)(mSatelliteNumber + 1);
+         }
+         else
+         {
+            connection1 += (string)sFIRST_SATELLITE;
+         }
+         if (mSatelliteNumber != sFIRST_SATELLITE)
+         {
+            connection2 += (string)(mSatelliteNumber - 1);
+         }
+         else
+         {
+            connection2 += (string)sLAST_SATELLITE;
+         }
+         WsfPlatform curPlat1 = WsfSimulation.FindPlatform(connection1);
+         WsfPlatform curPlat2 = WsfSimulation.FindPlatform(connection2);
+         WsfComm comm1 = curPlat1.Comm("iridium_comm");
+         WsfComm comm2 = curPlat2.Comm("iridium_comm");
+         comm.AddConnection(comm1.GetAddress());
+         comm.AddConnection(comm2.GetAddress());
+   end_script
+
+   processor dynamic-link-processor WSF_SCRIPT_PROCESSOR
+
+      update_interval 1 min
+      execute at_time 0.00001 s absolute
+         // set up the links that don't change (links with adjacent satellites in same plane).
+         WsfComm comm = PLATFORM.Comm("iridium_comm");
+         string netName = comm.NetworkName();
+         mSatelliteNumber = SatelliteNumber(netName);
+         mOrbitNumber = OrbitNumber(netName);
+         bool isEvenOrbit = (Math.Mod(mOrbitNumber, 2) == 0);
+
+         if (mOrbitNumber != sFIRST_ORBIT)
+         {
+            if (isEvenOrbit)
+            {
+               if (mSatelliteNumber != sLAST_SATELLITE)
+               {
+                  mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber + 1);
+               }
+               else
+               {
+                  mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(sFIRST_SATELLITE);
+               }
+               mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber);
+            }
+            else // odd orbit
+            {
+               mNorthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber);
+               if (mSatelliteNumber != sFIRST_SATELLITE)
+               {
+                  mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(mSatelliteNumber - 1);
+               }
+               else
+               {
+                  mSouthwardUpperLeftLink = "iridium" + (string)(mOrbitNumber - 1) + (string)(sLAST_SATELLITE);
+               }
+            }
+         }
+         if (mOrbitNumber != sLAST_ORBIT)
+         {
+            if (isEvenOrbit)
+            {
+               mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber);
+               if (mSatelliteNumber != sLAST_SATELLITE)
+               {
+                  mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber + 1);
+               }
+               else
+               {
+                  mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(sFIRST_SATELLITE);
+               }
+            }
+            else // odd orbit
+            {
+               if (mSatelliteNumber != sFIRST_SATELLITE)
+               {
+                  mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber - 1);
+               }
+               else
+               {
+                  mNorthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(sLAST_SATELLITE);
+               }
+               mSouthwardLowerRightLink = "iridium" + (string)(mOrbitNumber + 1) + (string)(mSatelliteNumber);
+            }
+         }
+
+#         writeln(PLATFORM.Name(), " Connections:");
+#         writeln("   orbit, satellite: ", mOrbitNumber, ", ", mSatelliteNumber);
+#         writeln("   nul ", mNorthwardUpperLeftLink);
+#         writeln("   nlr ", mNorthwardLowerRightLink);
+#         writeln("   sul ", mSouthwardUpperLeftLink);
+#         writeln("   slr ", mSouthwardLowerRightLink);
+         Vec3 velWCS = PLATFORM.VelocityWCS();
+         mIsTravelingNorth = (velWCS.Z() > 0.0);
+         mWasTravelingNorth = mIsTravelingNorth;
+      end_execute
+
+      execute at_time 10 s absolute
+         AddStaticConnections();
+         UpdateLinks();
+      end_execute
+
+      on_update
+         if (TIME_NOW > 0.0)
+         {
+            UpdateTravelDirection();
+            if (mIsTravelingNorth != mWasTravelingNorth)
+            {
+               UpdateLinks();
+            }
+         }
+      end_on_update
+
+   end_processor
+
+   category iridium
+
+end_platform_type
+

@@ -1,0 +1,352 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+include_once platforms/gps.txt
+
+### GPS CONSTELLATION ###
+
+# Notes: Constellation status as of Apr 25, 2017. TLEs as of the same date.
+
+# Operational Satellites
+
+# Plane- SVN (PRN)
+
+#A: 65 (24), 52 (31), 64 (30), 48 (7)
+#B: 56 (16), 62 (25), 44 (28), 58 (12), 71 (26), 51 (20)
+#C: 57 (29), 66 (27), 72 (8), 53 (17), 59 (19)
+#D: 61 (2), 63 (1), 45 (21), 67 (6), 46 (11)
+#E: 69 (3), 73 (10), 50 (5), 54 (18), 47 (22)
+#F: 41 (14), 55 (15), 68 (9), 60 (23), 70 (32), 43 (13)
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+# Plane A
+
+platform NAVSTAR_67 GPS  # USA-239, IIF
+side US
+edit mover
+orbit
+1 38833U 12053A   17113.34979442 -.00000010 +00000-0 +00000-0 0  9993
+2 38833 054.1906 280.8332 0055478 025.8149 334.4428 02.00560855032527
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_58 GPS  # USA-190, IIRM
+side US
+edit mover
+orbit
+1 29486U 06042A   17113.83044612 -.00000008 +00000-0 +00000-0 0  9991
+2 29486 055.4343 284.4609 0085151 343.6944 261.1732 02.00561957077417
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_69 GPS  # USA-248, IIF
+side US
+edit mover
+orbit
+1 39533U 14008A   17113.70668628 -.00000011 +00000-0 +00000-0 0  9995
+2 39533 054.3448 286.1056 0026803 180.3070 179.6787 02.00561650022687
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_62 GPS  # USA-201, IIRM
+side US
+edit mover
+orbit
+1 32711U 08012A   17113.65756985 -.00000008 +00000-0 +00000-0 0  9998
+2 32711 055.1621 283.8492 0104865 211.6425 147.7074 02.00555075066750
+end_orbit
+end_mover
+end_platform
+
+# Plane B
+
+platform NAVSTAR_51 GPS  # USA-166, IIR
+side US
+edit mover
+orbit
+1 27663U 03005A   17113.02700953 -.00000043 +00000-0 +00000-0 0  9999
+2 27663 056.7175 347.0344 0092523 023.5678 266.2303 02.00562952104271
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_65 GPS  # USA-213, IIF
+side US
+edit mover
+orbit
+1 36585U 10022A   17113.91896799 -.00000039 +00000-0 +00000-0 0  9996
+2 36585 055.9995 342.7754 0062965 044.0167 272.8039 02.00572302050572
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_48 GPS  # USA-151, IIR
+side US
+edit mover
+orbit
+1 26407U 00040A   17113.71211019 -.00000042 +00000-0 +00000-0 0  9995
+2 26407 056.6478 347.2715 0199892 270.1024 035.2331 02.00567156122925
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_59 GPS  # USA-192, IIRM
+side US
+edit mover
+orbit
+1 29601U 06052A   17112.93421200 -.00000042 +00000-0 +00000-0 0  9991
+2 29601 056.6903 345.9577 0064886 046.7240 313.8680 02.00578980076421
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_73 GPS  # USA-260, IIF
+side US
+edit mover
+orbit
+1 40534U 15013A   17113.08589681 -.00000041 +00000-0 +00000-0 0  9990
+2 40534 054.9565 341.9600 0018252 356.5368 003.5014 02.00561719015223
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_47 GPS  # USA-150, IIF
+side US
+edit mover
+orbit
+1 26360U 00025A   17113.79550032 +.00000071 +00000-0 +00000-0 0  9996
+2 26360 053.1070 157.1585 0041474 090.9236 353.5750 02.00564145124255
+end_orbit
+end_mover
+end_platform
+
+# Plane C
+
+platform NAVSTAR_61 GPS  # USA-199, IIRM
+side US
+edit mover
+orbit
+1 32384U 07062A   17113.91311822 -.00000053 +00000-0 +00000-0 0  9994
+2 32384 056.1970 045.8981 0007117 350.4244 259.3728 02.00567622068531
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_68 GPS  # USA-242, IIF
+side US
+edit mover
+orbit
+1 39166U 13023A   17113.20339333 -.00000056 +00000-0 +00000-0 0  9995
+2 39166 055.8412 042.3805 0046508 015.7595 344.3777 02.00565143028853
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_74 GPS  # USA-262, IIF
+side US
+edit mover
+orbit
+1 40730U 15033A   17113.24574390 -.00000057 +00000-0 +00000-0 0  9996
+2 40730 055.3759 042.0749 0027536 314.9000 044.8710 02.00569886012984
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_57 GPS  # USA-183, IIRM
+side US
+edit mover
+orbit
+1 28874U 05038A   17113.29920240 -.00000053 +00000-0 +00000-0 0  9995
+2 28874 056.1336 045.3440 0118652 254.3759 044.7841 02.00570643084808
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_54 GPS  # USA-177, IIRM
+side US
+edit mover
+orbit
+1 28190U 04009A   17113.53196260 -.00000049 +00000-0 +00000-0 0  9992
+2 28190 055.9762 048.0807 0100712 053.8969 032.5345 02.00565191095964
+end_orbit
+end_mover
+end_platform
+
+# Plane D
+
+platform NAVSTAR_56 GPS  # USA-180, IIR
+side US
+edit mover
+orbit
+1 28474U 04045A   17113.78663777 +.00000048 +00000-0 +00000-0 0  9994
+2 28474 054.2085 099.9268 0170045 246.3734 296.1310 02.00551621091419
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_66 GPS  # USA-232, IIF
+side US
+edit mover
+orbit
+1 37753U 11036A   17113.87299347 +.00000056 +00000-0 +00000-0 0  9999
+2 37753 055.4166 102.9402 0064007 028.9830 341.3898 02.00561877042265
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_52 GPS  # USA-168, IIR
+side US
+edit mover
+orbit
+1 27704U 03010A   17113.44494347 +.00000050 +00000-0 +00000-0 0  9991
+2 27704 053.8277 100.4924 0242375 263.6996 287.4861 02.00560513103077
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_70 GPS  # USA-251, IIRM
+side US
+edit mover
+orbit
+1 39741U 14026A   17113.48382314 +.00000057 +00000-0 +00000-0 0  9995
+2 39741 055.4037 102.4755 0010260 287.6910 072.2083 02.00565320021510
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_46 GPS  # USA-145, IIR
+side US
+edit mover
+orbit
+1 25933U 99055A   17113.82415729 +.00000002 +00000-0 +00000-0 0  9993
+2 25933 051.5971 080.0191 0164603 093.6533 269.2184 02.00558907128560
+end_orbit
+end_mover
+end_platform
+
+# Plane E
+
+platform NAVSTAR_72 GPS  # USA-258, IIF
+side US
+edit mover
+orbit
+1 40294U 14068A   17113.44791956 +.00000068 +00000-0 +00000-0 0  9990
+2 40294 054.9920 162.6748 0006113 343.0922 016.9735 02.00553985018184
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_75 GPS  # USA-265, IIF
+side US
+edit mover
+orbit
+1 41019U 15062A   17113.29924195 +.00000067 +00000-0 +00000-0 0  9996
+2 41019 055.0019 162.4664 0025379 204.9747 154.9872 02.00563389010806
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_64 GPS  # USA-206, IIRM
+side US
+edit mover
+orbit
+1 35752U 09043A   17113.61160562 +.00000068 +00000-0 +00000-0 0  9992
+2 35752 054.2453 161.7297 0048101 028.4106 322.2421 02.00556786056337
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_50 GPS  # USA-156, IIR
+side US
+edit mover
+orbit
+1 26690U 01004A   17113.92665185 +.00000069 +00000-0 +00000-0 0  9998
+2 26690 053.0295 160.0974 0181901 256.3695 223.0565 02.00553464118936
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_53 GPS  # USA-175, IIR
+side US
+edit mover
+orbit
+1 28129U 03058A   17112.91370298 +.00000062 +00000-0 +00000-0 0  9997
+2 28129 052.9162 160.1356 0078099 259.3434 099.8590 02.00579306097765
+end_orbit
+end_mover
+end_platform
+
+# Plane F
+
+platform NAVSTAR_49 GPS  # USA-154, IIR
+side US
+edit mover
+orbit
+1 26605U 00071A   17113.44878760 -.00000015 +00000-0 +00000-0 0  9991
+2 26605 055.1343 227.0172 0091810 248.1541 135.3918 02.00566972120513
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_60 GPS  # USA-196, IIRM
+side US
+edit mover
+orbit
+1 32260U 07047A   17113.25772039 -.00000012 +00000-0 +00000-0 0  9993
+2 32260 053.2441 218.5898 0089885 032.0868 328.4631 02.00550414069812
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_71 GPS  # USA-256, IIF
+side US
+edit mover
+orbit
+1 40105U 14045A   17113.57727612 -.00000012 +00000-0 +00000-0 0  9998
+2 40105 054.6408 222.0572 0006005 115.4013 244.6623 02.00566221019084
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_55 GPS  # USA-178, IIR
+side US
+edit mover
+orbit
+1 28361U 04023A   17113.89750247 -.00000011 +00000-0 +00000-0 0  9997
+2 28361 054.1178 222.1668 0117139 218.9992 043.3848 02.00552986094029
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_76 GPS  # USA-266, IIF
+side US
+edit mover
+orbit
+1 41328U 16007A   17113.38524781 -.00000012 +00000-0 +00000-0 0  9997
+2 41328 054.8989 222.2381 0011912 217.0875 142.8310 02.00558265008861
+end_orbit
+end_mover
+end_platform
+
+platform NAVSTAR_43 GPS  # USA-132, IIR
+side US
+edit mover
+orbit
+1 24876U 97035A   17113.22383133 -.00000016 +00000-0 +00000-0 0  9997
+2 24876 055.5633 229.2732 0036415 106.5569 253.8327 02.00561960144721
+end_orbit
+end_mover
+end_platform

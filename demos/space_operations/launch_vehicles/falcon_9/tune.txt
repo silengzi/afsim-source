@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to help tune the launch computer.
+#==============================================================================
+
+include falcon_9.txt
+
+platform_type LAUNCHER WSF_PLATFORM
+   add weapon rocket FALCON_9
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file output_tune.tmp
+
+   launch_platform_type LAUNCHER
+
+   # Cape Canaveral Air Force Station, SLC-37
+   position 28.531986n 80.566821w altitude 1 m
+
+   launch_heading 90 deg
+
+   # Initial guess
+   pitch_rates from 0.10 deg/sec to 0.22 deg/sec by 0.02 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # Throw out the obvious bad parts on the ends
+   pitch_rates from 0.12 deg/sec to 0.18 deg/sec by 0.005 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # 0.145 produces altitudes of 273km to 380km.
+   pitch_rate 0.145 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+end_tool

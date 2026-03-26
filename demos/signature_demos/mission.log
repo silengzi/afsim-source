@@ -1,0 +1,17 @@
+2025-12-02 18:16:56 file 2nd_composite_optical_signature_fighter.txt
+2025-12-02 18:16:56 version wsf 2.9.0
+2025-12-02 18:16:56 file 2nd_composite_optical_signature_fighter.txt
+2025-12-02 18:16:56 file platforms/simple_fighter.txt
+2025-12-02 18:16:56 file ./signatures/fighter_spherical_optical_signature.txt
+2025-12-02 18:16:56 file ./signatures/fighter_box_optical_signature.txt
+2025-12-02 18:16:56 file ./signatures/fighter_multi_shape_optical_signature.txt
+2025-12-02 18:16:56 file platforms/generic_irst_site.txt
+2025-12-02 18:16:56 file ./sensors/generic_irst.txt
+2025-12-02 18:16:56 file platforms/generic_eoir_site.txt
+2025-12-02 18:16:56 file ./sensors/generic_eoir.txt
+2025-12-02 18:16:56 file scenarios/simple_fighter_route.txt
+2025-12-02 18:16:56 file scenarios/sensor_laydown_fighter.txt
+2025-12-02 18:16:56 AER output file: output/2nd_composite_optical_signature_fighter.aer
+2025-12-02 18:16:56 Event output file: output/2nd_composite_optical_signature_fighter.evt
+2025-12-02 18:16:56 start 1
+2025-12-02 18:16:56 complete 600.001 0.038 0.047

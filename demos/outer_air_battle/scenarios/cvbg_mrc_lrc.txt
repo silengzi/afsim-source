@@ -1,0 +1,284 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform cv_1 CVN
+  side blue
+  icon Carrier
+
+   processor task_mgr
+      script_variables
+         ERC->num    = 6;
+         ERC->type   = "BLUE_MULTIROLE_FIGHTER_2_MRC";
+         ERC->prefix = "lrc-";
+      end_script_variables
+   end_processor
+
+  position 00:00:00.00n 30:00:00.00w
+  heading 90 deg
+  zone circle_zone_5190
+    circular
+    maximum_radius 100.00 nm
+#    start_angle 315.00 deg
+#    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52115
+    circular
+    maximum_radius 150.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52120
+    circular
+    maximum_radius 200.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52125
+    circular
+    maximum_radius 250.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52130
+    circular
+    maximum_radius 300.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52135
+    circular
+    maximum_radius 350.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52140
+    circular
+    maximum_radius 400.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52145
+    circular
+    maximum_radius 450.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+  zone circle_zone_52150
+    circular
+    maximum_radius 500.00 nm
+    start_angle 315.00 deg
+    stop_angle 45.00 deg
+  end_zone
+end_platform
+
+
+#
+#
+#platform mrc-1a BLUE_MULTIROLE_FIGHTER_2_MRC
+#   side blue
+#   icon F-35
+#   commander cv_1
+#   heading 73 deg
+#
+#   route
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:37:55.53n 27:48:46.39w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 01:04:37.57n 27:34:15.48w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 01:19:15.97n 26:57:47.87w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:58:11.45n 27:36:41.86w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      position 00:00n 30:00w altitude 0.0 ft
+#         execute atEndOfRoute
+#   end_route
+#end_platform
+#
+#platform mrc-1b BLUE_MULTIROLE_FIGHTER_2_MRC
+#   side blue
+#   icon F-35
+#   commander cv_1
+#   heading 73 deg
+#
+#   route
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         pause_time 5 min
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:37:55.53n 27:48:46.39w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 00:48:17.18n 27:29:40.76w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 01:02:55.58n 26:53:12.94w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:42:00.19n 27:30:00.73w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      position 00:00n 30:00w altitude 0.0 ft
+#         execute atEndOfRoute
+#   end_route
+#end_platform
+#
+#
+#platform mrc-2a BLUE_MULTIROLE_FIGHTER_2_MRC
+#  side blue
+#  icon F-35
+#  commander cv_1
+#
+#   route
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         pause_time 5 min
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:37:55.53n 27:48:46.39w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 00:11:51.41n 27:08:40.72w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 00:12:06.19n 26:50:18.32w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:06:58.64n 27:13:01.04w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+#      position 00:00n 30:00w altitude 0.0 ft
+#         execute atEndOfRoute
+#   end_route
+#
+#  heading 73 deg
+#end_platform
+#
+#platform mrc-2b BLUE_MULTIROLE_FIGHTER_2_MRC
+#  side blue
+#  icon F-35
+#  commander cv_1
+#
+#  route
+#      position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+#      position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:26:01.38s 27:45:33.25w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 00:11:36.79s 27:10:33.83w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 00:09:41.14s 26:46:42.55w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:07:02.81s 27:16:23.20w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:26:01.38s 27:45:33.25w
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         execute atEndOfRoute
+#  end_route
+#
+#  heading 101 deg
+#end_platform
+#
+#
+#platform mrc-3a BLUE_MULTIROLE_FIGHTER_2_MRC
+#  side blue
+#  icon F-35
+#   commander cv_1
+#  position 00:00:00.00n 30:00:00.00w altitude 0.00 ft
+#  heading 101 deg
+#
+#  route
+#      position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+#      position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:26:01.38s 27:45:33.25w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 00:57:36.27s 27:20:05.69w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 01:12:33.75s 26:53:55.15w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:59:57.99s 27:27:18.62w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:26:01.38s 27:45:33.25w
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         execute atEndOfRoute
+#  end_route
+#end_platform
+#
+#platform mrc-3b BLUE_MULTIROLE_FIGHTER_2_MRC
+#  side blue
+#  icon F-35
+#   commander cv_1
+#  heading 101 deg
+#
+#  route
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         pause_time 5 min
+#      position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+#      label cap_refuel
+#      position 00:26:01.38s 27:45:33.25w
+#         pause_time 10 min
+#
+#      label on_station
+#      position 00:40:50.48s 27:13:25.31w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#         execute OnStation
+#      position 00:55:47.98s 26:47:14.94w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#      position 00:43:13.33s 27:19:40.31w altitude 30000.00 ft
+#         radial_acceleration 1.000 g
+#
+#         goto on_station
+#      label go_home
+#      position 00:26:01.38s 27:45:33.25w
+#      position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+#         execute atEndOfRoute
+#  end_route
+#end_platform
+#
+
+
+platform tanker1 WSF_PLATFORM
+   side blue
+   icon kc-135
+   position 00:37:55.53n 27:48:46.39w altitude 30000 ft
+end_platform
+
+platform tanker2 WSF_PLATFORM
+   side blue
+   icon kc-135
+   position 00:26:01.38s 27:45:33.25w altitude 30000 ft
+end_platform
+
+

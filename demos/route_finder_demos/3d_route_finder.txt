@@ -1,0 +1,202 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+event_pipe file 3d_route_finder.aer end_event_pipe
+
+end_time 60 min
+
+
+platform_type REDSAM WSF_PLATFORM
+   side red
+   icon SA-17_Launcher
+end_platform_type
+
+platform sam2 REDSAM
+  position 00:41:14.49n 02:49:18.77e
+end_platform
+
+platform sam1 REDSAM
+  position 01:15:32.14n 02:56:31.43e
+end_platform
+
+platform sam3 REDSAM
+  position 00:06:17.90n 02:49:14.61e
+end_platform
+
+platform sam4 REDSAM
+  position 00:28:14.32s 02:54:55.00e
+end_platform
+
+platform sam5 REDSAM
+  position 00:22:23.94n 01:47:28.45e
+end_platform
+
+
+platform target WSF_PLATFORM
+  icon bullseye
+  position 00.31532n 00.73940e altitude 35000 ft msl
+end_platform
+
+
+
+processor 3D_ROUTER WSF_SCRIPT_PROCESSOR
+
+   script_variables
+      string mTargetPlatform    = "target";
+      string mAvoidPlatformType = "REDSAM";
+     #double mRadiusPerAltitude = 2.5;
+      double mRadiusPerAltitude = 7.0;
+      double mAltCeiling = 40000 * MATH.M_PER_FT();
+      double mAltFloor   = 10000 * MATH.M_PER_FT();
+      Vec3 mAvoidColor = Vec3.Construct(1,0,0);
+      Vec3 mRouteColor = Vec3.Construct(0,1,0);
+
+      WsfDraw mDraw = WsfDraw();
+      WsfRouteFinder mFinder = WsfRouteFinder();
+      Array<WsfGeoPoint> mAvoids = Array<WsfGeoPoint>();
+   end_script_variables
+
+   script void DrawRoute(WsfRoute aRoute)
+      if (aRoute.IsValid())
+      {
+         mDraw.SetColor(mRouteColor[0],mRouteColor[1],mRouteColor[2]);
+         mDraw.BeginPolyline();
+            for (int i=0; i<aRoute.Size(); i=i+1)
+            {
+               mDraw.Vertex(aRoute.Waypoint(i).Location());
+            }
+         mDraw.End();
+      }
+   end_script
+
+   script void Draw3dSamAvoidance(WsfGeoPoint pos)
+      if (pos.IsValid())
+      {
+         mDraw.SetColor(mAvoidColor[0],mAvoidColor[1],mAvoidColor[2]);
+         double radiusAtCeiling = mRadiusPerAltitude * mAltCeiling;
+         mDraw.BeginLines();
+            for(double angle=0; angle<=360; angle = angle + 15)
+            {
+               WsfGeoPoint end = WsfGeoPoint(pos);               #clone the ground position
+               end.Offset(angle,radiusAtCeiling,0,-mAltCeiling); #move the position up & out
+               mDraw.Vertex(pos);
+               mDraw.Vertex(end);
+            }
+         mDraw.End();
+
+         mDraw.BeginCircle(0, radiusAtCeiling);
+            WsfGeoPoint top = WsfGeoPoint(pos);               #clone the ground position
+            top.OffsetNED(0,0,-mAltCeiling);
+            mDraw.Vertex(top);
+         mDraw.End();
+      }
+   end_script
+
+   script double RouteLength3d(WsfRoute route)
+      double length = 0;
+      for(int i=0; i<(route.Size()-1); i+=1)
+      {
+         length += route[i].Location().SlantRangeTo(route[i+1].Location());
+      }
+      return length;
+   end_script
+
+   on_initialize2
+      mDraw.SetLineSize(1);
+      mDraw.SetLineStyle("solid");
+      mDraw.SetDuration(WsfSimulation.EndTime());
+      mDraw.SetId("3D_ROUTER");
+      mDraw.SetEllipseMode("line");
+
+      mFinder.SetImpossibleRouteResponse("SHIFT");
+      mFinder.SetMaxArcLength(4000); //a little over 2 nm (in meters)
+      WsfGeoPoint src = PLATFORM.Location();
+      WsfGeoPoint tgt = WsfSimulation.FindPlatform(mTargetPlatform).Location();
+
+      #setup avoidances
+      for(int i=0; i < WsfSimulation.PlatformCount(); i+=1)
+      {
+         WsfPlatform avoid = WsfSimulation.PlatformEntry(i);
+         if (avoid.Type() == mAvoidPlatformType)
+         {
+            Draw3dSamAvoidance(avoid.Location());
+            mAvoids.PushBack(avoid.Location());
+         }
+      }
+
+
+      WsfRoute shortestRoute;
+      double shortestRouteLength = MATH.DOUBLE_MAX();
+
+      double altIncrement = 1000 * MATH.M_PER_FT();
+
+      WsfGeoPoint beg = WsfGeoPoint(src);
+      WsfGeoPoint end = WsfGeoPoint(tgt);
+
+      for (double alt = mAltCeiling; alt >= mAltFloor; alt -= altIncrement)
+      {
+         mFinder.ClearAvoidances();
+         double SamRadiusAtAlt = alt * mRadiusPerAltitude;
+         foreach(WsfGeoPoint avoid in mAvoids)
+         {
+            mFinder.Avoid(avoid, SamRadiusAtAlt);
+         }
+
+         #adjust start and end altitudes for current route
+         beg.SetAltitudeAGL(alt);
+         end.SetAltitudeAGL(alt);
+         WsfRoute path = mFinder.Route(TIME_NOW, beg, end, 250); #(250 met/sec ~500 knots)
+
+         #ignore routes that go so low, there is nothing to avoid (for now)
+         if (path.Size() > 2)
+         {
+            #set altitudes of beginning and end points back to original
+            beg = path.Front().Location();
+            beg.SetAltitudeAGL(src.Altitude());
+            path.Front().SetLocation(beg);
+            end = path.Back().Location();
+            end.SetAltitudeAGL(tgt.Altitude());
+            path.Back().SetLocation(end);
+
+            DrawRoute(path);
+
+            double currentRouteLength = RouteLength3d(path);
+            if (currentRouteLength < shortestRouteLength)
+            {
+               shortestRouteLength = currentRouteLength;
+               shortestRoute = path;
+            }
+         }
+      }
+
+      if (shortestRoute.IsValid())
+      {
+         PLATFORM.SetRoute(shortestRoute);
+      }
+
+   end_on_initialize2
+
+end_processor
+
+
+
+platform striker1 WSF_PLATFORM
+   side blue
+   icon F-18E
+   add mover WSF_AIR_MOVER
+      update_interval 1 sec
+      at_end_of_path stop
+   end_mover
+   route
+      position 00.17462n 03.86294e altitude 35000 ft msl speed 450 knots
+      position 00.17462n 02.86294e altitude 35000 ft msl speed 450 knots
+   end_route
+   add processor router 3D_ROUTER end_processor
+end_platform

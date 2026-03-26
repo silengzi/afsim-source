@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# *   ******      UNCLASSIFIED        ******   *
+
+platform red_naval_helicopter RED_NAVAL_HELICOPTER
+   side blue
+   commander 1201_missile_ship
+   route
+     position 30:34:12n 80:40:00w altitude 5000 ft agl
+     speed 100 kts  heading 90 deg
+     position 29:59:24n 81:14:36w altitude 5000 ft agl
+   end_route
+   icon Apache
+end_platform
+
+platform 1201_missile_ship MISSILE_SHIP
+   side blue
+   commander SELF
+   route
+      position 29:48:00n 80:00:36w altitude 0 ft msl
+         speed 14 kts
+      position 30:09:42n 79:56:30w altitude 0 ft msl
+         speed 14 kts
+   end_route
+   icon Luzhou
+end_platform
+
+
+platform_type MYCAR WSF_PLATFORM
+   side red
+   icon Fuel_Truck
+   
+   mover WSF_GROUND_MOVER
+   end_mover
+end_platform_type
+
+# The target platform - it doesn't do anything
+platform fuel_truck MYCAR
+   radar_signature VEHICLE_RADAR_SIGNATURE
+   position 29:47:36.17n 81:24:59.96w altitude 0 ft msl
+   heading 0 deg
+   commander SELF
+   
+
+   route
+      label Waypoint-0
+      position 29:47:36.170n 81:24:59.960w altitude 0.00 ft msl
+         speed 50 mph
+      label Waypoint-1
+      position 29:56:48.387n 81:32:55.208w altitude 0.00 ft msl
+      label Waypoint-2
+      position 30:18:55.970n 81:34:51.236w altitude 0.00 ft msl
+   end_route
+
+end_platform

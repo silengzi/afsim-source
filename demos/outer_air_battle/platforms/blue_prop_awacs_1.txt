@@ -1,0 +1,93 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+include_once platforms/timed_ac.txt
+
+platform_type BLUE_PROP_AWACS_1 TIMED_AC
+   icon awacs
+   edit mover
+      maximum_radial_acceleration 0.5 g
+      at_end_of_path              remove
+   end_mover
+
+   # comm networks
+   include platforms/blue_comm.txt
+
+
+   // --- * --- * ---
+   //     Sensors
+   // --- * --- * ---
+   // N/A
+   sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      azimuth_field_of_view -180.0 degrees 180.0 degrees
+      elevation_field_of_view -90.0 degrees 90.0 degrees
+      minimum_range 0 m
+      # 300 nm
+      maximum_range 250.0 nm
+      on
+      frame_time              0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      reports_bearing
+      #do not report weapons quality tracks
+      track_quality 0.75
+      ignore_same_side
+      internal_link data_mgr
+   end_sensor
+
+   execute at_time 5 seconds relative
+      WsfDraw sensorCircle = WsfDraw();
+      sensorCircle.SetId(PLATFORM.Name());
+      sensorCircle.SetColor(1,0,0);
+      sensorCircle.SetEllipseMode("line");
+      sensorCircle.BeginCircle(0.0, MATH.M_PER_NM()*250.0);
+      sensorCircle.Vertex(PLATFORM);
+      sensorCircle.End();
+   end_execute
+
+   script void atEndOfRoute()
+      # turn off radar arc
+      WsfDraw turnOffArc = WsfDraw();
+      turnOffArc.Erase(PLATFORM.Name());
+   end_script
+
+   processor sensor_coverage WSF_SCRIPT_PROCESSOR
+   end_processor
+
+   // --- * --- * ---
+   //   Processors
+   // --- * --- * ---
+   processor data_mgr WSF_TRACK_PROCESSOR
+#      purge_interval  5 min
+      purge_interval  10 min # 120.0 sec
+      update_interval  10.0 sec
+
+      report_to commander via cmdr_net
+   end_processor
+
+   edit processor station_timer
+      script_variables
+         total_station_time     = 3600.0 * 3.0; # three hours
+         time_before_refueling  = MATH.INTEGER_MAX();
+      end_script_variables
+   end_processor
+
+   processor task_mgr WSF_TASK_PROCESSOR
+
+#      evaluation_interval DETECTED 10 sec
+#      state DETECTED
+#         on_entry
+#            writeln(PLATFORM.Name(), " has detected ", TRACK.TargetName(), " at time ", TIME_NOW);
+#         end_on_entry
+#      end_state
+   end_processor
+
+end_platform_type

@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+<map name="orwaca" type="geocentric" version="2"> 
+  <image name="orwaca" driver="osg">
+     <url>Washington_Oregon.jpg</url>
+     <profile>
+        <srs>+proj=latlong +ellps=WGS84 +datum=WGS84</srs>
+        <xmin>-124.647</xmin>
+        <xmax>-116.029</xmax>
+        <ymin>43.117</ymin>
+        <ymax>48.982</ymax>
+     </profile>
+  </image>  
+  <elevation name="terrain" driver="gdal">  
+     <extensions>dt1</extensions>  
+	 <url>../../../dted1/dted115</url>	 
+    
+   </elevation>	
+  
+</map>
+	 

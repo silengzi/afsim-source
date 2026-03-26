@@ -1,0 +1,271 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/noaa_gs.txt
+
+# References:
+# 1) https://www.nasa.gov/pdf/111742main_noaa_n_booklet.pdf
+
+# NOAA sites
+
+# NOAA Command and Data Acquisition (CDA) stations
+
+# Wallops Island, Virginia
+# Fairbanks, Alaska
+
+# Argos ground processing centers
+
+# Edmonton, Canada
+# Halifax
+# Largo, Maryland
+# Monterey
+# Miami, Florida
+# Hawaii
+# Cayenne
+# Tahiti
+# Lima, Peru
+# Santiago del Chile
+# Buenos Aires
+# Punta Arenas
+# Kiruna, Norway
+# Oslo
+# Lannion
+# Las Palmas
+# Capetown
+# Toulouse
+# Helsinki
+# Murmansk
+# Petropavlosk
+# Hatoyama
+# Tokyo, Japan
+# Singapore
+# St. Denis
+# Jakarta
+# Darwin
+# Perth
+# Casey
+# Melbourne
+# Wellington
+# Noumea
+# Fiji
+
+# NOAA Command and Data Acquisition (CDA) stations
+
+platform WALLOPS_ISLAND_NOAA NOAA_GS            #approximate location
+  position   37.84367099n   75.47837117w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform FAIRBANKS_NOAA NOAA_GS           #approximate location
+  position   64.83337729n   147.72106658w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+# Argos ground processing centers
+
+platform EDMONTON_NOAA NOAA_GS            #approximate location
+  position   53.55587745n   113.4939486w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform HALIFAX_NOAA NOAA_GS           #approximate location
+  position   44.6318049n   63.52223883w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform LARGO_NOAA NOAA_GS            #approximate location
+  position   27.91781227n   82.77905177w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform MONTEREY_NOAA NOAA_GS           #approximate location
+  position   36.5943679n   121.86749895w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform MIAMI_NOAA NOAA_GS            #approximate location
+  position   25.78232395n   80.23100335w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform HAWAII_NOAA NOAA_GS           #approximate location
+  position   21.98338499n   159.34393927w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform CAYENNE_NOAA NOAA_GS            #approximate location
+  position   4.91964025n   52.3119928w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform TAHITI_NOAA NOAA_GS           #approximate location
+  position   17.547502s   149.57682929w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform LIMA_NOAA NOAA_GS            #approximate location
+  position   12.0266383s   76.98777885w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform SANTIAGO_DEL_CHILE_NOAA NOAA_GS           #approximate location
+  position   33.47278795s   70.6298313w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform BUENOS_AIRES_NOAA NOAA_GS            #approximate location
+  position   34.6157342s   58.4333203w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform PUNTA_ARENAS_NOAA NOAA_GS           #approximate location
+  position   53.1417673s   70.9062672w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform KIRUNA_NOAA NOAA_GS            #approximate location
+  position   67.853702n   20.25643e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform OSLO_NOAA NOAA_GS            #approximate location
+  position   59.91607482n   10.75405837e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform LANNION_NOAA NOAA_GS           #approximate location
+  position  48.745418n   3.4697595w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform LAS_PALMAS_NOAA NOAA_GS            #approximate location
+  position   28.11736075n   15.43961705w altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform CAPETOWN_NOAA NOAA_GS           #approximate location
+  position   33.9147992s   18.65606e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform TOULOUSE_NOAA NOAA_GS            #approximate location
+  position   43.60069995n   1.432841e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform HELSINKI_NOAA NOAA_GS           #approximate location
+  position   60.1640044n   25.04026755e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform MURMANSK_NOAA NOAA_GS            #approximate location
+  position   68.96745645n   33.0857923e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform PETROPAVLOSK_NOAA NOAA_GS           #approximate location
+  position   57.59729912n   49.1322904e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform HATOYAMA_NOAA NOAA_GS            #approximate location
+  position   35.9859563n   139.3332234e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform TOKYO_NOAA NOAA_GS           #approximate location
+  position   35.673343n   139.710388e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform SINGAPORE_NOAA NOAA_GS            #approximate location
+  position   1.31473075n   103.84701915e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform ST_DENIS_NOAA NOAA_GS           #approximate location
+  position  20.89669855s   55.45252365e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform JAKARTA_NOAA NOAA_GS            #approximate location
+  position   6.2297449s   106.829518e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform DARWIN_NOAA NOAA_GS           #approximate location
+  position   12.4620404s   130.84231545e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform PERTH_NOAA NOAA_GS            #approximate location
+  position   32.04006395s   115.96153565e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform CASEY_NOAA NOAA_GS           #approximate location
+  position   35.16605375s   149.0943908e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform MELBOURNE_NOAA NOAA_GS            #approximate location
+  position   37.9725665s   145.0531353e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform WELLINGTON_NOAA NOAA_GS           #approximate location
+  position   41.24437005s   174.7618546e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform NOUMEA_NOAA NOAA_GS            #approximate location
+  position   22.26435735s   166.44495255e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform
+
+platform FIJI_NOAA NOAA_GS           #approximate location
+  position   17.4624893s   179.258278e altitude 1.0 m agl
+  commander SELF
+  side blue
+end_platform

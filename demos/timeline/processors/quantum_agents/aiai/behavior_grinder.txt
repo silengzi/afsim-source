@@ -1,0 +1,471 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+include_once air_combat_maneuvers.txt
+include_once common_timeline_scripts.txt
+include_once weapon_defs.txt
+
+##### put this commented out script below on the commander of the platforms
+#####  that use this behavior, it enables coordinated tasks
+
+#script_variables
+#   # Tracks paired timeline tasks for grinder
+#   # assignments looking up other platform
+#   Map<int, int> mGrinderPairings = Map<int, int>();
+#end_script_variables
+## return the corresponsding platform for the passed in
+## TaskId
+#script WsfPlatform GrinderWingman (int aTraskId)
+#   WsfPlatform wingman;
+#   #writeln_d("T=", TIME_NOW, " doing platform lookup for task: ", aTraskId);
+#   if (mGrinderPairings.Exists(aTraskId))
+#   {
+#      int otherTaskId = mGrinderPairings.Get(aTraskId);
+#      #writeln_d("   other task: ", otherTaskId);
+#      WsfQuantumTaskerProcessor qt = (WsfQuantumTaskerProcessor)Processor("timeline_data");
+#      WsfTaskList tasks = qt.TasksAssignedOfType("TIMELINE");
+#      foreach (WsfTask t in tasks)
+#      {
+#         if (t.TaskId() == otherTaskId)
+#         {
+#            # Found corresponding timeline task
+#            wingman = t.Assignee();
+#            #writeln_d("   found corresponding task assigned to ", wingman.Name());
+#         }
+#      }
+#   }
+#   return wingman;
+#end_script
+
+behavior grinder
+
+   script_debug_writes off
+
+   script_variables
+      //debug parameters
+      bool mDrawSteering = false;
+
+      // Flag to control what parts of the grinder we will try to set up
+      bool mNextShot = false;
+      bool mKeepTgtInView = true;
+
+      // The weapon/type that will be employed during the grinder
+      // These are used to look up info on the weapon
+      string mWeaponName = "mrm";
+      string mWeaponType = "MEDIUM_RANGE_RADAR_MISSILE";
+      // Number of weapons to fire at a track
+      int mSalvoSize = 1;
+      // The sensor employed during grinder maneuvers (will be turned on/off)
+      string mGrinderSensor = "geo_sensor";
+
+      // Maximum radial acceleration (g's)
+      double mMaxG = 6.0;
+      // Speed to fly (m/s) when engaging
+      double mEngageSpeed = 237; # Mach 0.8 at 35,000 ft
+      //Speed to fly (m/s) when dragging or turning to re-engage
+      double mDelaySpeed = 204; # Mach 0.6 at 35,000 ft
+      //Speed to fly (m/s) when dragging or turning to re-engage
+      double mTurnSpeed = 309; # Mach 1.2 at 35,000 ft
+      // Angle in degrees to crank when delaying in SETUP
+      double mCrankAngle = 45;
+      // Distance in meters to drag back after turn, use for timing calculations
+      double mDragDistance = 25000;
+      // Engage altitude in meters
+      double mEngageAltitude = 35000 * Math.M_PER_FT();
+
+      //util var, not for user edit (data grabbed from task)
+      WsfQuantumTaskerProcessor mProcessor;
+      Array<WsfTrack> mTargets = Array<WsfTrack>();
+      WsfTrack mNearestTrack;
+      double   mFSR = 0;
+      double   mDOR = 0;
+      double   mMAR = 0;
+      string   mRISK = "LOW";
+
+      // Stores the state of the other aircraft in the grinder
+      // Initialized to default state
+      string mOtherState = "ENGAGE";
+      WsfPlatform mOtherShip;
+
+      # Keep track of who we have fired on?
+      #Map<WsfTrackId, bool> mFiredOn = Map<WsfTrackId, bool>();
+
+      WsfDraw mDraw = WsfDraw();
+   end_script_variables
+
+   script void SendGrinderChangeToPeers(string aState)
+      if (mOtherShip.IsValid())
+      {
+         writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " sending grinder state ",
+                   aState, " to ", mOtherShip.Name());
+         WsfControlMessage controlMsg = WsfControlMessage();
+         controlMsg.SetFunction("grinder");
+         controlMsg.SetResource(aState);
+         controlMsg.SetSizeInBits(500000);  //half megabit
+         WsfComm com = PLATFORM.CommEntry(0);
+         // Send to the other platform doing the grinder
+         // using default command chain
+         com.SendMessage(controlMsg, mOtherShip.Comm("cmdr_net").GetAddress());
+      }
+   end_script
+
+   on_message
+      type WSF_CONTROL_MESSAGE
+         script
+            WsfControlMessage controlMsg = (WsfControlMessage)MESSAGE;
+            if (controlMsg.Function() == "grinder")
+            {
+               // Store grinder state of other aircraft
+               mOtherState = controlMsg.Resource();
+            }
+            writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(),
+                    " Received control, function: ",
+                    controlMsg.Function(), ", resource (state): ",
+                    controlMsg.Resource(), " from ", controlMsg.Originator());
+         end_script
+   end_on_message
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         mProcessor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+   precondition
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a quantum tasker processor!");
+      }   //   ((WsfQuantumTaskerProcessor)PROCESSOR)
+
+      WsfTaskList tasks = ((WsfQuantumTaskerProcessor)PROCESSOR).TasksReceivedOfType("TIMELINE");
+      WsfTask task = tasks.Entry(0);   //just do first one for now
+      if (task.IsValid() && task.CheckAuxData("targets"))
+      {
+         # Check for a peer with corresponding timeline task, query commander
+         # to attempt to get other platform assignd to related task
+         if (!PLATFORM.Commander().ScriptExists("GrinderWingman"))
+         {
+            writeln_d(PLATFORM.Name(), " commander doesn't support grinder");
+            return Failure("commander doesn't support grinder");
+         }
+         mOtherShip = (WsfPlatform)PLATFORM.Commander().Execute("GrinderWingman", {task.TaskId()});
+         if (!mOtherShip.IsValid())
+         {
+            writeln_d(PLATFORM.Name(), " no wingman for grinder");
+            return Failure("no wingman for grinder");
+         }
+
+         mTargets = (Array<WsfTrack>)task.AuxDataObject("targets");
+         # TODO - add check for range < some distance to target to stop doing grinder?
+         if (mTargets.IsValid() && mTargets.Size() > 0 && mTargets.Front().IsValid())
+         {
+            # Save off the closest opponent track, this is who
+            # the platform will fly toward and use for timeline
+            # calculations
+            mNearestTrack = GetNearestTimeLineTarget(PLATFORM, mProcessor);
+            #writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " has closest track: ", mNearestTrack.TargetName());
+            if (!mNearestTrack.IsValid())
+            {
+               writeln_d(PLATFORM.Name(), " no valid track");
+               return Failure("no valid track");
+            }
+
+            mFSR = task.AuxDataDouble("FSR");
+            mDOR = task.AuxDataDouble("DOR");
+            mMAR = task.AuxDataDouble("MAR");
+            mRISK = task.AuxDataString("RISK");
+            return true;
+         }
+         else
+         {
+            writeln_d(PLATFORM.Name(), " grinder targets invalid!");
+            return Failure("grinder task targets invalid");
+         }
+      }
+      else
+      {
+         return Failure("have not received a grinder task!");
+      }
+   end_precondition
+
+
+   ###  FSM states are evaluated after "execute"
+   execute
+      #writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " executing grinder!");
+
+      # draw location of nearest track
+      if (mDrawSteering)
+      {
+         mDraw.SetColor(1,0,0);
+         mDraw.SetPointSize(15);
+         mDraw.SetDuration(5);
+         mDraw.BeginPoints();
+           mDraw.VertexLLA(mNearestTrack.Latitude(), mNearestTrack.Longitude(), mNearestTrack.Altitude());
+         mDraw.End();
+      }
+   end_execute
+
+   # Script methods to turn platfrom sensor on/off
+   script void SensorON()
+       if (PLATFORM.Sensor(mGrinderSensor).IsValid())
+       {
+          PLATFORM.Sensor(mGrinderSensor).TurnOn();
+       }
+   end_script
+   script void SensorOFF()
+       if (PLATFORM.Sensor(mGrinderSensor).IsValid())
+       {
+          PLATFORM.Sensor(mGrinderSensor).TurnOff();
+       }
+   end_script
+
+   # Script method to determine if conditions are met to
+   # delay the engagement
+   script bool ShouldDelay()
+      double otherTimeToShot = (mOtherShip.SlantRangeTo(mNearestTrack) - mFSR) / mOtherShip.ClosingSpeedOf(mNearestTrack);
+      # Use the closing speed of the other ship to figure own time to shot
+      # as this is the speed own ship will use when engaging directly
+      double myTimeToShot = (PLATFORM.SlantRangeTo(mNearestTrack) - mFSR) / mOtherShip.ClosingSpeedOf(mNearestTrack);
+      double missileTOF = TimeToRange(mFSR, PLATFORM.Weapon(mWeaponName), mNearestTrack);
+      double turnTime = TimeToTurn(180, mTurnSpeed, mMaxG);
+      double dragTime = mDragDistance/mTurnSpeed;
+
+      # If the other ship's shot is not imminent,
+      # check that we have delayed the time to our shot longer than
+      # then time the lead ship will take to shoot, drag, and then
+      # turn back to engage.
+      if (mKeepTgtInView &&
+          otherTimeToShot > 10 &&
+          (myTimeToShot - otherTimeToShot) < (2 * turnTime + dragTime))
+      {
+         return true;
+      }
+      else if(mNextShot &&
+              otherTimeToShot > 10 &&
+              (myTimeToShot - otherTimeToShot) < missileTOF)
+      {
+         # Lining up time for second shot is given lower priority
+         # than setting up grinder
+         return true;
+      }
+      return false;
+   end_script
+
+   # Script method to determine if conditions are met to
+   # enter drag state. Within turning radius of gate (DOR/MAR)
+   script bool ShouldDrag()
+      #look at time required to turn & leave: compare to time until next gate
+      #gate determined by risk level (LOW risk gate = DOR, MEDIUM risk gate = MAR)
+      double gate = mDOR;  #range (meters)
+      if (mRISK == "MEDIUM")
+      {
+         gate = mMAR;  #range (meters)
+      }
+      #calculate if its necessary to turn before the gate
+      double turnTime     = TimeToTurnFrom(PLATFORM, mTurnSpeed, mNearestTrack, mMaxG);
+      double trackTurnTime = TimeToTurnAndFace(mNearestTrack, PLATFORM.Location(), mMaxG);
+      double begClosingSpeed = PLATFORM.ClosingSpeedOf(mNearestTrack);
+      double endClosingSpeed = mNearestTrack.Speed() - PLATFORM.Speed();
+      double avgClosingSpeed = (begClosingSpeed + endClosingSpeed)/2.0;
+      double slantRange   = PLATFORM.SlantRangeTo(mNearestTrack);
+      double timeUntilGate = ((slantRange-gate)/avgClosingSpeed) + trackTurnTime;
+      if (avgClosingSpeed < 0)
+      {
+         timeUntilGate = MATH.DOUBLE_MAX();
+      }
+      writeln_d("T=", TIME_NOW, " ", PLATFORM.Name()," turn away in ", turnTime, ", gate in ", timeUntilGate);
+      if (turnTime < timeUntilGate)
+      {
+         return false;
+      }
+      return true;
+   end_script
+
+   # Script method to determine if conditions are met to
+   # enter fire state and fire on target track
+   script bool ShouldFire()
+     double mMaxFiringRollAngle   =  10.0; //dont shoot if rolled more/less than this
+     double mMaxFiringPitchAngle  =  15.0; //dont shoot if pitched more than this
+     double mMinFiringPitchAngle  = -10.0; //dont shoot if pitched less than this
+     double mMaxBearingAngle = 25.0;       //dont shoot if off nose more than this
+     double pitch = PLATFORM.Pitch();
+     double roll = MATH.Fabs(PLATFORM.Roll());
+     double bearing = MATH.Fabs(PLATFORM.RelativeBearingTo(mNearestTrack));
+
+     # If I have weapons, am at the First Shot Range or closer,
+     # and I have not already fired on the target, and geometry is ok,
+     # ok to fire
+     if (PLATFORM.Weapon(mWeaponName).QuantityRemaining() >= 1 &&
+         PLATFORM.SlantRangeTo(mNearestTrack) <= mFSR &&
+         roll <= mMaxFiringRollAngle &&
+         pitch <= mMaxFiringPitchAngle &&
+         pitch >= mMinFiringPitchAngle &&
+         bearing <= mMaxBearingAngle)
+     {
+        return true;
+     }
+     return false;
+   end_script
+
+   #show_state_transitions
+   #first default state, start here and go back to here if confused
+   state ENGAGE
+      on_entry
+         PLATFORM.Comment("ENGAGE");
+         SendGrinderChangeToPeers("ENGAGE");
+      end_on_entry
+
+      next_state DRAG
+         return ShouldDrag();
+      end_next_state
+
+      next_state FIRE
+         # Want the other ship to be engaged (facing threat with sensor on),
+         # further from target than own ship (support), and geometry/inventory
+         # good to fire
+         return (mOtherState=="ENGAGE"  &&
+                 mOtherShip.SlantRangeTo(mNearestTrack) > PLATFORM.SlantRangeTo(mNearestTrack) &&
+                 ShouldFire());
+      end_next_state
+
+      next_state ENGAGE
+         SensorON();
+         writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " engaging: ", mNearestTrack.TargetName());
+
+         # Check conditions that would put this ship in the support role
+         if (mOtherState=="ENGAGE" &&
+             mOtherShip.SlantRangeTo(mNearestTrack) < PLATFORM.SlantRangeTo(mNearestTrack))
+         {
+            if (ShouldDelay())
+            {
+               # Set up spacing between aircraft to attempt to stay on time line
+               Crank(PLATFORM, mNearestTrack, mCrankAngle, mDelaySpeed);
+            }
+            else
+            {
+               Engage(PLATFORM, mNearestTrack, "pure", mEngageSpeed, mEngageAltitude, mMaxG);
+            }
+         }
+         else
+         {
+            Engage(PLATFORM, mNearestTrack, "pure", mEngageSpeed, mEngageAltitude, mMaxG);
+         }
+         return true;
+      end_next_state
+   end_state
+
+   state DRAG
+      on_entry
+         PLATFORM.Comment("DRAG");
+         SendGrinderChangeToPeers("DRAG");
+         SensorOFF();
+         # Only command drag maneuver, away from wingman, once on entry to state
+         writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " dragging!");
+         if (PLATFORM.RelativeBearingTo(mOtherShip) > 0)
+         {
+            TurnDirection(PLATFORM, "left", mTurnSpeed, mMaxG);
+         }
+         else
+         {
+            TurnDirection(PLATFORM, "right", mTurnSpeed, mMaxG);
+         }
+
+      end_on_entry
+
+      next_state REENGAGE
+         double timeToTurn = TimeToTurnAndFace(PLATFORM.MakeTrack(), mNearestTrack.CurrentLocation(), mMaxG);
+         double timeToShot = (mOtherShip.SlantRangeTo(mNearestTrack) - mFSR) / mOtherShip.ClosingSpeedOf(mNearestTrack);
+
+         # Turn back if the other ship is approaching shot time
+         if (timeToShot + 5 <= timeToTurn)
+         {
+            return true;
+         }
+         return false;
+      end_next_state
+
+      next_state DRAG
+         return true;
+      end_next_state
+
+   end_state
+
+   # State that is used after a drag to turn back
+   # toward the target(s)
+   state REENGAGE
+      on_entry
+         PLATFORM.Comment("REENGAGE");
+         SendGrinderChangeToPeers("REENGAGE");
+         # Using drag method here but this is basically the
+         # exact opposite, we are turning back toward target.
+         # We want to turn shortest direction toward wingman
+         if (PLATFORM.RelativeBearingTo(mOtherShip) > 0)
+         {
+            TurnDirection(PLATFORM, "right", mTurnSpeed, mMaxG);
+         }
+         else
+         {
+            TurnDirection(PLATFORM, "left", mTurnSpeed, mMaxG);
+         }
+      end_on_entry
+
+      next_state ENGAGE
+
+         if (Math.Fabs(PLATFORM.RelativeBearingTo(mNearestTrack)) < 90)
+         {
+            # turning in the right direction
+            # engage!
+            return true;
+         }
+         return false;
+      end_next_state
+
+      next_state REENGAGE
+         return true;
+      end_next_state
+
+   end_state
+
+   state FIRE
+      on_entry
+         PLATFORM.Comment("FIRE");
+         SendGrinderChangeToPeers("FIRE");
+         writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), " firing!");
+         for (int i=0; i<mTargets.Size(); i=i+1)
+         {
+            WsfLocalTrack target = GetMasterTrackByName(PLATFORM, mTargets[i].TargetName());
+            if (target.IsValid() && PLATFORM.WeaponsActiveFor(target.TrackId()) < mSalvoSize)
+            {
+               # TODO make sure target is in range?
+               PLATFORM.Weapon(mWeaponName).FireSalvo(target, mSalvoSize);
+            }
+         }
+      end_on_entry
+
+      next_state DRAG
+         # Wait to drag until other ship has turned to engage (or is already)
+         # as long as we are not getting too close to the target
+         if (mOtherState != "ENGAGE" &&
+             !ShouldDrag())
+         {
+            return false;
+         }
+         return true;
+      end_next_state
+
+      next_state FIRE
+         return true;
+      end_next_state
+
+   end_state
+
+end_behavior

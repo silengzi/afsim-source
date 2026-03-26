@@ -1,0 +1,161 @@
+########################################################################
+Thu Jul 11 17:27:19 2024
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Wizard threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Read access violation at address 0x0000000000000008.
+Stacktrace:
+     0# 0x7ffaaf137b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ffaaf1c2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ffb04c4bba5 (_C_specific_handler) at ??
+     3# 0x7ffb04c42bf7 (is_exception_typeof) at ??
+     4# 0x7ffb04c42b00 (is_exception_typeof) at ??
+     5# 0x7ffb04c430df (is_exception_typeof) at ??
+     6# 0x7ffb04c4c15d (_CxxFrameHandler3) at ??
+     7# 0x7ffaa9735114 (wizard::Util::StripHtml) at ??
+     8# 0x7ffb183f504f (_chkstk) at ??
+     9# 0x7ffb1836e866 (RtlFindCharInUnicodeString) at ??
+    10# 0x7ffb183f403e (KiUserExceptionDispatcher) at ??
+    11# 0x7ffa7c8d5ad1 (RegisterProcTableCallback) at ??
+    12# 0x7ffa7c8d691d (RegisterProcTableCallback) at ??
+    13# 0x7ffa7c79b66e (试图访问无效的地址。) at ??
+    14# 0x7ffa7c79ae26 (试图访问无效的地址。) at ??
+    15# 0x7ffa7c7a1f66 (试图访问无效的地址。) at ??
+    16# 0x7ffa7d1f0112 (DumpRegistryKeyDefinitions) at ??
+    17# 0x7ffa7c96b5e9 (RegisterProcTableCallback) at ??
+    18# 0x7ffa7d0da19d (DumpRegistryKeyDefinitions) at ??
+    19# 0x7ffa7d121704 (DumpRegistryKeyDefinitions) at ??
+    20# 0x7ffa7c9fea5f (DumpRegistryKeyDefinitions) at ??
+    21# 0x7ffa85c7b01e (osg::Drawable::draw) at ??
+    22# 0x7ffa82d7e355 (osgUtil::RenderLeaf::render) at ??
+    23# 0x7ffa82d7d4f2 (osgUtil::RenderBin::drawImplementation) at ??
+    24# 0x7ffa82d80e7d (osgUtil::RenderStage::drawImplementation) at ??
+    25# 0x7ffa82d7d35e (osgUtil::RenderBin::draw) at ??
+    26# 0x7ffa82d80f84 (osgUtil::RenderStage::drawInner) at ??
+    27# 0x7ffa82d80a6f (osgUtil::RenderStage::draw) at ??
+    28# 0x7ffa82d88979 (osgUtil::SceneView::draw) at ??
+    29# 0x7ffa9af64134 (osgViewer::Renderer::cull_draw) at ??
+    30# 0x7ffa85c9cc98 (osg::GraphicsContext::runOperations) at ??
+    31# 0x7ffa9af8a52e (osgViewer::ViewerBase::renderingTraversals) at ??
+    32# 0x7ffa9af89363 (osgViewer::ViewerBase::frame) at ??
+    33# 0x7ffa834fd646 (QOpenGLWidget::redirected) at ??
+    34# 0x7ffa834cee8b (QWidget::event) at ??
+    35# 0x7ffaf62773a3 (vespa::VaWidget::event) at ??
+    36# 0x7ffa834a909d (QApplicationPrivate::notify_helper) at ??
+    37# 0x7ffa834a8037 (QApplication::notify) at ??
+    38# 0x7ffa80a89379 (QCoreApplication::notifyInternal2) at ??
+    39# 0x7ffa834da0ba (QWidgetPrivate::sendPaintEvent) at ??
+    40# 0x7ffa834b0ddc (QApplication::windowIcon) at ??
+    41# 0x7ffa834cf36d (QWidget::event) at ??
+    42# 0x7ffa834a909d (QApplicationPrivate::notify_helper) at ??
+    43# 0x7ffa834a8037 (QApplication::notify) at ??
+    44# 0x7ffa80a89379 (QCoreApplication::notifyInternal2) at ??
+    45# 0x7ffa80a8b228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    46# 0x7ffa7d89d7ff (qt_plugin_query_metadata) at ??
+    47# 0x7ffa80ad3a39 (QEventDispatcherWin32::processEvents) at ??
+    48# 0x7ffb180f89a1 (DispatchMessageW) at ??
+    49# 0x7ffb180f8461 (DispatchMessageW) at ??
+    50# 0x7ffa80ad322b (QEventDispatcherWin32::processEvents) at ??
+    51# 0x7ffa7d89d7d9 (qt_plugin_query_metadata) at ??
+    52# 0x7ffa80a856cb (QEventLoop::exec) at ??
+    53# 0x7ffa80a882be (QCoreApplication::exec) at ??
+    54# 0x7ffaa9529a41 (wkf::StartupDialog<QStringList>::exec) at ??
+    55# 0x7ffaa959f39c (wizard_main) at ??
+    56# 0x7ff7bf301296 (试图访问无效的地址。) at ??
+    57# 0x7ff7bf301404 (试图访问无效的地址。) at ??
+    58# 0x7ff7bf30168e (试图访问无效的地址。) at ??
+    59# 0x7ffb1777257d (BaseThreadInitThunk) at ??
+    60# 0x7ffb183aaf28 (RtlUserThreadStart) at ??
+
+
+########################################################################
+Thu Jul 11 17:27:20 2024
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Wizard threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Write access violation at address 0x0000000000004B00.
+Stacktrace:
+     0# 0x7ffaaf137b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ffaaf1c2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ffb04c4bba5 (_C_specific_handler) at ??
+     3# 0x7ffb04c42bf7 (is_exception_typeof) at ??
+     4# 0x7ffb04c42b00 (is_exception_typeof) at ??
+     5# 0x7ffb04c430df (is_exception_typeof) at ??
+     6# 0x7ffb04c4c15d (_CxxFrameHandler3) at ??
+     7# 0x7ffaa9735114 (wizard::Util::StripHtml) at ??
+     8# 0x7ffb183f504f (_chkstk) at ??
+     9# 0x7ffb1836e866 (RtlFindCharInUnicodeString) at ??
+    10# 0x7ffb183f403e (KiUserExceptionDispatcher) at ??
+    11# 0x7ffa7cf16fb1 (DumpRegistryKeyDefinitions) at ??
+    12# 0x7ffa7c5f33d1 (试图访问无效的地址。) at ??
+    13# 0x7ffa7c8cc8f2 (RegisterProcTableCallback) at ??
+    14# 0x7ffa7c628e00 (试图访问无效的地址。) at ??
+    15# 0x7ffa7c5ecde0 (试图访问无效的地址。) at ??
+    16# 0x7ffa7c7c4b0a (试图访问无效的地址。) at ??
+    17# 0x7ffa7c7c55f6 (试图访问无效的地址。) at ??
+    18# 0x7ffa7c96b5b5 (RegisterProcTableCallback) at ??
+    19# 0x7ffa7d1c0e03 (DumpRegistryKeyDefinitions) at ??
+    20# 0x7ffa7cf7b513 (DumpRegistryKeyDefinitions) at ??
+    21# 0x7ffa7d1245fc (DumpRegistryKeyDefinitions) at ??
+    22# 0x7ffa7c9fea5f (DumpRegistryKeyDefinitions) at ??
+    23# 0x7ffa87b1b935 (UtoEphemerisStars::drawImplementation) at ??
+    24# 0x7ffa85c7b04b (osg::Drawable::draw) at ??
+    25# 0x7ffa82d7e355 (osgUtil::RenderLeaf::render) at ??
+    26# 0x7ffa82d7d4f2 (osgUtil::RenderBin::drawImplementation) at ??
+    27# 0x7ffa87b84cd3 (UtoWindow::~UtoWindow) at ??
+    28# 0x7ffa82d7d34a (osgUtil::RenderBin::draw) at ??
+    29# 0x7ffa82d7d42b (osgUtil::RenderBin::drawImplementation) at ??
+    30# 0x7ffa87b84d98 (UtoWindow::~UtoWindow) at ??
+    31# 0x7ffa82d7d34a (osgUtil::RenderBin::draw) at ??
+    32# 0x7ffa82d7d42b (osgUtil::RenderBin::drawImplementation) at ??
+    33# 0x7ffa82d80e7d (osgUtil::RenderStage::drawImplementation) at ??
+    34# 0x7ffa82d7d35e (osgUtil::RenderBin::draw) at ??
+    35# 0x7ffa82d80f84 (osgUtil::RenderStage::drawInner) at ??
+    36# 0x7ffa82d80a6f (osgUtil::RenderStage::draw) at ??
+    37# 0x7ffa82d81713 (osgUtil::RenderStage::drawPreRenderStages) at ??
+    38# 0x7ffa82d88962 (osgUtil::SceneView::draw) at ??
+    39# 0x7ffa9af64134 (osgViewer::Renderer::cull_draw) at ??
+    40# 0x7ffa85c9cc98 (osg::GraphicsContext::runOperations) at ??
+    41# 0x7ffa9af8a52e (osgViewer::ViewerBase::renderingTraversals) at ??
+    42# 0x7ffa9af89363 (osgViewer::ViewerBase::frame) at ??
+    43# 0x7ffa834fd646 (QOpenGLWidget::redirected) at ??
+    44# 0x7ffa834cee8b (QWidget::event) at ??
+    45# 0x7ffaf62773a3 (vespa::VaWidget::event) at ??
+    46# 0x7ffa834a909d (QApplicationPrivate::notify_helper) at ??
+    47# 0x7ffa834a8037 (QApplication::notify) at ??
+    48# 0x7ffa80a89379 (QCoreApplication::notifyInternal2) at ??
+    49# 0x7ffa834da0ba (QWidgetPrivate::sendPaintEvent) at ??
+    50# 0x7ffa834b0ddc (QApplication::windowIcon) at ??
+    51# 0x7ffa834cf36d (QWidget::event) at ??
+    52# 0x7ffa834a909d (QApplicationPrivate::notify_helper) at ??
+    53# 0x7ffa834a8037 (QApplication::notify) at ??
+    54# 0x7ffa80a89379 (QCoreApplication::notifyInternal2) at ??
+    55# 0x7ffa80a8b228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    56# 0x7ffa7d89d7ff (qt_plugin_query_metadata) at ??
+    57# 0x7ffa80ad3a39 (QEventDispatcherWin32::processEvents) at ??
+    58# 0x7ffb180f89a1 (DispatchMessageW) at ??
+    59# 0x7ffb180f8461 (DispatchMessageW) at ??
+    60# 0x7ffa80ad322b (QEventDispatcherWin32::processEvents) at ??
+    61# 0x7ffa7d89d7d9 (qt_plugin_query_metadata) at ??
+    62# 0x7ffa80a856cb (QEventLoop::exec) at ??
+    63# 0x7ffa8366d2b4 (QDialog::exec) at ??
+    64# 0x7ffa836a4d29 (QMessageBox::showEvent) at ??
+    65# 0x7ffa836a22b1 (QMessageBox::critical) at ??
+    66# 0x7ffaca638297 (ut::qt::ErrorMessageBox) at ??
+    67# 0x7ffaca638890 (ut::qt::ReportException) at ??
+    68# 0x7ffaa974cce2 (wizard::Util::StripHtml) at ??
+    69# 0x7ffb04c41030 (试图访问无效的地址。) at ??
+    70# 0x7ffb04c432e8 (is_exception_typeof) at ??
+    71# 0x7ffb183f4896 (RtlCaptureContext2) at ??
+    72# 0x7ffaa959f39c (wizard_main) at ??
+    73# 0x7ff7bf301296 (试图访问无效的地址。) at ??
+    74# 0x7ff7bf301404 (试图访问无效的地址。) at ??
+    75# 0x7ff7bf30168e (试图访问无效的地址。) at ??
+    76# 0x7ffb1777257d (BaseThreadInitThunk) at ??
+    77# 0x7ffb183aaf28 (RtlUserThreadStart) at ??
+
+

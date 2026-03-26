@@ -1,0 +1,168 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ..
+file_path ../../base_types
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+
+include sensors/radar/blue_a2a_radar.txt
+
+ignore_block route
+ignore_block mover
+
+# ****************************************************************************
+#                       TDOA TRIMSIM Processor
+# ****************************************************************************
+
+processor TRIMSIM_PROCESSOR WSF_TRIMSIM_PROCESSOR
+   #debug
+   #debug_level 2
+   minimum_detections 2
+end_processor
+
+# ****************************************************************************
+#                       ESM
+# ****************************************************************************
+
+antenna_pattern  constAntenna
+  constant 0 db
+end_antenna_pattern
+
+sensor PASSIVE_SNSR WSF_ESM_SENSOR
+  frame_time    0.5 sec
+  frequency_band   1.0 ghz  100.0 ghz
+
+  receiver
+    antenna_pattern constAntenna
+  end_receiver
+
+   error_model trimsim_error
+      north_position_error_sigma      0.1 ft
+      east_position_error_sigma       0.1 ft
+      down_position_error_sigma       0.1 ft
+      reference_time_error            5.0 ns
+      inter_system_time_delay         5.0 ns
+      sensor_timing_error             0.0 s
+      atmospheric_refraction_residual 0.0
+   end_error_model
+end_sensor
+
+platform_type PASSIVE_SNSR_PLATFORM WSF_PLATFORM
+   sensor passive PASSIVE_SNSR
+      on
+      reports_location
+      reports_signal_to_noise
+   end_sensor
+end_platform_type
+
+platform_type MASTER PASSIVE_SNSR_PLATFORM
+   processor tdoa TRIMSIM_PROCESSOR
+      sensors
+         sensor passive
+         platform_sensor sensor-2 passive
+         platform_sensor sensor-3 passive
+         platform_sensor sensor-4 passive
+      end_sensors
+   end_processor
+end_platform_type
+
+platform_type SLAVE PASSIVE_SNSR_PLATFORM
+end_platform_type
+
+# ****************************************************************************
+#                       Emitter
+# ****************************************************************************
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature    UCAV_RADAR_SIG
+   optical_signature  UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+
+   sensor radar BLUE_A2A_RADAR
+      on
+   end_sensor
+end_platform_type
+
+platform sensor-1 MASTER
+   heading  90 deg
+   add mover WSF_GROUND_MOVER
+      route
+         position 36:04:55n 115:08:38w altitude 10 ft msl speed 0 kts
+      end_route
+   end_mover
+end_platform
+
+platform sensor-2 SLAVE
+#   position 0.1n 0.0e
+#   altitude 10 ft
+   heading  90 deg
+   add mover WSF_OFFSET_MOVER
+      attachment_type rigid
+      reference_platform sensor-1
+      offset_from_reference 500 m 500 m 0 m
+   end_mover
+end_platform
+
+platform sensor-3 SLAVE
+#   position 0.2n 0.0e
+#   altitude 10 ft
+   heading  90 deg
+   add mover WSF_OFFSET_MOVER
+      attachment_type rigid
+      reference_platform sensor-1
+      offset_from_reference -500 m 0 m 0 m
+   end_mover
+end_platform
+
+platform sensor-4 SLAVE
+#   position 0.3n 0.0e
+#   altitude 10 ft
+   heading  90 deg
+   add mover WSF_OFFSET_MOVER
+      attachment_type rigid
+      reference_platform sensor-1
+      offset_from_reference 500 m -500 m 0 m
+   end_mover
+end_platform
+
+horizontal_map
+
+   platform_to_detect_name TARGET
+
+   exclude platform_type SLAVE
+
+   #pd_map_file hm-tdoa.pd
+   gnuplot_file hm-tdoa.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   variable pd
+   header_line_1 "Horizontal pd map"
+   defended_area_report_file tdoa.log # valid only if variable is pd
+
+   target_region
+      down_range_limits  -120 nm 120 nm
+      down_range_step     2 nm
+      cross_range_limits  -120 nm 120 nm
+      cross_range_step    2 nm
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 30000 ft
+   target_speed    0 kts
+   target_pitch    0 deg
+   target_roll     0 deg
+end_horizontal_map

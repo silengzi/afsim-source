@@ -1,0 +1,69 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# Launch computer generator for BLUE_SR_SAM.
+###############################################################################
+
+file_path ../../../base_types
+include blue_sr_sam_simple.txt
+
+platform_type LAUNCH_PLATFORM_TYPE WSF_PLATFORM
+   side red
+   weapon blue_sr_sam BLUE_SR_SAM
+
+      # Override the firing delay because we are using the firing delay during
+      # the real simulation to overcome a problem with ballistic intercept
+      # prediction not accounting for drag.
+
+      firing_delay 0.0 sec
+   end_weapon
+end_platform_type
+
+tool BALLISTIC_MISSILE_LAUNCH_COMPUTER_GENERATOR # ballistic_missile_launch_computer_generator
+   tool_debug
+
+   frame_step 0.5 sec # sample time of trajectory
+
+   # altitude 1 m choosen to correspond with typical scenario altitudes
+   position 0n 0e altitude 1 m
+
+   air_target_file blue_sr_sam_launch_data.txt
+   #gnuplot_file    blue_sr_sam_trajectory.plt
+
+   loft_angles from 20 deg to 85 deg by 0.2 deg
+
+   ############################################################################
+   # All of the remaining data is used to keep the launch computer dataset
+   # small and to only enable solutions that are doctrinally allowed.
+   #
+   # If you change these values, also review the weapon fuse definitions in
+   # blue_sr_sam.txt. It has limits that will cause the weapon to self-destruct in
+   # certain cases.
+   ############################################################################
+
+   # 'minimum_output_time' should be greater than or equal to the burn time.
+   # (No intercept during boost)
+   minimum_output_time     10 sec
+
+   # Jane's says the max range is 15-20km, but may be more things like
+   # fighters or cruise missiles.
+   #
+   # (MJM) Missiles were fusing on min mach for low trajectories; setting range
+   # to just over 20 km.
+   maximum_output_range    22.5 km
+
+   # Jane's says the max intercept altitude is 15 km, but we may need to
+   # go past apogee, so we'll set it higher.
+   maximum_output_altitude 20 km
+
+end_tool
+
+event_pipe
+   #file replay.aer
+end_event_pipe

@@ -1,0 +1,214 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/glonass.txt
+
+# GLONASS CONSTELLATION SCENARIO
+
+#====================================================================================
+#              Ideal Constellation Configuration
+#====================================================================================
+
+# plane 1
+platform P11 GLONASS
+edit mover
+   designator P11
+   raan 120 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform P12 GLONASS
+edit mover
+   designator P12
+   raan 120 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform P13 GLONASS
+edit mover
+   designator P13
+   raan 120 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform P14 GLONASS
+edit mover
+   designator P14
+   raan 120 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform P15 GLONASS
+edit mover
+   designator P15
+   raan 120 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform P16 GLONASS
+edit mover
+   designator P16
+   raan 120 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform P17 GLONASS
+edit mover
+   designator P17
+   raan 120 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform P18 GLONASS
+edit mover
+   designator P18
+   raan 120 deg
+   anomaly 360 deg
+end_mover
+end_platform
+
+# PLANE 2
+
+platform P21 GLONASS
+edit mover
+   designator P21
+   raan 240 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform P22 GLONASS
+edit mover
+   designator P22
+   raan 240 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform P23 GLONASS
+edit mover
+   designator P23
+   raan 240 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform P24 GLONASS
+edit mover
+   designator P24
+   raan 240 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform P25 GLONASS
+edit mover
+   designator P25
+   raan 240 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform P26 GLONASS
+edit mover
+   designator P26
+   raan 240 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform P27 GLONASS
+edit mover
+   designator P27
+   raan 240 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform P28 GLONASS
+edit mover
+   designator P28
+   raan 240 deg
+   anomaly 360 deg
+end_mover
+end_platform
+
+# PLANE 3
+
+platform P31 GLONASS
+edit mover
+   designator P31
+   raan 360 deg
+   anomaly 45 deg
+end_mover
+end_platform
+
+platform P32 GLONASS
+edit mover
+   designator P32
+   raan 360 deg
+   anomaly 90 deg
+end_mover
+end_platform
+
+platform P33 GLONASS
+edit mover
+   designator P33
+   raan 360 deg
+   anomaly 135 deg
+end_mover
+end_platform
+
+platform P34 GLONASS
+edit mover
+   designator P34
+   raan 360 deg
+   anomaly 180 deg
+end_mover
+end_platform
+
+platform P35 GLONASS
+edit mover
+   designator P35
+   raan 360 deg
+   anomaly 225 deg
+end_mover
+end_platform
+
+platform P36 GLONASS
+edit mover
+   designator P36
+   raan 360 deg
+   anomaly 270 deg
+end_mover
+end_platform
+
+platform P37 GLONASS
+edit mover
+   designator P37
+   raan 360 deg
+   anomaly 315 deg
+end_mover
+end_platform
+
+platform P38 GLONASS
+edit mover
+   designator P38
+   raan 360 deg
+   anomaly 360 deg
+end_mover
+end_platform

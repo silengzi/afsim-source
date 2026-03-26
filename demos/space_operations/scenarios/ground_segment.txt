@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once platforms/uplink.txt
+
+# The commander can receive any starlink related communcations.
+platform commander1 UPLINK
+  commander SELF
+  side blue
+  icon cmd_post
+  position 38.7372n 104.8808w
+
+  comm uplink
+     network_name commander1
+  end_comm
+  
+end_platform
+
+# This is an example of a ground platform transmitting to the starlink constellation.
+platform sender1 UPLINK
+
+  commander SELF
+  side green
+  icon cmd_post
+  position 35:25:28.276n 83:38:16.705e
+  altitude 100 ft
+  
+  comm uplink
+     network_name sender1
+     pitch 90 deg
+  end_comm
+  
+  // test script
+  execute at_interval_of 10 s
+     if (TIME_NOW > 60.0)
+     {
+         WsfMessage msg = WsfMessage();
+         msg.SetSubType("blah blah blah");
+         WsfPlatform sender = WsfSimulation.FindPlatform("sender1");
+         WsfComm uplink = PLATFORM.Comm("uplink");
+         CommLink link = CommLink_Link(uplink);
+         WsfAddress uplinkAddr = WsfSimulation.FindPlatform("commander1").Comm("uplink").GetAddress();
+         if (link.Linked() && 
+             uplink.PathExistsTo(uplinkAddr))
+         {
+            uplink.SendMessage(msg, uplinkAddr);
+         }
+#         if (!uplink.PathExistsTo("commander1", "uplink"))
+#         {
+#             writeln(TIME_NOW, ": No path to commander"); 
+#         }
+      } 
+   end_execute
+
+end_platform

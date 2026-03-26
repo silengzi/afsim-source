@@ -1,0 +1,329 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior guide_weapons
+
+   script_debug_writes off
+
+   script_variables
+      //**********************************************************************//
+      //** parameters for guiding weapons                                   **//
+      //**********************************************************************//
+      double mSensorAzimuthHalfAngle =   50.0;  # degrees (represents uplink sensor)
+
+      //**********************************************************************//
+      //** parameters for approximating or flying target pursuit            **//
+      //**********************************************************************//
+      double cINTERCEPT_SPEED        = 1000.0;  # m/s
+      double mOffsetAngle            =   30.0;  # degrees (for flying f-pole)
+
+      double mInterceptHeading       = -1.0;
+
+
+   end_script_variables
+
+
+   precondition
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }
+
+      mInterceptHeading = -1.0;
+
+      //writeln_d("precondition guide_weapons");
+      if (((WsfRIPRProcessor)PROCESSOR).UplinkCapable() && ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid())
+      {
+         //set current target, for main job (if its an uplink job)
+         //the pursue-target behavior does this for pursue jobs
+         WsfRIPRJob job = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(((WsfRIPRProcessor)PROCESSOR));
+         if (job.IsValid() && job.Name() == "weapon_uplink")
+         {
+            string   targetName  = (string)job.GetData("targetTrackName");
+           #extern WsfTrack GetTrackByName    (WsfPlatform, string);
+           #extern bool     TestTrackCategory (WsfTrack, string);
+            WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+            if (targetTrack.IsValid() && !TestTrackCategory(targetTrack, "unknown"))
+            {
+               ((WsfRIPRProcessor)PROCESSOR).SetTarget(targetTrack);
+            }
+         }
+         bool haveUplinkJob = false;
+
+         for (int channel = 0; channel < ((WsfRIPRProcessor)PROCESSOR).GetNumJobChannels(); channel = channel + 1)
+         {
+            WsfRIPRJob aJob = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(((WsfRIPRProcessor)PROCESSOR), channel);
+            if (aJob.IsValid() && aJob.Name() == "weapon_uplink")
+            {
+               writeln_d("uplinking for job: ", aJob.GetDescription());
+               haveUplinkJob = true;
+
+               int targetIndex = (int)aJob.GetData("targetPlatformIndex");
+               WsfPlatform targetPlatform = WsfSimulation.FindPlatform(targetIndex);
+               mInterceptHeading = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(targetPlatform));
+
+               break;
+            }
+         }
+         for (int up=0; up<((WsfRIPRProcessor)PROCESSOR).UplinkCount(); up = up+1)
+         {
+            WsfPlatform weaponPlatform = ((WsfRIPRProcessor)PROCESSOR).UplinkPlatformEntry(up);
+            writeln_d("uplinking to ", weaponPlatform.Name());
+            if (mInterceptHeading < 0)
+            {
+               WsfTrack weaponTarget = weaponPlatform.CurrentTargetTrack();
+               if (weaponTarget.IsValid() && weaponTarget.BelievedAlive())
+               {
+                  mInterceptHeading = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(weaponTarget));
+               }
+            }
+         }
+
+         if ((((WsfRIPRProcessor)PROCESSOR).UplinkCount() > 0) || (haveUplinkJob == true))
+         {
+            return true;
+         }
+         else
+         {
+            writeln_d(PLATFORM.Name(), " has no uplink jobs and no active uplinks!");
+            Failure("no uplink jobs found, & no active uplink");
+         }
+      }
+      else
+      {
+         writeln_d(PLATFORM.Name(), " is not uplink capable or has no commander!");
+         Failure("platform not uplink capable");
+      }
+      return false;
+   end_precondition
+
+
+   #on_init
+   #end_on_init
+
+
+   script double GetWeaponRangeMax(WsfPlatform aPlatform)
+      double max = 0.0;
+      for (int i=0; i < aPlatform.WeaponCount(); i+=1)
+      {
+         WsfWeapon weapon  = aPlatform.WeaponEntry(i);
+         struct weaponData = GetWeaponData(weapon.Type());
+         if (weaponData->rangeMax > max)
+         {
+            max = weaponData->rangeMax;
+         }
+      }
+      return max;
+   end_script
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing guide_weapons, T=", TIME_NOW);
+      //PLATFORM.Comment("guide_weapons");
+
+      extern double cDEFAULT_ALTITUDE;
+      double interceptAltitude = cDEFAULT_ALTITUDE;
+
+      WsfTrack targetTrack = ((WsfRIPRProcessor)PROCESSOR).GetTarget();
+      if (targetTrack.IsValid())
+      {
+        #extern Array<Map<string, Object>>     mWeaponArray;
+        #extern WsfTrack GetTrackByName       (WsfPlatform, string);
+        #extern double   GetWeaponRangeMax    (WsfPlatform, Array<Map<string, Object>>);
+        #extern string   CalculatePositioning (WsfPlatform, WsfTrack, double);
+
+         //perform a decent estimation of desired intercept angle
+         //  (to use as a starting point for intelligent maneuvering for guiding missiles)
+         double ownSpeed       = PLATFORM.Speed();
+         double targetSpeed    = targetTrack.Speed();
+        #double engageRangeMax = GetWeaponRangeMax(PLATFORM, mWeaponArray);
+         double engageRangeMax = GetWeaponRangeMax(PLATFORM);
+
+         double slantRangeTo   = PLATFORM.SlantRangeTo(targetTrack);
+         string positioning    = CalculatePositioning(PLATFORM, targetTrack, 10.0);
+         //"pure" pursuit (by default)
+         mInterceptHeading = PLATFORM.TrueBearingTo(targetTrack);
+         if (((WsfRIPRProcessor)PROCESSOR).WeaponsActive(targetTrack) > 0)
+         {
+            //"f-pole" pursuit (fly offset)
+           #extern double MaximizeFPole(WsfPlatform, WsfTrack, double);
+            mInterceptHeading = MaximizeFPole(PLATFORM, targetTrack, mOffsetAngle);
+         }
+         else if (targetTrack.AirDomain()        &&
+                  slantRangeTo >= engageRangeMax &&
+                  positioning  != "head-to-head" &&
+                  positioning  != "head-to-tail" &&
+                  targetSpeed  >= ownSpeed)
+         {
+            //"lead" pursuit
+            WsfWaypoint interceptPoint = WsfWaypoint();
+            double timeToIntercept = PLATFORM.InterceptLocation3D(targetTrack, interceptPoint);
+            // If timeToIntercept is positive then we know intercept is possible
+            if (timeToIntercept > 0.0)
+            {
+               mInterceptHeading = interceptPoint.Heading();
+            }
+         }
+         if ((targetTrack.ElevationValid() || targetTrack.LocationValid()) && targetTrack.Altitude() > interceptAltitude)
+         {
+            interceptAltitude = targetTrack.Altitude();
+         }
+         if ( (interceptAltitude - PLATFORM.Altitude()) < 100)
+         {
+            interceptAltitude = PLATFORM.Altitude();
+         }
+      }
+#      else
+#      {
+#         writeln_d("no target track, not changing course for weapon guidance!");
+#      }
+
+      //double minYaw = PLATFORM.RelativeBearingTo(targetTrack);
+      //double maxYaw = minYaw;
+      double minYaw = MATH.NormalizeAngleMinus180_180(mInterceptHeading - PLATFORM.Heading());
+      double maxYaw = minYaw;
+
+      //first be sure to cover any uplinks against a current target
+      string targetName = ((WsfRIPRProcessor)PROCESSOR).GetTargetName();
+      double tMin = minYaw;
+      double tMax = maxYaw;
+      for (int up=0; up<((WsfRIPRProcessor)PROCESSOR).UplinkCount(); up = up+1)
+      {
+         WsfPlatform weaponPlatform = ((WsfRIPRProcessor)PROCESSOR).UplinkPlatformEntry(up);
+         WsfTrack weaponTarget = weaponPlatform.CurrentTargetTrack();
+         if (weaponTarget.TargetName() != targetName)
+         {
+            continue;
+         }
+         if (weaponTarget.IsValid()       &&
+             weaponTarget.BelievedAlive() &&
+             ((WsfRIPRProcessor)PROCESSOR).WeaponsActive(weaponTarget) )
+         {
+            tMin = MATH.Min(tMin, PLATFORM.RelativeBearingTo(weaponTarget));
+            tMax = MATH.Max(tMax, PLATFORM.RelativeBearingTo(weaponTarget));
+            double coverage = tMax - tMin;
+            if ((mSensorAzimuthHalfAngle*2*0.9) > coverage) //take off 10% for padding
+            {
+              //can cover this target
+              minYaw = tMin;
+              maxYaw = tMax;
+            }
+            else
+            {
+              //can NOT cover this target, drop the uplink
+               string msg = write_str(PLATFORM.Name(), " CAN NOT SUPPORT ACTIVE UPLINK AGAINST ", weaponTarget.TargetName());
+               //PLATFORM.Comment(msg);
+               writeln_d(msg);
+            }
+         }
+      }
+      //iterate over current uplinks, find relative angles, adjust bounds
+      for (int up=0; up<((WsfRIPRProcessor)PROCESSOR).UplinkCount(); up = up+1)
+      {
+         WsfPlatform weaponPlatform = ((WsfRIPRProcessor)PROCESSOR).UplinkPlatformEntry(up);
+         WsfTrack weaponTarget = weaponPlatform.CurrentTargetTrack();
+         if (weaponTarget.IsValid()       &&
+             weaponTarget.BelievedAlive() &&
+             ((WsfRIPRProcessor)PROCESSOR).WeaponsActive(weaponTarget) )
+         {
+            tMin = MATH.Min(tMin, PLATFORM.RelativeBearingTo(weaponTarget));
+            tMax = MATH.Max(tMax, PLATFORM.RelativeBearingTo(weaponTarget));
+            double coverage = tMax - tMin;
+            if ((mSensorAzimuthHalfAngle*2*0.9) > coverage) //take off 10% for padding
+            {
+              //can cover this target
+              minYaw = tMin;
+              maxYaw = tMax;
+            }
+            else
+            {
+              //can NOT cover this target, drop the uplink.
+               string msg = write_str(PLATFORM.Name(), " CAN NOT SUPPORT ACTIVE UPLINK AGAINST ", weaponTarget.TargetName());
+               //PLATFORM.Comment(msg);
+               writeln_d(msg);
+            }
+         }
+      }
+
+      if (((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid())
+      {
+         for (int channel = 1; channel < ((WsfRIPRProcessor)PROCESSOR).GetNumJobChannels(); channel = channel + 1)
+         {
+            double tempMin = minYaw;
+            double tempMax = maxYaw;
+
+            WsfRIPRJob aJob = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(((WsfRIPRProcessor)PROCESSOR), channel);
+            if (!aJob.IsValid())
+            {
+               continue;
+            }
+            if (aJob.Name() == "weapon_uplink")
+            {
+               string targetName = (string)aJob.GetData("targetTrackName");
+               WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+               if (!targetTrack.IsValid() || !targetTrack.BelievedAlive())
+               {
+                  continue;
+               }
+               if (((WsfRIPRProcessor)PROCESSOR).WeaponsActive(targetTrack) <= 0)
+               {
+                  continue;
+               }
+
+               tempMin = MATH.Min(tempMin, PLATFORM.RelativeBearingTo(targetTrack));   //[-180,180]
+               tempMax = MATH.Max(tempMax, PLATFORM.RelativeBearingTo(targetTrack));   //[-180,180]
+               double neededCoverage = tempMax - tempMin;
+               double sensorCoverage = mSensorAzimuthHalfAngle * 2 * 0.9;  //take 10% off for padding
+               if (sensorCoverage > neededCoverage)
+               {
+                 //can cover this target
+                 minYaw = tempMin;
+                 maxYaw = tempMax;
+               }
+               else
+               {
+                 //can NOT cover this target, drop the uplink.
+                  string msg = write_str(PLATFORM.Name(), " CAN NOT SUPPORT ACTIVE UPLINK AGAINST ", targetTrack.TargetName());
+                  //PLATFORM.Comment(msg);
+                  writeln_d(msg);
+               }
+            }
+         }
+      }
+
+      // now minYaw and maxYaw define relative headings that must be included by our sensor coverage
+      // use the desired interceptHeading as a starting point
+      // adjust if necessary according to our mSensorAzimuthHalfAngle
+      double relativeInterceptHeading = MATH.NormalizeAngleMinus180_180(mInterceptHeading - PLATFORM.Heading());
+      writeln_d("minyaw: ", minYaw, ", maxyaw: ", maxYaw);
+      if (minYaw < (relativeInterceptHeading - mSensorAzimuthHalfAngle))
+      {
+        //adjust a bit to the left
+        relativeInterceptHeading = minYaw + mSensorAzimuthHalfAngle*0.9;
+        writeln_d("intercept heading BEFORE adjusting for active weapons: ", mInterceptHeading);
+        mInterceptHeading = MATH.NormalizeAngleMinus180_180(PLATFORM.Heading() + relativeInterceptHeading);
+        writeln_d("intercept heading AFTER  adjusting for active weapons: ", mInterceptHeading);
+      }
+      else if (maxYaw > (relativeInterceptHeading + mSensorAzimuthHalfAngle))
+      {
+        //adjust a bit to the right
+        relativeInterceptHeading = maxYaw - mSensorAzimuthHalfAngle*0.9;
+        writeln_d("intercept heading BEFORE adjusting for active weapons: ", mInterceptHeading);
+        mInterceptHeading = MATH.NormalizeAngleMinus180_180(PLATFORM.Heading() + relativeInterceptHeading);
+        writeln_d("intercept heading AFTER  adjusting for active weapons: ", mInterceptHeading);
+      }
+
+     #extern bool FlyHold   (WsfPlatform, double, double, double);
+      FlyHold( PLATFORM, mInterceptHeading, interceptAltitude, cINTERCEPT_SPEED);
+
+   end_execute
+
+end_behavior

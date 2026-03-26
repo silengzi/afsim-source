@@ -1,0 +1,88 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# GLOBALSTAR SATELLITE COMMUNICATIONS DEFINITIONS
+
+include_once ../../patterns/SATCOM_nadir.txt
+
+# References:
+# 1) http://www.tmfassociates.com/GlobalstarATC.pdf
+# 2) https://gsproductsupport.files.wordpress.com/2009/04/description-of-the-globalstar-system-gs-tr-94-0001-rev-e-2000-12-07.pdf
+
+
+comm GLOBALSTAR_DOWNLINK_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90 deg   36 deg    #  ref 2
+
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           7052.9 MHz   # ref 2
+      bandwidth                           50 kHz      #
+      propagation_model                   none
+      power                               26.8 dBW      # ref 2; EIRP
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GLOBALSTAR_UPLINK_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   36.0 deg  # ref 2
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           5250 MHz   # ref 2
+      bandwidth                           50 kHz        #
+      noise_power                         -143.7 dBW   # ref 2
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm GLOBALSTAR_HANDHELD_DOWNLINK_TX	WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -54 deg   54 deg  #  ref 2
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           2491.75 MHz   # ref 1; average between 2483.5 and 2500
+      bandwidth                           1.23 MHz      # ref 2
+      propagation_model                   none
+      power                               12 dBW      #
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GLOBALSTAR_HANDHELD_UPLINK_RX	WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -54.0 deg   54.0 deg  # ref 2
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1615.675 MHz   # ref 1;  average between 1610 and 1621.35
+      bandwidth                           1.23 MHz      # ref 2
+      noise_power                         -143.7 dBW   # ref 2
+      detection_threshold                 5.0 dB
+   end_receiver
+
+end_comm
+
+
+

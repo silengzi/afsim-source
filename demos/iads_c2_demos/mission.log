@@ -1,0 +1,42 @@
+2025-12-09 13:41:57 file air_interceptor.txt
+2025-12-09 13:41:57 version wsf 2.9.0
+2025-12-09 13:41:57 file air_interceptor.txt
+2025-12-09 13:41:57 file utils/BM_Utilities.txt
+2025-12-09 13:41:57 file setup/setup.txt
+2025-12-09 13:41:57 file setup\event_output.txt
+2025-12-09 13:41:57 file setup/terrain.txt
+2025-12-09 13:41:57 file processors/asset_manager.txt
+2025-12-09 13:41:57 file processors/disseminate_c2.txt
+2025-12-09 13:41:57 file processors/battle_manager.txt
+2025-12-09 13:41:57 file processors/simple_sensors_manager.txt
+2025-12-09 13:41:57 file processors/weapons_manager_ai.txt
+2025-12-09 13:41:57 file comm/datalinks.txt
+2025-12-09 13:41:57 file platforms/common.txt
+2025-12-09 13:41:57 file platforms/target.txt
+2025-12-09 13:41:57 file platforms/iads_cmdr.txt
+2025-12-09 13:41:57 file platforms/radar_company.txt
+2025-12-09 13:41:57 file platforms/ew_radar.txt
+2025-12-09 13:41:57 file platforms\asv_radar.txt
+2025-12-09 13:41:57 file sensors/ew_radar.txt
+2025-12-09 13:41:57 file platforms/acq_radar.txt
+2025-12-09 13:41:57 file sensors/acq_radar.txt
+2025-12-09 13:41:57 file platforms/ucav.txt
+2025-12-09 13:41:57 file signatures/ucav_sigs.txt
+2025-12-09 13:41:57 file signatures/ucav_infrared_sig.txt
+2025-12-09 13:41:57 file signatures/ucav_optical_sig.txt
+2025-12-09 13:41:57 file signatures/ucav_radar_sig.txt
+2025-12-09 13:41:57 file sensors/ucav_esm.txt
+2025-12-09 13:41:57 file sensors/ucav_sar.txt
+2025-12-09 13:41:57 file weapons/agm/blue_gps_bomb_2.txt
+2025-12-09 13:41:57 file weapons/agm/blue_gps_bomb_1.txt
+2025-12-09 13:41:57 file weapons/agm/blue_glide_bomb_1.txt
+2025-12-09 13:41:57 file platforms/air_interceptor.txt
+2025-12-09 13:41:57 file sensors/ttr_radar.txt
+2025-12-09 13:41:57 file weapons/aa_missile.txt
+2025-12-09 13:41:57 file scenarios/iads_laydown_asv_full_bm.txt
+2025-12-09 13:41:57 file scenarios/four_ucavs.txt
+2025-12-09 13:41:57 file scenarios/air_interceptor.txt
+2025-12-09 13:41:57 AER output file: output/air_interceptor.aer
+2025-12-09 13:41:57 Event output file: output/air_interceptor.evt
+2025-12-09 13:41:57 start 1
+2025-12-09 13:42:03 complete 1800.000 6.006 5.891

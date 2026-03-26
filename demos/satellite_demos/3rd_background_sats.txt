@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###############################################################################
+# 3rd_background_sats.txt
+# This example places over 600 distinct satellites in orbit
+# The TLE's were retrieved from http://celestrak.com using the perl script
+# "download_tle.pl" This script may be re-run as needed to update the TLE
+# definitions to the current time.
+###############################################################################
+
+define_path_variable CASE background_sats_demo
+log_file output/$(CASE).log
+file_path TLE
+
+include event_pipe.txt
+include event_output.txt
+#include terrain.txt
+
+include_once platforms/satellite_types.txt
+
+#include the scenario we want
+include scenarios/background_satellites.txt
+
+#The event and replay file are stated last just in
+#case a previous file setup default files.
+
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+# how long should the sim run
+end_time 10000 sec
+
+# When running satellites, the start date and time are required
+# Choose an epoch close to, but later than, the reference epochs in the TLEs.
+start_epoch 14245.3

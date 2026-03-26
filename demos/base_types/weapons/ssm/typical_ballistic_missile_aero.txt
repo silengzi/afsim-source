@@ -1,0 +1,88 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+###############################################################################
+#
+# This files includes typical aero paramaters for ballistic missiles.
+#
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# This model is built using data from unclassified sources as follows:
+#
+# 1) "Professional Development Short Course on Tactical Missile Design"
+#    Eugene Fleeman, http://genefleeman.home.mindspring.com
+#
+###############################################################################
+
+# This is typical missile aero that provides cd as a function of mach
+
+aero TYPICAL_MISSILE_AERO WSF_AERO
+   reference_area            3.14159 ft^2          # Baseline 1 ft radius
+   aspect_ratio              1.00                  # Generic missile aero
+   cl_max                    2.00                  # Generic missile aero
+   mach_and_cd       0.0     0.22                  # Ref 2
+   mach_and_cd       0.8     0.22                  # Ref 2
+   mach_and_cd       1.0     0.35                  # Ref 2
+   mach_and_cd       1.2     0.42                  # Ref 2
+   mach_and_cd       1.5     0.38                  # Ref 2
+   mach_and_cd       2.0     0.30                  # Ref 2
+   mach_and_cd       3.0     0.24                  # Ref 2
+   mach_and_cd       4.0     0.20                  # Ref 2
+   mach_and_cd       5.0     0.17                  # Ref 2
+   mach_and_cd       6.0     0.15                  # Ref 2
+   mach_and_cd      30.0     0.15                  # Ref 2
+end_aero
+
+# This is typical spent stage aero that provides cd as a function of mach
+
+aero TYPICAL_SPENT_STAGE_AERO WSF_AERO
+   reference_area            3.14159 ft^2          # Baseline 1 ft radius
+   aspect_ratio              1.00                  # Generic missile aero
+   cl_max                    2.00                  # Generic missile aero
+   mach_and_cd       0.0     1.28                  # Ref 2, assuming blunt front face
+   mach_and_cd       0.8     1.28                  # Ref 2
+   mach_and_cd       1.0     1.41                  # Ref 2
+   mach_and_cd       1.2     1.48                  # Ref 2
+   mach_and_cd       1.5     1.44                  # Ref 2
+   mach_and_cd       2.0     1.36                  # Ref 2
+   mach_and_cd       3.0     1.30                  # Ref 2
+   mach_and_cd       4.0     1.26                  # Ref 2
+   mach_and_cd       5.0     1.23                  # Ref 2
+   mach_and_cd       6.0     1.21                  # Ref 2
+   mach_and_cd      30.0     1.21                  # Ref 2
+end_aero
+
+# This is typical rv aero that provides cd as a function of mach
+
+aero TYPICAL_RV_AERO WSF_AERO
+   reference_area            3.14159 ft^2          # Baseline 1 ft radius
+   aspect_ratio              1.00                  # Generic missile aero
+   cl_max                    2.00                  # Generic missile aero
+   mach_and_cd       0.0     0.13                  # Ref 2
+   mach_and_cd       0.8     0.13                  # Ref 2
+   mach_and_cd       1.0     0.27                  # Ref 2
+   mach_and_cd       1.2     0.35                  # Ref 2
+   mach_and_cd       1.5     0.30                  # Ref 2
+   mach_and_cd       2.0     0.26                  # Ref 2
+   mach_and_cd       3.0     0.20                  # Ref 2
+   mach_and_cd       4.0     0.17                  # Ref 2
+   mach_and_cd       5.0     0.16                  # Ref 2
+   mach_and_cd       6.0     0.15                  # Ref 2
+   mach_and_cd      30.0     0.15                  # Ref 2
+end_aero

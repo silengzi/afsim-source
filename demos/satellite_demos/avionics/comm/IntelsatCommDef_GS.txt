@@ -1,0 +1,46 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# INTELSAT SATELLITE COMMUNICATIONS DEFINITION (GROUND STATION)
+
+include_once ../../patterns/uniformPattern.txt
+
+comm GROUNDSTATION_INTELSAT_UPLINK_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           29.2 ghz
+      bandwidth                           200 mhz
+      propagation_model                   none
+      power                               200.0 watts
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GROUNDSTATION_INTELSAT_DOWNLINK_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                   0.0 deg  90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           19.25 ghz
+      bandwidth                           300 mhz
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm

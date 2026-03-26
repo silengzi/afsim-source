@@ -1,0 +1,112 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This model variant does not include landing gear.
+#
+
+include_once ./a-lgt.txt
+include_once ../../weapons/ubu-500/ubu-500_ld.txt
+include_once ../../weapons/ubu-500/ubu-500_hd.txt
+
+p6dof_object_types   
+   p6dof_object_type A-LGT-BOMBS A-LGT
+   
+      subobject              LD_Bomb1       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        10.0 ft
+         parent_rel_z        2.5 ft
+         parent_rel_pitch    -10.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  5.0 deg/sec
+         separation_omega_y  60.0 deg/sec
+         separation_omega_z  -30.0 deg/sec
+      end_subobject
+
+      subobject              LD_Bomb2       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        -10.0 ft
+         parent_rel_z        2.5 ft
+         parent_rel_pitch    -20.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  35.0 deg/sec
+         separation_omega_y  55.0 deg/sec
+         separation_omega_z  15.0 deg/sec
+      end_subobject
+
+      subobject              LD_Bomb3       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        11.0 ft
+         parent_rel_z        1.5 ft
+         parent_rel_pitch    -20.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  -15.0 deg/sec
+         separation_omega_y  45.0 deg/sec
+         separation_omega_z  25.0 deg/sec
+      end_subobject
+
+      subobject              LD_Bomb4       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        -11.0 ft
+         parent_rel_z        1.5 ft
+         parent_rel_pitch    -20.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  25.0 deg/sec
+         separation_omega_y  -15.0 deg/sec
+         separation_omega_z  -35.0 deg/sec
+      end_subobject
+
+      subobject              LD_Bomb5       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        9.0 ft
+         parent_rel_z        1.5 ft
+         parent_rel_pitch    -20.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  15.0 deg/sec
+         separation_omega_y  35.0 deg/sec
+         separation_omega_z  25.0 deg/sec
+      end_subobject
+
+      subobject              LD_Bomb6       UBU-500_LD
+         parent_rel_x        -6.0 ft
+         parent_rel_y        -9.0 ft
+         parent_rel_z        1.5 ft
+         parent_rel_pitch    -20.0 deg
+         separation_vz       4.0 ft/sec
+         separation_omega_x  -35.0 deg/sec
+         separation_omega_y  25.0 deg/sec
+         separation_omega_z  -15.0 deg/sec
+      end_subobject
+
+      //Nested sequencers to drop bombs
+      sequencer AttackDropBombs
+         action_jett_obj                LD_Bomb1
+         sequencer AttackDropBombs2
+            event_timer                    0.15 sec
+            action_jett_obj                LD_Bomb2
+            sequencer AttackDropBombs3
+               event_timer                    0.15 sec
+               action_jett_obj                LD_Bomb3
+               sequencer AttackDropBombs4
+                  event_timer                    0.15 sec
+                  action_jett_obj                LD_Bomb4
+                  sequencer AttackDropBombs5
+                     event_timer                    0.15 sec
+                     action_jett_obj                LD_Bomb5
+                     sequencer AttackDropBombs6
+                        event_timer                    0.15 sec
+                        action_jett_obj                LD_Bomb6
+                     end_sequencer
+                  end_sequencer
+               end_sequencer
+            end_sequencer
+         end_sequencer
+      end_sequencer
+
+   end_p6dof_object_type
+end_p6dof_object_types

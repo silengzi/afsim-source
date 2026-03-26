@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#               Delta IV Medium (Delta 9040) with staging failure
+#
+# This just overrides the base DELTA_IV_M so that it fails ignition on the second stage
+#==============================================================================
+
+include_once ../launch_vehicles/delta_iv_m/delta_iv_m_base.txt
+
+platform_type DELTA_IV_M DELTA_IV_M_BASE
+   edit mover
+      show_status
+      stage 2
+         separation_failure_probability 0.0
+         ignition_failure_probability   1.0
+      end_stage
+   end_mover
+end_platform_type
+
+weapon DELTA_IV_M DELTA_IV_M_BASE
+   launched_platform_type    DELTA_IV_M
+   quantity                  1
+   commander                 LAUNCHER
+end_weapon
+
+# Launch computer for launching from the Eastern Range
+launch_computer DELTA_IV_M_EAST_LC WSF_ORBITAL_LAUNCH_COMPUTER
+   leo_data ../launch_vehicles/delta_iv_m/delta_iv_m_ccafs_leo.txt
+end_launch_computer

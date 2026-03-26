@@ -1,0 +1,328 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once behavior_timeline_reposition.txt   #drag to restart further back on timeline
+include_once behavior_timeline_delay.txt        #maneuver to delay enemy's engagement
+include_once behavior_timeline_engage.txt       #intercept/shoot timeline targets
+#include_once behavior_timeline_support.txt      #fly support role on a timeline (usually behind lead shooter role)
+include_once behavior_weapon_support.txt        #crank & support weapon
+include_once behavior_planned_route.txt         #no timeline tasks, just return to route
+include_once behavior_evade.txt                 #evade iminent threats (missiles)
+include_once behavior_go_home.txt               #disengage, go back to initial location
+
+
+#include_once behavior_fly_timeline.txt
+
+processor  TIMELINE_PROC  WSF_QUANTUM_TASKER_PROCESSOR
+   update_interval 2 sec
+   script_variables
+      double mGeesToTurnWith =  6.0; #update this however intelligently you can (based on risk level?)
+     #double mOffsetAngle    = 45.0; #TODO - calculate half sensor angle?
+      double mOffsetAngle    = 30.0; #TODO - calculate half sensor angle?
+
+      double mDelaySpeed  = 204;  #0.6
+      double mEngageSpeed = 237;  #0.8
+      double mDragSpeed   = 309;  #1.2
+
+      double mDefaultAltitude = 35000 * MATH.M_PER_FT();
+     #double mDragAltitude    = 30000 * MATH.M_PER_FT();
+      double mDragAltitude    = 35000 * MATH.M_PER_FT();   #testing
+
+      bool   mConsiderPeersWeapons     = true;   #do not shoot if peers already are
+     #bool   mRequiredToSupportWeapons = true;   #TODO - update dynamically somehow?
+      bool   mRequiredToSupportWeapons = true;   #TODO - update dynamically somehow?
+
+      double  DefaultPercentRangeMax  = 0.80;   # don't launch unless within this percent of Rmax
+      double  DefaultPercentRangeMin  = 1.20;   # don't launch unless beyond this percent of Rmin
+      ##weapon + threat specific shooting parameters
+      ##specify an Rmax based on which weapon used and which threat engaged
+      #Map<string, Map<string, double>> WeaponThreatRmaxMap = Map<string, Map<string, double>>();
+      #WeaponThreatRmaxMap["base_weapon"] = Map<string, double>();
+      #WeaponThreatRmaxMap["base_weapon"].Set("fighter", 0.80);
+
+      bool   mDrawSeparationData    = true;
+      string mSeparateSide          = "LEFT"; #this is dynamically updated based on engagement axis
+
+      #do not edit these:
+      bool   mSeparateEngagement    = false;
+      double mEngagementTrueBearing = -1.0;   #valid if in [0,360], update based on engagement axis
+      WsfDraw mDraw = WsfDraw();
+
+      Array<WsfLocalTrack> mTimeLineLocalTargets;
+      WsfLocalTrack mNearestTimeLineTarget;
+
+      Array<WsfLocalTrack> mTimeLineLocalTargetsToShoot = Array<WsfLocalTrack>();
+
+   end_script_variables
+
+   on_update
+      #update these if necessary
+      mSeparateEngagement    = false;
+      mEngagementTrueBearing = -1.0;
+
+      #populate shared variables
+      WsfTask timeline = GetTimeLineTask(PROCESSOR);
+      mTimeLineLocalTargets = GetTimeLineTaskLocalTargets(PLATFORM, timeline);
+      Array<double> times = Array<double>();
+      foreach(WsfLocalTrack target in mTimeLineLocalTargets)
+      {
+         double time = TimeToReachPoint(target, PLATFORM.Location(), mGeesToTurnWith);
+         times.PushBack(time);
+      }
+      SortLocalTracksByValue(mTimeLineLocalTargets, times);
+      mNearestTimeLineTarget = GetNearestTimeLineTaskLocalTarget(PLATFORM, timeline);
+
+
+      if (timeline.IsValid() &&
+          timeline.AuxDataExists("point_a") &&
+          timeline.AuxDataExists("point_b")   )
+      {
+         WsfGeoPoint SeparateA = (WsfGeoPoint)timeline.AuxDataObject("point_a");
+         WsfGeoPoint SeparateB = (WsfGeoPoint)timeline.AuxDataObject("point_b");
+         if (SeparateA.IsValid() && SeparateB.IsValid())
+         {
+            WsfGeoPoint near;
+            WsfGeoPoint far;
+            if (PLATFORM.GroundRangeTo(SeparateA) < PLATFORM.GroundRangeTo(SeparateB))
+            {
+               near = SeparateA;
+               far  = SeparateB;
+            }
+            else
+            {
+               near = SeparateB;
+               far  = SeparateA;
+            }
+            mDraw.SetLayer("timeline_proc");
+            mDraw.SetId("timeline_proc");
+            mDraw.SetDuration(PROCESSOR.UpdateInterval());
+            mDraw.SetLineSize(1);
+            mDraw.SetLineStyle("solid");
+
+            Array<WsfTrack> targets = (Array<WsfTrack>)timeline.AuxDataObject("targets");
+            #check if platform is on the correct side of separation line
+            WsfGeoPoint clusterMeanLocation = (WsfGeoPoint)timeline.AuxDataObject("cluster_mean");
+            double refAz = near.TrueBearingTo(far);
+
+            #save this engagement axis true bearing!
+            mSeparateEngagement    = true;
+            mEngagementTrueBearing = MATH.NormalizeAngle0_360(refAz);
+
+            double ownAz = near.TrueBearingTo(PLATFORM.Location()) - refAz;
+            double tgtAz = near.TrueBearingTo(clusterMeanLocation) - refAz;
+            ownAz = MATH.NormalizeAngleMinus180_180(ownAz);
+            tgtAz = MATH.NormalizeAngleMinus180_180(tgtAz);
+
+            #save off turn direction
+            if (tgtAz < 0) {
+               mSeparateSide = "LEFT";
+            } else {
+               mSeparateSide = "RIGHT";
+            }
+
+            bool CorrectSide = ((ownAz * tgtAz) > 0);
+
+            #draw lines for separation divide
+            mDraw.SetColor(0.0, 0.0, 0.0);   #black
+            mDraw.BeginLines();
+               mDraw.Vertex(near);
+               mDraw.Vertex(far);
+            mDraw.End();
+
+            if (CorrectSide) {
+               mDraw.SetColor(0.0, 1.0, 1.0);   #aqua
+            } else {
+               mDraw.SetColor(1.0, 0.0, 0.0);   #red
+            }
+
+            #draw line from me to target center of gravity
+            mDraw.BeginLines();
+               mDraw.Vertex(PLATFORM);
+              #mDraw.Vertex(targetCluster.MeanLocation());
+               mDraw.Vertex(mTimeLineLocalTargets.Front().CurrentLocation());
+            mDraw.End();
+
+#            mDraw.SetEllipseMode("line");
+#            mDraw.BeginCircle(0.0, 4.0 * MATH.M_PER_NM());
+#               mDraw.Vertex(PLATFORM);
+#            mDraw.End();
+         }
+      }
+
+
+      #update the "mTimeLineLocalTargetsToShoot" list
+      mTimeLineLocalTargetsToShoot.Clear();
+      if (timeline.IsValid())
+      {
+
+      string RISK = timeline.AuxDataString("RISK");
+
+      foreach(WsfLocalTrack target in mTimeLineLocalTargets)
+      {
+         writeln_d("T=",TIME_NOW," ", PLATFORM.Name(), " checking if shootable: ", target.TargetName());
+
+         if (FiredOn(PLATFORM, target, mConsiderPeersWeapons))
+         {
+            writeln_d("    NO - already fired on!");
+            continue;
+         }
+
+         if (mRequiredToSupportWeapons == true && RISK != "HIGH")   #can support any shot when risk is high (won't be dragging)
+         {
+            double gate = timeline.AuxDataDouble("DOR");  #range (meters)
+            if (RISK == "MEDIUM")
+            {
+               gate = timeline.AuxDataDouble("MAR");  #range (meters)
+            }
+
+            #calculate if we have time or range to support a shot to this target:
+
+
+
+            ###################################################################
+            ###################################################################
+            ###################################################################
+
+
+            #figure out weapon range & time of flight
+            double weaponMaxRange = 0.0;
+            WsfWeapon maxRangeWeapon;
+            for (int i=0; i < PLATFORM.WeaponCount(); i+=1)
+            {
+               WsfWeapon weapon = PLATFORM.WeaponEntry(i);
+               if (WeaponCapableAvailableAgainstThreat(weapon, target))
+               {
+                  double weaponRange = MaxRange(PLATFORM,weapon,target);
+                  if (weaponRange > weaponMaxRange)
+                  {
+                     weaponMaxRange = weaponRange;
+                     maxRangeWeapon = weapon;
+                  }
+               }
+            }
+            if (!maxRangeWeapon.IsValid())
+            {
+               writeln_d("    NO - do not have a weapon for the target");
+               continue;   #no weapon for this target
+            }
+            #estimate time before we can shoot
+            #hypothetical shot
+            #estimate time cranking (based on weapon travel time)
+            #does this leave us enough time to turn to drag?
+            double weaponTOF = TimeToHit(PLATFORM, maxRangeWeapon, target);
+
+            if (weaponTOF <= 0)
+            {
+               writeln_d("    NO - could not find TOF data for weapon");
+               #good weapon data no found
+               continue;
+            }
+
+            double firingRange = DefaultPercentRangeMax * weaponMaxRange;
+
+            writeln_d("    INFO - weapon \"", maxRangeWeapon.Name(), "\" firing range = ", firingRange, " TOF = ", weaponTOF);
+
+            double targetRange = PLATFORM.GroundRangeTo(target.CurrentLocation());
+            double rangeToGo = targetRange - firingRange;
+            double timeTilShot = 0.0;
+
+            double range = PLATFORM.GroundRangeTo(mNearestTimeLineTarget.CurrentLocation());
+
+            if (rangeToGo > 0)
+            {
+               #assume target continues on its current heading
+               #assume nearest threat closes towards you
+               #assume we close towards target
+               double myRelativeBearingToThreat = MATH.Fabs(MATH.NormalizeAngleMinus180_180(PLATFORM.TrueBearingTo(mNearestTimeLineTarget) - PLATFORM.TrueBearingTo(target)));
+               double targetRelativeBearingToMe = target.RelativeBearingTo(PLATFORM);
+               double closingSpeedToTarget = PLATFORM.Speed() + MATH.Cos(targetRelativeBearingToMe) * target.Speed();
+               double closingSpeedOfThreat = mNearestTimeLineTarget.Speed() + MATH.Cos(myRelativeBearingToThreat) * PLATFORM.Speed();
+
+               if (closingSpeedToTarget <= 0)
+               {
+                  writeln_d("    NO - negative closing speed to target with range remaining to shoot");
+                  continue;
+               }
+
+               writeln_d("    INFO - closing to target = ", closingSpeedToTarget, " closing of threat = ", closingSpeedOfThreat);
+
+               #subtract off closing distance to nearest threat during the time before shot
+               timeTilShot = rangeToGo / closingSpeedToTarget;
+
+               double temp = range;
+               range -= (timeTilShot * closingSpeedOfThreat);
+
+               writeln_d("    INFO - starting threat range = ", temp, " range after closing to shot loc = ", range);
+            }
+
+            #subtract off closing distance to nearest target during the time of weapon's flight
+            double closingSpeedOfThreat = (mDelaySpeed * MATH.Cos(mOffsetAngle)) + mNearestTimeLineTarget.Speed();
+            double temp = range;
+            range -= (weaponTOF * closingSpeedOfThreat);
+
+            writeln_d("    INFO - range at shot = ", temp, " range after supporting shot = ", range);
+
+#            #calculate time to turn to drag (after cranking)
+#            Array<double> vals = Array<double>();
+#            double turnAngle = 180 - mOffsetAngle;
+#            TurnAngleTimeAndDistance(turnAngle, mEngageSpeed, mGeesToTurnWith, vals);
+#            double turnTime = vals[0];
+#            double distSep  = vals[1];
+#            #subtract off closing distance to nearest target during the time of turning to drag
+#            range += distSep;
+#            range -= (turnTime*mNearestTimeLineTarget.Speed());
+
+            if (range >= gate)
+            {
+               writeln_d("    YES - have time & range to support the shot.");
+
+               mTimeLineLocalTargetsToShoot.PushBack(target);
+            }
+            else
+            {
+               writeln_d("    NO - do not have time & range to support the shot.");
+               ##TODO - should we break here?
+               ##       its highly unlikely futher away targets will be shootable
+               #break;
+            }
+
+
+            ###################################################################
+            ###################################################################
+            ###################################################################
+
+
+         }
+         else if (mRequiredToSupportWeapons == false || RISK == "HIGH")
+         {
+            writeln_d("    YES - risk is high or not required to support.");
+
+            #all targets are for shooting (if not already shot on)
+            mTimeLineLocalTargetsToShoot.PushBack(target);
+         }
+      }
+
+      }
+
+
+   end_on_update
+
+   behavior_tree
+      selector
+         behavior_node  evade               #
+         behavior_node  go_home             #
+         behavior_node  timeline_reposition #
+        #behavior_node  timeline_support    #TODO - integrate kyle's grinder behavior support stuff
+         behavior_node  timeline_delay      #TODO - integrate nick's delay script
+         behavior_node  timeline_engage     #TODO - only shoot if there is time to support it
+         behavior_node  weapon_support      #
+         behavior_node  planned_route       #
+      end_selector
+   end_behavior_tree
+end_processor

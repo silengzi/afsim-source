@@ -1,0 +1,398 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+script WsfLocalTrack GetMasterTrackByName(WsfPlatform aPlatform, string trackName)
+   WsfLocalTrackList trackList = aPlatform.MasterTrackList();
+   foreach (WsfLocalTrack track in trackList)
+   {
+     if (track.TargetName() == trackName)
+     {
+         return track;
+     }
+   }
+   WsfLocalTrack x; # since we can't return null
+   return x;
+end_script
+
+
+# aSpeed in meters per second, current platform speed
+# aMaxG in units of gravity (1g equivalent to 9.8 m/s^2)
+#   adjust to min of 2 G if less is passed in
+script double TurnRadius(double aSpeed, double aMaxG)
+   #RadialAccel = Speed^2/Radius
+   double RadialAccel = aMaxG * Earth.ACCEL_OF_GRAVITY();
+   if (aMaxG < 2.0)
+   {
+      RadialAccel = 2.0 * Earth.ACCEL_OF_GRAVITY();
+   }
+   double turnRadius = aSpeed * aSpeed / RadialAccel;
+   return turnRadius;
+end_script
+
+
+#maxG in units of gravity (1g equivalent to 9.8 m/s^2)
+#adjust to min of 2 G if less is passed in
+script double TimeToTurnAndFace(WsfTrack turner, WsfGeoPoint targetPoint, double maxG)
+   if (!turner.IsValid())
+   {
+      return MATH.DOUBLE_MAX();
+   }
+   double TurnAzimuth = MATH.Fabs(turner.RelativeBearingTo(targetPoint));
+   double Speed = turner.Speed();
+   double Radius = TurnRadius(Speed, maxG);
+   double TurningCircleCircumference = 2.0 * MATH.PI() * Radius;
+   double TurningArc = (TurnAzimuth/360)*TurningCircleCircumference;
+   double TimeToTurn = TurningArc / Speed;
+   return TimeToTurn;
+end_script
+
+script double DistanceClosedDuringTurn(double turnAngle, double turnRadius)
+   #lock the turn angle into [0,180]
+   turnAngle = MATH.Fabs(MATH.NormalizeAngleMinus180_180(turnAngle));
+   #a max turn (from relative bearing 180 back to 0 means we didn't close any distance at all
+   #plot closing speed as a function of relative angle
+   #this gives you a cosine curve from 0 to 180 with an amplitude of speed
+   #use calculus for integrating the cosine curve from the relative angle the turner starts at back to zero
+   #if solving for total area under curve, you break up an integral whenever it crosses the X axis
+   #in our case, we don't want total area, we want positive area (positive closing speed)
+   #so integrating cosine from [0,angle] where angle <= 180, we dont have to break it up into multiple integrals
+   #integral of cosine is sin
+   #showing -sin(0) for completeness when integrating
+   double scale = MATH.Sin(turnAngle) - MATH.Sin(0);
+   double distanceClosed = scale * turnRadius;
+   return distanceClosed;
+end_script
+
+script bool TurnAngleTimeAndDistance(double angle, double speed, double maxG, Array<double> TimeAndDistance)
+   if (!TimeAndDistance.IsValid())
+   {
+      return false;
+   }
+   angle = MATH.Fabs(MATH.NormalizeAngleMinus180_180(angle));
+   double Radius = TurnRadius(speed, maxG);
+   double TurningCircleCircumference = 2.0 * MATH.PI() * Radius;
+   double TurningArc = (angle/360)*TurningCircleCircumference;
+   double TimeToTurn = TurningArc / speed;
+   double DistanceClosed = DistanceClosedDuringTurn(angle, Radius);
+   TimeAndDistance.Clear();
+   TimeAndDistance.PushBack(TimeToTurn);
+   TimeAndDistance.PushBack(DistanceClosed);
+   return true;
+end_script
+
+
+#maxG in units of gravity (1g equivalent to 9.8 m/s^2)
+#adjust to min of 2 G if less is passed in
+script bool TurnTimeAndDistance(WsfTrack turner, WsfGeoPoint targetPoint, double maxG, Array<double> TimeAndDistance)
+   if (!turner.IsValid() || !targetPoint.IsValid())
+   {
+      return false;
+   }
+   double angle = MATH.Fabs(turner.RelativeBearingTo(targetPoint));
+   return TurnAngleTimeAndDistance(angle, turner.Speed(), maxG, TimeAndDistance);
+end_script
+
+
+script double TimeToTurnFrom(WsfPlatform plat, double speed, WsfTrack threat, double maxG)
+   double runAwayTurn  = 180 - MATH.Fabs(plat.RelativeBearingTo(threat));
+   double radius       = TurnRadius(speed, maxG);
+   double turnCircle   = 2.0 * MATH.PI() * radius;
+   double turnArc      = (runAwayTurn/360)*turnCircle;
+   double turnTime     = turnArc / speed;
+   return turnTime;
+end_script
+
+# Calculate how long it taks a platform to turn the specified angle
+# at specified speed (m/s) and max G
+script double TimeToTurn(double angle, double speed, double maxG)
+   double radius       = TurnRadius(speed, maxG);
+   double turnCircle   = 2.0 * MATH.PI() * radius;
+   double turnArc      = (angle/360)*turnCircle;
+   double turnTime     = turnArc / speed;
+   return turnTime;
+end_script
+
+#assumes current speed maintained
+script double TimeToReachPoint(WsfTrack traveler, WsfGeoPoint targetPoint, double maxG)
+   if (!traveler.IsValid())
+   {
+      return MATH.DOUBLE_MAX();
+   }
+   double Speed = traveler.Speed();
+   if (Speed <= 0.0)
+   {
+      return MATH.DOUBLE_MAX();
+   }
+   Array<double> vals = Array<double>();
+   TurnTimeAndDistance(traveler, targetPoint, maxG, vals);
+   double TurnTime   = vals[0];
+   double DistClosed = vals[1];
+   double TravelLegDist = traveler.GroundRangeTo(targetPoint) - DistClosed;
+   double TravelLegTime = TravelLegDist / traveler.Speed();
+   double TimeToReach = TurnTime + TravelLegTime;
+   return TimeToReach;
+end_script
+
+
+#bubble sort
+script void SortTracksByValue(Array<WsfTrack> tracks, Array<double> values)
+   if(tracks.Size() != values.Size())
+      return;
+   bool swapped = true;
+   int j = 0;
+   WsfTrack tempTrack;
+   double tempValue;
+   while (swapped)
+   {
+      swapped = false;
+      j += 1;
+      for (int i=0; i<(values.Size())-j; i+=1)
+      {
+         if (values[i] > values[i+1])
+         {
+            tempValue   = values[i];    tempTrack   = tracks[i];
+            values[i]   = values[i+1];  tracks[i]   = tracks[i+1];
+            values[i+1] = tempValue;    tracks[i+1] = tempTrack;
+            swapped = true;
+         }
+      }
+   }
+end_script
+
+script void SortLocalTracksByValue(Array<WsfLocalTrack> tracks, Array<double> values)
+   if(tracks.Size() != values.Size())
+      return;
+   bool swapped = true;
+   int j = 0;
+   WsfLocalTrack tempTrack;
+   double tempValue;
+   while (swapped)
+   {
+      swapped = false;
+      j += 1;
+      for (int i=0; i<(values.Size())-j; i+=1)
+      {
+         if (values[i] > values[i+1])
+         {
+            tempValue   = values[i];    tempTrack   = tracks[i];
+            values[i]   = values[i+1];  tracks[i]   = tracks[i+1];
+            values[i+1] = tempValue;    tracks[i+1] = tempTrack;
+            swapped = true;
+         }
+      }
+   }
+end_script
+
+script WsfGeoPoint GetAssetCentroid(Array<WsfAssetPerception> ASSETS)
+   if (ASSETS.Size() <= 0)
+   {
+      return WsfGeoPoint.Construct(0,0,0);
+   }
+   double coeff = 1.0/((double)ASSETS.Size());
+   Vec3 wcs = Vec3.Construct(0,0,0);
+   foreach (WsfAssetPerception p in ASSETS)
+   {
+      Vec3 vec = p.Location().LocationWCS();
+      vec.Scale(coeff);
+      wcs = Vec3.Add(wcs, vec);
+   }
+   return WsfGeoPoint.ConstructWCS(wcs);
+end_script
+
+script WsfTask GetTimeLineTask(WsfQuantumTaskerProcessor proc)
+   WsfTaskList taskList = proc.TasksReceivedOfType("TIMELINE");
+   if (taskList.Count() > 0)
+   {
+      return taskList.Entry(0);
+   }
+   WsfTask retTask;   #dummy task
+   return retTask;
+end_script
+
+script double GetTimeLineTaskValueForKey(WsfTask timeline, string aKeyVal)
+   if (timeline.IsValid())
+   {
+      if (timeline.AuxDataExists(aKeyVal))
+      {
+         return timeline.AuxDataDouble(aKeyVal);
+      }
+      else
+      {
+         writeln_d(aKeyVal, " not found in ", timeline.TaskType() );
+      }
+   }
+   return -1.0;
+end_script
+
+script double GetTimeLineValueForKey(WsfQuantumTaskerProcessor proc, string aKeyVal)
+   WsfTask timeline = GetTimeLineTask(proc);
+   return GetTimeLineTaskValueForKey(timeline, aKeyVal);
+end_script
+
+script WsfTrack GetTimeLineTaskTargetTrack(WsfPlatform plat, WsfTask timeline)
+   WsfTrack t;  #stub track
+   if (timeline.IsValid())
+   {
+      if (timeline.AuxDataExists("targets"))
+      {
+         Array<WsfTrack> trkList = (Array<WsfTrack>)timeline.AuxDataObject("targets");
+         foreach (WsfTrack trk in trkList)
+         {
+            if (trk.IsValid())
+            {
+               #see if the track can be found in local track list, if so return the distance
+               WsfLocalTrack myTrack = GetMasterTrackByName(plat, trk.TargetName());
+               if (myTrack.IsValid())
+               {
+                  return myTrack;
+               }
+               #if the task assigned track isn't a track on the current platform, use the information given
+               else
+               {
+                  return trk;
+               }
+            }
+         }
+      }
+   }
+   return t;
+end_script
+
+script WsfTrack GetTimeLineTargetTrack(WsfPlatform plat, WsfQuantumTaskerProcessor proc)
+   WsfTask timeline = GetTimeLineTask(proc);
+   return GetTimeLineTaskTargetTrack(plat, timeline);
+end_script
+
+script Array<WsfTrack> GetTimeLineTaskTargets(WsfTask timeline)
+   Array<WsfTrack> targets;
+   if (timeline.IsValid() && timeline.AuxDataExists("targets"))
+   {
+      targets = (Array<WsfTrack>)timeline.AuxDataObject("targets");
+   }
+   else
+   {
+      targets = Array<WsfTrack>();
+   }
+   return targets;
+end_script
+
+script Array<WsfTrack> GetTimeLineTargets(WsfQuantumTaskerProcessor proc)
+   WsfTask timeline = GetTimeLineTask(proc);
+   return GetTimeLineTaskTargets(timeline);
+end_script
+
+script WsfTrack GetNearestTimeLineTaskTarget(WsfPlatform plat, WsfTask timeline)
+   WsfTrack nearestTrack;   #empty at first
+   Array<WsfTrack> trkList = GetTimeLineTaskTargets(timeline);
+   double nearest = MATH.DOUBLE_MAX();
+   foreach (WsfTrack trk in trkList)
+   {
+      if (trk.IsValid())
+      {
+         double dist = plat.GroundRangeTo(trk.CurrentLocation());
+         if (dist < nearest)
+         {
+            nearest = dist;
+            nearestTrack = trk;
+         }
+      }
+   }
+   return nearestTrack;
+end_script
+
+script WsfTrack GetNearestTimeLineTarget(WsfPlatform plat, WsfQuantumTaskerProcessor proc)
+   WsfTask timeline = GetTimeLineTask(proc);
+   return GetNearestTimeLineTaskTarget(plat, timeline);
+end_script
+
+script WsfLocalTrack GetNearestTimeLineTaskLocalTarget(WsfPlatform plat, WsfTask timeline)
+   WsfLocalTrack nearestLocalTrack;   #empty at first
+   Array<WsfTrack> trkList = GetTimeLineTaskTargets(timeline);
+   double nearest = MATH.DOUBLE_MAX();
+   foreach (WsfTrack trk in trkList)
+   {
+      WsfLocalTrack lt = GetMasterTrackByName(plat,trk.TargetName());
+      if (lt.IsValid())
+      {
+         double dist = plat.GroundRangeTo(lt.CurrentLocation());
+
+         if (dist < nearest)
+         {
+            nearest = dist;
+            nearestLocalTrack = lt;
+         }
+      }
+   }
+   return nearestLocalTrack;
+end_script
+
+
+script Array<WsfLocalTrack> GetTimeLineTaskLocalTargets(WsfPlatform plat, WsfTask timeline)
+   Array<WsfTrack> targets = GetTimeLineTaskTargets(timeline);
+   Array<WsfLocalTrack> localTargets = Array<WsfLocalTrack>();
+   foreach(WsfTrack t in targets)
+   {
+      WsfLocalTrack lt = GetMasterTrackByName(plat, t.TargetName());
+      if (lt.IsValid())
+      {
+         localTargets.PushBack(lt);
+      }
+   }
+   return localTargets;
+end_script
+
+script Array<WsfLocalTrack> GetTimeLineLocalTargets(WsfPlatform plat, WsfQuantumTaskerProcessor proc)
+   WsfTask timeline = GetTimeLineTask(proc);
+   return GetTimeLineTaskLocalTargets(plat, timeline);
+end_script
+
+
+script bool FiredOn(WsfPlatform shooter, WsfLocalTrack target, bool checkPeers)
+   if ((shooter.WeaponsPendingFor(target.TrackId()) + shooter.WeaponsActiveFor(target.TrackId())) > 0)
+   {
+      return true;
+   }
+   if (checkPeers)
+   {
+      foreach(WsfPlatform peer in shooter.Peers())
+      {
+         WsfLocalTrack peerTrack = GetMasterTrackByName(peer,target.TargetName());
+         if (peerTrack.IsValid())
+         {
+            if ((peer.WeaponsPendingFor(peerTrack.TrackId()) + peer.WeaponsActiveFor(peerTrack.TrackId())) > 0)
+            {
+               return true;
+            }
+         }
+      }
+   }
+   return false;
+end_script
+
+
+script double GetTargetDistance(WsfPlatform plat, WsfQuantumTaskerProcessor proc)
+   WsfTrack targetTrack = GetNearestTimeLineTarget(plat, proc);
+
+   if (targetTrack.IsValid())
+   {
+#            if (targetTrack.Target().IsValid() && PLATFORM.IsValid())
+#            {
+#               draw.SetLineStyle("solid");
+#               draw.BeginLines();
+#                  draw.SetColor(1.0, 0.0, 1.0);
+#                  draw.Vertex(PLATFORM);
+#                  draw.Vertex(targetTrack.Target());
+#               draw.End();
+#            }
+
+      double dist = plat.GroundRangeTo(targetTrack.CurrentLocation());
+      return dist;
+    }
+   return -1;
+end_script

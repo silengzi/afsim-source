@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#Processor for launch vehicle to change its signature throughout
+#the simulation to simulation the addition of stages during assembly
+
+#Use on launch vehicle with distinct optical signature states (see setup file)
+
+processor CHANGE_SIG WSF_SCRIPT_PROCESSOR
+   script void announce(string stage)
+      writeln("LAUNCH FACILITY: ", PLATFORM.Name(), " added ", stage, " at time ", TIME_NOW);
+   end_script
+
+   execute at_time /variable first_stage_time /default 2000 s absolute
+      PLATFORM.SetSignatureState("FIRST_STAGE");
+      announce("FIRST_STAGE");
+   end_execute
+
+   execute at_time /variable second_stage_time /default 4000 s absolute
+      PLATFORM.SetSignatureState("SECOND_STAGE");
+      announce("SECOND_STAGE");
+   end_execute
+
+   execute at_time /variable third_stage_time /default 6000 s absolute
+      PLATFORM.SetSignatureState("THIRD_STAGE");
+      announce("THIRD_STAGE");
+   end_execute
+end_processor

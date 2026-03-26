@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# IRIDIUM GROUND STAION
+
+include_once ../avionics/comm/OrbcommCommDef_GS.txt
+
+
+platform_type ORBCOMM_GS WSF_PLATFORM
+   icon C4I
+
+  comm GROUNDSTATION_ORBCOMM_UPLINK_TX GROUNDSTATION_ORBCOMM_UPLINK_TX
+   on
+  end_comm
+
+  comm GROUNDSTATION_ORBCOMM_DOWNLINK_RX GROUNDSTATION_ORBCOMM_DOWNLINK_RX
+   on
+  end_comm
+
+#=============Uncomment to send a test message to satellites===========================================================
+# execute at_interval_of 1 sec
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#      {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#          {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	            if (myPlatform.Type() == "ORBCOMM")
+#              {
+#                  PLATFORM.Comm("GROUNDSTATION_ORBCOMM_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#              }
+#          }
+#      }
+# end_execute
+#=======================================================================================================================
+
+ end_platform_type
+
+

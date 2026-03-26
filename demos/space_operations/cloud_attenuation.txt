@@ -1,0 +1,433 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#Laydown of Space Surveillance Network 01/24/17
+#This demonstrates how noise clouds can intermittently affect and distrupt line of sight for different telescopes and sensors.
+
+file_path ../satellite_demos
+file_path ../traffic_demos
+
+include satellites/orbit_nominal/gps.txt
+#include satellites/orbit_tle/gps.txt
+include patterns/SSN_patterns.txt
+include scenarios/noise_cloud.txt
+
+#==================Uncomment this to include a traffic scenario=======================================
+# note: at the time of writing this, Mystic currently only displays a limited number of
+#       detection lines
+#include platforms/road_platforms.txt
+#include roads/stl_roadnetwork.txt
+#include scenarios/stl_traffic.txt
+#=====================================================================================================
+
+execute at_time 0.001 sec absolute
+   for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+   {
+      WsfPlatform platform1 = WsfSimulation.FindPlatform(i);
+      if (platform1.IsValid() && platform1.Type() == "GPS")
+      {
+         platform1.TurnSensorOn("optical");
+      }
+   }
+end_execute
+
+sensor TELESCOPE WSF_GEOMETRIC_SENSOR
+   frame_time 10 seconds
+
+   azimuth_slew_rate        18 deg/sec       # AEOST azimuth track rate
+   elevation_slew_rate      4.75 deg/sec     # AEOST elevation track rate
+
+   reports_bearing
+   reports_elevation
+   modifier_category cloud_mod
+end_sensor
+
+sensor RADAR WSF_RADAR_SENSOR
+      pitch                               90 deg
+      frame_time                          5 sec
+      # This is just for culling purposes
+      maximum_range                       2800000 km
+
+      electronic_beam_steering            azimuth_and_elevation
+      electronic_beam_steering_limit      90 deg
+      electronic_beam_steering_loss_exponent 1.4
+
+      scan_mode                           azimuth_and_elevation
+      azimuth_scan_limits                 -180 deg 180 deg
+      elevation_scan_limits               -90 deg 90 deg
+
+   transmitter
+      antenna_pattern                  ALTAIR
+      frequency                        1 MHz
+      power                            1 watts
+   end_transmitter
+
+   receiver
+      antenna_pattern                  ALTAIR
+   end_receiver
+
+   detection_threshold                 12.8 db
+   one_m2_detect_range                 2800000 km
+   hits_to_establish_track             2 3
+   hits_to_maintain_track              1 3
+   track_quality                       1
+   reports_range
+   reports_bearing
+   reports_elevation
+   reports_velocity
+   reports_iff
+end_sensor
+
+#Commander
+platform_type  COMMANDER  WSF_PLATFORM
+   side blue
+
+   icon cmd_post
+
+   comm comm WSF_COMM_TRANSCEIVER
+      internal_link tp
+   end_comm
+
+   track_manager
+      retain_track_history
+   end_track_manager
+
+   processor tp WSF_TRACK_PROCESSOR
+      update_interval 100 sec
+      purge_interval 1 day
+      track_history_retention_interval 1000 sec
+   end_processor
+end_platform_type
+
+platform commander COMMANDER
+  position 38:43:17.04n 90:23:23.91w
+end_platform
+
+#General SSN Radar platform
+platform_type SSN_RADAR WSF_PLATFORM
+   side blue
+
+   comm comm WSF_COMM_TRANSCEIVER
+   end_comm
+
+   sensor radar RADAR
+   end_sensor
+
+   processor report WSF_LINKED_PROCESSOR
+      report_to commander via comm
+   end_processor
+end_platform_type
+
+#General SSN Telescope platform
+
+platform_type SSN_TELESCOPE WSF_PLATFORM
+   side blue
+
+   comm comm WSF_COMM_TRANSCEIVER
+   end_comm
+
+   sensor telescope TELESCOPE
+   end_sensor
+
+   processor report WSF_LINKED_PROCESSOR
+      report_to commander via comm
+   end_processor
+end_platform_type
+
+#Advanced Electro-Optical System (AEOS) Telescope
+#http://www2.l-3com.com/brashear/pdf/3meter_low-res.pdf
+platform AEOST SSN_TELESCOPE
+   icon ground_radar
+   commander commander
+   position 20:42:30n 156:15:25w
+   edit sensor telescope
+      on
+      internal_link report
+      elevation_error_sigma 0.000556 deg
+      azimuth_error_sigma 0.000556 deg
+   end_sensor
+end_platform
+
+#ALTAIR radar at Ronald Reagan Ballistic Missile Defense Test Site
+#http://onlinelibrary.wiley.com/doi/10.1029/2000RS002602/full
+#https://www.ll.mit.edu/publications/journal/pdf/vol12_no2/12_2detectsatellitiesplanets.pdf
+#https://mostlymissiledefense.com/2012/05/11/space-surveillance-sensors-the-altair-radar-may-11-2012/
+
+platform ALTAIR SSN_RADAR
+   icon ew_radar_icon
+   commander commander
+   position 9.3966n 167.4716e
+
+   edit sensor radar
+      on
+      azimuth_slew_rate                   10 deg/sec
+      elevation_slew_rate                 10 deg/sec
+
+      transmitter
+         antenna_pattern                  ALTAIR
+         frequency                        422 MHz
+         power                            5 MW
+         bandwidth                        4 MHz
+         pulse_repetition_frequency       2976 Hz
+         pulse_width                      0.6 msec
+      end_transmitter
+
+      receiver
+         antenna_pattern                  ALTAIR
+      end_receiver
+
+      range_error_sigma 20 m
+      elevation_error_sigma 0.03 deg
+      azimuth_error_sigma 0.03 deg
+   end_sensor
+
+end_platform
+
+#AN/FPS-85
+#http://aero.tamu.edu/sites/default/files/faculty/alfriend/CTI2P/CT2013%20S5.1%20Walsh.pdf
+
+platform FPS85 SSN_RADAR
+   icon ew_radar_icon
+   commander commander
+   position 30:34:24n 86:12:54w altitude 100 ft
+   heading          180 deg
+
+
+   edit sensor radar
+      on
+      pitch                                45 deg
+      azimuth_scan_limits                 -60 deg 60 deg
+      elevation_scan_limits               -45 deg 15 deg
+
+      transmitter
+         antenna_pattern                  FPS85
+         frequency                        0.442 ghz
+         power                            32000 kw
+         bandwidth                        .001 ghz
+         wavelength                       0.68 m
+         pulse_repetition_frequency       20 Hz
+         pulse_width                      0.25 msec
+      end_transmitter
+
+      receiver
+         antenna_pattern                  FPS85
+      end_receiver
+
+      internal_link report
+      elevation_error_sigma 0.18 deg
+      azimuth_error_sigma 0.026 deg
+   end_sensor
+
+end_platform
+
+#GEODSS
+#https://mostlymissiledefense.com/2012/08/20/space-surveillance-sensors-geodss-ground-based-electro-optical-deep-space-surveillance-system-august-20-2012/
+platform_type GEODSS SSN_TELESCOPE
+   icon ground_radar
+
+   sensor geodss TELESCOPE
+      on
+      internal_link report
+      elevation_error_sigma  0.00194 deg
+      azimuth_error_sigma 0.00194 deg
+   end_sensor
+end_platform_type
+
+platform socorro GEODSS
+   commander commander
+   position 33.8172n 106.6599w altitude 4100 ft msl
+end_platform
+
+platform maui GEODSS
+   commander commander
+   position 20.7088n 156.2578w altitude 10039 ft msl
+end_platform
+
+platform diegogarcia GEODSS
+   commander commander
+   position 7.41173s 72.45222e altitude 0 ft msl
+end_platform
+
+platform MOSS GEODSS
+   commander commander
+   position 37.1n 5.37w
+end_platform
+
+#Globus II
+platform GLOBUSII SSN_TELESCOPE
+   icon ew_radar_icon
+   commander commander
+   position 70.3671n 31.1271e
+   edit sensor telescope
+      on
+      internal_link report
+   end_sensor
+end_platform
+
+#Haystack Observatory
+#http://www.haystack.mit.edu/obs/haystack/tech_guide/Introduc.pdf
+
+platform HAYSTACK SSN_RADAR
+   icon ground_radar
+   commander commander
+   position 42.6233n 71.4882w
+
+   edit sensor radar
+      on
+      azimuth_slew_rate                   2 deg/sec
+      elevation_slew_rate                 2 deg/sec
+
+      transmitter
+         antenna_pattern                  HAYSTACK
+         frequency                        22.5 ghz
+         power                            250 kw
+         bandwidth                        1 ghz
+         wavelength                       1.3 cm
+#         pulse_width                      1.64 msec
+      end_transmitter
+
+      receiver
+         antenna_pattern                  HAYSTACK
+      end_receiver
+
+      internal_link report
+      elevation_error_sigma 0.000833 deg
+      azimuth_error_sigma 0.00111 deg
+   end_sensor
+
+end_platform
+
+#Millstone Hill Radar
+#https://www.ll.mit.edu/publications/journal/pdf/vol12_no2/12_2detectsatellitiesplanets.pdf
+#https://mostlymissiledefense.com/2012/05/05/space-surveillance-sensors-millstone-hill-radar/
+platform MILLSTONE SSN_RADAR
+   icon ew_radar_icon
+   commander commander
+   position 42.61950n 71.49173w altitude 480 ft
+   edit sensor radar
+      on
+      azimuth_slew_rate                   2 deg/sec
+      elevation_slew_rate                 2 deg/sec
+
+      transmitter
+         antenna_pattern                  MILLSTONE
+         frequency                        1.295 GHz
+         power                            3 MW
+         bandwidth                        1 ghz
+         wavelength                       23.3 cm
+      end_transmitter
+
+      receiver
+         antenna_pattern                  MILLSTONE
+      end_receiver
+
+      internal_link report
+      azimuth_error_sigma 0.01 deg
+      elevation_error_sigma 0.01 deg
+      range_error_sigma 5 m
+   end_sensor
+end_platform
+
+#Space Surveillance Telescope - currently moving from New Mexico to Australia
+platform SST SSN_TELESCOPE
+   icon ground_radar
+   commander commander
+   position 21.485s 114.95e #approximate
+   edit sensor telescope
+      on
+      internal_link report
+   end_sensor
+end_platform
+
+event_pipe
+   file ./output/cloud_attenuation.aer
+end_event_pipe
+#dis_interface
+#   record ./output/cloud_attenuation.rep
+#end_dis_interface
+
+event_output
+   file ./output/cloud_attenuation.evt
+   enable LOCAL_TRACK_INITIATED
+   enable SENSOR_TRACK_INITIATED
+end_event_output
+
+platform center WSF_PLATFORM
+   position 0n 0e altitude -6378 km
+   side black
+end_platform
+
+      script_variables
+         double lat = 80.0;
+         double lon = -180.0;
+         double alt = 100000.0;
+         static double sLAT_STEP = 0.5;
+         static double sLON_STEP = 0.5;
+      end_script_variables
+
+platform tracer WSF_PLATFORM
+   side black
+   position 80n 180w altitude 100000 ft
+   add sensor pen WSF_GEOMETRIC_SENSOR
+      on
+      modifier_category cloud_mod
+      check_terrain_masking disabled
+      frame_time 1.0e-5 s
+      ignore_side blue
+      ignore_side brown
+      ignore_side dark_green
+      ignore_side green
+      ignore_side light_purple
+      ignore_side pink
+      ignore_side purple
+      reports_location
+   end_sensor
+end_platform
+
+script void MoveCloudTracer(WsfPlatform aPlatform)
+         lon += sLON_STEP;
+         if (lon > 180.0)
+         {
+            lon = -180.0;
+            lat -= sLAT_STEP;
+            if (lat < -80.0)
+            {
+               aPlatform.Sensor("pen").TurnOff();
+            }
+         }
+         aPlatform.SetLocation(lat, lon, alt);
+end_script
+
+script void SensorDetectionAttempt(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult)
+   if (aPlatform.Name() == "tracer")
+   {
+      bool detected = aResult.Detected();
+      if (aTarget.Name() != "center")
+      {
+         writeln(aTarget.Name());
+      }
+      if (!detected)
+      {
+         WsfDraw draw = {};
+         draw.SetColor(1.0, 1.0, 1.0, 0.4);
+         draw.BeginQuadrilateral();
+         draw.VertexLLA(lat + sLAT_STEP / 2.0, lon - sLON_STEP / 2.0, alt);
+         draw.VertexLLA(lat + sLAT_STEP / 2.0, lon + sLON_STEP / 2.0, alt);
+         draw.VertexLLA(lat - sLAT_STEP / 2.0, lon + sLON_STEP / 2.0, alt);
+         draw.VertexLLA(lat - sLAT_STEP / 2.0, lon - sLON_STEP / 2.0, alt);
+         draw.End();
+      }
+      MoveCloudTracer(aPlatform);
+   }
+end_script
+
+observer
+   enable SENSOR_DETECTION_ATTEMPT SensorDetectionAttempt
+end_observer
+
+end_time 1 hr

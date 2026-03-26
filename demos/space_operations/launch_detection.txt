@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Creates scenario for detecting the addition of successive stages
+# of a launch vehicle
+
+# Set parameters for staging times and optical signature states
+# in the following setup file
+include_once setup_launch_detection.txt
+
+# Processor to change optical signature at specified times
+# to signify addition of a stage
+include_once processors/change_sig.txt
+
+# Processor to detect and analyze change in optical signature to
+# determine when stages are added to the launch vehicle
+include_once processors/image_proc.txt
+
+# Launch Facility
+include_once platforms/launch_facility.txt
+
+# Launch Vehicle
+include_once platforms/launch_vehicle.txt
+
+# Commander
+include_once platforms/commander.txt
+
+# Sensing Satellite
+include_once sensors/sat_sensor.txt
+include_once sensors/sense_iridium.txt
+include_once platforms/sat_sensor.txt
+
+# Iridium Satellite
+include_once platforms/iridium_satellite.txt
+#include_once scripts/iridium_scripts.txt
+
+# Scenario
+include_once scenarios/launch_buildup.txt
+include_once scenarios/sat_sensor_constellation.txt
+include_once scenarios/iridium_constellation.txt
+
+event_output
+   enable SENSOR_DETECTION_ATTEMPT
+   enable MESSAGE_QUEUED
+   enable MESSAGE_RECEIVED
+   enable MESSAGE_TRANSMITTED
+   file output/launch_detection.evt
+end_event_output
+
+event_pipe
+   file output/launch_detection.aer
+end_event_pipe
+
+end_time 3500 sec

@@ -1,0 +1,246 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates the use of four air-launched cruise missiles
+# from a heavy bomber. The scenario begins with the bomber avoiding detection
+# by flying a low-level (200 ft) profile. It then pops up to 1000 ft and
+# launches four cruise missiles, with a five second interval between each
+# missile. The missiles fly several waypoints enroute to their targets,
+# with all impacting nearly simultaneously (all detonating within less than
+# a 2 sec period). Each cruise missile also performed a pitch up terminal
+# maneuver, which makes them a more difficult target for AAA.
+#
+# ******************************************************************************
+
+define_path_variable CASE rb_cruise_missile_test
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 15 min
+
+# Define WSF platform types that use SixDOF movers
+include_once platforms/agm-mrc.txt
+include_once platforms/b-hvy.txt
+
+include scripts/weapon_scripts.txt
+
+include_once scripts/six_dof_simple_scripts.txt
+include_once scripts/support_scripts.txt
+
+# --------------------------------------------------------------------------------------------------
+
+platform_type GROUND-TARGET WSF_PLATFORM
+   spatial_domain land
+   side           red
+   icon           target
+end_platform_type
+
+platform target_1 GROUND-TARGET
+   position 21:19:13.77n 157:54:46.64w  altitude 4 ft
+   heading 180 deg
+end_platform
+
+platform target_2 GROUND-TARGET
+   position 21:19:52.58n 157:55:11.94w  altitude 4 ft
+   heading 180 deg
+end_platform
+
+platform target_3 GROUND-TARGET
+   position 21:19:53.60n 157:57:00.77w  altitude 4 ft
+   heading 180 deg
+end_platform
+
+platform target_4 GROUND-TARGET
+   position 21:19:04.73n 157:57:16.47w  altitude 4 ft
+   heading 180 deg
+end_platform
+
+# --------------------------------------------------------------------------------------------------
+
+route route1
+   position  20:34n 157:46w             altitude 150.0 ft  speed 450.0 kts
+   position  21:04n 157:46w             altitude 150.0 ft  speed 450.0 kts
+   position  21:14n 157:50w             altitude 150.0 ft  speed 450.0 kts
+   # Target   
+   position 21:19:13.77n 157:54:46.64w  altitude 150.0 ft  speed 450.0 kts   
+end_route
+
+route route2
+   position  20:34n 157:46w             altitude 150.0 ft  speed 450.0 kts
+   position  21:04n 157:47w             altitude 150.0 ft  speed 450.0 kts
+   position  21:14n 157:52w             altitude 150.0 ft  speed 450.0 kts
+   # Target   
+   position 21:19:52.58n 157:55:11.94w  altitude 150.0 ft  speed 450.0 kts   
+end_route
+
+route route3
+   position  20:34n 157:46w             altitude 150.0 ft  speed 450.0 kts
+   position  21:04n 157:49w             altitude 150.0 ft  speed 450.0 kts
+   position  21:14n 157:54w             altitude 150.0 ft  speed 450.0 kts
+   # Target   
+   position 21:19:53.60n 157:57:00.77w  altitude 150.0 ft  speed 450.0 kts   
+end_route
+
+route route4
+   position  20:34n 157:46w             altitude 150.0 ft  speed 450.0 kts
+   position  21:04n 157:50w             altitude 150.0 ft  speed 450.0 kts
+   position  21:14n 157:58w             altitude 150.0 ft  speed 450.0 kts
+   # Target   
+   position 21:19:04.73n 157:57:16.47w  altitude 150.0 ft  speed 450.0 kts   
+end_route
+
+platform_type B-HVY-CM4 B-HVY_RB6
+
+   # Cruise missile launcher with 4 rounds
+   weapon cm AGM-MRC_RB6-WEAPON
+      quantity 4
+      pitch         -2.0 deg
+      location       20.0 0.0 6.0 ft
+      launch_delta_v 0.0 0.0 20.0 ft/sec
+   end_weapon
+
+end_platform_type
+
+platform bomber B-HVY-CM4
+
+   update_interval 0.01 sec   
+   side  blue
+
+   route
+     position  20:00n 157:53w  altitude 200.0 ft  speed 400.0 kts
+     position  20:20n 157:53w  altitude 200.0 ft  speed 400.0 kts
+     position  20:20n 157:43w  altitude 200.0 ft  speed 400.0 kts
+     position  19:00n 157:43w  altitude 200.0 ft  speed 400.0 kts
+     position  18:40n 156:00w  altitude 200.0 ft  speed 400.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover
+   
+   execute at_time 5.0 sec absolute
+      writeln("Bomber climbs to 1,000 feet to launch missiles...");
+      PLATFORM.GoToAltitude(1000.0*MATH.M_PER_FT());
+   end_execute
+
+   # ......................................
+   
+   execute at_time 10.0 sec absolute   
+      writeln("Bomber drops first cruise missile...");      
+      WsfWeapon wpn = PLATFORM.Weapon("cm");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("target_1");
+         WsfPlatform tgtPlat = WsfSimulation.FindPlatform("target_1");         
+         trk.SetLocationLLA(tgtPlat.Latitude(),tgtPlat.Longitude(),tgtPlat.Altitude());
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 11.0 sec absolute   
+      writeln("Give first missile its route...");      
+      WsfPlatform wpnPlatform = WsfSimulation.FindPlatform("bomber_cm_1");      
+      if(wpnPlatform.IsValid()) { wpnPlatform.FollowRoute("route1"); }      
+   end_execute
+
+   # ......................................
+
+   execute at_time 15.0 sec absolute   
+      writeln("Bomber drops second cruise missile...");      
+      WsfWeapon wpn = PLATFORM.Weapon("cm");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("target_2");
+         WsfPlatform tgtPlat = WsfSimulation.FindPlatform("target_2");         
+         trk.SetLocationLLA(tgtPlat.Latitude(),tgtPlat.Longitude(),tgtPlat.Altitude());
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 16.0 sec absolute   
+      writeln("Give second missile its route...");      
+      WsfPlatform wpnPlatform = WsfSimulation.FindPlatform("bomber_cm_2");      
+      if(wpnPlatform.IsValid()) { wpnPlatform.FollowRoute("route2"); }      
+   end_execute
+
+   # ......................................
+
+   execute at_time 20.0 sec absolute   
+      writeln("Bomber drops third cruise missile...");      
+      WsfWeapon wpn = PLATFORM.Weapon("cm");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("target_3");
+         WsfPlatform tgtPlat = WsfSimulation.FindPlatform("target_3");         
+         trk.SetLocationLLA(tgtPlat.Latitude(),tgtPlat.Longitude(),tgtPlat.Altitude());
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 21.0 sec absolute   
+      writeln("Give third missile its route...");      
+      WsfPlatform wpnPlatform = WsfSimulation.FindPlatform("bomber_cm_3");
+      if(wpnPlatform.IsValid()) { wpnPlatform.FollowRoute("route3"); }      
+   end_execute
+
+   # ......................................
+
+   execute at_time 25.0 sec absolute   
+      writeln("Bomber drops fourth cruise missile...");      
+      WsfWeapon wpn = PLATFORM.Weapon("cm");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("target_4");
+         WsfPlatform tgtPlat = WsfSimulation.FindPlatform("target_4");         
+         trk.SetLocationLLA(tgtPlat.Latitude(),tgtPlat.Longitude(),tgtPlat.Altitude());
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 26.0 sec absolute   
+      writeln("Give fourth missile its route...");      
+      WsfPlatform wpnPlatform = WsfSimulation.FindPlatform("bomber_cm_4");
+      if(wpnPlatform.IsValid()) { wpnPlatform.FollowRoute("route4"); }      
+   end_execute
+
+   # ......................................
+
+   execute at_time 30.0 sec absolute
+      writeln("Bomber decends back down to 200 feet...");      
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotAltitude(200.0);
+         mover.SetAutopilotRollAngle(0.0);
+         mover.SetAutopilotSpeedKTAS(400.0);
+      }               
+   end_execute
+
+   execute at_time 35.0 sec absolute
+      writeln("Bomber begins a right turn...");      
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotRollAngle(60.0);
+      }               
+   end_execute
+
+   execute at_time 40.0 sec absolute
+      writeln("Bomber continues its right turn to head south...");
+      PLATFORM.TurnToHeading(180.0);
+   end_execute
+
+end_platform

@@ -1,0 +1,19 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This file defines the equivalencies between WSF type mappings and DIS Entity Types.
+# Necessary for external simulations to know what commodities and services we wish to coordinate on.
+
+dis_interface
+   entity_type JP-8_FUEL     6:0:0:0:1:5:0
+   entity_type FOODSTUFFS    5:0:0:0:2:0:0   # NOT DIS COMPLIANT
+   entity_type LEAFLETS      5:0:0:0:3:0:0   # NOT DIS COMPLIANT
+   entity_type SPARE_PARTS   5:0:0:0:4:0:0   # NOT DIS COMPLIANT
+   entity_type ENGINE_REPAIR 5:0:0:0:5:0:0   # NOT DIS COMPLIANT
+end_dis_interface
+

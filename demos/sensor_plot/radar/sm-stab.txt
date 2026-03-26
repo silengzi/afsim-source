@@ -1,0 +1,72 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Spherical map of a horizon-stablized scanning radar.
+
+antenna_pattern FIGHTER_RADAR_ANTENNA
+   circular_pattern
+      peak_gain              30 db
+      minimum_gain           -10 db
+      beamwidth              2 deg
+end_antenna_pattern
+
+sensor FIGHTER_RADAR WSF_RADAR_SENSOR
+   frame_time 10 sec
+
+
+   scan_mode                 azimuth_and_elevation
+   azimuth_scan_limits       -70 deg 70 deg
+   elevation_scan_limits     -10 deg 10 deg
+
+#   antenna_tilt              30 deg
+
+   electronic_beam_steering  azimuth_and_elevation
+   electronic_beam_steering_limit      70 deg
+   electronic_beam_steering_loss_exponent 1.4
+
+   scan_stabilization        pitch_and_roll
+
+   transmitter
+      frequency              3 ghz
+      power                  100 kw
+      antenna_pattern        FIGHTER_RADAR_ANTENNA
+   end_transmitter
+   receiver
+   end_receiver
+   one_m2_detect_range       100 nm
+   reports_location
+end_sensor
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   position 0n 0e altitude 30000 ft
+
+   sensor radar FIGHTER_RADAR
+      #yaw 90 deg
+   end_sensor
+end_platform_type
+
+radar_signature TARGET_RADAR_SIG
+   constant 1 m^2
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature TARGET_RADAR_SIG
+end_platform_type
+
+spherical_map
+   #sensor_platform_pitch     10 deg
+   sensor_platform_roll      30 deg
+
+   azimuth_limits            -180 deg 180 deg
+   elevation_limits          -80 deg 80 deg
+   range                      20 nm
+
+   variable                  signal_to_noise
+
+   pd_map_file               sm-stab.pd
+end_spherical_map

@@ -1,0 +1,58 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Ground Control Segment
+
+#include_once patterns/uniformPattern.txt
+
+platform_type GPS_CONTROL WSF_PLATFORM
+
+ sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+   end_sensor
+
+  comm GPS_UPLINKL3_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180 deg    180 deg
+   elevation_field_of_view                   0 deg     90 deg
+
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1381.05 mhz  # ref 8
+      wavelength                          22 cm       # guess
+      bandwidth                           22 mhz      # guess
+      power                               13 dBW      # guess
+      polarization                        right_circular  # guess
+      pulse_width                         15.0 usec   # guess
+      pulse_repetition_interval           150.0 usec  # guess
+   end_transmitter
+
+  end_comm
+
+ comm GPS_DOWNLINKL3_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg  180.0 deg
+   elevation_field_of_view                     0 deg   90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           1381.05 mhz   # ref 8
+      bandwidth                           200 mhz
+      noise_power                         -105.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+
+end_platform_type

@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# (Assume that the "setup.txt" file has already made all necessary types available.)
+
+end_time 80000 sec   # The scenario will be Terminated before this time when the
+                      # desired number of leaflet bombing missions are flown.
+
+event_pipe
+   file output/stm_replay.aer
+end_event_pipe
+
+# ===================================================================
+# Lay down the instances of the platforms needed in the scenario:
+# ===================================================================
+
+# === === STATIONARY DEPOTS: === ===
+include stationary_storage_depots.txt
+
+# === === "SHUTTLING" Players: === ===
+include refueling_trucks.txt
+include ocean_tankers.txt
+include semi_tanker_trucks.txt
+include mechanics.txt
+
+# === === (Strike Bombers) Primary Operations Players  === ===
+include strike_bombers.txt
+

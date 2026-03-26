@@ -1,0 +1,195 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+# NOT RELEASABLE TO FOREIGN NATIONALS
+# BECAUSE OF THE USE OF UNCLASSIFIED RMED DATA TO DEFINE THE STAGES
+
+# This is a model of a submarine launched ballistic missile 
+# The shroud is not modeled.
+# The MIRV's are not modeled.
+
+
+infrared_signature BLUE_SLBM_INFRARED_SIG
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  BLUE_SLBM_OPTICAL_SIG
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    BLUE_SLBM_RADAR_SIG
+   constant 1 m^2
+end_radar_signature
+
+# Nominal lethality data.
+
+weapon_effects BLUE_SLBM_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 1000.0 m 1.0
+end_weapon_effects
+
+# NOMINAL AERO VALUES - THE REFERENCE AREA IS WHAT REALLY MATTERS
+aero BLUE_SLBM_STAGE_1_AERO WSF_AERO
+   reference_area            3.496 m^2           # 2.11 m diameter
+   aspect_ratio              4.0                 # 7.3 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.45
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+aero BLUE_SLBM_STAGE_2_AERO WSF_AERO
+   reference_area            3.496 m^2           # 2.11 m diameter
+   aspect_ratio              4.0                 # 3.12 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+aero BLUE_SLBM_STAGE_3_AERO WSF_AERO
+   reference_area            0.58 m^2           # 0.86 m diameter
+   aspect_ratio              4.0                # 3.27 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+aero BLUE_SLBM_WARHEAD_AERO WSF_AERO
+   reference_area            0.58 m^2           # 0.86 m diameter
+   aspect_ratio              4.0                # unknown
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+mover BLUE_SLBM_MOVER WSF_GUIDED_MOVER
+   integration_timestep      0.01 secs
+   update_interval           0.01 secs
+   stage 1
+      aero                   BLUE_SLBM_STAGE_1_AERO
+      total_mass             86330 lbm      # per RMED data
+      fuel_mass              81380 lbm      # per RMED data
+      specific_impulse       260 sec        # typical for high end per internet
+      # The isp of 260 at 90 secs gives 235098 lbf of thrust
+      #thrust                 202600 lbf     # from source
+      thrust_duration        90 sec         # from alternatewars.com
+   end_stage
+   stage 2
+      aero                   BLUE_SLBM_STAGE_2_AERO
+      total_mass             26105 lbm      # per RMED data
+      fuel_mass              24360 lbm      # per RMED data
+      specific_impulse       260 sec        # typical for high end per internet
+      #thrust_duration        65 sec         # from alternatewars.com
+      thrust_duration        40 sec         # from alternatewars.com
+      pre_ignition_coast_time 2 sec         # unknown
+   end_stage
+   stage 3
+      aero                   BLUE_SLBM_STAGE_3_AERO
+      total_mass             4820   lbm     # per RMED data
+      fuel_mass              4470   lbm     # per RMED data
+      specific_impulse       260 sec        # typical for high end per internet
+      thrust_duration        40 sec         # from alternatewars.com
+      pre_ignition_coast_time 2 sec         # unknown
+   end_stage
+   stage 4
+      aero                   BLUE_SLBM_WARHEAD_AERO
+      total_mass             2500 lbm       # unknown - adjust for max range shot
+   end_stage
+end_mover
+
+processor BLUE_SLBM_GUIDANCE WSF_GUIDANCE_COMPUTER
+   # Go vertical for a short time.
+   phase LIFTOFF
+      guidance_delay                   2.0 sec
+      #commanded_flight_path_angle      83 deg # doesn't come out of water straight up...
+      next_phase PITCH_OVER when phase_time >= 2.0 sec
+   end_phase
+   # Pitch over to the desired flight path angle from the launch computer.
+   phase PITCH_OVER
+      #commanded_flight_path_angle      89 deg
+      commanded_flight_path_angle      from_launch_computer
+      proportional_navigation_gain     0.0
+      velocity_pursuit_gain            0.0
+      maximum_commanded_g              1.0 g
+      next_phase BALLISTIC when on_commanded_flight_path_angle
+   end_phase
+   # Continue flight without guidance (gravity turn).
+   # Although documentation has star guidance...
+   phase BALLISTIC
+      guidance_delay                   50000.0 sec # just let it be a ballistic shot
+   end_phase
+end_processor
+
+######################################################################################
+# DEFINE THE PLATFORM
+platform_type BLUE_SLBM WSF_PLATFORM
+   icon Scud_Missile
+   infrared_signature BLUE_SLBM_INFRARED_SIG
+   optical_signature  BLUE_SLBM_OPTICAL_SIG
+   radar_signature    BLUE_SLBM_RADAR_SIG
+   weapon_effects     BLUE_SLBM_EFFECT
+
+   mover BLUE_SLBM_MOVER
+      show_status
+      #debug
+   end_mover
+
+   processor guidance BLUE_SLBM_GUIDANCE
+      #show_status
+      #show_graphics
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+      # If the target is killed by another weapon we want to still keep going.
+      coast_time_on_loss_of_target     100000.0 secs
+   end_processor
+end_platform_type
+#####################################################################################
+# Pregenerated table...this has to be recreated if ANYTHING is changed
+launch_computer BLUE_SLBM_LAUNCH_COMPUTER WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER
+   surface_to_surface_table blue_slbm_launch_data.txt
+end_launch_computer
+#####################################################################################
+
+weapon BLUE_SLBM WSF_EXPLICIT_WEAPON
+
+   # The location offset puts the weapon center at half the length - 1 m.
+   # This assumes the scenario creator puts the launching platform at 1 m agl.
+
+   location 0.0 0.0 -5.71 m     # 1/2 distance of length of missile - 1
+
+   launched_platform_type BLUE_SLBM
+
+#   launch_computer BLUE_SLBM_LAUNCH_COMPUTER end_launch_computer
+
+   tilt  89.9 degrees
+
+   cue_to_predicted_intercept true
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+   quantity 1  # Default to a single weapon on the vehicle
+end_weapon
+
+
+
+

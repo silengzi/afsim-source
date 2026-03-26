@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior draw_target
+
+   script_variables
+      WsfDraw draw = WsfDraw();
+   end_script_variables
+
+
+   on_init
+      draw.SetLineSize(2);
+      draw.SetColor(1.0, 0.0, 1.0); //purple
+   end_on_init
+
+
+   precondition
+      writeln("precondition draw_target");
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      if (targetTrack.IsNull() || !targetTrack.IsValid())
+      {
+         writeln_d("target not valid for executing draw_target");
+         return false;
+      }
+      draw.SetDuration(PROCESSOR.UpdateInterval());
+      return true;
+   end_precondition
+
+
+   execute
+      writeln("executing draw_target");
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      draw.BeginLines();
+         draw.Vertex(PLATFORM.Location());
+         draw.Vertex(targetTrack.CurrentLocation());
+      draw.End();
+   end_execute
+
+end_behavior

@@ -1,0 +1,293 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+/* vespa <range_ring name="SRSAM_10nm-1" uid="699">
+  <name>SRSAM_10nm-1</name>
+  <position>
+    <latitude>48:47:12.46n</latitude>
+    <longitude>121:49:07.01w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-1 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:47:12.46n 121:49:07.01w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-2" uid="784">
+  <name>SRSAM_10nm-2</name>
+  <position>
+    <latitude>48:45:50.75n</latitude>
+    <longitude>121:49:25.72w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-2 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:45:50.75n 121:49:25.72w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-3" uid="814">
+  <name>SRSAM_10nm-3</name>
+  <position>
+    <latitude>48:26:21.71n</latitude>
+    <longitude>122:07:23.17w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-3 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:26:21.71n 122:07:23.17w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-4" uid="824">
+  <name>SRSAM_10nm-4</name>
+  <position>
+    <latitude>48:23:07.97n</latitude>
+    <longitude>122:05:47.79w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-4 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:23:07.97n 122:05:47.79w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-5" uid="841">
+  <name>SRSAM_10nm-5</name>
+  <position>
+    <latitude>47:15:32.05n</latitude>
+    <longitude>122:53:49.83w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>7.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-5 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 47:15:32.05n 122:53:49.83w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-6" uid="853">
+  <name>SRSAM_10nm-6</name>
+  <position>
+    <latitude>47:06:57.24n</latitude>
+    <longitude>122:54:44.57w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-6 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 47:06:57.24n 122:54:44.57w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-7" uid="882">
+  <name>SRSAM_10nm-7</name>
+  <position>
+    <latitude>46:25:20.28n</latitude>
+    <longitude>122:10:47.64w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-7 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:25:20.28n 122:10:47.64w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-8" uid="899">
+  <name>SRSAM_10nm-8</name>
+  <position>
+    <latitude>46:26:53.13n</latitude>
+    <longitude>122:08:52.49w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-8 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:26:53.13n 122:08:52.49w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-9" uid="922">
+  <name>SRSAM_10nm-9</name>
+  <position>
+    <latitude>46:14:05.03n</latitude>
+    <longitude>122:14:56.40w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-9 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:14:05.03n 122:14:56.40w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-10" uid="947">
+  <name>SRSAM_10nm-10</name>
+  <position>
+    <latitude>46:19:06.36n</latitude>
+    <longitude>122:19:18.92w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-10 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:19:06.36n 122:19:18.92w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-11" uid="975">
+  <name>SRSAM_10nm-11</name>
+  <position>
+    <latitude>45:30:12.40n</latitude>
+    <longitude>121:58:11.58w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-11 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:30:12.40n 121:58:11.58w altitude 1 m agl
+end_platform
+
+/* vespa <range_ring name="SRSAM_10nm-12" uid="983">
+  <name>SRSAM_10nm-12</name>
+  <position>
+    <latitude>45:22:42.59n</latitude>
+    <longitude>122:01:34.95w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>7.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-12 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:30:12.40n 121:58:11.58w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-13" uid="1004">
+  <name>SRSAM_10nm-13</name>
+  <position>
+    <latitude>45:14:54.41n</latitude>
+    <longitude>122:02:38.97w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>10.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-13 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:14:54.41n 122:02:38.97w altitude 1 m agl
+end_platform
+
+
+/* vespa <range_ring name="SRSAM_10nm-14" uid="1017">
+  <name>SRSAM_10nm-14</name>
+  <position>
+    <latitude>45:13:16.07n</latitude>
+    <longitude>121:54:25.52w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+  <minimum_distance>7.00 nm</minimum_distance>
+  <distance_increment>100 nm</distance_increment>
+  <number_rings>1</number_rings>
+  <line_color>FF55FFFF</line_color>
+</range_ring> end_vespa */
+platform sr_sam_telar-14 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:13:16.07n 121:54:25.52w altitude 1 m agl
+end_platform

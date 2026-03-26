@@ -1,0 +1,228 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/noaa.txt
+
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+# NOAA CONSTELLATION SCENARIO
+
+platform NOAA_1 NOAA
+side US
+edit mover
+orbit
+1 04793U 70106A   17170.24063076 -.00000044  00000-0  68723-5 0  9991
+2 04793 101.8013 235.3209 0031476 253.2952 150.1447 12.53980980129416
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_2 NOAA
+side US
+edit mover
+orbit
+1 06235U 72082A   17170.57278101 -.00000020  00000-0  15603-3 0  9993
+2 06235 101.6816 135.6414 0004004 350.5464 140.8774 12.53094028 43518
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_3 NOAA
+side US
+edit mover
+orbit
+1 06920U 73086A   17170.52318582 -.00000048  00000-0 -26610-4 0  9994
+2 06920 101.9398 140.0708 0007087  72.1704  65.1279 12.40351847974648
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_4 NOAA
+side US
+edit mover
+orbit
+1 07529U 74089A   17170.57235385 -.00000034  00000-0  62784-4 0  9994
+2 07529 101.6399 139.3517 0009090  18.6295 113.5178 12.53110314948099
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_5 NOAA
+side US
+edit mover
+orbit
+1 09057U 76077A   17170.44210440 -.00000049  00000-0 -46883-4 0  9991
+2 09057 101.8288 152.3601 0009344 286.3057 226.2945 12.37763559848288
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_6 NOAA
+side US
+edit mover
+orbit
+1 11416U 79057A   17170.55800838  .00000045  00000-0  32439-4 0  9998
+2 11416  98.5785 158.4387 0009249 238.2984 121.7299 14.33421909980209
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_7 NOAA
+side US
+edit mover
+orbit
+1 12553U 81059A   17170.58354625  .00000010  00000-0  27739-4 0  9996
+2 12553  99.0507 152.3507 0010465 248.8427 247.5573 14.17218354859441
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_8 NOAA
+side US
+edit mover
+orbit
+1 13923U 83022A   17170.52879683  .00000040  00000-0  33037-4 0  9991
+2 13923  98.5122 160.5970 0015806 152.3174 207.8852 14.28590842781975
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_9 NOAA
+side US
+edit mover
+orbit
+1 15427U 84123A   17170.46200576  .00000007  00000-0  25770-4 0  9995
+2 15427  98.8032 114.4088 0014134 317.1779 150.2433 14.16001842678696
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_10 NOAA
+side US
+edit mover
+orbit
+1 16969U 86073A   17170.57400944  .00000006  00000-0  19345-4 0  9996
+2 16969  98.4605 179.1435 0010882 269.0812 243.6177 14.28010723600512
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_11 NOAA
+side US
+edit mover
+orbit
+1 19531U 88089A   17170.59631790 -.00000032  00000-0  50998-5 0  9990
+2 19531  98.5512 228.9675 0011839  36.5742 323.6238 14.15209368482841
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_12 NOAA
+side US
+edit mover
+orbit
+1 21263U 91032A   17170.54309819 -.00000023  00000-0  86681-5 0  9994
+2 21263  98.5631 194.5235 0012563 275.6425  84.3322 14.25843006356802
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_13 NOAA
+side US
+edit mover
+orbit
+1 22739U 93050A   17170.58826949 -.00000032  00000-0  51045-5 0  9993
+2 22739  98.5595 219.2265 0009947 161.1367 199.0176 14.12684740229538
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_14 NOAA
+side US
+edit mover
+orbit
+1 23455U 94089A   17170.51268569 -.00000019  00000-0  12440-4 0  9993
+2 23455  98.6865 245.4070 0010136 144.0351 216.1506 14.14099249158923
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_15 NOAA
+side US
+edit mover
+orbit
+1 25338U 98030A   17170.53079356  .00000077  00000-0  51127-4 0  9999
+2 25338  98.7814 181.4463 0010259 193.6856 166.4046 14.25799975993075
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_16 NOAA
+side US
+edit mover
+orbit
+1 26536U 00055A   17170.54959675 -.00000008  00000-0  19112-4 0  9995
+2 26536  98.8556 243.2839 0009739 319.7231  40.3219 14.13178868159731
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_17 NOAA
+side US
+edit mover
+orbit
+1 27453U 02032A   17170.58007177 -.00000014  00000-0  12057-4 0  9994
+2 27453  98.4342 134.9915 0011443 187.0809 173.0211 14.24987589779095
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_18 NOAA
+side US
+edit mover
+orbit
+1 28654U 05018A   17170.60488661 -.00000012  00000-0  18615-4 0  9993
+2 28654  99.1819 192.8784 0015358  67.1591 293.1199 14.12340080622506
+end_orbit
+end_mover
+end_platform
+
+platform NOAA_19 NOAA
+side US
+edit mover
+orbit
+1 33591U 09005A   17170.60701960  .00000087  00000-0  72400-4 0  9992
+2 33591  99.0925 137.4662 0012883 265.6352  94.3347 14.12188286430735
+end_orbit
+end_mover
+end_platform
+
+platform TIROS_N NOAA
+side US
+edit mover
+orbit
+1 11060U 78096A   17169.60382928  .00000003  00000-0  23506-4 0  9993
+2 11060  98.8941 219.6006 0010158 343.2378  16.8460 14.18158897213180
+end_orbit
+end_mover
+end_platform
+
+platform NPP NOAA
+side US
+edit mover
+orbit
+1 37849U 11061A   17170.55998229 -.00000013  00000-0  14600-4 0  9995
+2 37849  98.7355 109.2434 0001681 105.4061 355.6634 14.19551295292430
+end_orbit
+end_mover
+end_platform

@@ -1,0 +1,372 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                          ------ UNCLASSIFIED ------
+#                                  RED_SRBM_3
+###############################################################################
+#
+# NOTE: If you modify any parameter in this file, you must rerun 'weapon_tools'
+#       with 'red_srbm_3_lcg.txt' as input to regenerate the launch computer data.
+#
+###############################################################################
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+# This definition is intended to be EXPORTABLE. It is defined using publicly
+# available, attributable sources. DO NOT ADD ANYTHING BASED ON OTHER SOURCES!
+#
+# ***** WARNING ***** WARNING ***** WARNING ***** WARNING ***** WARNING *****
+#
+###############################################################################
+#
+# This model is built using data from unclassified sources as follows:
+#
+# 1) "Technical Addendum to the Joint Threat Assessment on the Iran's Nuclear
+#    and Missile Potential -- The Sejil Ballistic Missile", Theodore Postol, 2009
+#
+# 2) "Professional Development Short Course on Tactical Missile Design"
+#    Eugene Fleeman, http://genefleeman.home.mindspring.com
+#
+###############################################################################
+
+###############################################################################
+#           Support for explicit representation of spent stages
+#
+# Platforms will be created for spent stages if one the global script variables
+# is defined as follows:
+#
+# script_variables
+#    SHOW_SPENT_STAGES["ALL"]     = true;          # For any weapon
+#    SHOW_SPENT_STAGES["RED_SRBM_3"] = true;          # For just this weapon type
+# end_script_variables
+###############################################################################
+
+include_once show_spent_stages.txt
+include_once typical_ballistic_missile_aero.txt
+
+# -----------------------------------------------------------------------------
+
+##### Spent Stage 1
+
+aero RED_SRBM_3_SPENT_STAGE_1_AERO TYPICAL_SPENT_STAGE_AERO
+   reference_area            13.203 ft^2           # Ref 1 - 1.25 m diam (4.1 ft)
+#   aspect_ratio              1.0                   # Generic missile aero
+#   cl_max                    2.0                   # Generic missile aero
+#   zero_lift_cd              0.9                   # Generic missile aero for blunt, spent stage
+end_aero
+
+infrared_signature RED_SRBM_3_SPENT_STAGE_1_INFRARED_SIG
+   constant 1 watts/steradian                      # Generic signature, not intended to be representative
+end_infrared_signature
+
+optical_signature  RED_SRBM_3_SPENT_STAGE_1_OPTICAL_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_optical_signature
+
+radar_signature    RED_SRBM_3_SPENT_STAGE_1_RADAR_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_radar_signature
+
+platform_type RED_SRBM_3_SPENT_STAGE_1 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_SRBM_3_SPENT_STAGE_1_INFRARED_SIG
+   optical_signature  RED_SRBM_3_SPENT_STAGE_1_OPTICAL_SIG
+   radar_signature    RED_SRBM_3_SPENT_STAGE_1_RADAR_SIG
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep   0.01 secs
+      stage 1
+         aero         RED_SRBM_3_SPENT_STAGE_1_AERO
+         total_mass   4862 lbs                    # Ref 1 - 2210 kg (4862 lbs)
+      end_stage
+   end_mover
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+# -----------------------------------------------------------------------------
+
+##### Spent Stage 2
+
+aero RED_SRBM_3_SPENT_STAGE_2_AERO TYPICAL_SPENT_STAGE_AERO
+   reference_area            13.203 ft^2           # Ref 1 - 1.25 m diam (4.1 ft)
+#   aspect_ratio              1.0                   # Generic missile aero
+#   cl_max                    2.0                   # Generic missile aero
+#   zero_lift_cd              0.9                   # Generic missile aero for blunt, spent stage
+end_aero
+
+infrared_signature RED_SRBM_3_SPENT_STAGE_2_INFRARED_SIG
+   constant 1 watts/steradian                      # Generic signature, not intended to be representative
+end_infrared_signature
+
+optical_signature  RED_SRBM_3_SPENT_STAGE_2_OPTICAL_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_optical_signature
+
+radar_signature    RED_SRBM_3_SPENT_STAGE_2_RADAR_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_radar_signature
+
+platform_type RED_SRBM_3_SPENT_STAGE_2 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_SRBM_3_SPENT_STAGE_2_INFRARED_SIG
+   optical_signature  RED_SRBM_3_SPENT_STAGE_2_OPTICAL_SIG
+   radar_signature    RED_SRBM_3_SPENT_STAGE_2_RADAR_SIG
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep   0.01 secs
+      stage 1
+         aero         RED_SRBM_3_SPENT_STAGE_2_AERO
+         total_mass   1914 lbs                    # Ref 1 - 870 kg (1914 lbs)
+      end_stage
+   end_mover
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+# -----------------------------------------------------------------------------
+
+##### Main object observatbles
+
+infrared_signature RED_SRBM_3_INFRARED_SIG
+   state default
+      band default
+         constant 654321 w/sr                      # Large signature when boosting
+   state boost_complete
+      band default
+         constant 1 w/sr                           # Generic signature after burnout
+end_infrared_signature
+
+optical_signature  RED_SRBM_3_OPTICAL_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_optical_signature
+
+radar_signature    RED_SRBM_3_RADAR_SIG
+   constant 1 m^2                                  # Generic signature, not intended to be representative
+end_radar_signature
+
+# -----------------------------------------------------------------------------
+
+#### Nominal lethality data.
+
+weapon_effects RED_SRBM_3_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 1000.0 m 1.0                      # Kills target if impacting within 1000 m
+end_weapon_effects
+
+# -----------------------------------------------------------------------------
+
+#### Aero during various flight phases
+
+aero RED_SRBM_3_STAGE_1_AERO TYPICAL_MISSILE_AERO
+   reference_area            13.203 ft^2           # Ref 1 - 1.25 m diam (4.1 ft)
+#   aspect_ratio              1.0                  # Generic missile aero
+#   cl_max                    2.0                  # Generic missile aero
+#   zero_lift_cd              0.2                  # Generic missile aero
+end_aero
+
+aero RED_SRBM_3_STAGE_2_AERO TYPICAL_MISSILE_AERO
+   reference_area            13.203 ft^2           # Ref 1 - 1.25 m diam (4.1 ft)
+#   aspect_ratio              1.0                   # Generic missile aero
+#   cl_max                    2.0                   # Generic missile aero
+#   zero_lift_cd              0.2                   # Generic missile aero
+end_aero
+
+aero RED_SRBM_3_RV_AERO TYPICAL_RV_AERO
+   reference_area            6.469 ft^2            # Ref 1 - Diam is 70% of other stages - diam 2.87 ft
+#   aspect_ratio              1.0                   # Generic missile aero
+#   cl_max                    2.0                   # Generic missile aero
+#   zero_lift_cd              0.1                   # Generic missile aero
+end_aero
+
+###############################################################################
+
+#### Mover definition
+
+mover RED_SRBM_3_MOVER WSF_GUIDED_MOVER
+   integration_timestep      0.005 secs
+   update_interval           0.05 secs
+
+   stage 1
+      aero                   RED_SRBM_3_STAGE_1_AERO
+      total_mass             32384 lbs             # Ref 1, 14720 kg (32384 lbs)
+      fuel_mass              27522 lbs             # Ref 1, Empty wgt 2210 kg (4862)
+      specific_impulse       235 sec               # Ref 1, Average of 220-250
+#     thrust_duration        50 sec                # Ref 1
+      thrust                 122320 lbf            # Ref 1, 55600 kgf (122320 lbf)
+   end_stage
+
+   stage 2
+      aero                   RED_SRBM_3_STAGE_2_AERO
+      total_mass             12716 lbs             # Ref 1, 5780 kg (12716 lbs)
+      fuel_mass              10802 lbs             # Ref 1, Empty wgt 870 kg (1914 lbs)
+      specific_impulse       250 sec               # Ref 1
+#     thrust_duration        50 sec                # Ref 1
+      thrust                 47960 lbf             # Ref 1, 21800 kgf (47960 lbf)
+   end_stage
+
+   stage 3
+      aero                   RED_SRBM_3_RV_AERO
+      total_mass             2200 lbs              # Ref 1, 1000 kg (2200 lbs)
+   end_stage
+
+end_mover
+
+###############################################################################
+
+processor RED_SRBM_3_GUIDANCE WSF_GUIDANCE_COMPUTER
+
+   # Go vertical for a short time.
+
+   phase LIFTOFF
+      guidance_delay                   100.0 sec
+
+      # NOTE: Do not use altitude for the criteria for starting pitch over as
+      # trajectory is VERY sensitive to the TIME when pitch over starts. If it
+      # were to be used, a minor changes in the launcher altitude would cause
+      # pitch over to start at a different time!
+
+      next_phase PITCH_OVER when phase_time >= 2.0 sec     # About 100 ft
+   end_phase
+
+   # Pitch over to the desired flight path angle from the launch computer.
+
+   phase PITCH_OVER
+      commanded_flight_path_angle      from_launch_computer
+      proportional_navigation_gain     0.0         # Don't guide to target
+      velocity_pursuit_gain            0.0         # Don't guide to target
+      maximum_commanded_g              1.0 g
+      next_phase BALLISTIC when on_commanded_flight_path_angle
+   end_phase
+
+   # Continue flight with zero alpha, a gravity turn.
+
+   phase BALLISTIC
+      # Turn the guidance processor off once pure ballistic mode is started.
+      # This shaves several percent off the processor time.
+      on_entry
+        TurnOff();
+      end_on_entry
+      guidance_delay                   9000.0 sec
+   end_phase
+
+end_processor
+
+###############################################################################
+
+platform_type RED_SRBM_3 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_SRBM_3_INFRARED_SIG
+   optical_signature  RED_SRBM_3_OPTICAL_SIG
+   radar_signature    RED_SRBM_3_RADAR_SIG
+
+   weapon_effects     RED_SRBM_3_EFFECT
+
+   mover RED_SRBM_3_MOVER
+      #show_status
+   end_mover
+
+   processor guidance RED_SRBM_3_GUIDANCE
+      #show_status
+      #show_graphics
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+      # If the target is killed by another weapon we want to still keep going.
+      coast_time_on_loss_of_target     10000.0 secs
+   end_processor
+
+   weapon stage_1 WSF_EXPLICIT_WEAPON
+      launched_platform_type RED_SRBM_3_SPENT_STAGE_1
+      launch_delta_v         -3.0 0.0 0.0 ft/s     # Provide a slight nudge
+      quantity 1
+   end_weapon
+
+   weapon stage_2 WSF_EXPLICIT_WEAPON
+      launched_platform_type RED_SRBM_3_SPENT_STAGE_2
+      launch_delta_v         -3.0 0.0 0.0 ft/s     # Provide a slight nudge
+      quantity 1
+   end_weapon
+
+   script void on_stage_separation(int aStage)
+      extern Map<string, bool> SHOW_SPENT_STAGES;
+      if (SHOW_SPENT_STAGES["ALL"] ||
+          SHOW_SPENT_STAGES["RED_SRBM_3"])
+      {
+         if (aStage == 1) Weapon("stage_1").Fire(WsfTrack());
+         if (aStage == 2) Weapon("stage_2").Fire(WsfTrack());
+      }
+   end_script
+   script void on_stage_burnout(int stage)
+      if (stage == 2)
+      {
+         PLATFORM.SetAuxData("BOOST_COMPLETE", true);
+         PLATFORM.SetInfraredSigState("boost_complete");
+      }
+   end_script
+end_platform_type
+
+###############################################################################
+
+launch_computer RED_SRBM_3_LAUNCH_COMPUTER WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER
+   surface_to_surface_table red_srbm_3_launch_data.txt
+end_launch_computer
+
+###############################################################################
+
+# Provide the aero and mass data to WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER. This
+# is 'truth data' used by the launch computer for 'trajectory estimation'.
+
+ballistic_missile_launch_computer
+   target_data RED_SRBM_3
+      aero RED_SRBM_3_RV_AERO                         # Aero type of final stage
+      mass 2200 lbs                                # Mass of final stage
+   end_target_data
+end_ballistic_missile_launch_computer
+
+###############################################################################
+
+weapon RED_SRBM_3 WSF_EXPLICIT_WEAPON
+
+   # The location offset puts the weapon center at half the length - 1 m.
+   # This assumes the scenario creator puts the launching platform at 1 m agl.
+
+   location 0.0 0.0 -8.105 m                       # Ref 1, length = 18.21 m
+
+   launched_platform_type RED_SRBM_3
+
+   launch_computer RED_SRBM_3_LAUNCH_COMPUTER
+      #debug
+      #show_results
+   end_launch_computer
+
+   # The missiles are launched vertically.
+   # We can't specify 90 degrees because of a singularity
+   tilt  89.9 degrees
+
+   # This causes a call to the launch computer to compute the predicted intercept.
+   # The launcher will then be cued to the proper angles (Subject to the slewing
+   # limits defined below). This is a bit of a hack until the guidance computer
+   # is changed...
+
+   cue_to_predicted_intercept true
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+
+   # Default to a single weapon on the vehicle
+   quantity 1
+
+   # Abort the launch if the launch computer didn't provide the required data
+   require_loft_angle
+
+end_weapon

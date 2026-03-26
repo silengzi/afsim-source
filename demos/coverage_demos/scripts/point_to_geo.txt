@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: scripts/point_to_geo.txt
+
+script_variables 
+      double Rgeo = 42164.0; # km, ~GEO radius
+end_script_variables
+
+script void PointSensorToGEO_Belt(WsfSensor aSensor)
+   WsfPlatform senPlat = aSensor.Platform();
+   WsfGeoPoint platGP = senPlat.Location();
+   double platLon = platGP.Longitude();
+   aSensor.CueToLLA(0.0, platLon, Rgeo * 1000.0);
+end_script

@@ -1,0 +1,133 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ..
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+include sensors/radar/ew_radar.txt
+
+ignore_block route
+ignore_block mover
+
+antenna_pattern  constAntenna
+  constant 3 db
+end_antenna_pattern
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature    UCAV_RADAR_SIG
+   optical_signature  UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+end_platform_type
+
+platform jammer WSF_PLATFORM
+   position 0.0n 0.5e
+   altitude 30000.0 ft
+end_platform
+
+
+platform sensor-1 WSF_PLATFORM
+
+   position 0.0n 0.0e
+   altitude 0.0 ft
+   heading 90 deg
+
+   add sensor ew_radar EW_RADAR
+      on
+#      debug
+   end_sensor
+
+end_platform
+
+horizontal_map
+
+   platform_to_detect_name TARGET
+
+   jamming_platform_name jammer  # For escort or stand-off jammer
+   #jamming_platform_name TARGET # For self-protect (after 1.6.3 this is the default)
+   jammer_to_signal_reference 1.0 dB
+
+   #pd_map_file hm-jammer-detect.pd
+   gnuplot_file hm-required-jammer-power.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   #variable pd
+   #header_line_1 "Horizontal pd map"
+   #defended_area_report_file ucav_vs_acq-soj.log # valid only if variable is pd
+
+   #variable detection_threshold
+   #header_line_1 "Detection Threshold"
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   #variable signal_power
+   #header_line_1 "Received signal power"
+
+   #variable clutter_power
+   #header_line_1 "Clutter power"
+
+   #variable signal_to_noise
+   #header_line_1 "S/N Ratio in dB"
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB"
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable contrast_radiant_intensity
+   #header_line_1 "Contrast Radiant Intensity."
+
+   #variable attenuation_factor
+   #header_line_1 "Attenuation factor."
+
+   #variable propagation_factor
+   #header_line_1 "Propagation factor."
+
+   variable required_jamming_power
+   header_line_1 "Required jamming power"
+
+   target_region
+      down_range_limits  -200 nm 200 nm
+      down_range_step     1 nm
+      cross_range_limits  -200 nm 200 nm
+      cross_range_step    1 nm
+
+#      down_range_limits   134 nm 135 nm
+#      down_range_limits   -151 nm 0 nm
+#      cross_range_limits  -151 nm 0 nm
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 30000 ft
+   target_speed    450 kts
+   target_pitch    0 deg
+   target_roll     0 deg
+end_horizontal_map

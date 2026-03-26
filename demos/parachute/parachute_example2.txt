@@ -1,0 +1,129 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+aero free_fall  WSF_AERO
+   reference_area      0.1 m^2
+   zero_lift_cd        0.5
+   cl_max             0.25    # unknown
+   //aspect_ratio        1.000    # unknown
+end_aero
+
+aero chute_out  WSF_AERO
+   reference_area      250 ft^2
+   zero_lift_cd        1.1
+   cl_max              0.25    # unknown
+   //aspect_ratio        1.0
+end_aero
+
+weapon_effects PARACHUTE_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   .10 m
+  maximum_radius   .15 m
+  maximum_damage   0.1
+  minimum_damage   0.0
+end_weapon_effects
+
+platform_type PARACHUTER WSF_PLATFORM
+   icon parachute
+
+   weapon_effects PARACHUTE_EFFECT
+
+   mover WSF_GUIDED_MOVER
+     update_interval 0.01 secs
+
+      stage 1
+         aero free_fall
+         total_mass 0.0 lbs
+         pre_ignition_coast_time 0.1 sec
+         pre_separation_coast_time 10.0 sec
+      end_stage
+
+      stage 2
+         aero chute_out
+         total_mass 220 lbs
+      end_stage
+   end_mover
+end_platform_type
+
+weapon PARACHUTERS WSF_EXPLICIT_WEAPON
+   launched_platform_type PARACHUTER
+   tilt -90.0 deg
+end_weapon
+
+// ----------------------------------------------------------------------------
+
+platform_type BLUE_AIRLIFTER_JET WSF_PLATFORM
+   icon C-17
+
+   mover WSF_AIR_MOVER
+   end_mover
+
+   weapon parachuters PARACHUTERS
+   end_weapon
+end_platform_type
+
+platform   blue_airlifter_jet BLUE_AIRLIFTER_JET
+   side blue
+
+   route
+      position   40:00:00.00n   88:00:00.00w altitude 40000.00 ft
+      heading 270.00 deg speed 500 kts
+      position   40:01:40.75n   88:00:53.11w altitude 40000.00 ft
+      speed 500 kts
+      heading 0.00 deg
+      position   40:01:36.70n   88:03:14.41w altitude 40000.00 ft
+      speed 500 kts
+      position   39:59:51.27n   88:03:48.20w altitude 40000.00 ft
+      speed 500 kts
+      position   39:59:07.31n   88:01:43.43w altitude 40000.00 ft
+      speed 500 kts
+      position   39:59:56.15n   88:00:07.87w altitude 40000.00 ft
+      speed 500 kts
+   end_route
+
+   execute at_interval_of 2.5 seconds
+      WsfWeapon parachuters = PLATFORM.Weapon("parachuters");
+      if (parachuters.QuantityRemaining() > 0)
+      {
+         writeln("Firing No. ", parachuters.TotalQuantityUsed() + 1);
+         parachuters.Fire();
+      }
+   end_execute
+
+   weapon parachuters
+      quantity 24
+   end_weapon
+  heading 56.39 deg
+end_platform
+
+// ----------------------------------------------------------------------------
+
+event_pipe
+   file output/parachute_example2.aer
+end_event_pipe
+
+event_output
+   file output/parachute_example2.evt
+   disable all
+   //enable  PLATFORM_ADDED
+   //enable  PLATFORM_DELETED
+   //enable  TASK_ASSIGNED
+   //enable  TASK_CANCELED
+   //enable  TASK_COMPLETED
+   enable  WEAPON_FIRE_ABORTED
+   enable  WEAPON_FIRE_REQUESTED
+   enable  WEAPON_FIRED
+   enable  WEAPON_HIT
+   enable  WEAPON_MISSED
+   enable  WEAPON_TERMINATED
+   enable  WEAPON_RELOAD_STARTED
+   enable  WEAPON_RELOAD_ENDED
+end_event_output
+
+end_time 600 secs

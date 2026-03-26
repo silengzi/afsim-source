@@ -1,0 +1,85 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =====================================================================
+# Define the global routes, by name, that will be used in this scenario:
+
+# MECHANIC'S ROUTE - Will always stay at PartsStorage until needed.
+#     Will walk from parts storage with one part, and will repair the broken jet.
+
+# Key West Intl Airport = position 24.556n 81.759w # Key West Intl Airport
+
+route GalvestonToKeyWestShippingRoute
+   position 29.2811n 94.8258w # Galveston, TX
+   position 26n 90w
+   position 24.5592n 81.7840w # Key West, FL
+   stop
+end_route
+
+route KeyWestToGalvestonShippingRoute
+   position 24.5592n 81.7840w # Key West, FL
+   position 25.5n 90.5w
+   position 29.2811n 94.8258w # Galveston, TX
+   stop
+end_route
+
+route KeyWestPierFuelDepotToKeyWestAirportRoute
+   position 24.56709n 81.79592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier)
+   speed 10000 m/s
+   position 24:33:48.3345n 81:47:47.58104w
+   position 24:33:40.6185n 81:46:54.34149w
+   position 24:33:06.9143n 81:46:10.76554w
+   position 24.5515n 81.7594w # Slightly south of Key West Intl Airport
+   stop
+end_route
+
+route KeyWestAirportToKeyWestPierFuelDepotRoute
+   position 24.5515n 81.7594w # Slightly south of Key West Intl Airport
+   speed 10000 m/s
+   position 24:33:06.9143n 81:46:10.76554w
+   position 24:33:40.6185n 81:46:54.34149w
+   position 24:33:48.3345n 81:47:47.58104w
+   position 24.56709n 81.79592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier)
+   stop
+end_route
+
+route NorthLeafletBombRoute
+   position 30.438n 84.281w # Tallahassee
+   position 30.294n 82.986w # Live Oak
+   position 30.183n 82.633w # Lake City
+   position 30.332n 81.655w # Jacksonville
+   position 29.895n 81.314w # St Augustine
+   position 29.651n 82.324w # Gainsville
+   position 29.188n 82.131w # Ocala
+end_route
+
+route CentralLeafletBombRoute
+   position 26.150n 81.800w # Naples
+   position 26.562n 81.949w # Cape Coral
+   position 26.617n 81.833w # Ft Myers
+   position 26.990n 82.106w # Port Charlotte
+   position 27.337n 82.535w # Sarasota
+   position 27.773n 82.640w # St Petersburg
+   position 27.951n 82.457w # Tampa
+   position 28.041n 81.959w # Lakeland
+   position 28.538n 81.379w # Orlando
+end_route
+
+route SouthLeafletBombRoute
+   position 25.471n 80.468w # Homestead
+   position 25.750n 80.271w # Coral Gables
+   position 25.762n 80.191w # Miami
+   position 25.857n 80.278w # Hialeah
+   position 26.011n 80.149w # Hollywood
+   position 25.986n 80.300w # Miramar
+   position 26.008n 80.296w # Pembroke Pines
+   position 26.122n 80.137w # Ft Lauderdale
+   position 26.369n 80.100w # Boca Raton
+   position 26.710n 80.064w # West Palm Beach
+   position 27.273n 80.358w # Pt St Lucie
+end_route

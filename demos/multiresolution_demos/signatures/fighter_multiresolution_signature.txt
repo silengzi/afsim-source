@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once fighter_box_optical_signature.txt
+include_once fighter_multi_shape_optical_signature.txt
+include_once fighter_spherical_optical_signature.txt
+
+multiresolution_optical_signature FIGHTER_MULTIRESOLUTION_OPTICAL_SIGNATURE WSF_MULTIRESOLUTION_OPTICAL_SIGNATURE
+   add model sphere_sig
+      fidelity_range 0.0 0.33 
+      optical_signature FIGHTER_SPHERICAL_OPTICAL_SIG
+      end_optical_signature
+   end_model
+   add model box_sig
+      fidelity_range 0.33 0.66
+      optical_signature FIGHTER_BOX_OPTICAL_SIG
+      end_optical_signature
+   end_model
+   model multishape_sig
+      fidelity_range 0.66 1.0
+      optical_signature FIGHTER_MULTI_SHAPE_OPTICAL_SIG
+      end_optical_signature
+   end_model
+end_multiresolution_optical_signature

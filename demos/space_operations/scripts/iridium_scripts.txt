@@ -1,0 +1,14 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# DEPRECATED
+
+# Switched from using observers to message reception to initiate these links.
+# This allows local control of the link handling.
+# Thus, sensing satellites are responsible for connecting to iridium,
+# the commander is responsible for connecting, etc.

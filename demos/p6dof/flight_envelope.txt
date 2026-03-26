@@ -1,0 +1,314 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This demo generates a flight envelope for a P6DOF model. Flight envelopes are
+# often referred to by using the slang term, "dog house plot".
+#
+# A flight envelope shows the minimum and maximum speed that the aircraft can
+# fly under sustained conditions as a function of altitude. Flight envelopes
+# may be generated under different conditions, such as maximum (military)
+# power, augmented (afterburner) power, or other conditions such as flap
+# settings or customized weapons/fuel load-outs (external fuel tanks and
+# weapons will create drag and all weapons and fuel will effect mass
+# properties, such as weight and rotational inertia as well as center-of-
+# gravity). P6DOF models consider all of these effects in their kinematic
+# calculations.
+#
+# This test is set up to use the FA_LGT model, but can be easily changed to
+# use another model by changing the include model type and the MOVER_TYPE
+# variable.
+#
+# This test will generate up to three different files:
+#
+# MilEnvelope.csv : CSV file which represents the flight envelope for the
+# model using MIL power.
+#
+# ABEnvelope.csv : CSV file which represents the flight envelope for the
+# model using AB power.
+#
+# DotPlot.csv : CSV file that contains three columns of data. One includes
+# points at which the aircraft can fly and be controlled, a second column
+# for points with the aircraft can fly but can not be controlled, and a final
+# column for points where the aircraft can not fly. When these three columns
+# are put on a scatter plot as different series, the plot shows information
+# similar to the flight envelope.
+#
+# ******************************************************************************
+
+define_path_variable CASE flight_envelope
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 0.01 sec
+
+# ------------------------------------------------------------------------------
+# Change the include file path and the MOVER_TYPE here, to execute the
+# FlightEnvelopeTest on a different p6dof model
+# ------------------------------------------------------------------------------
+include_once p6dof_types/aircraft/fa-lgt/fa-lgt.txt
+$define MOVER_TYPE FA-LGT
+
+include_once p6dof_types/environment/p6dof_environment.txt
+include_once p6dof_types/scripts/p6dof_flight_envelope.txt
+
+script_variables
+
+   # --------------------------------------------------------------------
+   # These variables change which envelopes will be generated
+   # --------------------------------------------------------------------
+   bool generateMilDotPlot  = true;
+   bool generateMilEnvelope = true;
+   bool generateAB_Envelope = true;
+
+   # --------------------------------------------------------------------
+   # These variables change the name of the files that will be generated
+   # --------------------------------------------------------------------
+   string milDotFilename      = "output/DotPlot.csv";
+   string milEnvelopeFilename = "output/MilEnvelope.csv";
+   string abEnvelopeFilename  = "output/AB_Envelope.csv";
+
+   # --------------------------------------------------------------------
+   # These parameters control the dot plot version of the flight envelope
+   # To change MIL and AB envelopes go to p6dof_flight_envelope.txt
+   # --------------------------------------------------------------------
+   double dotInitialAltitude_ft  = 1000;
+   double dotFinalAltitude_ft    = 10000;
+   double dotAltitudeStep_ft     = 2000;   
+   double dotInitialVelocity_fps = 250;
+   double dotFinalVelocity_fps   = 1000;
+   double dotVelocityStep_fps    = 25;
+   
+end_script_variables
+
+script_variables
+
+   Array<struct> mCanFly = Array<struct>();
+   Array<struct> mCanFlyNoControl = Array<struct>();
+   Array<struct> mCanNotFly = Array<struct>();
+
+   Array<struct> mMilEnvelope = Array<struct>();
+   Array<struct> mAB_Envelope = Array<struct>();
+   
+end_script_variables
+
+platform_type TEST_PLATFORM_TYPE WSF_PLATFORM
+   icon  fighter 
+   spatial_domain  air
+   
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type $<MOVER_TYPE:FA-LGT>$
+   end_mover
+
+   include p6dof_types/scripts/p6dof_all_scripts.txt
+
+   # This is important for CanFly() to return correct information
+   p6dof_ned_heading 0 deg
+   p6dof_ned_pitch 0 deg
+   p6dof_ned_roll 0 deg
+   p6dof_set_velocity_ned_fps 100 0 0
+   p6dof_position 0 0
+   p6dof_alt 1000 ft
+
+   edit mover
+      engines_on true
+   end_mover
+
+   on_initialize
+      EnableControls(PLATFORM, false);
+      SetMasterNoLagTesting(PLATFORM, true);
+      SetMasterFreezeAltitude(PLATFORM, false);
+      SetMasterFreezePitch(PLATFORM, true);
+      SetMasterFreezeRoll(PLATFORM, true);
+      SetMasterFreezeYaw(PLATFORM, true);
+      SetMasterFreezeFuelBurn(PLATFORM, false);
+      SetMasterNoAlphaTesting(PLATFORM, true);
+   end_on_initialize
+
+end_platform_type
+
+platform test_platform TEST_PLATFORM_TYPE
+
+   script void GenerateMilDotPlot()
+      double throttleSetting = 1.0;
+      double flapsSetting = 0.0;
+
+      for( int alt = dotInitialAltitude_ft; alt <= dotFinalAltitude_ft; alt = alt + dotAltitudeStep_ft)
+      {
+         for( int vel = dotInitialVelocity_fps; vel <= dotFinalVelocity_fps; vel = vel + dotVelocityStep_fps)
+         {
+            struct temp = struct.New("DataPair");
+            temp->altitude_ft = alt;
+            temp->velocity_fps = vel;
+
+            int canFly = CanFlyAt(PLATFORM, alt, vel, throttleSetting, flapsSetting);
+            if(canFly == 0)
+            {
+               writeln("Can NOT fly @ ", alt, " ft, ", vel, " mps");
+               mCanNotFly.PushBack(temp);
+            }
+            else if(canFly == 1)
+            {
+               writeln("Can fly with NO controls @ ", alt, " ft, ", vel, " mps");
+               mCanFlyNoControl.PushBack(temp);
+            }
+            else if(canFly == 2)
+            {
+               writeln("CAN fly @ ", alt, " ft, ", vel, " mps");
+               mCanFly.PushBack(temp);
+            }
+            else
+            {
+               writeln("Error in CanFlyAt() return value");
+            }
+         }
+      }
+      writeln(".");
+   end_script
+
+   script void GenerateMilEnvelope()
+      mMilEnvelope = ComputeFlightEnvelope(PLATFORM, 1.0, 0.0);
+   end_script
+
+   script void GenerateAB_Envelope()
+      mAB_Envelope = ComputeFlightEnvelope(PLATFORM, 2.0, 0.0);
+   end_script
+
+   on_initialize2
+      //Execute flight envelope test
+      if(generateMilDotPlot)
+      {
+         writeln("Generating MIL Dot Plot");
+         GenerateMilDotPlot();
+      }
+      if(generateMilEnvelope)
+      {
+         writeln("Generating MIL Flight Envelope");
+         GenerateMilEnvelope();
+      }
+      if(generateAB_Envelope)
+      {
+         writeln("Generating AB Flight Envelope");
+         GenerateAB_Envelope();
+      }
+
+      writeln("Writing out results");
+      if(generateMilDotPlot)
+      {
+         WriteOutDotPlot();
+      }
+      if(generateMilEnvelope)
+      {
+         WriteOutMilEnvelope();
+      }
+      if(generateAB_Envelope)
+      {
+         WriteOutAB_Envelope();
+      }
+      writeln("Writing results complete");
+
+      # ------------------------------------------------------------------------
+      /*
+      # Here we can launch excel to generate the plot, or launch a plot
+	  # viewing utility to read the csv, to allow us to visualize the data.
+	  
+      if(generateMilDotPlot)
+      {
+         System.Command(write_str("start ./plot_viewer/plot_viewer.exe ", milDotFilename));
+      }
+      if(generateMilEnvelope)
+      {
+         System.Command(write_str("start ./plot_viewer/plot_viewer.exe ", milEnvelopeFilename));
+      }
+      if(generateAB_Envelope)
+      {
+         System.Command(write_str("start ./plot_viewer/plot_viewer.exe ", abEnvelopeFilename));
+      }
+      */
+      # ------------------------------------------------------------------------
+
+   end_on_initialize2
+
+end_platform
+
+script void WriteOutDotPlot()
+   FileIO output = FileIO();
+   if(output.Open(milDotFilename, "out"))
+   {
+   output.Writeln("Can Fly,,,Can Fly No Control,,,Can Not Fly");
+   output.Writeln("Velocity_fps,Altitude_ft,,Velocity_fps,Altitude_ft,,Velocity_fps,Altitude_ft");
+
+   int i = 0;
+   while( i < mCanFly.Size() ||
+          i < mCanFlyNoControl.Size() ||
+          i < mCanNotFly.Size())
+   {
+      string s1 = ",";
+      if(i < mCanFly.Size())
+      {
+        s1 = write_str(mCanFly[i]->velocity_fps, ",", mCanFly[i]->altitude_ft);
+      }
+
+      string s2 = ",";
+      if(i < mCanFlyNoControl.Size())
+      {
+        s2 =  write_str(mCanFlyNoControl[i]->velocity_fps, ",", mCanFlyNoControl[i]->altitude_ft);
+      }
+
+      string s3 = ",";
+      if(i < mCanNotFly.Size())
+      {
+         s3 =  write_str(mCanNotFly[i]->velocity_fps, ",", mCanNotFly[i]->altitude_ft);
+      }
+
+      i = i + 1;
+   }
+   output.Close();
+   }
+   else
+   {
+      writeln("File:", milDotFilename, " failed to open for writing.");
+   }
+end_script
+
+script void WriteOutMilEnvelope()
+   FileIO output = FileIO();
+   if(output.Open(milEnvelopeFilename, "out"))
+   {
+      output.Writeln("Velocity_fps,Altitude_ft");
+      for(int i = 0; i < mMilEnvelope.Size(); i = i + 1)
+      {
+         output.Writeln(write_str(mMilEnvelope[i]->velocity_fps, ",", mMilEnvelope[i]->altitude_ft));
+      }
+      output.Close();
+   }
+   else
+   {
+      writeln("File: ", milEnvelopeFilename, " failed to open for writing.");
+   }
+end_script
+
+script void WriteOutAB_Envelope()
+   FileIO output = FileIO();
+   if(output.Open(abEnvelopeFilename, "out"))
+   {
+      output.Writeln("Velocity_fps,Altitude_ft");
+      for(int i = 0; i < mAB_Envelope.Size(); i = i + 1)
+      {
+         output.Writeln(write_str(mAB_Envelope[i]->velocity_fps, ",", mAB_Envelope[i]->altitude_ft));
+      }
+      output.Close();
+   }
+   else
+   {
+      writeln("File: ", abEnvelopeFilename, " failed to open for writing.");
+   }
+end_script

@@ -1,0 +1,74 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch date and time for Apollo 11
+start_date jul 16 1969
+start_time 13:32:00
+
+#atmosphere_table
+#   include atmosphere.txt
+#end_atmosphere_table
+
+event_pipe
+   file replay.aer
+end_event_pipe
+
+end_time 720 sec
+
+include saturn_v_simple.txt
+
+#==============================================================================
+# Saturn V, modified with debug statements...
+
+platform_type SATURN_V_MOD SATURN_V
+   edit mover
+      #debug
+      show_status
+      #write_custom_time_history true
+   end_mover
+
+   edit processor guidance
+      #debug
+      show_status
+      #show_diagnostics
+      #show_commands
+      #show_graphics
+   end_processor
+
+   # This is for comparing one point near MaxQ
+   # 83.7 sec our time compares to 84 seconds of range time.
+   # Range time of 0.3 sec corresponds to our 0.0 sec.
+
+   execute at_time 83.7 sec relative
+      writeln("***** T=", TIME_NOW - CreationTime() + 0.3,
+         ", altitude=", Math.Floor(Altitude() + 0.5)," m",
+         ", speed=", Math.Floor(Speed() * 10.0 + 0.5) * 0.1, " m/s",
+         ", flight path angle=", Math.Floor(Pitch() * 100.0 + 0.5) * 0.01, " deg");
+      writeln("  EXPECTED, altitude=13969 m, speed=517.2 m/s, flight path angle=51.44 deg");
+   end_execute
+
+end_platform_type
+
+#==============================================================================
+
+platform launcher WSF_PLATFORM
+   icon Wedge
+   side blue
+
+   # Altitude is the midpoint of the rocket. This is what the time history files have.
+   position 28.608422n 80.604133w altitude 59 m msl heading 72.058 deg
+
+   add weapon rocket SATURN_V
+      launched_platform_type SATURN_V_MOD
+   end_weapon
+
+   execute at_time 0.3 sec relative
+      WeaponEntry(0).Fire();
+   end_execute
+
+end_platform

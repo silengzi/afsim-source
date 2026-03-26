@@ -1,0 +1,48 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: platforms/sat3.txt
+
+include_once sensors/sat_sensor_geo.txt
+include_once processors/sat_exclusion_angle_proc.txt
+
+# define satellite platform, host sensor
+platform_type SAT WSF_PLATFORM
+   icon satellite
+   side blue
+   
+   add mover WSF_SPACE_MOVER
+      epoch_date_time jun 07 2020 00:00:00.00
+   end_mover  
+   
+   sensor sat_sensor SAT_SENSOR
+      off
+      internal_link data_mgr 
+   end_sensor  
+   
+   on_initialize2 
+      WsfSensor sen = PLATFORM.Sensor("sat_sensor");
+      PointSensorToGEO_Belt(sen);
+   end_on_initialize2
+
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval 10 s
+   end_processor
+   
+   processor excl_ang_proc SAT_EXCLUSION_ANGLE_PROC 
+      script_variables 
+         EXCL_SENSOR_NAME = "sat_sensor";
+         SOLAR_EXCL_ANGLE = 15.0; # deg
+         LUNAR_EXCL_ANGLE = 2.0; # deg
+         ANGLES_TO_MYSTIC = true; # true = angles sent to Mystic for plotting or data display in window
+         DRAW_SEN_ON_OFF = true;
+         BOOKMARK_SEN_OFF = false;
+      end_script_variables
+   end_processor
+   
+end_platform_type

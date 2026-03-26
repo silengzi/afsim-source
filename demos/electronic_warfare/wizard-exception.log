@@ -1,0 +1,107 @@
+########################################################################
+Tue Dec  9 18:55:53 2025
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Wizard threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Read access violation at address 0xFFFFFFFFFFFFFFFF.
+Stacktrace:
+     0# 0x7ffd4dd27b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ffd4ddb2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ffd5c95bba5 (_C_specific_handler) at ??
+     3# 0x7ffd5c952bf7 (is_exception_typeof) at ??
+     4# 0x7ffd5c952b00 (is_exception_typeof) at ??
+     5# 0x7ffd5c9530df (is_exception_typeof) at ??
+     6# 0x7ffd5c95c15d (_CxxFrameHandler3) at ??
+     7# 0x7ffd26d45114 (wizard::Util::StripHtml) at ??
+     8# 0x7ffd63b123df (_chkstk) at ??
+     9# 0x7ffd63ac14a4 (RtlRaiseException) at ??
+    10# 0x7ffd63b10f0e (KiUserExceptionDispatcher) at ??
+    11# 0x7ffd1eca0f82 (WsfPProxyPath::Push) at ??
+    12# 0x7ffd1ec99194 (WsfPProxyNode::operator+=) at ??
+    13# 0x7ffd1ec99039 (WsfPProxyNode::operator+) at ??
+    14# 0x7ffd1ec5772f (WsfPM_Root::platformTypes) at ??
+    15# 0x7ffd0ec0f193 (试图访问无效的地址。) at ??
+    16# 0x7ffd1a519ef7 (QMetaObject::activate) at ??
+    17# 0x7ffd26b18504 (wizard::ProjectWorkspace::ProxyUpdated) at ??
+    18# 0x7ffd26b7d78e (wizard::Project::ProxyReady) at ??
+    19# 0x7ffd26b86e11 (wizard::ProjectWorkspace::customEvent) at ??
+    20# 0x7ffd1a51fd12 (QObject::event) at ??
+    21# 0x7ffd1af3909d (QApplicationPrivate::notify_helper) at ??
+    22# 0x7ffd1af38037 (QApplication::notify) at ??
+    23# 0x7ffd1a4f9379 (QCoreApplication::notifyInternal2) at ??
+    24# 0x7ffd1a4fb228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    25# 0x7ffd1348d7ff (qt_plugin_query_metadata) at ??
+    26# 0x7ffd1a5432f8 (QEventDispatcherWin32::processEvents) at ??
+    27# 0x7ffd1348d7d9 (qt_plugin_query_metadata) at ??
+    28# 0x7ffd26b8664f (wizard::ProjectWorkspace::Update) at ??
+    29# 0x7ffd1a519ef7 (QMetaObject::activate) at ??
+    30# 0x7ffd1a526b3d (QTimer::timerEvent) at ??
+    31# 0x7ffd1a51fad1 (QObject::event) at ??
+    32# 0x7ffd1af3909d (QApplicationPrivate::notify_helper) at ??
+    33# 0x7ffd1af38037 (QApplication::notify) at ??
+    34# 0x7ffd1a4f9379 (QCoreApplication::notifyInternal2) at ??
+    35# 0x7ffd1a54483c (QEventDispatcherWin32Private::sendTimerEvent) at ??
+    36# 0x7ffd1a542838 (QEventDispatcherWin32::event) at ??
+    37# 0x7ffd1af3909d (QApplicationPrivate::notify_helper) at ??
+    38# 0x7ffd1af38037 (QApplication::notify) at ??
+    39# 0x7ffd1a4f9379 (QCoreApplication::notifyInternal2) at ??
+    40# 0x7ffd1a4fb228 (QCoreApplicationPrivate::sendPostedEvents) at ??
+    41# 0x7ffd1348d7ff (qt_plugin_query_metadata) at ??
+    42# 0x7ffd1a543a39 (QEventDispatcherWin32::processEvents) at ??
+    43# 0x7ffd61b3e858 (CallWindowProcW) at ??
+    44# 0x7ffd61b3e299 (DispatchMessageW) at ??
+    45# 0x7ffd1a54322b (QEventDispatcherWin32::processEvents) at ??
+    46# 0x7ffd1348d7d9 (qt_plugin_query_metadata) at ??
+    47# 0x7ffd1a4f56cb (QEventLoop::exec) at ??
+    48# 0x7ffd1a4f82be (QCoreApplication::exec) at ??
+    49# 0x7ffd26b39a41 (wkf::StartupDialog<QStringList>::exec) at ??
+    50# 0x7ffd26baf39c (wizard_main) at ??
+    51# 0x7ff768f31296 (试图访问无效的地址。) at ??
+    52# 0x7ff768f31404 (试图访问无效的地址。) at ??
+    53# 0x7ff768f3168e (试图访问无效的地址。) at ??
+    54# 0x7ffd62887604 (BaseThreadInitThunk) at ??
+    55# 0x7ffd63ac26a1 (RtlUserThreadStart) at ??
+
+
+########################################################################
+Tue Dec  9 18:55:54 2025
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Wizard threw a fatal exception.
+Type: ut::HardwareException
+What: Hardware - Read access violation at address 0x0000000000000008.
+Stacktrace:
+     0# 0x7ffd4dd27b48 (ut::HardwareException::HardwareException) at ??
+     1# 0x7ffd4ddb2eb6 (ut::SetupThreadErrorHandling) at ??
+     2# 0x7ffd5c95bba5 (_C_specific_handler) at ??
+     3# 0x7ffd5c952bf7 (is_exception_typeof) at ??
+     4# 0x7ffd5c952b00 (is_exception_typeof) at ??
+     5# 0x7ffd5c9530df (is_exception_typeof) at ??
+     6# 0x7ffd5c95c15d (_CxxFrameHandler3) at ??
+     7# 0x7ffd26d45114 (wizard::Util::StripHtml) at ??
+     8# 0x7ffd63b123df (_chkstk) at ??
+     9# 0x7ffd63ac14a4 (RtlRaiseException) at ??
+    10# 0x7ffd63b10f0e (KiUserExceptionDispatcher) at ??
+    11# 0x7ffd1a523b40 (QObject::thread) at ??
+    12# 0x7ffd1ac1073c (QOpenGLVertexArrayObject::destroy) at ??
+    13# 0x7ffd1abcf79e (QOpenGL2PaintEngineEx::~QOpenGL2PaintEngineEx) at ??
+    14# 0x7ffd1abcfc14 (QOpenGL2PaintEngineEx::~QOpenGL2PaintEngineEx) at ??
+    15# 0x7ffd1abcfbda (QOpenGL2PaintEngineEx::~QOpenGL2PaintEngineEx) at ??
+    16# 0x7ffd1a363820 (QThreadStorageData::finish) at ??
+    17# 0x7ffd1a4f7cb2 (QCoreApplicationPrivate::cleanupThreadData) at ??
+    18# 0x7ffd1a93db0e (QGuiApplicationPrivate::~QGuiApplicationPrivate) at ??
+    19# 0x7ffd1af312d7 (QWhatsThis::operator=) at ??
+    20# 0x7ffd1a5190ab (QObject::~QObject) at ??
+    21# 0x7ffd26b359b5 (wizard::UndoContext::`default constructor closure') at ??
+    22# 0x7ffd26b35164 (wizard::Factory::~Factory) at ??
+    23# 0x7ffd26baf3d0 (wizard_main) at ??
+    24# 0x7ff768f31296 (试图访问无效的地址。) at ??
+    25# 0x7ff768f31404 (试图访问无效的地址。) at ??
+    26# 0x7ff768f3168e (试图访问无效的地址。) at ??
+    27# 0x7ffd62887604 (BaseThreadInitThunk) at ??
+    28# 0x7ffd63ac26a1 (RtlUserThreadStart) at ??
+
+

@@ -1,0 +1,105 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE j11_out
+log_file output/$(CASE).log
+
+file_path .
+
+# --------------------------------------------------------------
+# DIS
+# --------------------------------------------------------------
+include ./dis_network.txt
+
+dis_interface
+   application 2
+
+   entity_type   FIGHTER           1:2:225:1:9:10:0
+   entity_type   WEAPON_FIGHTER    1:2:225:1:9:10:1
+   munition_type NE_SR_A2A_IR      2:1:225:1:1:6:0   // Network-enabled
+
+   log_created_entities
+end_dis_interface
+
+# --------------------------------------------------------------
+# Event Output
+# --------------------------------------------------------------
+event_output
+   file output/$(CASE).evt
+   time_format h:m:s.1
+   lat_lon_format d:m:s.2
+   print_track_in_message true
+
+   disable TEAM_NAME_DEFINITION
+
+   enable MESSAGE_RECEIVED
+   enable PLATFORM_ADDED
+   enable WEAPON_FIRED
+   enable WEAPON_HIT
+   enable WEAPON_MISSED
+   enable WEAPON_TERMINATED
+   enable WEAPON_TURNED_OFF
+   enable WEAPON_TURNED_ON
+end_event_output
+
+# --------------------------------------------------------------
+# Scenario
+# --------------------------------------------------------------
+include platforms.txt
+
+// --- * --- * ---
+platform bogus WSF_PLATFORM
+   side red
+   position 35:32n 118:0w altitude 10000 ft
+end_platform
+
+// --- * --- * ---
+platform red-1 FIGHTER
+   side red
+   route
+      position 35:36:55n 118:00w altitude 10000 ft
+   end_route
+end_platform
+
+// --- * --- * ---
+platform blue-1 WEAPON_FIGHTER
+   side blue
+
+   route
+      position 35:35n 117:55w altitude 10000 ft speed 200.0 m/s
+      position 35:35n 120:30w
+   end_route
+
+   processor l16_computer
+      decimal_track_number 120
+   end_processor
+
+   execute at_time 15 s absolute
+      PLATFORM.Weapon("network_enabled_weapon").Fire();
+   end_execute
+
+end_platform
+
+// --- * --- * ---
+link16_interface
+#   debug true
+   j11
+      allow_any_comm
+#      print_messages
+   end_j11
+end_link16_interface
+
+end_time  40 sec
+realtime
+
+wsf_weapon_server
+#   debug
+   outgoing_weapon_server  10.0.234.59 3456  // ipconfig Ethernet:IPv4 Address
+   outgoing_weapon_type    NE_SR_A2A_IR
+end_wsf_weapon_server

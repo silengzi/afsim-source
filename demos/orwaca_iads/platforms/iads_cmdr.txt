@@ -1,0 +1,369 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+processor IADS_CMDR_DATA_MGR WSF_TRACK_PROCESSOR
+   purge_interval       60 sec
+end_processor
+
+processor IADS_CMDR_TASK_MGR WSF_TASK_PROCESSOR
+   number_of_servers            5
+
+   track_update_interval        10.0 sec
+
+   #script_debug_writes true
+   #show_state_transitions
+   #show_task_messages
+
+   script_variables
+      int MAX_ASSIGNMENTS_PER_TARGET     = 2; // How many assignments can be done simultaneously
+      Map<string,Array<int>>WeaponListMap=Map<string,Array<int>>(); // Dont change this line
+      // Dont go higher that 999999 for priority...
+      // For now, leave the SR_SAM_TELAR's off the list.
+      // They interfere with the logic and are very short range and alt anyway. I made them self commanded.
+      #WeaponListMap["SR_SAM_TELAR"]     =  {2,1};   // 10 nm, Highest Priority, one assignment per TELAR
+      WeaponListMap["MR_SAM_BATTALION"]  =  {3,1};   // 50 nm,
+      WeaponListMap["LR_SAM_BATTALION"]  =  {4,1};   // 100 nm,
+      WeaponListMap["ELR_SAM_BATTALION"] =  {5,4};   // 175 nm, Lowest priority, most expensive sam.
+
+      string WEAPON_NAME          = "sam"; // Generic assignment name
+
+   end_script_variables
+
+   // determine if TRACK is assignable
+   script bool IsAssignable()
+      if ((! TRACK.IFF_Friend()) &&  (TRACK.TimeSinceUpdated() < 55.0))
+      {
+         return true;
+      }
+      return false;
+   end_script
+
+   script bool HaveEngageAuthority()
+      bool canEngage = false;
+      if(OperatingLevelFor("ENGAGE") == 0)   // NOT SELF COMMANDED
+      {
+      canEngage=(TasksReceivedFor(TRACK.TrackId(), "ENGAGE") > 0);
+      }
+      else
+      {
+      canEngage=(TRACK.TimeSinceUpdated() < 60);
+      }
+      return canEngage;
+   end_script
+
+   // determine if the subordinate and/or his subordinates have weapons remaining
+   script bool AvailableRoundsOnSub(WsfPlatform aAssignee)
+      bool weaponsAvailable = false;
+      int quantity = 0;
+      WsfWeapon weapon = aAssignee.Weapon(WEAPON_NAME);
+      if (weapon.IsTurnedOn())
+      {
+         quantity = quantity + weapon.QuantityRemaining();
+      }
+      if (quantity > 0)
+      {
+         weaponsAvailable = true;
+      }
+      else
+      {
+         foreach (WsfPlatform sub in aAssignee.Subordinates())
+         {
+            weapon = sub.Weapon(WEAPON_NAME);
+            if (weapon.IsTurnedOn())
+            {
+               quantity = quantity + weapon.QuantityRemaining();
+            }
+         }
+         if (quantity > 0) weaponsAvailable = true;
+      }
+      return weaponsAvailable;
+   end_script
+
+   script int AssignedSubsOfType(string aType)
+      int count = 0;
+      foreach(WsfPlatform sub in AssigneesForTask(TRACK.TrackId(), "ENGAGE"))
+      {
+         if(sub.Type() == aType) count = count + 1;
+      }
+      return count;
+   end_script
+
+
+   script bool InInterceptEnvelopeOf(WsfPlatform aAssignee, string aEnvelopeName)
+      extern bool SAM_LaunchComputer(WsfTrack, WsfPlatform, string, double);
+      return SAM_LaunchComputer(TRACK, PLATFORM, aEnvelopeName, 0.0);
+   end_script
+
+   script void CancelAssignment(WsfPlatform aAssignee)
+      CancelTask(aAssignee, TRACK.TrackId(), "ENGAGE");
+   end_script
+
+   script void MakeAssignment(WsfPlatform aAssignee)
+      AssignTask(TRACK, "ENGAGE", aAssignee);
+      #writeln("Making an assignment on ", TRACK.TargetName(), " to the assignee ", aAssignee.Name());
+   end_script
+
+   script bool AssignmentStart()
+      Array<WsfPlatform>SubCandidateList = Array<WsfPlatform>();
+      Array<WsfPlatform>SubPriorityList = Array<WsfPlatform>();
+      bool AssignmentsDone = false;
+      bool haveEngageAuthority = HaveEngageAuthority();
+      // Do simple steps with increasing compute time to punch out of this script
+      if (!haveEngageAuthority) return false;
+      if (TRACK.BelievedDead()) return false;
+      if (WeaponsActiveFor(TRACK.TrackId()) >= MAX_ASSIGNMENTS_PER_TARGET) return false;
+      foreach(WsfPlatform sub in PLATFORM.Subordinates())
+      {
+         #writeln("Check sub with the name ", sub.Name());
+         string subType = sub.Type();
+         // Check to see if the subordinate is in my sam list
+         if(!WeaponListMap.Exists(subType)) continue;
+
+         // Bypass subordinate if already has assignment for this target
+         if(TasksAssignedTo(sub, TRACK.TrackId(), "ENGAGE") > 0) continue;
+
+         WsfGeoPoint trackpoint = TRACK.ReportedLocation();
+         #writeln("Within zone of ", sub.Name(), " ", TRACK.WithinZoneOf(sub, "battalion_sector"));
+         if((TRACK.TimeSinceUpdated() < 60) &&
+            (TRACK.WithinZoneOf(sub, "battalion_sector"))  &&
+            (!sub.MaskedByTerrain(trackpoint, 0 , 1.33333)) &&
+            (AvailableRoundsOnSub(sub) > 0))
+         {
+         // Is the subordinate already max'd out on assignments"
+
+            int subCurrentAssignments = TasksAssignedTo(sub);
+            Array<int>subPriorityMaxAssignmentsArray = WeaponListMap.Get(subType); // Get the array from the map
+            int subMaxAssignments = subPriorityMaxAssignmentsArray.Get(1); // Get the max assignment value
+            if(subCurrentAssignments >= subMaxAssignments) continue; // sub max'd out
+            // Made it this far so lets add the subordinate to the candidate list
+            SubCandidateList.PushBack(sub);
+           #writeln("Candidate list contains ", SubCandidateList);
+         }
+      }
+      // Pick the highest priority from the candidate list
+      // Keep adding to the list until the MAX_ASSIGNMENTS_PER_TARGET is reached.
+      int currentpriority = 999999;  # big integer
+      foreach(WsfPlatform sub in SubCandidateList)
+      {
+         string subType = sub.Type();
+         Array<int>subPriorityMaxAssignmentsArray = WeaponListMap.Get(subType); // get the array from the map
+         int subPriority = subPriorityMaxAssignmentsArray.Get(0); // get the priorty number
+         if ( subPriority <= currentpriority )
+         {
+         // As long as the new list is under the max engagements per target, put it into the list
+            if(SubPriorityList.Size() < MAX_ASSIGNMENTS_PER_TARGET)
+            {
+               currentpriority = subPriority;
+               SubPriorityList.PushBack(sub);
+               continue;
+            }
+            // Once the list is full, start replacing candidates that have better priority
+            else if(SubPriorityList.Size() >= MAX_ASSIGNMENTS_PER_TARGET)
+            {
+               foreach(WsfPlatform subassign in SubPriorityList)
+               {
+                  string subassigntype = subassign.Type();
+                  Array<int>subPriorityMaxAssignmentsArray = WeaponListMap.Get(subassigntype);
+                  int subassignpriority = subPriorityMaxAssignmentsArray.Get(0);
+                  if(subPriority < subassignpriority)
+                  {
+                     SubPriorityList.Erase(subassign);
+                     SubPriorityList.PushBack(sub);
+                     currentpriority = subPriority;
+                  }
+                  // Check to see if sub candidate has same priority but is closer to track
+                  else if((subPriority == subassignpriority) && (sub.GroundRangeTo(TRACK) < subassign.GroundRangeTo(TRACK)))
+                  {
+                     SubPriorityList.Erase(subassign);
+                     SubPriorityList.PushBack(sub);
+                  }
+               }
+            }
+         }
+      }
+      if(SubPriorityList.Empty())
+      {
+         return AssignmentsDone; // No assignments, get out
+      }
+      AssignmentsDone = true; // Set the bool to true then
+      foreach(WsfPlatform subordinate in SubPriorityList)
+      {
+        #writeln(TIME_NOW, " Making an assignment to ", subordinate.Name());
+        MakeAssignment(subordinate);
+      }
+      return AssignmentsDone;
+   end_script
+
+   // This determines if the assignment is still the best one.
+   script void AssignmentStop()
+       bool haveEngageAuthority = HaveEngageAuthority();
+       bool cancel = true;
+       foreach (WsfPlatform sub in AssigneesForTask(TRACK.TrackId(), "ENGAGE"))
+       {
+         string subType = sub.Type();
+         cancel = (! haveEngageAuthority);
+         if (haveEngageAuthority)
+         {
+            cancel = ((TRACK.TimeSinceUpdated()) > 60 ||
+                      (TRACK.BelievedDead())          ||
+                      ( ! TRACK.WithinZoneOf(sub, "battalion_sector"))  ||
+                      (AvailableRoundsOnSub(sub) == 0));
+            if (! cancel)
+            {
+               Array<WsfPlatform>SubCandidateList = Array<WsfPlatform>();
+               Array<WsfPlatform>SubPriorityList = Array<WsfPlatform>();
+               foreach (WsfPlatform submaybe in PLATFORM.Subordinates())
+               {
+                  string submaybeType = submaybe.Type();
+                  if (!WeaponListMap.Exists(submaybeType)) continue; #sub not in our list
+                  if ((TRACK.TimeSinceUpdated() < 60) &&
+                      (TRACK.WithinZoneOf(sub, "battalion_sector")) &&
+                      (AvailableRoundsOnSub(submaybe) > 0))
+                  {
+                     SubCandidateList.PushBack(submaybe);
+                  }
+               }
+               if (! SubCandidateList.Empty())
+               {
+                  int currentpriority = 999999;
+                  foreach(WsfPlatform submaybe1 in SubCandidateList)
+                  {
+                     string submaybe1Type = submaybe1.Type();
+                     Array<int>subPriorityMaxAssignmentsArray = WeaponListMap.Get(submaybe1Type);
+                     int subPriority = subPriorityMaxAssignmentsArray.Get(0);
+                     if(subPriority <= currentpriority)
+                     {
+                        if (SubPriorityList.Size() < MAX_ASSIGNMENTS_PER_TARGET)
+                        {
+                           currentpriority = subPriority;
+                           SubPriorityList.PushBack(submaybe1);
+                        }
+                        else if(SubPriorityList.Size() <= MAX_ASSIGNMENTS_PER_TARGET)
+                        {
+                            foreach(WsfPlatform subassign in SubPriorityList)
+                            {
+                               string subassigntype = subassign.Type();
+                               Array<int>subPriorityMaxAssignmentsArray = WeaponListMap.Get(subassigntype);
+                               int subassignpriority = subPriorityMaxAssignmentsArray.Get(0);
+                               if (subPriority < subassignpriority)
+                               {
+                                  SubPriorityList.Erase(subassign);
+                                  SubPriorityList.PushBack(submaybe1);
+                                  currentpriority = subPriority;
+                               }
+                               else if((subPriority == subassignpriority) && (sub.GroundRangeTo(TRACK) < subassign.GroundRangeTo(TRACK)))
+                               {
+                                  SubPriorityList.Erase(subassign);
+                                  SubPriorityList.PushBack(sub);
+                               }
+                            }
+                         }
+                      }
+                   }
+                   if ( ! SubPriorityList.Empty())
+                   {
+                      cancel = true;
+                      foreach(WsfPlatform submaybe2 in SubPriorityList)
+                      {
+                         if(submaybe2.Name() == sub.Name())
+                         {
+                            cancel = false;
+                         }
+                      }
+                   }
+                }
+             }
+          }
+          if (cancel)
+          {
+             #writeln(TIME_NOW, " Canceling assignment to ", sub.Name());
+             CancelTask(sub, TRACK.TrackId(), "ENGAGE");
+          }
+
+       }
+   end_script
+
+#   script void MakeAssignments()
+#      Array<WsfPlatform> filter = Array<WsfPlatform>();
+#      foreach (WsfPlatform sub in PLATFORM.Subordinates())
+#      {
+#         if (sub.Type() == "ELR_SAM_BATTALION")
+#         {
+#            if (WeaponsAvailable(sub) &&
+#                (TasksAssignedTo(sub) < MAX_ASSIGNMENTS_PER_SAM) &&
+#                (TasksAssignedTo(sub, TRACK.TrackId()) < 1) &&
+#                (TRACK.WithinZoneOf(sub, "battalion_sector")))
+#            {
+#               writeln_d("*** Adding ", sub.Name(), " to filter");
+#               filter.PushBack(sub);
+#            }
+#         }
+#      }
+#
+#      int i;
+#      int numAssignments = (int)MATH.Min(filter.Size(), MAX_SAMS_PER_TARGET);
+#      for (int i=0; i < numAssignments; i = i + 1)
+#      {
+#         AssignTask(TRACK, "ENGAGE", filter[i]);
+#      }
+#   end_script
+
+# -------------------------------------------------------------------------
+
+   evaluation_interval DETECTED 10.0 sec
+   time_to_evaluate    DETECTED  2.0 sec
+   state DETECTED
+      next_state ASSIGNED
+         #if (! IsAssignable()) return false;
+         AssignmentStart();
+         return false;
+      end_next_state
+   end_state
+
+   evaluation_interval ASSIGNED 55.0 sec
+   time_to_evaluate    ASSIGNED  2.0 sec
+   state ASSIGNED
+      next_state DETECTED
+#         if (! IsAssignable())
+#         {
+#            CancelTask(TRACK.TrackId());
+#            return true;
+#         }
+         AssignmentStop();
+         return (TasksAssignedFor(TRACK.TrackId(),"ENGAGE") == 0);
+      end_next_state
+   end_state
+end_processor
+
+
+platform_type IADS_CMDR WSF_PLATFORM
+   icon command_vehicle_icon
+
+   infrared_signature    VEHICLE_INFRARED_SIGNATURE
+   optical_signature     VEHICLE_OPTICAL_SIGNATURE
+   radar_signature       VEHICLE_RADAR_SIGNATURE
+
+   comm sub_net RED_DATALINK
+      network_name <local:master>
+      internal_link data_mgr
+      internal_link task_mgr
+   end_comm
+
+   processor data_mgr IADS_CMDR_DATA_MGR
+   end_processor
+
+   processor task_mgr IADS_CMDR_TASK_MGR
+      operating_level ENGAGE 1
+   end_processor
+
+end_platform_type

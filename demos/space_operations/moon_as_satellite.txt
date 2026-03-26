@@ -1,0 +1,114 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#===================================================================================================
+# Demonstrate that the solar reflection component of the dynamic space signature is reasonable.
+#
+# In this example we create a satellite that has the same properties as our Moon (that is it has
+# the same orbit, size and reflectance). We then sample the signature of the satellite at one hour
+# intervals for a period of one month. During this time it is observed the apparent magnitude of
+# the 'satellite' varies from -2 (new Moon) to -12.55 (full Moon), which agrees well with the
+# published values.
+#
+# Note that the date/time displayed is for the Central Time Zone (UT-6)
+#
+# Is it useful to run this with the "-mi 1e10" argument to 'mission'. This prevents its periodic
+# time messages from interfering with the console output from this program.
+#===================================================================================================
+#
+# Define a 'platform' for the moon.
+#
+# Note: This platform does not have a mover and it does not update its position by itself.
+#       The 'observer' platform invokes the UpdateLocation() method as needed. If a
+#       repetitive 'execute at_interval_of' method is defined, the simulation run a lot longer.
+
+define_path_variable CASE moon_as_satellite
+log_file output/$(CASE).log
+
+optical_signature MOON_SIGNATURE WSF_SPACE_OPTICAL_SIGNATURE
+   surface sphere
+      radius      1737.1 km
+      reflectance 0.1362
+   end_surface
+end_optical_signature
+
+platform moon WSF_PLATFORM
+   optical_signature MOON_SIGNATURE
+   icon Satellite
+
+   script void UpdateLocation()
+      Calendar c = WsfDateTime.CurrentTime();
+      Vec3 moonLocECI = Moon.LocationECI(c);
+      Vec3 moonLocWCS = ConvertECIToWCS(moonLocECI);
+      SetLocation(WsfGeoPoint.ConstructWCS(moonLocWCS));
+   end_script
+
+   on_initialize
+      UpdateLocation();
+   end_on_initialize
+end_platform
+
+# Define the observer. This will sample the 'satellite' once per hour.
+
+platform observer WSF_PLATFORM
+   icon x_marker
+   position 39n 90w
+
+   # Return the magnitude of an object in the visual band.
+   script double Magnitude_v(double aI_obj,     # Radiant intensity (W/sr)
+                             double aD_obj)     # Distance to the object (m)
+
+      # m_obj - m_ref = -2.5 * log10(I_obj/I_ref)
+      double m_sun = -26.74;           # According to Wikipedia
+      double I_sun = 1.364221e+25;     # Radiant intensity (W/sr) of the sun in the visual band (from code)
+      Calendar c = WsfDateTime.CurrentTime();
+      double D_sun = Sun.LocationECI(c).Magnitude();
+      double E_sun = I_sun / (D_sun * D_sun);      # Irradiance of the Sun at the Earth (W/m2)
+      double E_obj = aI_obj / (aD_obj * aD_obj);   # Irradiance of the object at the Earth (W/m2)
+      double m_obj = m_sun - 2.5 * Math.Log10(E_obj / E_sun);
+      return m_obj;
+   end_script
+
+   script void Sample()
+      # Update the position of our moon "platform".
+      WsfPlatform moon = WsfSimulation.FindPlatform("moon");
+      moon->UpdateLocation();
+
+      WsfGeoPoint viewer = Location();
+      double I_moon = moon.RadiantIntensity(viewer, 1.0, "visual");
+      double m_moon = Magnitude_v(I_moon, moon.LocationWCS().Magnitude());
+
+      Calendar c = WsfDateTime.CurrentTime();
+      double phase = Moon.Phase(c);
+      double illumination = Moon.Illumination(c);
+      writeln(c.ToStringLocalDate(-6).Pad(11), ' ', c.ToStringLocalTime(-6),
+              " Phase=", Format.Fixed(phase, 2).Pad(6),
+              ", Illum=", Format.Fixed(illumination, 4).Pad(5),
+              ", Sig=", Format.Scientific(I_moon, 5).Pad(10), " w/sr",
+              ", Mag=", Format.Fixed(m_moon, 2).Pad(6));
+   end_script
+
+   script void SampleAndRepeat()
+      Sample();
+      ExecuteAtTime(TIME_NOW + 3600.0, "SampleAndRepeat");
+   end_script
+
+   execute at_time 1.0 sec absolute
+      writeln("T=",TIME_NOW);
+      SampleAndRepeat();
+   end_execute
+end_platform
+
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe
+
+end_time 716 hr
+
+start_date jan 2 2018
+start_time 00:59:59

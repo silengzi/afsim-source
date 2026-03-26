@@ -1,0 +1,56 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../p6dof_types/environment/p6dof_environment.txt
+include_once ../p6dof_types/weapons/ubu-500/ubu-500-hd.txt
+
+# ------------------------------------------------------------------------------
+
+weapon_effects BOMB_500LB_HD_LETHALITY WSF_SPHERICAL_LETHALITY
+   maximum_radius 500.0 ft
+   # allow_incidental_damage
+end_weapon_effects
+
+# ------------------------------------------------------------------------------
+
+weapon UBU-500-HD_WEAPON WSF_EXPLICIT_WEAPON
+   launched_platform_type UBU-500-HD
+   weapon_effects BOMB_500LB_HD_LETHALITY
+end_weapon
+
+# ------------------------------------------------------------------------------
+
+platform_type  UBU-500-HD  WSF_PLATFORM
+
+   spatial_domain  air
+   side            green
+   icon            mk82_hd_ballute
+
+   # Setup the P6DOF mover
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type UBU-500-HD
+      update_interval   0.01 sec
+   end_mover
+   
+   processor fuse WSF_WEAPON_FUSE
+      on
+      gross_update_interval        0.02 sec
+      fine_update_interval         0.01 sec
+      time_of_flight_to_arm        0.5 sec
+      gross_proximity_range      100.00 ft
+      maximum_time_of_flight    3600.00 sec
+      detonate_below_height_agl   20.00 ft
+      detonate_below_height_msl   40.00 ft
+   end_processor
+
+end_platform_type
+
+p6dof_object_types
+   map_p6dof_object_to_platform UBU-500-HD UBU-500-HD
+end_p6dof_object_types

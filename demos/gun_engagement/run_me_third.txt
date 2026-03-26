@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###MODIFY the platforms\gun_battery.txt file to include the correct weapon (bullet type) if you make a new bullet
+####
+
+
+define_path_variable CASE gun_scenario
+log_file output/$(CASE).log
+
+file_path .
+
+#include event_pipe.txt
+include event_output.txt
+#include terrain.txt
+
+# INCLUDE THE PLATFORM TYPES
+
+include_once platforms/gun_battery.txt
+include_once platforms/air_target.txt
+
+# INCLUDE THE SCENARIO
+include scenarios/gun_scenario_test.txt
+
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+end_time 5 min

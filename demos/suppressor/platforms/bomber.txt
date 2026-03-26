@@ -1,0 +1,128 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+##############################################################################
+#                   Bomber platform and subsystem definitions
+##############################################################################
+
+include_once sensors/radar/bomber_radar.txt
+include_once weapons/agm/blue_gps_bomb_3.txt
+
+radar_signature BOMBER_RCS_SIG
+  constant 4 m^2
+end_radar_signature
+
+infrared_signature BOMBER_IR_SIG
+  constant 30000 w/sr
+end_infrared_signature
+
+optical_signature BOMBER_OPT_SIG
+  constant 10 m^2
+end_optical_signature
+
+platform_type BOMBER WSF_PLATFORM
+  icon B-52
+  radar_signature     BOMBER_RCS_SIG
+  infrared_signature  BOMBER_IR_SIG
+  optical_signature   BOMBER_OPT_SIG
+
+  category ignored-by-bomber-radar
+
+  mover WSF_AIR_MOVER
+    default_climb_rate           50 m/s
+    default_dive_rate            30 m/s
+    maximum_linear_acceleration  20 m/s2
+    minimum_altitude             0 m
+    maximum_altitude             15 km
+    maximum_speed                500 m/s
+  end_mover
+
+  sensor bomber_radar BOMBER_RADAR
+    ignore ignored-by-bomber-radar
+  end_sensor
+
+  weapon bomber_weapon BLUE_GPS_BOMB_3_2000_LB
+    weapon_effects           BLUE_GPS_BOMB_3_2000_LB_EFFECT
+    quantity                 14
+    firing_delay             2.5 sec
+    salvo_interval           1.5 sec
+    maximum_request_count    4
+  end_weapon
+
+  processor sensor_processor WSF_TRACK_PROCESSOR
+    purge_interval  1 min
+  end_processor
+
+  // this processor acts like the launch computer
+  processor launch_computer WSF_TASK_PROCESSOR
+    //show_state_transitions
+    //show_task_messages
+    //show_state_evaluations
+
+    script bool InWeaponLAR()
+      return ((PLATFORM.GroundRangeTo(TRACK) < 4000) &&              // 2D-DIST < 4. (KM)
+              (PLATFORM.RelativeOffsetOf(TRACK) < 2000));            // 2D-REL-TGT-OFFSET < 2. (KM)
+    end_script
+
+    evaluation_interval DETECTED 12.5 sec
+    time_to_evaluate    DETECTED 0.05 sec
+    state DETECTED
+      next_state ENGAGING
+        bool okayToEngage = false;
+        WsfWeapon weapon = PLATFORM.Weapon("bomber_weapon");
+        // The tests have be reordered for better efficiency
+        if ((! TRACK.IFF_Friend())                         &&        // IFF-STATUS IS-NOT-FRIEND
+            (TRACK.TargetType() == "TARGET")               &&
+            (! HaveFiredAt(TRACK.TrackId()))               &&        // FIRED-BEFORE IS NO
+            TRACK.WithinZoneOf(PLATFORM, "target_area")    &&        // 3D-TGT-LOC WITHIN target_area
+            (weapon.QuantityRemaining() > 0))                        // WPN-STATUS IS-NOT WPN-NON/OP
+        {
+          if (CountInState("ENGAGING") < 3)
+          {
+            okayToEngage = InWeaponLAR();
+          }
+        }
+        return okayToEngage;
+      end_next_state
+    end_state
+
+    // Because the tactics only allow one shot at the target and because the rules above
+    // check for having fired at the target, we can immediately return to the DETECTED state
+    // once we have fired.
+
+    evaluation_interval ENGAGING 12.5 sec
+    time_to_evaluate    ENGAGING 0.05 sec
+    state ENGAGING
+      next_state DETECTED
+        bool exitState = false;
+        WsfWeapon weapon = PLATFORM.Weapon("bomber_weapon");
+        if (TRACK.IFF_Friend()                              ||
+            (! TRACK.WithinZoneOf(PLATFORM, "target_area")) ||
+            (weapon.QuantityRemaining() < 1))
+        {
+           exitState = true;
+        }
+        else if ((PLATFORM.RelativeBearingTo(TRACK) < 70)   && // REL-SUB-HDG < 70.0 (DEG)
+                 InWeaponLAR())
+        {
+           // When the SALVO-FIRING indicates no rounds are to be fired at a receding target,
+           // SUPPRESSOR proceeds internally with the firing request but then stops the engagement
+           // when it determines there are no rounds available.
+           exitState = true;
+           if (PLATFORM.ClosingSpeedOf(TRACK) > 0)
+           {
+              exitState = FireAt(TRACK, "Shoot", weapon, 4);
+           }
+        }
+        return exitState;
+      end_next_state
+    end_state
+
+  end_processor
+
+end_platform_type

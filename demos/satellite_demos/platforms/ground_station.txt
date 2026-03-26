@@ -1,0 +1,80 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#                            Satellite ground station
+#
+# This implements the notional dual-band handheld device that was used as an
+# example in the link budget calculator.
+
+include_once sensors/radar/blue_ew_radar_1.txt
+
+antenna_pattern GS_XMTR_ANTENNA
+  uniform_pattern
+    peak_gain 6 dB
+  end_uniform_pattern
+end_antenna_pattern
+
+antenna_pattern GS_RCVR_ANTENNA
+  uniform_pattern
+    peak_gain 10 dB
+  end_uniform_pattern
+end_antenna_pattern
+
+platform_type SAT_GS WSF_PLATFORM
+   icon C4I
+   side blue
+   comm radio WSF_RADIO_TRANSCEIVER
+      transfer_rate   1.544 mbit/s
+
+      transmitter
+         # The earth radius multiplier is set to one to disable the
+         # computations that simulate atmospheric refraction.
+         earth_radius_multiplier 1.0
+         antenna_pattern GS_XMTR_ANTENNA
+         frequency       145.920 mhz
+         power           5 watts
+         # The internal loss accounts for the 'transmit feeder loss' in the
+         # link budget calculator
+         internal_loss   3 dB
+      end_transmitter
+
+      receiver
+         antenna_pattern GS_RCVR_ANTENNA
+         frequency       435.300 mhz
+         # The internal_loss is used to account the following items from the
+         # link budget calculator:
+         #   a) 3 dB polarization mismatch loss.
+         #   b) 1 dB loss for going through the ionosphere
+         #   c) 3 dB receive antenna feeder loss
+         internal_loss   7 db
+         # The receiver noise floor in the link budget calculator is -130 dBm
+         noise_power     -130 dBm
+         detection_threshold 12 dB
+      end_receiver
+
+      processor       dump-rcvr
+      network_name ComsatNet
+      //debug
+   end_comm
+
+   sensor radar-1 BLUE_EW_RADAR_1
+     processor  dump-xmtr # add a processor to the radar
+     # Don't attempt to detect ground stations
+     ignore ground_station
+   end_sensor
+
+   processor dump-rcvr WSF_MESSAGE_PROCESSOR
+   end_processor
+
+   processor dump-xmtr WSF_MESSAGE_PROCESSOR
+     # Send message to peers
+     external_link peers via radio
+   end_processor
+
+end_platform_type
+

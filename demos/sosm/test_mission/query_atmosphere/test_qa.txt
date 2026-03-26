@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Execute the interactive atmosphere query
+# ==============================================================================
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+   load_atmosphere     DEFAULT from ../../modtran/us_std_day.txt
+
+   spectral_print_format wavelength
+
+   test query_atmosphere
+      sensor_altitude                  30000 ft
+      sensor_to_target_elevation       5 deg
+      sensor_to_target_range           10 nm
+   end_test
+end_sosm_interface
+

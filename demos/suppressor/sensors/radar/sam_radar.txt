@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+##############################################################################
+#                      SAM sensor subsystem definition
+##############################################################################
+
+
+antenna_pattern SAM_RDR_RX_ANTENNA
+  file patterns/antgr_13.ant units db
+end_antenna_pattern
+
+antenna_pattern SAM_RDR_TX_ANTENNA
+  file patterns/antgr_13.ant units db
+end_antenna_pattern
+
+sensor SAM_RADAR WSF_RADAR_SENSOR
+  #show_calibration_data
+  one_m2_detect_range          30 km
+
+  hits_to_establish_track      2 2
+
+  frame_time                   6 sec
+
+  maximum_request_count        1
+  revisit_time                 3 sec
+  search_while_track
+
+  location                     0 0 -6 m
+
+  slew_mode                    both
+  scan_mode                    both
+
+  maximum_range                40 km
+
+  transmitter
+    antenna_pattern            SAM_RDR_TX_ANTENNA
+    power                      5 mw
+    frequency                  3 ghz
+    pulse_repetition_frequency 250 hz
+    internal_loss              10 db
+  end_transmitter
+
+  receiver
+    antenna_pattern            SAM_RDR_RX_ANTENNA
+    bandwidth                  1.6 mhz
+    detection_threshold        10 db
+    noise_power                -150 dbw
+    internal_loss              10 db
+  end_receiver
+
+  # For now the filter is required if we're to report velocity
+  filter WSF_KALMAN_FILTER
+    range_measurement_sigma     1 m
+    elevation_measurement_sigma 0.001 deg
+    bearing_measurement_sigma   0.001 deg
+    process_noise_sigmas_XYZ    1.0 1.0 1.0
+  end_filter
+
+  reports_location
+  reports_velocity
+  reports_iff
+  reports_bearing
+  reports_type
+end_sensor

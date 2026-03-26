@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# Generate 2-D plots for the ESA-based circular antenna pattern
+###############################################################################
+
+include esa_circular_pattern.txt
+
+antenna_plot
+   pattern_name                           ESA_CIRCULAR_PATTERN
+   frequency                              1.0 ghz
+   electronic_beam_steering               both
+   electronic_beam_steering_loss_exponent 1.0
+   azimuth_steering_angle                 0.0 degrees
+   elevation_steering_angle               0.0 degrees
+
+   axes                                horizontal
+   azimuth_range                       -180 deg 180 deg
+   azimuth_step                        1.0 deg
+   output_file                         esa_circular_az.plt
+end_antenna_plot
+
+antenna_plot
+   pattern_name                           ESA_CIRCULAR_PATTERN
+   frequency                              10.0 ghz
+   electronic_beam_steering               both
+   electronic_beam_steering_loss_exponent 1.0
+   azimuth_steering_angle                 0.0 degrees
+   elevation_steering_angle               0.0 degrees
+
+   axes                                vertical
+   elevation_range                       -90 deg 90 deg
+   elevation_step                        1.0 deg
+   output_file                         esa_circular_el.plt
+end_antenna_plot

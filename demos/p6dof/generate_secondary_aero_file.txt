@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario can be used to generate an autopilot_support_tables.txt file
+# that is used with aircraft and missiles that use the P6DOF
+# autopilot/guidance. The tabular data defines angle of attack (alpha) and
+# lift coefficient (CL) limits as well a control data that is used for
+# feed-forward (control bias) in the autopilot PID-based (Proportional,
+# Integral, Derivative) feedback control system used in the P6DOF autopilot.
+# This is helpful for users creating their own P6DOF models.
+#
+# To use this scenario, change the included model file path and the MOVER_TYPE
+# to the desired model, and run the scenario to generate the 
+# autopilot_support_tables.txt file.
+#
+# Copy the autopilot_support_tables.txt to model's directory.
+#
+# ******************************************************************************
+
+define_path_variable CASE gen_secondary_aero
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time .01 sec
+
+# ------------------------------------------------------------------------------
+# Change the mover type include file here
+# ------------------------------------------------------------------------------
+include_once p6dof_types/aircraft/fa-lgt/fa-lgt.txt
+$define MOVER_TYPE FA-LGT
+
+include_once p6dof_types/environment/p6dof_environment.txt
+
+script_variables
+
+   # ---------------------------------------------------------------
+   # Change the output file name here
+   # ---------------------------------------------------------------
+   string OUTPUT_FILE_NAME = "output/autopilot_support_tables.txt";
+
+   end_script_variables
+
+platform TEST_PLATFORM WSF_PLATFORM
+
+   add mover WSF_P6DOF_MOVER
+      p6dof_object_type $<MOVER_TYPE:FA-LGT>$
+   end_mover
+
+   include p6dof_types/scripts/p6dof_testing_scripts.txt
+
+   p6dof_set_velocity_ned_fps 100 0 0
+   p6dof_position 0 0
+   p6dof_alt 1000 ft
+
+   on_initialize2
+      writeln("Generating Autopilot Support File");
+      CreateAutopilotSupportFile(PLATFORM, OUTPUT_FILE_NAME);
+      writeln("Generating ", OUTPUT_FILE_NAME, " complete.");
+   end_on_initialize2
+
+end_platform

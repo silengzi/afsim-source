@@ -1,0 +1,94 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior default-flight
+
+   script_debug_writes off
+
+   script_variables
+      bool     mDrawRoute              = false;
+      WsfDraw  mDraw                   = WsfDraw();
+      bool     mResumeDefaultRoute     =  true;
+      double   cDEFAULT_SPEED          = 450.0 * MATH.MPS_PER_NMPH();
+      double   cDEFAULT_ACCEL          =   7.5 * Earth.ACCEL_OF_GRAVITY(); // 7.5 G  (m/s^2)
+      double   cLARGE_UPDATE_INTERVAL  =   3.0;                            // update once every 3 seconds
+   end_script_variables
+
+   script void DrawRoute()
+      WsfRoute currRoute = PLATFORM.Route();
+      if (currRoute.IsValid())
+      {
+         //PLATFORM.Comment("draw current route");
+         mDraw.SetLayer("behavior default=flight");
+         mDraw.Erase(PLATFORM.Name());
+         mDraw.SetId(PLATFORM.Name());
+         mDraw.SetColor(0,1,1);
+         mDraw.SetLineSize(2);
+         mDraw.SetLineStyle("dash_dot2");
+         mDraw.BeginPolyline();
+         for (int i=0; i<currRoute.Size(); i=i+1)
+         {
+            mDraw.Vertex(currRoute.Waypoint(i).Location());
+         }
+         mDraw.End();
+      }
+   end_script
+
+
+   precondition
+      writeln_d("precondition default-flight");
+      return true;
+   end_precondition
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing default-flight, T=", TIME_NOW);
+      //PLATFORM.Comment("default-flight");
+
+      if (mResumeDefaultRoute)
+      {
+         bool success = false;
+         //go at default speed; this gets overwritten if route waypoint has defined a speed
+         success = PLATFORM.GoToSpeed(cDEFAULT_SPEED, cDEFAULT_ACCEL, true);
+         //return to route, at the last target route point as re-entry
+         #success = success && PLATFORM.ReturnToRoute();
+        #extern bool ReEnterRoute(WsfPlatform);
+         success = success && ReEnterRoute(PLATFORM);
+
+         if (!success)
+         {
+            string msg = "ERROR: transition to default flight, could not return to route!";
+            PLATFORM.Comment(msg);
+            writeln_d("    T=", TIME_NOW, " ", PLATFORM.Name(), " ", msg);
+         }
+         else
+         {
+            string msg = write_str("returning to route: ", PLATFORM.Route().Name());
+            //PLATFORM.Comment(msg);
+            writeln_d("    T=", TIME_NOW, " ", PLATFORM.Name(), " ", msg);
+         }
+      }
+      else
+      {
+         extern double cDEFAULT_ALTITUDE;
+        #extern bool FlyHold (WsfPlatform, double, double, double);
+         FlyHold( PLATFORM, PLATFORM.Heading(), cDEFAULT_ALTITUDE, cDEFAULT_SPEED);
+      }
+
+     #PROCESSOR.SetUpdateInterval(cLARGE_UPDATE_INTERVAL);
+
+      if (mDrawRoute)
+      {
+         DrawRoute();
+      }
+   end_execute
+
+end_behavior

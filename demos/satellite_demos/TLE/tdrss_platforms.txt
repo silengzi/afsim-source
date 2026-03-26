@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform THEMIS_A(30580) TDRSS
+   orbit
+1 30580U 07004A   14244.08375892 -.00000379  00000-0  00000+0 0  8790
+2 30580  13.2395 358.0994 8304323 199.8612 359.5969  1.00269638 27390
+   end_orbit
+end_platform
+
+platform THEMIS_D(30797) TDRSS
+   orbit
+1 30797U 07004D   14243.37029839 -.00000242  00000-0  00000+0 0   429
+2 30797   8.2705 335.3171 8279945 220.6675  32.1637  1.00293465 27242
+   end_orbit
+end_platform
+
+platform THEMIS_E(30798) TDRSS
+   orbit
+1 30798U 07004E   14245.19210108 -.00000247  00000-0  00000+0 0   248
+2 30798   8.9585 348.0951 8280423 209.5585 359.6151  1.00287626 27411
+   end_orbit
+end_platform
+
+platform C/NOFS(32765) TDRSS
+   orbit
+1 32765U 08017A   14241.88370197  .00035794  00000-0  89498-3 0  5821
+2 32765  12.9991 108.6586 0168604  78.3265  22.5064 15.24542907348032
+   end_orbit
+end_platform
+

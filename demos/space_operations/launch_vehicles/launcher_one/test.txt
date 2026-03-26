@@ -1,0 +1,79 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include launcher_one.txt
+
+platform_type LAUNCHER_ONE_MOD LAUNCHER_ONE
+   edit mover
+      show_status
+   end_mover
+   edit processor guidance
+      show_status
+      show_diagnostics
+      show_commands
+   end_processor
+end_platform_type
+
+# The launch platform is a Boeing 747-400 named 'Cosmic Girl'
+platform cosmic_girl WSF_PLATFORM
+   icon B-747
+   side blue
+
+   add mover WSF_AIR_MOVER
+   end_mover
+
+   add weapon rocket WSF_EXPLICIT_WEAPON
+      launched_platform_type LAUNCHER_ONE_MOD
+      launch_computer WSF_LAUNCH_COMPUTER
+         commanded_loft_angle 40 deg       # <==== The desired flight path angle for the PITCH_UP phase
+      end_launch_computer
+      quantity 1
+   end_weapon
+
+   route
+      position 28.608422n 80.604133w altitude 35000 ft heading 90 deg speed 400 kts
+      #position 130w 35n altitude 35000 ft heading 90 deg speed 500 kts         # West of MHV
+   end_route
+
+   script_variables
+      double mInitialAltitude;
+   end_script_variables
+
+   script void BeginLaunch()
+      mInitialAltitude = Altitude();
+      double speed = Speed();
+      double desiredPitch = 10.0; # Degrees
+      double climbRate = speed * Math.Sin(desiredPitch);
+      double targetAltitude = Altitude() + 2000.0;
+      writeln("Going to altitude ", targetAltitude, " climb rate=", climbRate, " speed=", speed);
+      GoToAltitude(Altitude() + 2000.0, climbRate);
+      ExecuteAtTime(TIME_NOW + 1.0, "Launch");
+   end_script
+
+   script void Launch()
+      writeln("Launching, pitch=", Pitch(), " Speed=", Speed());
+      WeaponEntry(0).Fire();
+      ExecuteAtTime(TIME_NOW + 10.0, "ResumeFlight");
+   end_script
+
+   script void ResumeFlight()
+      writeln("resume original path");
+      GoToAltitude(mInitialAltitude);
+   end_script
+
+   execute at_time 0.001 sec relative
+      BeginLaunch();
+   end_execute
+end_platform
+
+event_pipe
+   file replay.aer
+end_event_pipe
+
+end_time 1200 sec
+

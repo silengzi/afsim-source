@@ -1,0 +1,69 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+
+optical_signature ROCKET_OPTICAL_SIG WSF_COMPOSITE_OPTICAL_SIGNATURE
+
+   # We are figuring the base structure at about 11 m long (1 m cone, 10 m body)
+   #debug
+
+   # Stage 1, 2 and RV
+   state default
+      surface cone
+         length 1 m
+         radius 0.7 m
+         temperature adiabatic_wall
+      end_surface
+
+      # Length includes stages 1 and 2.
+      surface cylinder
+         length 10.0 m        # Just a guess
+         radius 0.7 m
+         temperature adiabatic_wall
+      end_surface
+
+      # This will eventually automatically attaches to the previous object...
+      surface plume
+         temperature 2000 K
+         length 50 m          # About 5x total
+         radius 1 m
+      end_surface
+
+   # Stage 2 and RV
+   state STAGE_2_RV
+       surface cone
+         length 1 m
+         radius 0.7 m
+         temperature adiabatic_wall
+      end_surface
+
+      # Shorten the body to reflect only the upper stage
+      surface cylinder
+         length 4.0 m        # Just a guess
+         radius 0.7 m
+         temperature adiabatic_wall
+      end_surface
+
+      # This will eventually automatically attaches to the previous object...
+      surface plume
+         temperature 2000 K
+         length 50 m         # About 5x total
+         radius 1 m
+      end_surface
+
+   # RV only
+   state RV_ONLY
+      surface cone
+         length 1 m
+         radius 0.7 m
+         temperature adiabatic_wall
+      end_surface
+
+end_optical_signature

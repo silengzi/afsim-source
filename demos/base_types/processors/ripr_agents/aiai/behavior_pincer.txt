@@ -1,0 +1,325 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior pincer
+
+   script_debug_writes off
+
+   script_variables
+      //debug parameters
+      bool mDrawSteering = false;
+
+      //parameters for how to initially fly pincer (1st phase, separation)
+      string mDirection = "none";
+      double mPincerSpeed = 500 * MATH.MPS_PER_NMPH();   //400 kts
+      double mPincerOffsetAngle = 70.0;                  //degrees
+
+      //parameters for determining if to chase and how to do so (2nd phase, option A)
+      double mEnemyFOVHalfAngle = 50.0;                           //degrees
+      double mChaseAngle = 75.0;                                  //degrees
+      double mChaseSpeedlnsideFOV = 600 * MATH.MPS_PER_NMPH();    //600 kts
+      double mChaseSpeedOutsideFOV = 1200 * MATH.MPS_PER_NMPH();  //1200 kts
+
+      //parameters for determining if to drag (run) and how to do so (2nd phase, option B)
+      double mRunDistance = 130 * 1852;               //130nm (meters)
+      double mRunAngleLimit = 15.0;                   //degrees
+      double mDragSpeed = 800 * MATH.MPS_PER_NMPH();  //800 kts
+      double mDragAddedAngle = -1.0;                  //degrees
+
+      //util var, not for user edit
+      WsfGeoPoint mPincerPoint;
+      bool        mDragging     = false;
+      bool        mChasing      = false;
+      WsfDraw     mDraw         = WsfDraw();
+      WsfRIPRJob  mCurrentJob;
+   end_script_variables
+
+
+   script double GetPincerDragOffset(WsfTrack aTgt)
+      if (aTgt.Speed() >= PLATFORM.Speed())
+      {
+         return 180.0;
+      }
+      else
+      {
+         return (180 - MATH.ACos(aTgt.Speed()/PLATFORM.Speed()));
+      }
+   end_script
+
+   precondition
+      #writeln_d("precondition pincer");
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+      if (((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid())
+      {
+         mCurrentJob = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+         if (mCurrentJob.IsValid())
+         {
+            // If we're supposed to fly towards a point, go for it!
+            if (mCurrentJob.Name() == "pincer")
+            {
+               mPincerPoint = (WsfGeoPoint)mCurrentJob.GetData("ZonePoint");
+               mDirection = (string)mCurrentJob.GetData(PLATFORM.Name());
+               if (mPincerPoint.IsValid())
+               {
+                  return true;
+               }
+               else
+               {
+                  writeln_d(PLATFORM.Name(), " pincer point not valid!");
+                  return Failure("pincer job did not have valid point");
+               }
+            }
+            else
+            {
+               writeln_d(PLATFORM.Name(), " job not a pincer job: ", mCurrentJob.Name());
+            }
+         }
+         else
+         {
+            writeln_d(PLATFORM.Name(), " job not valid!");
+         }
+      }
+      else
+      {
+         writeln_d(PLATFORM.Name(), " commander not found!");
+         return Failure("no commander found");
+      }
+      return Failure("current job not a valid pincer job");
+   end_precondition
+
+
+   execute
+
+      writeln_d(PLATFORM.Name(), " executing pincer!, T=", TIME_NOW);
+      //provide for another channel for pursue-target jobs
+      if (((WsfRIPRProcessor)PROCESSOR).NumJobChannels() <= 1)
+      {
+         ((WsfRIPRProcessor)PROCESSOR).SetNumJobChannels(2);
+      }
+      //writelnd("executing pincer.");
+      ((WsfRIPRProcessor)PROCESSOR).ClearTarget();
+      //calculate heading if we are still flying offset
+      double angle = 0;
+      if (mDirection == "left")
+      {
+         angle = -mPincerOffsetAngle;
+      }
+      else if (mDirection == "right")
+      {
+         angle = mPincerOffsetAngle;
+      }
+
+      double heading = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(mPincerPoint) + angle);
+
+      //find out if we are being chased & should drag threats away
+      WsfTrack worstTrack;
+      double worstDist = MATH.DOUBLE_MAX();
+      double worstFOV = MATH.DOUBLE_MAX();
+      Array<string> targetNames = (Array<string>)mCurrentJob.GetData("ZoneThreatNameArray");
+     #extern WsfTrack GetTrackByName (WsfPlatform, string);
+      int allOnCap = (int)mCurrentJob.GetData("all_on_cap");
+      if (allOnCap <= 0)
+      {
+         //save off the closest opponent track
+         foreach(string tgtName in targetNames)
+         {
+            WsfTrack tgt = GetTrackByName(PLATFORM, tgtName);
+            if (tgt.IsValid() && tgt.LocationValid())
+            {
+               double attackRange = tgt.GroundRangeTo(PLATFORM);
+               if (attackRange < worstDist)
+               {
+                  //run away, drag threats out
+                  worstDist = attackRange;
+                  worstTrack = tgt;
+               }
+               double fov = MATH.Fabs(tgt.RelativeBearingTo(PLATFORM));
+               if (fov < worstFOV)
+               {
+                  worstFOV = fov;
+               }
+            }
+         }
+
+         //manage dragging state
+         if (  (mDragging == false) &&
+               (worstDist < mRunDistance) &&
+               (worstTrack.IsValid()) &&
+               (worstTrack.HeadingValid()) &&
+               (MATH.Fabs(worstTrack.TrueBearingTo(PLATFORM)-worstTrack.Heading()) < mRunAngleLimit))
+         {
+            mDragging = true;
+            if (mDirection == "right")
+            {
+               int count = (int)mCurrentJob.GetData("right_drag");
+               mCurrentJob.SetData("right_drag",count+1);
+               writeln_d(PLATFORM.Name(), " increased right_drag to: ", count+1);
+            }
+            else if (mDirection == "left")
+            {
+               int count = (int)mCurrentJob.GetData("left_drag");
+               mCurrentJob.SetData("left_drag",count+1);
+               writeln_d(PLATFORM.Name(), " increased left_drag to: ", count+1);
+            }
+         }
+         else if (   (mDragging == true) &&
+                     (  (!worstTrack.IsValid()) ||
+                        (worstDist > (mRunDistance*1.1)) ||
+                        (!worstTrack.HeadingValid()) ||
+                        (MATH.Fabs(worstTrack.TrueBearingTo(PLATFORM)-worstTrack.Heading()) > (mRunAngleLimit*1.1))))
+         {
+            mDragging = false;
+            if (mDirection == "right")
+            {
+               int count = (int)mCurrentJob.GetData("right_drag");
+               mCurrentJob.SetData("right_drag",count-1);
+               writeln_d(PLATFORM.Name(), " decreased right_drag to: ", count-1);
+            }
+            else if (mDirection == "left")
+            {
+               int count = (int)mCurrentJob.GetData("left_drag");
+               mCurrentJob.SetData("left_drag",count -1);
+               writeln_d(PLATFORM.Name(), " decreased left_drag to: ", count-1);
+            }
+         }
+
+         mChasing = false;
+
+         if (mDragging == true)
+         {
+            writeln_d("dragging!");
+            //try to maintain distance
+            PLATFORM.GoToSpeed(mDragSpeed);
+            double dragOffset = GetPincerDragOffset(worstTrack);
+            if (mDirection == "right")
+            {
+               if (mDragAddedAngle > 0)
+               {
+                  heading = MATH.NormalizeAngle0_360(heading + mDragAddedAngle);
+               }
+               else
+               {
+                  heading = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(mPincerPoint) + dragOffset);
+               }
+            }
+            else if (mDirection == "left")
+            {
+               if (mDragAddedAngle > 0)
+               {
+                  heading = MATH.NormalizeAngle0_360(heading - mDragAddedAngle);
+               }
+               else
+               {
+                  heading = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(mPincerPoint) - dragOffset);
+               }
+            }
+         }
+         else
+         {
+            //look for reasons to chase
+            PLATFORM.GoToSpeed(mPincerSpeed);
+            //check if other pair is dragging, so we should chase
+            int count = 0;
+            if (mDirection == "right")
+            {
+               count = (int)mCurrentJob.GetData("left_drag");
+            }
+            else if (mDirection == "left")
+            {
+               count = (int)mCurrentJob.GetData("right_drag");
+            }
+
+            double diff = 0;
+            if (worstTrack.IsValid() && worstTrack.HeadingValid())
+            {
+               double b1 = worstTrack.Heading();
+               double b2 = worstTrack.TrueBearingTo(PLATFORM.Location());
+               diff = MATH.NormalizeAngleMinus180_180(b2 - b1);
+            }
+
+            if (count > 0 && MATH.Fabs(diff) > mEnemyFOVHalfAngle)
+            {
+               //the other pincer group is being engaged, turn in now
+               writeln_d(PLATFORM.Name(), " chasing because other pair is dragging");
+               mChasing = true;
+            }
+            //check if we have flanked & can now chase
+            else
+            {
+               if (mDirection == "right" && diff < -mChaseAngle)
+               {
+                  writeln_d(PLATFORM.Name(), " right chasing because past chase angle");
+                  mChasing = true;
+               }
+               else if (mDirection == "left" && diff > mChaseAngle)
+               {
+                  mChasing = true;
+                  writeln_d(PLATFORM.Name(), " left chasing because past chase angle");
+               }
+            }
+         }
+      }
+      else
+      {
+         writeln_d("All targets still on cap, no dragging or chasing yet!");
+      }
+
+      if (mChasing == true)
+      {
+         writeln_d("chasing!");
+         //double FOV = MATH.Fabs(worstTrack.RelativeBearingTo(PLATFORM));
+         if (worstFOV <= mEnemyFOVHalfAngle)
+         {
+            PLATFORM.GoToSpeed(mChaseSpeedlnsideFOV);
+         }
+         else
+         {
+            PLATFORM.GoToSpeed(mChaseSpeedOutsideFOV);
+         }
+
+         if (worstTrack.IsValid())
+         {
+            heading = PLATFORM.TrueBearingTo(worstTrack);
+            ((WsfRIPRProcessor)PROCESSOR).SetTarget(worstTrack);
+         }
+         else
+         {
+            heading = PLATFORM.TrueBearingTo((WsfGeoPoint)mCurrentJob.GetData("ZonePoint"));
+         }
+      }
+
+      PLATFORM.TurnToHeading(heading);
+
+      if (mDrawSteering == true)
+      {
+         WsfGeoPoint pt = PLATFORM.Location();
+         pt.Extrapolate(heading, 185200);
+         mDraw.SetLayer("behavior_pincer");
+         mDraw.SetDuration(PROCESSOR.UpdateInterval());
+         mDraw.SetColor(0.0, 1.0, 0.75); //green-blue
+         mDraw.SetLineSize(1);
+         mDraw.BeginLines();
+            mDraw.Vertex(PLATFORM.Location());
+            mDraw.Vertex(pt);
+            mDraw.Vertex(PLATFORM.Location());
+            mDraw.Vertex(mPincerPoint);
+         mDraw.End();
+      }
+      # # writeln_d(" T=", TIME_NOW, ", range: ", interceptRange, " true-bearing; interceptHeading); #
+      ##if ( (interceptAltitude - PLATFORM.Altitude()) > 5) #if ( (interceptAltitude - PLATFORM.Altitude()) > 10000*MATH.M_PER_FT())
+      #{
+      # writeln_d("GoToAltitude: ",interceptAltitude); # #PLATF0RM.GoToAltitude(interceptAltitude);
+      #>
+   end_execute
+
+end_behavior

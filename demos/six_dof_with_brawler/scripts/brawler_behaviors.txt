@@ -1,0 +1,256 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+# Behavior alt3111
+script void StraightLevelMaxSpeed(WsfPlatform aPlatform)
+
+   Vec3 mDir0 = aPlatform.VelocityNED();
+	mDir0.SetZ(0.0);
+	mDir0.Normalize();
+
+	# mGMX = ((WsfBrawlerProcessor)PROCESSOR).MaxSustainedGs();
+	double mSpd0 = 3.0;
+	
+	aPlatform.FlyVectorWithThrottle(mDir0, 0.0, mSpd0);
+end_script
+
+# Behavior alt3121
+script void StraightLevel(WsfPlatform aPlatform)
+
+   Vec3 mDir0 = aPlatform.VelocityNED();
+	mDir0.SetZ(0.0);
+	mDir0.Normalize();
+
+	# mGMX = ((WsfBrawlerProcessor)PROCESSOR).MaxSustainedGs();
+	double mSpd0 = aPlatform.Speed();
+	
+	aPlatform.FlyVectorWithThrottle(mDir0, 0.0, mSpd0);
+end_script
+
+# Behavior alt3411
+script void StraightFlight(WsfPlatform aPlatform)
+
+   Vec3 mDir0 = aPlatform.VelocityNED();
+	mDir0.SetZ(0.0);
+	mDir0.Normalize();
+
+	double mGMX = 3.0;
+	double mSpd0 = 3;
+	
+	aPlatform.FlyVectorWithThrottle(mDir0, mGMX, mSpd0);
+end_script
+
+script Vec3 OrthogonalVector(Vec3 a, Vec3 b)
+   double x = Vec3.Dot(a, b) / Vec3.Dot(b, b);
+   
+   Vec3 projection = b;
+   projection.Scale(x);
+   
+   return Vec3.Subtract(a, projection);
+end_script
+
+# Behavior alt3411
+script void RollPlus15Pull(WsfPlatform aPlatform)
+	
+   double sd15 = 0.2588190;
+   double cd15 = 0.9659258;
+   Vec3X dir = Vec3X();
+   dir.Set(0.0, sd15, -cd15);
+
+   # Transform reference vector from ECS to NED   
+   DCM wcsToEcs = aPlatform.WCS_To_ECS_DCM();
+   DCM wcsToNed = aPlatform.WCS_To_NED_DCM();
+   dir = wcsToEcs.InverseTransform(dir);
+   dir = wcsToNed.Transform(dir); 
+     
+   Vec3 dir0 = Vec3.Construct(dir.X(), dir.Y(), dir.Z());
+   dir0 = OrthogonalVector(dir0, aPlatform.VelocityNED());
+   
+	dir0.Normalize();
+	double spd0 = 3.0;
+
+	aPlatform.FlyVectorWithThrottle(dir0, 0.0, spd0);
+end_script
+
+# Behavior alt3431
+script void RollMinus15Pull(WsfPlatform aPlatform)
+
+   double sd15 = 0.2588190;
+   double cd15 = 0.9659258;
+   Vec3X dir = Vec3X();
+   dir.Set(0.0, -sd15, -cd15);
+
+   # Transform reference vector from ECS to NED   
+   DCM wcsToEcs = aPlatform.WCS_To_ECS_DCM();
+   DCM wcsToNed = aPlatform.WCS_To_NED_DCM();
+   dir = wcsToEcs.InverseTransform(dir);
+   dir = wcsToNed.Transform(dir); 
+     
+   Vec3 dir0 = Vec3.Construct(dir.X(), dir.Y(), dir.Z());   
+   dir0 = OrthogonalVector(dir0, aPlatform.VelocityNED());
+   
+	dir0.Normalize();
+	double spd0 = 3.0;
+	
+	aPlatform.FlyVectorWithThrottle(dir0, 0.0, spd0);
+end_script
+
+# Behavior alt3441
+/*
+script void TailAttack(WsfPlatform aPlatform, int trackID)
+	
+	WsfLocalTrack targetTrack = aPlatform.MasterTrackList().Find(trackID);
+	WsfWaypoint aimptWP = WsfWaypoint();
+		
+	Vec3 dxpme = RelativePositionNED(PLATFORM.Location(), targetTrack.CurrentLocation());
+	Vec3 vp = aPlatform.VelocityNED();
+	Vec3 vp_iac =  targetTrack.VelocityNED();
+	bool chasing = (Vec3.Dot(dxpme,vp_iac) > 0.0);
+	
+	if (chasing)
+	{
+		double dlagn  = 5000.0;
+		double dlagun = 1000.0;
+		double dlag = dlagn;
+
+		if (!HaveWeapon(aPlatform))
+		{
+			dlag = dlagun;
+		}
+
+		# GET POSITION OF AC 5 SECONDS IN FUTURE:
+		double dt = 5.0;
+
+		Vec3 vprj = targetTrack.VelocityNED();
+		Vec3 vtemp = vprj.Normal();
+		vtemp.Scale(-dlag);
+		Vec3 dx = RelativePositionNED(PLATFORM.Location(), targetTrack.CurrentLocation());
+		Vec3 dxtail = Vec3.Add(dx,vtemp);
+
+		Vec3 vpt = targetTrack.VelocityNED();
+		dxtail.Scale(0.5/BRAWLER.ProjectedTimeDelta());
+		dir0 = Vec3.Add(vpt,dxtail);
+		spd0 = dir0.Magnitude();   #m/sec
+		spdmod = 1;   //(desspd = 1, thrttl = 2, desacc = 3)
+		double almax = BRAWLER.MaxForwardAccelWithGravity();   #m/sec^2
+		double spdwtd = PLATFORM.Speed() + almax * BRAWLER.ProjectedTimeDelta() * 1.1;
+		if (spd0 > spdwtd)
+		{
+			 spd0 = 3.0;
+		}
+		dir0.Normalize();
+	}
+	else if (PLATFORM.InterceptLocation3D(targetTrack, aimptWP) > 0)
+	{
+		WsfGeoPoint daimpt = aimptWP.Location();
+		Vec3 dxaim = RelativePositionNED(PLATFORM.Location(), daimpt);   #NED coordinates
+		dir0 = dxaim.Normal();
+		spd0 = 3.0;
+	}
+	
+	PLATFORM.FlyVectorWithThrottle(dir0, 0.0, spd0);
+end_script
+*/
+
+script Array<double> makeh(Vec3 dir)
+   Array<double> rot = Array<double>();
+   double temp = MATH.Sqrt(dir[0]*dir[0] + dir[1]*dir[1]);
+   rot[0] = dir[0]/temp;   #c(1,1) = cxin(1)/sngl(temp)
+   rot[1] = dir[1]/temp;   #c(1,2) = cxin(2)/sngl(temp)
+   rot[2] = 0.0;           #c(1,3) = 0.
+   rot[3] = -rot[1];       #c(2,1) = -c(1,2)
+   rot[4] = rot[0];        #c(2,2) =  c(1,1)
+   rot[5] = 0.0;           #c(2,3) = 0.
+   rot[6] = 0.0;           #c(3,1) = 0.
+   rot[7] = 0.0;           #c(3,2) = 0.
+   rot[8] = 1.0;           #c(3,3) = 1.
+   return rot;
+end_script
+
+script Vec3 vxfrmc2(Array<double> b, Vec3 vt)
+   #b = 3x3 rotation matrix where [0] = (1,1) and [1] == (1,2)
+   double x = vt[0]*b[0]+vt[1]*b[3]+vt[2]*b[6];
+   double y = vt[0]*b[1]+vt[1]*b[4]+vt[2]*b[7];
+   double z = vt[0]*b[2]+vt[1]*b[5]+vt[2]*b[8];
+   Vec3 v = Vec3.Construct(x,y,z);
+   return v;
+end_script
+
+# Behavior alt3451
+script void PullGMaxSust(WsfPlatform aPlatform)
+
+	Vec3 vp = aPlatform.VelocityNED();
+	Array<double> rot = makeh(vp);
+	Vec3 dir0 = Vec3.Construct(0.001, 0.0, -1.0);
+	dir0 = vxfrmc2(rot, dir0);
+	dir0.Normalize();
+	double spd0 = 3.0;
+	
+	aPlatform.FlyVectorWithThrottle(dir0, 0.0, spd0);
+end_script
+
+# Behavior alt3471
+script void SlowCurrentDir(WsfPlatform aPlatform)
+
+	Vec3 myvdir = aPlatform.VelocityNED().Normal();
+	Vec3 dir0 = myvdir;
+	
+	aPlatform.FlyVectorWithSpeed(dir0, 0.0, 0.0);
+end_script
+
+# Behavior alt3472
+script void SlowPullRight(WsfPlatform aPlatform)
+
+	double sroll = 0.2588190;   //sin of roll angle (15 deg)
+	double croll = 0.9659258;   //cos of roll angle (15 deg)
+   Vec3X acc = Vec3X();
+   acc.Set(0.0, sroll, -croll);
+
+   # Transform reference vector from ECS to NED   
+   DCM wcsToEcs = aPlatform.WCS_To_ECS_DCM();
+   DCM wcsToNed = aPlatform.WCS_To_NED_DCM();
+   acc = wcsToEcs.InverseTransform(acc);
+   acc = wcsToNed.Transform(acc); 
+     
+   Vec3 acc0 = Vec3.Construct(acc.X(), acc.Y(), acc.Z());   
+   acc0 = OrthogonalVector(acc0, aPlatform.VelocityNED());
+   
+	aPlatform.FlyVectorWithSpeed(acc0, 0.0, 0.0);
+end_script
+
+# Behavior alt3473
+script void SlowPullLeft(WsfPlatform aPlatform)
+
+	double sroll = 0.2588190;   //sin of roll angle (15 deg)
+	double croll = 0.9659258;   //cos of roll angle (15 deg)
+   Vec3X acc = Vec3X();
+   acc.Set(0.0, -sroll, -croll);
+
+   # Transform reference vector from ECS to NED   
+   DCM wcsToEcs = aPlatform.WCS_To_ECS_DCM();
+   DCM wcsToNed = aPlatform.WCS_To_NED_DCM();
+   acc = wcsToEcs.InverseTransform(acc);
+   acc = wcsToNed.Transform(acc); 
+     
+   Vec3 acc0 = Vec3.Construct(acc.X(), acc.Y(), acc.Z());   
+   acc0 = OrthogonalVector(acc0, aPlatform.VelocityNED());
+
+	aPlatform.FlyVectorWithSpeed(acc0, 0.0, 0.0);
+end_script
+
+# Behavior alt3474
+script void SlowPullCurrentPlane(WsfPlatform aPlatform)
+	
+	Vec3 myvdir = aPlatform.VelocityNED().Normal();
+	Vec3 ap = aPlatform.AccelerationNED();   //meters/sec^2
+	Vec3 a0 = Vec3.Cross(myvdir, ap).Normal();
+	
+	aPlatform.FlyVectorWithSpeed(a0, 0.0, 0.0);
+end_script

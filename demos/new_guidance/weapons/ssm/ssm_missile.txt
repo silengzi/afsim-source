@@ -1,0 +1,215 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Made up surface to surface missile SSM203
+# 50 LB Blast Frag
+# 190 in, 9 inch diameter
+# include the sensor that goes on the missile
+include_once sensors/radar/red_missile_seeker.txt
+
+aero SSM203_BOOST_AERO WSF_AERO
+   # Some Values Estimated
+   reference_area            63.62 in2
+   mach_and_cd               0.1  0.3258
+   mach_and_cd               0.6  0.3258
+   mach_and_cd               0.9  0.3554
+   mach_and_cd               1.05 0.5718
+   mach_and_cd               1.3  0.5994
+   mach_and_cd               1.51  0.5824
+   mach_and_cd               1.97  0.5639
+   mach_and_cd               2.47  0.5448
+
+   aspect_ratio              8.5  # Estimated
+   cl_max                    2.669
+end_aero
+
+aero SSM203_CRUISE_AERO WSF_AERO
+   reference_area            63.62 in2
+   mach_and_cd               0.1  0.2497
+   mach_and_cd               0.8  0.2497
+   mach_and_cd               0.9  0.2727
+   mach_and_cd               1.05 0.4232
+   mach_and_cd               1.3  0.4087
+   mach_and_cd               1.51  0.4014
+   mach_and_cd               1.97  0.3257
+   mach_and_cd               2.47  0.2672
+   mach_and_cd               2.97  0.2378
+   mach_and_cd               3.96  0.2032
+   mach_and_cd               5.07  0.1855
+   aspect_ratio              8.5  # Estimated
+   cl_max                    2.669
+end_aero
+
+weapon_effects SSM203_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 30 m 1.0
+end_weapon_effects
+
+platform_type SSM203 WSF_PLATFORM
+   icon missile
+   weapon_effects SSM203_LETHALITY
+   mover WSF_GUIDED_MOVER
+#      debug
+      #show_status
+      update_interval        0.5 s
+      integration_timestep   0.05 s
+
+      stage 1
+         # Boost 1st phase
+         empty_mass          168.19 lb
+         fuel_mass           191.68 lb
+         thrust              14906.6 lbsf
+         thrust_duration     3.27 sec
+         aero                SSM203_BOOST_AERO
+      end_stage
+      stage 2 # Second Stage LightOff
+         empty_mass          0.01 lb
+         fuel_mass           10.0 lb
+         thrust              800 lbsf
+         thrust_duration     23 sec
+         aero                SSM203_CRUISE_AERO
+      end_stage
+
+      stage 3
+         # cruise stage
+         empty_mass          204.44 lb
+         fuel_mass           57.56 lb
+         thrust              140 lbsf
+         thrust_duration     700 sec  # maximum thrust duration time
+         aero                SSM203_CRUISE_AERO
+      end_stage
+      # pre-briefed route (option example)
+#      route
+#        position 39.0n 89.5w
+#        position 38.8n 89.5w
+#        #position 38.6n 90.3w # altitude 1 m agl
+#      end_route
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+      #show_status
+      #show_evaluations
+      #debug
+
+      phase LAUNCH
+#         allow_route_following    true # if a route is planned
+         commanded_altitude      68000 ft
+         commanded_speed         2900 fps
+         maximum_pitch_angle           30 deg
+         proportional_navigation_gain  15.0
+         velocity_pursuit_gain         15.0
+
+#        next_phase POPUP when target_slant_range < 3000 m #  option
+#        next_phase TERMINAL  when target_slant_range < 6000 m # option
+#        next_phase CRUISE when altitude > 66000 ft # option
+         next_phase CRUISE when phase_time > 100 sec
+      end_phase
+
+      phase CRUISE
+         commanded_altitude      68000 ft
+         commanded_speed         2810 fps
+         maximum_pitch_angle           30 deg
+         proportional_navigation_gain  15.0
+         velocity_pursuit_gain         10.0
+         next_phase TERMINAL  when los_target_angle > 25 deg
+#         next_phase TERMINAL when target_ground_range < 42 miles
+#         next_phase TERMINAL  when los_target_elevation > -35 deg
+      end_phase
+
+# more options
+ /*
+         next_phase POPUP when phase_time > 1000 sec
+         next_phase POPUP when altitude > 100000 m
+         next_phase POPUP when speed    > 100000 m/s
+         next_phase POPUP when target_altitude > 100000 m
+         next_phase POPUP when target_speed    > 100000 m/s
+         next_phase POPUP when closing_speed > 100000 m/s
+         next_phase POPUP when time_to_intercept < 1 sec
+         next_phase POPUP when range_to_intercept < 1 m
+         next_phase POPUP when target_slant_range < 1 m
+         next_phase POPUP when target_ground_range < 1 m
+         next_phase POPUP when target_azimuth > 179 deg
+         next_phase POPUP when target_elevation > 89 deg
+         next_phase POPUP when los_target_azimuth > 179 deg
+         next_phase POPUP when los_target_elevation > 89 deg
+         next_phase POPUP when los_target_angle > 179 deg
+ */
+
+#      phase POPUP
+#         # Command a ridiculous altitude... we just go up until the target
+#         # elevation angle is correct...
+#
+#         commanded_altitude 6000 m
+#
+#         next_phase DIVE when target_elevation < -20 deg
+#
+#         proportional_navigation_gain  10.0
+#         velocity_pursuit_gain         5.0
+#      end_phase
+#
+      phase TERMINAL
+         #proportional_navigation_gain  40.0
+         #omit_velocity_pursuit
+         commanded_speed              2200 fps
+         velocity_pursuit_gain        5.0
+        proportional_navigation_gain  40
+        maximum_pitch_angle           90 deg
+        maximum_commanded_g           25 g
+      end_phase
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+
+   radar_signature VEHICLE_RADAR_SIGNATURE
+
+   comm uplink WSF_COMM_TRANSCEIVER
+      internal_link data_mgr
+   end_comm
+
+   processor task_mgr WSF_TASK_PROCESSOR
+   end_processor
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval 400 seconds
+   end_processor
+
+#   processor seeker WSF_PERFECT_TRACKER
+#      update_interval 0.5 sec
+#   end_processor
+
+   sensor seeker  RED_MISSILE_SEEKER
+      # on
+      ignore_same_side
+      processor data_mgr
+      filter FILTER_TACTICS
+         range_measurement_sigma 0.5 m
+         bearing_measurement_sigma 0.1 deg
+         elevation_measurement_sigma 0.1 deg
+      end_filter
+   end_sensor
+
+   processor seeker_turn_on WSF_WEAPON_TRACK_PROCESSOR
+     # switch_time 10 sec
+     # turn_on_sensor seeker 80.0 sec after_launch
+     turn_on_sensor seeker at_range 30000.0 m before_intercept
+   end_processor
+
+
+end_platform_type
+
+weapon SSM_MISSILE WSF_EXPLICIT_WEAPON
+   launched_platform_type SSM203
+   weapon_effects SSM203_LETHALITY
+   quantity 1
+   firing_delay 0.0 sec # unknown
+   salvo_interval 2.0 sec # unknown
+   slew_mode azimuth
+   azimuth_slew_limits -180.0 deg 180.0 deg
+   tilt 88.9 deg
+   launch_delta_v 60.0 0.0 0.0 fps
+end_weapon
+

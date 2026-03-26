@@ -1,0 +1,279 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# DESCRIPTION:  This type of processor is a state machine that controls motion for a
+# platform which gains or loses proximity to another platform of interest for Supply
+# or Receive.  The primary mode of operation is to top itself off by traveling
+# to, and then receiving from one FIXED supplier, and then upon demand, traveling
+# to supply to a needy player.  The needy player will be handed to this platform
+# by an independent global function call.  Only one tranaction is allowed to occur
+# at a time, no simultaneous Supply and Receive is modeled.  It will not depart its
+# serving platform until its container is full.  When full, it will begin waiting
+# for a valid client (receiver), relocate there, and enable supplying.  When that
+# transaction is complete (FOR WHATEVER REASON), it will either wait for another
+# client, or (if empty), return to its server for more product.  Local manuevering
+# is not modeled, so rough proximity must be close enough to permit the proximity
+# limit to pass, and permit the transfer.  Its two primary jobs are to
+# A) <Optionally> Instruct the platform to move to supplier or client platforms as
+# needed, and B) To "enable" supply and receive flags in the parent platform when
+# it gets to its desired destinations or proximity.
+# INSTANCES:  Mechanic_1 & _2, and FuelTruck_1 & _2
+
+processor PLATFORM_TO_PLATFORM_TRANSPORT_PROCESSOR WSF_STATE_MACHINE
+
+   script_variables
+      bool        ppIsInitialized     = false;
+      bool        ppRunSilent         = false;
+      bool        ppIsFuelController  = true;  // else repair controller
+      bool        ppIsInRefillStage   = false;
+      bool        ppServerIsDefined   = false;
+      string      ppCurrentState      = "PP_IDLE";
+      double      ppProximityLimit    = 20.0;  //meters
+      Transactor  ppTransactor;
+      Container   ppContainer;
+      WsfPlatform ppPermanentServer; // may be fuel or repair...
+      WsfPlatform ppCurrentClient;   // this varies from time to time
+   end_script_variables
+
+   script void Say(string aMsg)
+      if ((ppRunSilent || gDebugNone) && (! gDebugAll)) return;
+      writeln("At t=", TIME_NOW,", ",PLATFORM.Name(), " - ",aMsg);
+   end_script
+
+   script string GetState()
+      return ppCurrentState;
+   end_script
+
+   script bool IsCloseToServer()
+      return PLATFORM.GroundRangeTo(ppPermanentServer) < ppProximityLimit;
+   end_script
+
+   script bool IsCloseToClient()
+      if (! ppCurrentClient.IsValid()) return false;
+      return PLATFORM.GroundRangeTo(ppCurrentClient) < ppProximityLimit;
+   end_script
+
+   script bool IsStationary()
+      return PLATFORM.Speed() < 0.1;
+   end_script
+
+   script void ExecuteMoveToServer()
+      WsfRoute routeToJob = WsfRoute();
+      routeToJob.Append(PLATFORM.LocationAsWaypoint());
+      routeToJob.Append(ppPermanentServer.LocationAsWaypoint());
+      routeToJob.Back().SetEndOfPathOption("STOP");
+      PLATFORM.GoToSpeed(100.0, 3.0); // will be limited by mover.
+      PLATFORM.FollowRoute(routeToJob);
+      Say("*** MOVING TO SERVER. ***");
+   end_script
+
+   script void ExecuteMoveToClient()
+      WsfRoute routeToJob = WsfRoute();
+      routeToJob.Append(PLATFORM.LocationAsWaypoint());
+      routeToJob.Append(ppCurrentClient.LocationAsWaypoint());
+      routeToJob.Back().SetEndOfPathOption("STOP");
+      PLATFORM.GoToSpeed(100.0, 3.0); // will be limited by mover.
+      PLATFORM.FollowRoute(routeToJob);
+      Say("*** MOVING TO CLIENT. ***");
+   end_script
+
+   #show_state_transitions
+
+   state PP_IDLE
+      on_entry
+         Say("Entering state PP_IDLE.");
+         PLATFORM.Comment("Entering state PP_IDLE");
+      end_on_entry
+      next_state STATIONARY_AT_SERVER
+         if (ppIsInRefillStage && IsCloseToServer() && IsStationary())
+         {
+            string name = ppPermanentServer.Name();
+            string msg = "PTPTP is stopped close to server " + name;
+            Say(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+      next_state STATIONARY_AT_CLIENT
+         if (! ppIsInRefillStage && IsCloseToClient() && IsStationary())
+         {
+            string msg = "PTPTP is stopped close to client " + ppCurrentClient.Name();
+            Say(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+      next_state IN_TRANSIT_TO_CLIENT
+         return ! ppIsInRefillStage && ppCurrentClient.IsValid() && ! IsCloseToClient();
+      end_next_state
+      next_state IN_TRANSIT_TO_SERVER
+         return ppIsInRefillStage && ! IsCloseToServer();
+      end_next_state
+   end_state
+
+   state IN_TRANSIT_TO_SERVER
+      on_entry
+         Say("Entering state IN_TRANSIT_TO_SERVER (Attempting FollowRoute).");
+         PLATFORM.Comment("Entering state IN_TRANSIT_TO_SERVER");
+         ExecuteMoveToServer();
+      end_on_entry
+      next_state STATIONARY_AT_SERVER
+         if (IsCloseToServer() && IsStationary())
+         {
+            string msg = "PTPTP is switching to STATIONARY_AT_SERVER, as I am close to server " + ppPermanentServer.Name();
+            Say(msg);
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+   state STATIONARY_AT_SERVER
+      on_entry
+         Say("Entering state STATIONARY_AT_SERVER.");
+         PLATFORM.Comment("Entering state STATIONARY_AT_SERVER");
+      end_on_entry
+   end_state
+
+   state IN_TRANSIT_TO_CLIENT
+      on_entry
+         Say("Entering state IN_TRANSIT_TO_CLIENT (Attempting to FollowRoute to client).");
+         PLATFORM.Comment("Entering state IN_TRANSIT_TO_CLIENT");
+         ExecuteMoveToClient();
+      end_on_entry
+      next_state STATIONARY_AT_CLIENT
+         return IsCloseToClient() && IsStationary();
+      end_next_state
+   end_state
+
+   state STATIONARY_AT_CLIENT
+      on_entry
+         Say("Entering state STATIONARY_AT_CLIENT.");
+         PLATFORM.Comment("Entering state STATIONARY_AT_CLIENT");
+      end_on_entry
+      next_state IN_TRANSIT_TO_SERVER
+         if (ppIsInRefillStage)
+         {
+            Say("PTPTP notes that container is empty.  Gotta RTB!");
+            return true;
+         }
+         return false;
+      end_next_state
+   end_state
+
+   script bool PTPTP_Init(Transactor aTransactor,
+                          Container  aContainer,
+                          bool       aRunSilent,
+                          bool       aIsFuelController)
+
+      bool success = true;
+
+      ppRunSilent = aRunSilent;
+      ppIsFuelController = aIsFuelController;
+
+      ppContainer = aContainer;
+      ppTransactor = aTransactor;
+
+      bool goodMover = PLATFORM.Mover().IsValid();
+      if (! goodMover)
+      {
+         Say("Provided Mover was not valid.");
+         success = false;
+      }
+
+      if (! ppContainer.IsValid())
+      {
+         Say("Provided ppContainer was not valid.");
+         success = false;
+      }
+      else
+      {
+         ppIsInRefillStage = ppContainer.IsEmpty();
+      }
+
+      if (! ppTransactor.IsValid())
+      {
+         Say("Provided ppTransactor was not valid.");
+         success = false;
+      }
+
+      if (success)
+      {
+         Say("PTPTP_Init() succeeded");
+         ppIsInitialized = true;
+      }
+      else
+      {
+         Say("PTPTP_Init() FAILED");
+      }
+      return success;
+
+   end_script
+
+   on_update
+
+      if (ppIsInitialized)
+      {
+         # It is dangerous to try to do anything before we know who our provider is...
+         if (! ppServerIsDefined) return;
+
+         ppCurrentState = STATE_MACHINE.Evaluate(ppCurrentState);
+         #string msg = " current PTPTP State is " + ppCurrentState;
+         #Say(msg);
+
+         # Set flags that force us to go get more product if we have run out.
+         if (ppContainer.IsEmpty() && ! ppIsInRefillStage)
+         {
+            Say("Setting IN_REFILL_STAGE = TRUE");
+            PLATFORM.Comment("Container is empty, time for a refill!");
+            ppIsInRefillStage = true;
+         }
+
+         if (ppContainer.IsFull() && ppIsInRefillStage)
+         {
+            PLATFORM.Comment("Container is Full.");
+            Say("Setting IN_REFILL_STAGE = FALSE");
+            ppIsInRefillStage = false;
+         }
+
+         if (ppCurrentState == "WAITING_FOR_VALID_CLIENT" && ! ppCurrentClient.IsValid())
+         {
+            if (ppIsFuelController)
+            {
+               WsfPlatform thirsty = gGetFuelingAssignment(PLATFORM);
+               if (thirsty.IsValid())
+               {
+                  PLATFORM.Execute("SetFuelRequestingPlatform", {thirsty});
+                  string msg = "Received Fueling Assignment to fill " + thirsty.Name();
+                  PLATFORM.Comment(msg);
+                  ppCurrentClient = thirsty;
+
+                  # DRB TO-DO thirsty.Execute("SetFuelOfferingPlatform", {PLATFORM});
+               }
+            }
+            else
+            {
+               WsfPlatform broken = gGetRepairAssignment(PLATFORM);
+               if (broken.IsValid())
+               {
+                  PLATFORM.Execute("SetRepairRequestingPlatform", {broken});
+                  string msg = "Received Repair Assignment to fix " + broken.Name();
+                  PLATFORM.Comment(msg);
+                  ppCurrentClient = broken;
+
+                  # DRB TO-Do broken.Execute("SetRepairOfferingPlatform", {PLATFORM});
+               }
+            }
+         }
+      }
+
+   end_on_update
+
+   update_interval 10 sec
+
+end_processor

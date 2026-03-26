@@ -1,0 +1,154 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# A demonstration using the AFSIM lasercomm model.  A subset of the planned 
+# "starfire" constellation is modeled using the Wizard Constellation Maker.  
+# The crosslinks and downlinks of the satellites in the constellation are 
+# lasercomms.  Satellites in the same plane in the constellation have fixed 
+# network links with the previous and subsequent satellites in their orbits, 
+# but side crosslinks dynamically connect with relatively nearby satellites.  
+# Managing communication links is performed through scripting.  Using this 
+# ad-hoc network, a platform periodically sends messages to a commander 
+# on the other side of the world.
+# ==============================================================================
+
+file_path .
+include_once platforms/starlink_linkable_setup.txt
+include_once platforms/starlink.txt
+include_once scenarios/ground_segment.txt
+
+start_date nov 1 2019
+start_time 07:30:00
+end_time 2000 s
+
+# This moves the comm device on the given platform onto a new network with a name
+# derived from the comm device name and platform name.
+script void AddCommToNewNetwork(WsfPlatform aPlatform, string aCommDeviceName)
+   WsfComm comm = aPlatform.Comm(aCommDeviceName);
+   if (comm.IsValid())
+   {
+      WsfNetworkGeneric network = WsfNetworkGeneric();
+      network.SetName(aCommDeviceName + "_" + aPlatform.Name());
+      if (WsfNetwork.AddNetwork(network))
+      {         
+         WsfNetwork current = WsfNetwork.GetNetwork(comm.NetworkName());
+         if (current.RemoveMember(aPlatform.Name(), aCommDeviceName))
+         {        
+            network.AddMember(comm);
+         }
+         else
+         {
+            writeln("***** ERROR: Unable to remove device ", aCommDeviceName, " from network '",
+                    current.GetName(), "'.");
+         }
+      }
+      else
+      {
+         writeln("***** ERROR: Unable to add network for device ", aCommDeviceName,
+                 " on platform ", aPlatform.Name(), ".");
+      }
+   }
+   else
+   {
+      writeln("***** ERROR: During setup, unable to find ", aCommDeviceName,
+              " for platform ", aPlatform.Name(), ".");
+   }
+end_script
+
+# This utility script is used to add a link between the specified platforms and devices.
+script void AddLink(string aSourcePlatform,
+                    string aSourceDevice,
+                    string aTargetPlatform,
+                    string aTargetDevice)
+   WsfComm sourceComm = WsfSimulation.FindPlatform(aSourcePlatform).Comm(aSourceDevice);
+   WsfComm targetComm = WsfSimulation.FindPlatform(aTargetPlatform).Comm(aTargetDevice);
+   sourceComm.AddConnection(targetComm.GetAddress());
+end_script
+
+# This script is called by WsfConstellationMaker.Create after the member platforms
+# have been instantiated. This script will move the comm devices off of the starlink_default
+# network and onto the networks as they are in the lasercomm.txt demo.
+script void StarlinkSetup(WsfConstellation aConstellation, int aPlane, int aSat, WsfPlatform aPlatform)
+   // Move comm devices into their final networks
+   AddCommToNewNetwork(aPlatform, "crosslink1");
+   AddCommToNewNetwork(aPlatform, "crosslink2");
+   AddCommToNewNetwork(aPlatform, "crosslink3");
+   AddCommToNewNetwork(aPlatform, "crosslink4");
+   AddCommToNewNetwork(aPlatform, "downlink");
+   
+   // Connect all comms on each platform to one another.
+   // The default router is created when the devices are on the initial
+   // network. When the comm devices are moved to their final network, their
+   // addresses change, and so they are no longer linked via aPlatform's router.
+   int commCount = aPlatform.CommCount();
+   for (int s = 0; s < commCount; s += 1)
+   {
+      WsfComm source = aPlatform.CommEntry(s);
+      for (int t = 0; t < commCount; t += 1)
+      {
+         WsfComm target = aPlatform.CommEntry(t);
+         
+         if (s != t)
+         {
+            source.AddConnection(target.GetAddress());
+         }
+      }
+   }
+end_script
+
+# This script, used in a call to WsfConstellation.Apply, sets up the dedicated links in the 
+# constellation. This has to occur after the creation of the constellation, because the addresses
+# of the devices will change as they are moved into their final network.
+script void AddInPlaneLink(WsfConstellation aConstellation, int aPlane, int aSatellite, WsfPlatform aPlatform)
+   AddLink(aPlatform.Name(),
+           "crosslink1",
+           aConstellation.MemberName(aPlane, aConstellation.NextSatelliteInPlane(aSatellite)),
+           "crosslink2");
+   AddLink(aPlatform.Name(),
+           "crosslink2",
+           aConstellation.MemberName(aPlane, aConstellation.PreviousSatelliteInPlane(aSatellite)),
+           "crosslink1");   
+end_script
+
+# The main script in this scenario. This kicks off the operations by adding the constellation to
+# the simulation.
+execute at_time 1.0e-10 s absolute
+   // Create an object that can be used to create the constellation, and set its options to match
+   // those used in the original lasercomm demo. See also ./scenarios/starlink_autogen.txt.
+   WsfConstellationMaker maker = WsfConstellationMaker.CreateGeneral(16, 18, 5.0, 360.0);
+   maker.SetConstellationName("starlink");
+   maker.SetInclination(53.0);
+   maker.SetInitialAnomaly(0.0);
+   maker.SetInitialRAAN(0.0);
+   maker.SetPlatformType("STARLINK");
+   maker.SetRevolutionsPerDay(13.3);
+   
+   // Use the maker object to instantiate the platforms into the scenario. This makes use of a
+   // setup script, defined above, to make changes to the comm devices after the platforms
+   // have been instantiated.
+   WsfConstellation starlink = maker.Create("", "StarlinkSetup");
+   
+   // Once all of the changes to the comm devices have been made, setup the dedicated, in-plane links
+   // between the various members.
+   starlink.Apply("AddInPlaneLink");
+end_execute
+
+event_pipe 
+   file output/lasercomm_scripted.aer
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+   enable DRAW
+end_event_pipe
+
+event_output
+   file output/lasercomm_scripted.evt
+   enable TASK_ASSIGNED
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+end_event_output

@@ -1,0 +1,218 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates the use of unguided rockets using P6DOF movers.
+# The rockets in this example are unguided rockets. An aircraft begins
+# the demo in level flight and bunts over into a shallow dive, lines up on
+# the target (tank) and fires a salvo of 16 rockets from a right and left
+# "weapon", representing four quad-tubes under the wings. After firing the
+# rockets, the aircraft pulls away and the rockets destroy the target.
+#
+# ******************************************************************************
+
+define_path_variable CASE unguided_rocket_test
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time  45 sec
+
+# Define WSF platform types that use P6DOF movers
+include_once platforms/unguided_rocket.txt
+include_once platforms/fa-lgt.txt
+
+weapon_effects UNGUIDED_ROCKET_LETHALITY WSF_SPHERICAL_LETHALITY
+   maximum_radius 1500.0 ft
+   allow_incidental_damage
+end_weapon_effects
+
+weapon UNGUIDED_ROCKET_POD WSF_EXPLICIT_WEAPON
+   launched_platform_type UNGUIDED_ROCKET
+   weapon_effects         UNGUIDED_ROCKET_LETHALITY
+end_weapon
+
+platform_type FA-LGT-UNGUIDED_ROCKET FA-LGT
+
+   # Define the weapons
+   
+   weapon unguided_rocket_pods_lft UNGUIDED_ROCKET_POD
+      quantity 8
+      location 0.0 -4.0 1.0 m
+      pitch 3.0 deg
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+   end_weapon
+
+   weapon unguided_rocket_pods_rgt UNGUIDED_ROCKET_POD
+      quantity 8
+      location 0.0 4.0 1.0 m
+      pitch 3.0 deg
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+   end_weapon
+
+   script_variables
+      bool diveInitiated     = false;
+      bool steadyDive        = false;
+      bool triggerPulled     = false;
+      bool noAmmo            = false;
+      double timeToPullout   = 0.0;
+      bool pulloutInitiated  = false;
+      bool climboutInitiated = false;
+      bool leveloffInitiated = false;
+   end_script_variables
+   
+   processor script-proc WSF_SCRIPT_PROCESSOR
+      
+      on
+
+      script void Dive()
+         WsfMover mover = PLATFORM.Mover();
+         if( mover.IsValid() )
+         {
+            if (mover.IsA_TypeOf("WSF_P6DOF_MOVER"))
+            {
+               WsfP6DOF_Mover p6dofMover = (WsfP6DOF_Mover)mover; 
+               p6dofMover.SetPitchGLoad(0.1); 
+            }
+         }
+      end_script
+
+      script void PullG(double numG)
+         WsfMover mover = PLATFORM.Mover();
+         if( mover.IsValid() )
+         {
+            if (mover.IsA_TypeOf("WSF_P6DOF_MOVER"))
+            {
+               WsfP6DOF_Mover p6dofMover = (WsfP6DOF_Mover)mover; 
+               p6dofMover.SetPitchGLoad(numG); 
+            }
+         }
+      end_script
+
+      script void Pullout()
+         WsfMover mover = PLATFORM.Mover();
+         if( mover.IsValid() )
+         {
+            if (mover.IsA_TypeOf("WSF_P6DOF_MOVER"))
+            {
+               WsfP6DOF_Mover p6dofMover = (WsfP6DOF_Mover)mover; 
+               p6dofMover.SetPitchGLoad(7.0);
+               p6dofMover.SetAutopilotDeltaRoll(70.0);
+            }
+         }
+      end_script
+      
+      script void LevelOff()
+         WsfMover mover = PLATFORM.Mover();
+         if( mover.IsValid() )
+         {
+            if (mover.IsA_TypeOf("WSF_P6DOF_MOVER"))
+            {
+               WsfP6DOF_Mover p6dofMover = (WsfP6DOF_Mover)mover; 
+               p6dofMover.SetAutopilotVerticalSpeed(5000.0); 
+               p6dofMover.SetAutopilotRollAngle(0.0); 
+            }
+         }
+      end_script
+      
+      update_interval 0.2 sec
+      
+      on_update
+         if( (TIME_NOW > 4.0) && !diveInitiated )
+         {
+            writeln("Begin dive...");
+            Dive();
+            diveInitiated = true;
+         }
+         
+         if( diveInitiated && !steadyDive)
+         {
+            double pitch_deg = PLATFORM.Pitch();
+            if( pitch_deg < -20.0 )
+            {
+               writeln("Steady the dive...");
+               steadyDive = true;
+               PullG(1.05);
+            }
+         }
+         
+         if( steadyDive && !triggerPulled)
+         {
+            if( PLATFORM.Altitude() < 1300 )
+            {
+               writeln("Pull the trigger...");
+               triggerPulled = true;
+            }
+         }
+
+         if( triggerPulled && !noAmmo)
+         {
+            WsfWeapon lftPod = PLATFORM.Weapon("unguided_rocket_pods_lft");
+            WsfWeapon rgtPod = PLATFORM.Weapon("unguided_rocket_pods_rgt");
+            
+            lftPod.Fire();
+            rgtPod.Fire();
+            
+            if( (lftPod.QuantityRemaining() < 1.0 ) &&
+                (rgtPod.QuantityRemaining() < 1.0 ) )
+            {
+               writeln("Out of ammo...");
+               noAmmo = true;
+               // Wait 1 second to pullout
+               timeToPullout = TIME_NOW + 1.0;
+            }
+         }
+
+         if( noAmmo && !pulloutInitiated )
+         {
+            if( TIME_NOW >= timeToPullout)
+            {
+               writeln("Pull out...");
+               pulloutInitiated = true;
+               Pullout();
+            }         
+         }
+         
+         if( pulloutInitiated && !leveloffInitiated )
+         {
+            if( PLATFORM.Heading() > 170.0 )
+            {
+               writeln("Level off ...");
+               leveloffInitiated = true;
+               LevelOff();
+            }
+         }
+         
+      end_on_update
+   end_processor
+
+end_platform_type
+
+# --------------------------------------------------------------------------------------------------
+
+platform strike_fighter FA-LGT-UNGUIDED_ROCKET
+   update_interval 0.01 sec
+   spatial_domain air 
+   icon  f16
+   side  blue
+   route
+     position  21.28n  157.940w  altitude 6000.0 ft   speed  450.0 kts
+     position  21.38n  157.940w  altitude 6000.0 ft   speed  450.0 kts
+   end_route
+   
+end_platform
+
+platform target WSF_PLATFORM
+   spatial_domain land
+   icon           tank
+   side           red
+   position  21.341944n 157.940039w  altitude 45.0 ft
+   heading   205 deg
+end_platform

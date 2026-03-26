@@ -1,0 +1,27 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Startup - 4th_lat_lon_global.txt - Coverage_Demo
+
+define_path_variable CASE 4th_lat_lon_global
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+file_path  .
+
+// Satellite platform and constellation definition
+include_once platforms/sat1.txt
+include scenarios/sat_con_1_autogen.txt
+
+// Coverage and grid definition
+include_once coverage_grids/global_lat_lon_coverage.txt
+
+// Sim start epoch and end time
+start_date jul 07 2020 
+start_time 00:00:00.00
+
+end_time 4 hrs

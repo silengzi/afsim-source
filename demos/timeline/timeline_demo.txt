@@ -1,0 +1,37 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This demo illustrates the WSF timeline agents
+# High level description: blue sweep from the west, red defend
+define_path_variable CASE timeline_demo
+# setup include paths
+
+file_path .
+file_path ../base_types/processors/timeline_agents
+
+end_time 20 min
+random_seed 142535
+# setup simulation output and data logging
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+include event_output.txt
+event_output file output/$(CASE).evt end_event_output
+
+#types
+include_once platforms/common.txt
+include_once platforms/flight_lead.txt
+include_once platforms/striker.txt
+#laydowns
+include scenarios/blue_sweep.txt
+include scenarios/red_dca.txt
+
+platform_availability
+   name north_cap_2 availability 1
+   name sweep_2     availability 1
+end_platform_availability

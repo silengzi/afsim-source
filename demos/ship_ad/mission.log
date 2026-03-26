@@ -1,0 +1,54 @@
+2025-10-31 16:31:43 file 1st_asm.txt
+2025-10-31 16:31:43 version wsf 2.9.0
+2025-10-31 16:31:43 file 1st_asm.txt
+2025-10-31 16:31:43 file setup.txt
+2025-10-31 16:31:43 file event_output.txt
+2025-10-31 16:31:43 file event_pipe.txt
+2025-10-31 16:31:43 file terrain.txt
+2025-10-31 16:31:43 file platforms/common.txt
+2025-10-31 16:31:43 file platforms/red_missile_destroyer.txt
+2025-10-31 16:31:43 version $Id: red_missile_destroyer.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./platforms/naval_sam_tactics.txt
+2025-10-31 16:31:43 file ./weapons/sam/sam_launch_computer.txt
+2025-10-31 16:31:43 file ./weapons/sam/red_sr_sam_1_launch_computer.txt
+2025-10-31 16:31:43 file ./weapons/sam/red_sr_sam_2_launch_computer.txt
+2025-10-31 16:31:43 file ./platforms/naval_asm_tactics.txt
+2025-10-31 16:31:43 file ./weapons/agm/asm_launch_computer.txt
+2025-10-31 16:31:43 file ./weapons/agm/red_asm_msl_launch_computer.txt
+2025-10-31 16:31:43 file ./platforms/announce_launch_tactics.txt
+2025-10-31 16:31:43 file ./sensors/radar/rice_screen.txt
+2025-10-31 16:31:43 version $Id: rice_screen.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./sensors/radar/sr_sam_fcr_1.txt
+2025-10-31 16:31:43 version $Id: sr_sam_fcr_1.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./weapons/sam/red_sr_sam_1.txt
+2025-10-31 16:31:43 version $Id: red_sr_sam_1.txt,v 1.2 2010/12/07 13:39:52 m191713 Exp $
+2025-10-31 16:31:43 file ./weapons/agm/red_asm_msl.txt
+2025-10-31 16:31:43 version $Id: red_asm_msl.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./weapons/agm/asm_tactics.txt
+2025-10-31 16:31:43 file ./sensors/radar/red_missile_seeker_1.txt
+2025-10-31 16:31:43 version $Id: red_missile_seeker_1.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file platforms/red_missile_frigate.txt
+2025-10-31 16:31:43 version $Id: red_missile_frigate.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./sensors/radar/top_plate.txt
+2025-10-31 16:31:43 version $Id: top_plate.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./sensors/radar/front_dome.txt
+2025-10-31 16:31:43 version $Id: front_dome.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./weapons/sam/red_sr_sam_2.txt
+2025-10-31 16:31:43 version $Id: red_sr_sam_2.txt,v 1.2 2010/12/07 13:39:52 m191713 Exp $
+2025-10-31 16:31:43 file platforms/missile_ship.txt
+2025-10-31 16:31:43 version $Id: missile_ship.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./platforms/naval_ssm_tactics.txt
+2025-10-31 16:31:43 file ./weapons/ssm/ssm_launch_computer.txt
+2025-10-31 16:31:43 file ./weapons/ssm/ssm_missile_launch_computer.txt
+2025-10-31 16:31:43 file ./weapons/ssm/ssm_missile.txt
+2025-10-31 16:31:43 version $Id: ssm_missile.txt,v 1.2 2010/12/07 13:39:53 m191713 Exp $
+2025-10-31 16:31:43 file platforms/red_naval_helicopter.txt
+2025-10-31 16:31:43 version $Id: red_naval_helicopter.txt,v 1.2 2011/09/28 19:06:28 jj672c Exp $
+2025-10-31 16:31:43 file ./sensors/radar/helicopter_surface_search_radar_1.txt
+2025-10-31 16:31:43 version $Id: helicopter_surface_search_radar_1.txt,v 1.1.1.1 2008/07/28 15:09:03 m210650 Exp $
+2025-10-31 16:31:43 file ./platforms/inflight_update_tactics.txt
+2025-10-31 16:31:43 file scenarios/naval_asm_test.txt
+2025-10-31 16:31:43 AER output file: output/1st_asm.aer
+2025-10-31 16:31:43 Event output file: output/1st_asm.evt
+2025-10-31 16:31:43 start 1
+2025-10-31 16:31:43 complete 5400.001 0.042 0.047

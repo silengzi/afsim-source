@@ -1,0 +1,114 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Define the road traffic block.
+# Note: If you have multiple roadnetworks, you need to define multiple
+#       road_traffic blocks.
+platform_type TESTVEHICLE WSF_PLATFORM
+end_platform_type
+
+road_traffic
+   network korea_roadnetwork
+
+      vehicle_count               200
+      maximum_speed               100.0 mi/h
+      minimum_distance_off_road     0.1 nm
+      maximum_distance_off_road     0.2 nm
+      pause_time_off_road           0.01 min
+      mean_travel_time              2 hr
+      sigma_travel_time             1 hr
+
+      // The following weighted regions define areas of higher concentrations
+      // of traffic.  You can place as many as you want and specify their radii
+      // and weighting factors.  The higher the weighting factor, the higher the
+      // the density of traffic will be around that region.
+
+      // Lets cluster the vehicles around the following Korean cities.
+
+      // Seoul
+      weighted_region
+         latitude     37:32:00n
+         longitude   126:56:00e
+         inner_radius  0 nm
+         outer_radius  12 nm
+         inner_weight  12.0
+         outer_weight  6.0
+      end_weighted_region
+
+      // Yongyang
+      weighted_region
+         latitude     39:02:00n
+         longitude   125:45:00e
+         inner_radius  0 nm
+         outer_radius  3 nm
+         inner_weight  2.0
+         outer_weight  2.0
+      end_weighted_region
+
+      // Kaesong
+      weighted_region
+         latitude     37:58:00n
+         longitude   126:33:30e
+         inner_radius  0 nm
+         outer_radius  2 nm
+         inner_weight  2.5
+         outer_weight  2.0
+      end_weighted_region
+
+      // Wonsan
+      weighted_region
+         latitude     39:10:00n
+         longitude   127:26:00e
+         inner_radius  1 nm
+         outer_radius  2 nm
+         inner_weight  2.0
+         outer_weight  2.0
+      end_weighted_region
+
+      // Specify the types of vehicles that should show up as random traffic
+      // on this road network.
+      // Note: fraction is the percentage of vehicles that will be of a given
+      // type. Make sure all the fractions sum to 1.0.
+
+      vehicle CAR
+         fraction      0.75
+         mean_speed   60 mi/h
+         sigma_speed   5 mi/h
+      end_vehicle
+
+      vehicle PICKUP_TRUCK
+         fraction      0.20
+         mean_speed   55 mi/h
+         sigma_speed  10 mi/h
+      end_vehicle
+
+      vehicle SCHOOL_BUS
+         fraction      0.05
+         mean_speed   50 mi/h
+         sigma_speed   5 mi/h
+      end_vehicle
+
+      // Create a convoy.  (Convoy is broken right now)
+      convoy
+         start_position  37:30n 127:00e
+         end_position    37:51n 127:42e
+         spacing         1000 ft
+         speed           50 mi/h
+
+         // If you uncomment use_closest_waypoint the vehicles will snap
+         // the closest point on the road.
+         // use_closest_waypoint
+
+         // You can specify as many vehicle types here as you want,
+         // just create multiple vehicle/end_vehicle blocks for each.
+         vehicle 5 PICKUP_TRUCK  end_vehicle
+         vehicle 5 CAR  end_vehicle
+      end_convoy
+  end_network
+end_road_traffic
+

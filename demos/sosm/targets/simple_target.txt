@@ -1,0 +1,22 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                                   UNCLASSIFIED
+#
+# A simple constant radiant intensity target. This target will return the
+# specified radiant intensity regard of the presented area or the sensor
+# that is attempting to detect the target.
+###############################################################################
+
+target_model simple
+   state default
+      cold_part_area                   constant 1 m^2
+      cold_part_radiant_intensity      1 w/sr
+   end_state
+end_target_model

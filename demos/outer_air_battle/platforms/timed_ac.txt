@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+#include_once platforms/TIMED_STATION_AC.txt
+include_once processors/station_timer.txt
+
+platform_type TIMED_AC WSF_PLATFORM
+
+#  this platform MUST have a mover so that the route/labels will work.
+   mover WSF_AIR_MOVER end_mover
+
+#  This script is defined here, instead of in the processor, because it is
+#  "called" by the aircraft, as part of the route.
+   include processors/onstation.txt
+
+   processor station_timer STATION_TIMER
+      script_variables
+         time_before_refueling = 1000.0;
+         total_station_time    = 3000.0;
+         refuel_waypoint_label = "cap_refuel";
+         go_home_waypoint_label= "go_home";
+      end_script_variables
+   end_processor
+
+end_platform_type

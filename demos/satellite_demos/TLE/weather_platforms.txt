@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# See satellite_types.txt for platform type definitions.
+
+platform FENGYUN_3A(32958) WEATHER
+   orbit
+1 32958U 08026A   14244.11542200  .00000097  00000-0  66014-4 0  3073
+2 32958  98.5481 300.3676 0009749   2.6449 357.4788 14.19466915324617
+   end_orbit
+end_platform
+
+platform METEOR-M_1(35865) WEATHER
+   orbit
+1 35865U 09049A   14243.72926710  .00000033  00000-0  34408-4 0  8489
+2 35865  98.5425 288.8260 0001620 224.0980 136.0071 14.21928370257076
+   end_orbit
+end_platform
+
+platform FENGYUN_3B(37214) WEATHER
+   orbit
+1 37214U 10059A   14243.92538261  .00000051  00000-0  45442-4 0  1847
+2 37214  98.8505 192.3328 0000136 234.4265 125.6900 14.19481229198088
+   end_orbit
+end_platform
+
+platform SUOMI_NPP(37849) WEATHER
+   orbit
+1 37849U 11061A   14243.48852102  .00000014  00000-0  27394-4 0  8672
+2 37849  98.7750 182.8549 0001247 134.9613 358.7523 14.19518224147278
+   end_orbit
+end_platform
+
+platform FENGYUN_3C(39260) WEATHER
+   orbit
+1 39260U 13052A   14244.16579932  .00000064  00000-0  51153-4 0   538
+2 39260  98.7653 314.8531 0001729  73.1490 286.9884 14.19474389 48667
+   end_orbit
+end_platform
+
+platform METEOR-M_2(40069) WEATHER
+   orbit
+1 40069U 14037A   14244.17321023  .00000007  00000-0  24184-4 0  1518
+2 40069  98.8014 295.8155 0004417 279.6121  80.4562 14.20571587  7732
+   end_orbit
+end_platform
+

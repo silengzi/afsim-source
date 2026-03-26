@@ -1,0 +1,102 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =====================================================================================================
+# =====================================================================================================
+# This is an example scenario to exercise and debug laser designation functionality across DIS.
+# This particular input file models the designator only.  Target and Shooter are separate.
+# =====================================================================================================
+# =====================================================================================================
+
+include designator_type.txt
+
+realtime
+clock_rate 10.0
+
+# Since we wish to demonstrate navigation over uneven terrain, we must first pull in some DTED data:
+terrain
+   raw_dted 2 dted 39 -107 40 -106
+end_terrain
+
+laser_designations
+   #debug_laser_designations
+   stale_out_interval 4 sec
+   update_interval    5 sec
+   #debug_print_modulus 333
+end_laser_designations
+
+include ldt_dis.txt
+
+dis_interface
+   application  3
+   # This assumes IP address is 10:34:209:51
+   multicast 227.1.1.1 10.34.209 port 3031
+end_dis_interface
+
+platform designator AH-64A
+
+   script_variables
+
+      WsfSensor       mySensor;
+      WsfPlatform     myTarget;
+      WsfTrack        myTrack;
+      bool ok           = true;
+      bool errorPrinted = false;
+
+   end_script_variables
+
+   update_interval 1.0 sec
+
+   on_update
+         myTarget = WsfSimulation.FindPlatform("<dis>1:2:1");
+         ok = myTarget.IsValid();
+         if (ok)
+         {
+            myTrack = myTarget.MakeTrack();
+            ok = myTrack.IsValid();
+            if (ok)
+            {
+               mySensor.CueToTrack(myTrack);
+               writeln("currently cued");
+            }
+            else if (! errorPrinted)
+            {
+               writeln("Track is not valid");
+               #errorPrinted = true;
+            }
+         }
+         else if (! errorPrinted)
+         {
+            writeln("Target not found");
+            #errorPrinted = true;
+         }
+   end_on_update
+
+   on_initialize
+      mySensor = Sensor("laser_designator");
+      ok = mySensor.IsValid();
+      if (ok)
+      {
+         mySensor.TurnOn();
+      }
+      else if (! errorPrinted)
+      {
+         writeln("ERROR:  Sensor of specified name not found.");
+         errorPrinted = true;
+      }
+   end_on_initialize
+end_platform
+
+event_output
+   file ldt_designator_only.evt
+   enable WEAPON_TERMINATED
+   enable WEAPON_FIRED
+   enable PLATFORM_BROKEN
+end_event_output
+
+end_time 20 min

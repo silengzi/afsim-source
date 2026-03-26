@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Execute a fixed detection query (useful for comparing with IRIPP)
+# ==============================================================================
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+   load_atmosphere      DEFAULT from ../../modtran/mid_lat_summer_day.txt
+   load_sensor          SENSOR  from ../../sensors/uniform_lwir.txt
+   load_target          TARGET  from ../../targets/red_multirole_fighter_3/red_multirole_fighter_3.txt
+
+   debug_level 1
+   show_iripp_data
+
+   test query_detect
+      target_altitude                  30000 ft
+      target_to_sensor_range           26.0960 km
+      target_to_sensor_azimuth         0.0 deg
+      target_to_sensor_elevation       0.0 deg
+   end_test
+end_sosm_interface

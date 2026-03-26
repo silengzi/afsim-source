@@ -1,0 +1,103 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+multiresolution_processor MR_MESSAGE_PROCESSOR WSF_MULTIRESOLUTION_PROCESSOR
+   model low_fidelity_model
+      fidelity_range 0.0 0.5
+      processor WSF_SCRIPT_PROCESSOR
+         on_initialize
+            writeln("Initializing low_fidelity_model script processor");
+         end_on_initialize
+         on_message
+            default
+            script
+               writeln(PLATFORM.Name(), " received low fidelity message from ", MESSAGE.Originator(), " with tag ", MESSAGE.DataTag());
+            end_script
+         end_on_message
+      end_processor
+   end_model
+   model hight_fidelity_model
+      fidelity_range 0.5 1.0
+      processor WSF_SCRIPT_PROCESSOR
+         on_initialize
+            writeln("Initializing high_fidelity_model script processor");
+         end_on_initialize
+         on_message
+            default
+            script
+               writeln(PLATFORM.Name(), " recieved high fidelity message from ", MESSAGE.Originator(), " with tag ", MESSAGE.DataTag());
+            end_script
+         end_on_message
+      end_processor
+   end_model
+end_multiresolution_processor
+
+processor LOW_FIDELITY_TASK_PROCESSOR WSF_TASK_PROCESSOR
+   evaluation_interval MOVING 10.0 sec
+   state MOVING
+      on_entry
+         PLATFORM.GoToSpeed(250.0);
+         PLATFORM.GoToLocation(0.3, 0.0, 6096.0);
+         writeln("Using low-fidelity task processor, heading straight to specified location.");
+      end_on_entry
+   end_state
+end_processor
+
+processor HIGH_FIDELITY_TASK_PROCESSOR WSF_TASK_PROCESSOR
+   evaluation_interval SEARCHING 1.0 sec
+   evaluation_interval MOVING 0.5 sec
+   
+   script_variables
+      WsfGeoPoint targetPoint = WsfGeoPoint();
+   end_script_variables
+   
+   state SEARCHING
+      next_state MOVING
+         if (TRACK) {
+            targetPoint = TRACK.CurrentLocation();
+            writeln("Found tortoise at ", targetPoint);
+            return true;
+         } else {
+            return false;
+         }
+      end_next_state
+   end_state
+   
+   state MOVING
+      on_entry
+         PLATFORM.GoToSpeed(250.0, 1.0, true);
+         PLATFORM.GoToLocation(targetPoint);
+         writeln("Chasing tortoise to ", targetPoint);
+      end_on_entry
+      next_state SEARCHING
+         if (PLATFORM.Location().SlantRangeTo(targetPoint) < 200.0){
+            writeln("Caught tortoise!");
+            PLATFORM.SetVelocityNED(0,0,0);
+            return true;
+         } else {
+            return false;
+         }
+      end_next_state
+   end_state
+end_processor
+
+multiresolution_processor MR_TASK_PROCESSOR WSF_MULTIRESOLUTION_PROCESSOR
+   model low_fidelity_model
+      fidelity_range 0.0 0.5
+      processor LOW_FIDELITY_TASK_PROCESSOR
+      end_processor
+   end_model
+   model hight_fidelity_model
+      fidelity_range 0.5 1.0
+      processor HIGH_FIDELITY_TASK_PROCESSOR
+      end_processor
+   end_model
+end_multiresolution_processor

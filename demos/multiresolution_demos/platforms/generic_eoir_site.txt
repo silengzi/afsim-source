@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Copied from demos/signature_demos/platforms
+
+include_once sensors/generic_eoir.txt
+
+platform_type GENERIC_EOIR_SITE WSF_PLATFORM
+   icon Ground_Radar
+   
+   processor track_mgr WSF_TRACK_PROCESSOR
+   end_processor
+   
+   processor image_proc WSF_IMAGE_PROCESSOR 
+     internal_link track_mgr
+   end_processor
+   
+   sensor sensor_eoir GENERIC_EOIR
+      on
+      internal_link image_proc
+   end_sensor
+end_platform_type

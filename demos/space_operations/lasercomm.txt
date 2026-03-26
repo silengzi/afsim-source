@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# A demonstration using the AFSIM lasercomm model.  A subset of the planned 
+# "starfire" constellation is modeled using the Wizard Constellation Maker.  
+# The crosslinks and downlinks of the satellites in the constellation are 
+# lasercomms.  Satellites in the same plane in the constellation have fixed 
+# network links with the previous and subsequent satellites in their orbits, 
+# but side crosslinks dynamically connect with relatively nearby satellites.  
+# Managing communication links is performed through scripting.  Using this 
+# ad-hoc network, a platform periodically sends messages to a commander 
+# on the other side of the world.
+# ==============================================================================
+file_path .
+include_once platforms/starlink_linkable_setup.txt
+include_once platforms/starlink.txt
+include_once scenarios/ground_segment.txt
+include_once ./scenarios/starlink_autogen.txt
+
+start_date apr 2 2019
+start_time 07:30:00
+end_time 2000 s
+
+event_pipe 
+   file output/lasercomm.aer
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+   enable DRAW
+end_event_pipe
+
+event_output
+   file output/lasercomm.evt
+   enable TASK_ASSIGNED
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+end_event_output

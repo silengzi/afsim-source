@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Specify parameters for a dis_interface real time object
+
+
+realtime
+#frame_time 0.025 sec
+#minimum_mover_timestep 0.05 sec
+
+
+dis_interface
+   #log_created_entities
+   exercise    1
+   site        25
+   application 1
+
+  #multicast 224.2.25.55 192.168.10.32
+  #unicast   192.168.10.46
+   broadcast 192.168.10.255
+   port      3000
+
+   autostart
+
+   #use_pdu_time
+   ignore_pdu_time
+
+   simple_detonations on
+   simple_kill_range  100 m
+
+  #heartbeat_timer            12.0 sec
+   heartbeat_timer             2.0 sec
+  #mover_update_timer          5.0 sec
+   mover_update_timer          1.0 sec
+  #entity_position_threshold  10.0 meters
+   entity_position_threshold   5.0 meters
+
+   #suppress_comm_data          true
+   #debug_emission_pdu 2
+
+end_dis_interface

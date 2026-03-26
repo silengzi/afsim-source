@@ -1,0 +1,23 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Electro-optical infrared sensor on satellite to obtain images
+sensor SAT_SENSOR WSF_EOIR_SENSOR
+   on
+   frame_time 10 sec
+   //reports_bearing
+   reports_location
+   azimuth_field_of_view -1.0 deg 1.0 deg
+   elevation_field_of_view -1.0 deg 1.0 deg
+   slew_mode azimuth_and_elevation
+   call_sensor_track_observers false
+   angular_resolution 0.00001 deg
+   hits_to_establish_track  3  5
+   hits_to_maintain_track   1  5
+   ignore_same_side
+end_sensor

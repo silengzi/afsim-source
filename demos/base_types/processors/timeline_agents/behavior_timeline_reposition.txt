@@ -1,0 +1,137 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#REQUIRES defined externally: double mGeesToTurnWith;
+
+include_once common_timeline_scripts.txt
+include_once air_combat_maneuvers.txt
+
+behavior timeline_reposition
+
+   script_debug_writes off
+
+   script_variables
+      WsfQuantumTaskerProcessor processor;
+      bool     mRepositioning = false;
+   end_script_variables
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         processor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+   on_new_execute
+      mRepositioning = true;
+      PLATFORM.Comment("reposition");
+   end_on_new_execute
+   on_new_fail
+      mRepositioning = false;
+   end_on_new_fail
+
+   #TODO - add hysteresis?
+   #       if already repositioning, account for turn time back to engage
+   #       dont reengage if we'll have to turn away before facing target
+   precondition
+
+      #writeln_d(PLATFORM.Name(), " precondition  timeline_reposition,  T=", TIME_NOW);
+      if (!processor.IsValid())
+      {
+         return Failure("behavior not attached to a WSF_QUANTUM_TASKER_PROCESSOR");
+      }
+      WsfTask timeline = GetTimeLineTask(processor);
+      if (!timeline.IsValid())
+      {
+         return Failure("not assigned a TIMELINE task");
+      }
+
+      extern WsfLocalTrack mNearestTimeLineTarget;
+      if (!mNearestTimeLineTarget.IsValid())
+      {
+         return Failure("no local TIMELINE target to fly against");
+      }
+
+      extern double mGeesToTurnWith;
+      string RISK = timeline.AuxDataString("RISK");
+      if (RISK == "HIGH")
+      {
+         return Failure("HIGH RISK agent does not reposition");
+      }
+
+      extern double mDragSpeed;
+      extern double mEngageSpeed;
+
+      if (mRepositioning == true)
+      {
+         writeln_d("testing conditions to CONTINUE dragging");
+         #already dragging, look at conditions required to stop dragging & re-engage
+         #check what distance we'd be at after a turn to face the target and another turn away
+         #in other words: do we have the time to face the target & then turn to stay outside the gate?
+
+         #gate determined by risk level (LOW risk gate = DOR, MEDIUM risk gate = MAR)
+         double gate = timeline.AuxDataDouble("DOR");  #range (meters)
+         if (RISK == "MEDIUM")
+         {
+            gate = timeline.AuxDataDouble("MAR");  #range (meters)
+         }
+
+         Array<double> vals = Array<double>();
+         WsfGeoPoint targetLoc = mNearestTimeLineTarget.CurrentLocation();
+         WsfTrack platAsTrack = PLATFORM.MakeTrack();
+         platAsTrack.SetVelocity(mDragSpeed, platAsTrack.Heading());
+         TurnTimeAndDistance(platAsTrack, targetLoc, mGeesToTurnWith, vals);
+         double turnTime   = vals[0];
+         double distClosed = vals[1];
+         double rangeAfterTurningIn = PLATFORM.GroundRangeTo(targetLoc) - distClosed - mNearestTimeLineTarget.Speed()*turnTime;
+         double turnAwayTime = TimeToTurn(180, mEngageSpeed, mGeesToTurnWith);
+         double rangeAfterTurningAway = rangeAfterTurningIn - mNearestTimeLineTarget.Speed()*turnAwayTime;
+         if (rangeAfterTurningAway >= gate)
+         {
+            return Failure("enough time to turn & face before gate");
+         }
+         return true;
+      }
+      else
+      {
+         writeln_d("testing conditions to START dragging");
+         #not dragging yet, look at conditions required to start:
+         #look at time required to turn & leave: compare to time until next gate
+
+         #gate determined by risk level (LOW risk gate = DOR, MEDIUM risk gate = MAR)
+         double gate = timeline.AuxDataDouble("DOR");  #range (meters)
+         if (RISK == "MEDIUM")
+         {
+            gate = timeline.AuxDataDouble("MAR");  #range (meters)
+         }
+
+         Array<double> vals = Array<double>();
+         WsfGeoPoint targetLoc = mNearestTimeLineTarget.CurrentLocation();
+         double turnAngle = 180 - MATH.Fabs(PLATFORM.RelativeBearingTo(targetLoc));
+         TurnAngleTimeAndDistance(turnAngle, mEngageSpeed, mGeesToTurnWith, vals);
+         double turnTime = vals[0];
+         double distSep  = vals[1];
+         double rangeAfterTurn = distSep + PLATFORM.GroundRangeTo(targetLoc) - mNearestTimeLineTarget.Speed()*turnTime;
+
+         if (rangeAfterTurn >= gate)
+         {
+            return Failure("agent not close enough to gate");
+         }
+         return true;
+      }
+   end_precondition
+
+   execute
+      extern double mDragSpeed;
+      extern double mDragAltitude;
+      Drag(PLATFORM, mNearestTimeLineTarget, mDragSpeed, mDragAltitude, mGeesToTurnWith);   #max speed
+   end_execute
+
+end_behavior
+

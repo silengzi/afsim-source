@@ -1,0 +1,49 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include atlas_v_401.txt
+
+platform_type ATLAS_V_401_MOD ATLAS_V_401
+   edit mover
+      #debug
+      show_status
+   end_mover
+
+   edit processor guidance
+      #debug
+      show_status
+      show_diagnostics
+      #show_commands
+      #show_graphics
+   end_processor
+end_platform_type
+
+platform launcher WSF_PLATFORM
+   icon Wedge
+   side blue
+
+   # CCAFS SLC-40, inclinations 28.5 - 51.6
+   position 28.5620n 80.5772w altitude 1 m agl heading 90 deg
+
+   add weapon rocket ATLAS_V_401
+      launch_computer WSF_LAUNCH_COMPUTER
+         commanded_loft_angle 85.5 deg       # Results in about 200km orbit
+      end_launch_computer
+      launched_platform_type ATLAS_V_401_MOD
+   end_weapon
+
+   execute at_time 1 sec relative
+      WeaponEntry(0).Fire();
+   end_execute
+end_platform
+
+event_pipe
+   file replay.aer
+end_event_pipe
+
+end_time 1200 sec

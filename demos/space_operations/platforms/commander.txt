@@ -1,0 +1,82 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Commander
+platform_type COMMANDER WSF_PLATFORM
+
+   processor image_proc IMAGE_PROC
+      on_message
+         default
+         script
+            #writeln("COMMANDER GOT A MESSAGE");
+         end_script
+      end_on_message
+
+      internal_link track_mgr
+   end_processor
+
+   category commander
+
+   sensor detect WSF_GEOMETRIC_SENSOR
+      on
+      reports_location
+      frame_time 1 min
+      azimuth_field_of_view -180 deg 180 deg
+      elevation_field_of_view -90 deg 90 deg
+      ignore sat_sensor
+      ignore launch
+      internal_link iridium_mgr
+      maximum_range 1500 nm
+   end_sensor
+
+  comm commander WSF_COMM_RCVR
+     network_name commander1
+     internal_link image_proc
+  end_comm
+
+  processor iridium_mgr WSF_TRACK_PROCESSOR
+     on_message
+        type WSF_TRACK_DROP_MESSAGE
+            script
+               WsfTrackDropMessage dropMessage = (WsfTrackDropMessage)MESSAGE;
+               string name = WsfSimulation.FindPlatform(dropMessage.TargetIndex()).Name();
+#               writeln(PLATFORM.Name() + " has dropped tracking: " + name + " at time " + (string)TIME_NOW);
+
+               WsfComm otherComm = WsfSimulation.FindPlatform(name).CommEntry(0);
+               WsfComm thisComm = PLATFORM.Comm("commander");
+               if(otherComm.IsConnectedTo(thisComm.GetAddress()))
+               {
+                  otherComm.RemoveConnection(thisComm.GetAddress());
+               }
+            end_script
+         type WSF_TRACK_MESSAGE
+            script
+               WsfTrackMessage trackMessage = (WsfTrackMessage)MESSAGE;
+               string name = trackMessage.Track().Target().Name();
+#               writeln(PLATFORM.Name() + " is now tracking: " + name + " at time " + (string)TIME_NOW);
+
+               WsfComm otherComm = WsfSimulation.FindPlatform(name).CommEntry(0);
+               WsfComm thisComm = PLATFORM.Comm("commander");
+               if(!otherComm.IsConnectedTo(thisComm.GetAddress()))
+               {
+                  otherComm.AddConnection(thisComm.GetAddress());
+               }
+            end_script
+     end_on_message
+  end_processor
+
+  processor track_mgr WSF_TRACK_PROCESSOR
+     on_message
+        default
+        script
+           #writeln("COMMANDER TRACK MANAGER GOT A TRACK");
+        end_script
+     end_on_message
+  end_processor
+
+end_platform_type

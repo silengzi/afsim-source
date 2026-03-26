@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# AUTHOR: Michael Williams (michael.x.williams@boeing.com)
+
+
+#copy the io to all substates
+sp {elaborate*state*io
+  (state <s> ^superstate.io <io>)
+-->
+  (<s> ^io <io>)
+}
+
+
+#sp {elaborate*write-proposals
+#   (state <s> ^operator <o> +
+#              ^io.output-link  <ol>
+#              ^name <sname>)
+#   (<o> ^actions <act>
+#        ^name <oname>)
+#   (<act> ^<command-name> <command>)
+#   (<command> ^<parameter-name> <parameter>)
+#-->
+#   (write (crlf) |State: | <sname> | Proposed: | <oname> | Parameter: | <parameter> | Op: | <o>)
+#}
+
+#sp {elaborate*stale-time
+#   (state <s> ^io.input-link.current-time <ct>)
+#-->
+#   (<s> ^stale-time (- <ct> 10))
+#}
+
+##copy the top state to all substates
+#sp {elaborate*state*top-state
+#  (state <s> ^superstate.top-state <ts>)
+#-->
+#  (<s> ^top-state <ts>)
+#}

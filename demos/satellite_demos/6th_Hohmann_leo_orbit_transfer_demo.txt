@@ -1,0 +1,217 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###############################################################################
+# This example demonstrates a Hohmann transfer to a satellite in LEO
+# There are two burns in a Hohmann transfer, the first one is critically
+# timed so the apogee of the transfer orbit coincides with the
+# final orbit.  The second burn is performed at apogee, at the
+# time of rendezvous.  After both burns, the two satellites are in
+# the same orbit with the same "phase" (anomaly).
+###############################################################################
+
+event_pipe
+   file output/Hohmann_leo_orbit_transfer_demo.aer
+end_event_pipe
+
+platform_type satellite WSF_PLATFORM
+  icon Satellite
+  side blue
+  mover WSF_SPACE_MOVER 
+  end_mover
+
+  // Common orbital elements
+  eccentricity 0.0 // circular orbit
+  inclination 29.5 deg
+  semi_major_axis 6778 km // 6378km (mean earth radius) + 400 km altitude
+end_platform_type
+
+script_interface
+  debug
+end_script_interface
+
+platform target satellite
+  icon satellite
+  semi_major_axis 6998 km //200 km above the rendezvous satellite
+  argument_of_periapsis 40 degrees
+end_platform
+
+platform iridum5 satellite
+orbit
+IRIDIUM 5
+1 24795U 97020D   09105.03195946 -.00000024  00000-0 -15553-4 0  7086
+2 24795 086.3925 126.6287 0001440 058.1949 301.9394 14.34218440625417
+end_orbit
+end_platform
+
+platform rendezvous-1 satellite
+
+   script_variables
+      string mTargetName = "target";
+      double mDVp = 0.0;
+      double mDVa = 0.0;
+   end_script_variables
+
+   // The following is a script to externally initialize the transfer.
+   // For instance, call this script from the Warlock control panel.
+   script void BeginTransfer()
+      mTargetName = "target";
+      writeln(PLATFORM.Name(), " begin transfer to ", mTargetName);
+      WsfProcessor proc = PLATFORM.Processor("first-burn");
+      proc.SetUpdateInterval(1.0);
+      proc.TurnOn();
+   end_script
+
+   // Note: for remote turn-on (calling the above script from Warlock,
+   // make sure this processor is initially "off"
+   // For testing, be sure to leave it "on"
+   add processor first-burn WSF_SCRIPT_PROCESSOR
+      on
+      //off
+      update_interval 1.0 second
+
+      script_variables
+         bool mInitialBurnComplete = false;
+         int k = 0.0;
+         double mManeuverPhase;
+         double mTOF;
+         bool mInitialized = false;
+      end_script_variables
+
+      script void Initialize()
+         extern string mTargetName;
+         extern double mDVp;
+         extern double mDVa;
+
+         WsfPlatform target = WsfSimulation.FindPlatform(mTargetName);
+         if (target.IsValid())
+         {
+            WsfSpaceMover tm = (WsfSpaceMover)target.Mover();
+            WsfSpaceMover pm = (WsfSpaceMover)PLATFORM.Mover();
+            double sma1 = pm.SemiMajorAxis();
+            double sma2 = tm.SemiMajorAxis();
+            double smaXfer = 0.5*(sma1+sma2);
+            mTOF = MATH.PI() * MATH.Sqrt(smaXfer*smaXfer*smaXfer / Earth.GRAVITATIONAL_PARAMETER());
+            writeln("TOF: ", mTOF);
+            mManeuverPhase = -MATH.Sqrt(Earth.GRAVITATIONAL_PARAMETER() / (sma2*sma2*sma2)) * mTOF + (1.0 + 2.0*k) * MATH.PI();
+            writeln("Maneuver Phase: ", mManeuverPhase);
+            double ratio = sma2/sma1;
+            mDVp = MATH.Sqrt(Earth.GRAVITATIONAL_PARAMETER() / sma1) *
+                  (MATH.Sqrt(2.0*ratio / (1.0+ratio)) - 1.0);
+            mDVa = MATH.Sqrt(Earth.GRAVITATIONAL_PARAMETER() / sma2) *
+                  (1.0 - MATH.Sqrt(2.0 / (1.0+ratio)));
+            writeln("deltaVs: ", mDVp, ", ", mDVa);
+         }
+         else
+         {
+            writeln("Error!! Invalid target platform name (", mTargetName, ") for maneuver!");
+         }
+
+      end_script
+
+      script double DotProduct(double aX1, double aY1, double aZ1,
+                               double aX2, double aY2, double aZ2)
+         double dp = aX1*aX2 + aY1*aY2 + aZ1*aZ2;
+         return dp;
+      end_script
+
+      script double Magnitude(double aX, double aY, double aZ)
+         double mag = MATH.Sqrt(aX*aX + aY*aY + aZ*aZ);
+         return mag;
+      end_script
+
+      script double Phase(WsfGeoPoint aTargetLoc,
+                          WsfGeoPoint aSourceLoc)
+         double tx = aTargetLoc.X();
+         double cosArg = DotProduct(aTargetLoc.X(), aTargetLoc.Y(), aTargetLoc.Z(),
+                                    aSourceLoc.X(), aSourceLoc.Y(), aSourceLoc.Z());
+         double targetMag = Magnitude(aTargetLoc.X(), aTargetLoc.Y(), aTargetLoc.Z());
+         double sourceMag = Magnitude(aSourceLoc.X(), aSourceLoc.Y(), aSourceLoc.Z());
+         double phase = MATH.ACos(cosArg / targetMag / sourceMag) * MATH.RAD_PER_DEG();
+         double cpMinor = aSourceLoc.Y()*aTargetLoc.X() - aSourceLoc.X()*aTargetLoc.Y();
+         if (cpMinor > 0)
+         {
+            phase = -phase;
+         }
+         return phase;
+      end_script
+
+      on_update
+         extern string mTargetName;
+         extern double mDVp;
+
+         if (! mInitialized)
+         {
+            writeln(PLATFORM.Name(), " beginning orbit transfer to ", mTargetName);
+            Initialize();
+            mInitialized = true;
+         }
+         if (! mInitialBurnComplete)
+         {
+            WsfPlatform target = WsfSimulation.FindPlatform(mTargetName);
+            if (target.IsValid())
+            {
+               WsfGeoPoint targetLoc = target.Location();
+               WsfGeoPoint sourceLoc = PLATFORM.Location();
+               double phase = Phase(targetLoc, sourceLoc);
+               double diff = MATH.Fabs(phase - mManeuverPhase);
+               //writeln("Phase diff: ", diff);
+               //writeln("Phase: ", phase);
+               if (diff < 0.0001)
+               {
+                  writeln(TIME_NOW, "Executing 1st burn...");
+                  WsfSpaceMover pm = (WsfSpaceMover)PLATFORM.Mover();
+                  WsfTangentManeuver mvr = WsfTangentManeuver.Construct(WsfOrbitalEventCondition.NONE(), mDVp);
+                  pm.ExecuteManeuver(mvr);
+                  writeln(TIME_NOW, "1st burn complete...");
+                  WsfProcessor proc = PLATFORM.Processor("second-burn");
+                  proc.SetUpdateInterval(mTOF);
+                  proc.TurnOn();
+                  mInitialBurnComplete = true;
+               }
+            }
+         }
+      end_on_update
+   end_processor
+
+   add processor second-burn WSF_SCRIPT_PROCESSOR
+      off
+      update_interval 1.0 s
+      script_variables
+         bool mOnce = true;
+      end_script_variables
+      on_update
+         writeln(TIME_NOW, " second-burn update");
+         if (mOnce) // first time; do nothing
+         {
+            mOnce = false;
+         }
+         else
+         {
+            writeln(TIME_NOW, "Executing 2nd burn...");
+            WsfSpaceMover pm = (WsfSpaceMover)PLATFORM.Mover();
+            extern double mDVa;
+            WsfTangentManeuver mvr = WsfTangentManeuver.Construct(WsfOrbitalEventCondition.NONE(), mDVa);
+            pm.ExecuteManeuver(mvr);
+            PROCESSOR.TurnOff();
+         }
+      end_on_update
+   end_processor
+
+end_platform
+
+start_date Apr 20 2009
+start_time 00:00:00
+end_time 30000.0 sec
+
+# Previous start date and time:
+# start_date jun 1 2003
+# start_time 12:00:00
+start_date apr 15 2009
+start_time 00:46:1.297

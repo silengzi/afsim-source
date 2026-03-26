@@ -1,0 +1,504 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+route aew-1
+   position 00:00n 30:00w altitude     0.0 ft  speed 300 kts
+   position 00:00n 29:55w altitude 30000.0 ft  speed 300 kts
+   position 00:42:52.79n 28:02:52.56w altitude 30000.00 ft
+
+   label on_station position 01:51:59.10n 25:38:43.93w
+      altitude 30000 feet
+      speed 250 nm/h
+      execute OnStation
+   position 01:14:44.56n 25:36:21.41w
+      altitude 30000 feet
+   position 01:52:04.29n 25:47:28.38w
+      altitude 30000 feet
+      goto on_station
+
+
+   label go_home
+   position 00:42:52.79n 28:02:52.56w altitude 30000.00 ft
+   position 00:00n 29:55w altitude 30000.0 ft  speed 300 kts
+   position 00:00n 30:00w altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route aew-2
+   position 00:00n 30:00w altitude     0.0 ft  speed 300 kts
+   position 00:00n 29:55w altitude 30000.0 ft  speed 300 kts
+      pause_time 15 minutes
+   position 00:32:17.33s 27:59:30.97w altitude 30000.00 ft
+   label on_station position 01:29:49.45s 25:38:51.57w
+      altitude 30000 feet
+      speed 250 nm/h
+      execute OnStation
+   position 00:52:25.55s 25:29:16.89w
+      altitude 30000 feet
+   position 01:26:36.55s 25:47:43.46w
+      altitude 30000 feet
+      goto on_station
+
+
+   label go_home
+   position 00:32:17.33s 27:59:30.97w altitude 30000.00 ft
+   position 00:00n 29:55w altitude 30000.0 ft  speed 300 kts
+   position 00:00n 30:00w altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+
+
+
+route erc-1
+   position 00:00n 30:00w             altitude 0.0 ft
+      speed 480 knots
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 10 minutes
+
+   position 00:37:55.53n 27:48:46.39w altitude 30000.00 ft
+      pause_time 10 minutes
+   position 05:52:31.28n 24:06:59.75w altitude 30000.00 ft
+      execute atEndOfRoute
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+end_route
+
+route erc-2
+   position 00:00n 30:00w             altitude 0.0 ft
+      speed 480 knots
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 15 minutes
+
+   position 00:37:55.53n 27:48:46.39w altitude 30000.00 ft
+      pause_time 10 minutes
+   position 02:32:30.82n 22:07:45.79w altitude 30000.00 ft
+      execute atEndOfRoute
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+end_route
+
+route erc-3
+   position 00:00n 30:00w             altitude 0.0 ft
+      speed 480 knots
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 10 minutes
+
+   position 00:26:01.38s 27:45:33.25w  altitude 30000.00 ft
+      pause_time 10 minutes
+   position 01:56:23.33s 21:50:24.33w altitude 30000.00 ft
+      execute atEndOfRoute
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+end_route
+
+route erc-4
+   position 00:00n 30:00w             altitude 0.0 ft
+      speed 480 knots
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 15 minutes
+
+   position 00:26:01.38s 27:45:33.25w  altitude 30000.00 ft
+      pause_time 10 minutes
+   position 05:52:07.38s 24:00:45.41w altitude 30000.00 ft
+      execute atEndOfRoute
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+end_route
+
+
+
+
+
+route mrc-1
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel
+   position 00:37:55.53n 27:48:46.39w
+      pause_time 10 min
+
+   label on_station
+   position 01:04:37.57n 27:34:15.48w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 01:19:15.97n 26:57:47.87w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:58:11.45n 27:36:41.86w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      goto on_station
+
+   label go_home
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route mrc-2
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel
+   position 00:37:55.53n 27:48:46.39w
+      pause_time 10 min
+
+   label on_station
+   position 00:48:17.18n 27:29:40.76w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 01:02:55.58n 26:53:12.94w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:42:00.19n 27:30:00.73w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+
+      goto on_station
+   label go_home
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route mrc-3
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel
+   position 00:37:55.53n 27:48:46.39w
+      pause_time 10 min
+
+   label on_station
+   position 00:11:51.41n 27:08:40.72w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 00:12:06.19n 26:50:18.32w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:06:58.64n 27:13:01.04w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+
+      goto on_station
+   label go_home
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route mrc-4
+   position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel
+   position 00:26:01.38s 27:45:33.25w
+      pause_time 10 min
+
+   label on_station
+   position 00:11:36.79s 27:10:33.83w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 00:09:41.14s 26:46:42.55w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:07:02.81s 27:16:23.20w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+
+      goto on_station
+   label go_home
+   position 00:26:01.38s 27:45:33.25w
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route mrc-5
+   position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel
+   position 00:26:01.38s 27:45:33.25w
+      pause_time 10 min
+
+   label on_station
+   position 00:57:36.27s 27:20:05.69w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 01:12:33.75s 26:53:55.15w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:59:57.99s 27:27:18.62w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+
+      goto on_station
+   label go_home
+   position 00:26:01.38s 27:45:33.25w
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route mrc-6
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel
+   position 00:26:01.38s 27:45:33.25w
+      pause_time 10 min
+
+   label on_station
+   position 00:40:50.48s 27:13:25.31w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+      execute OnStation
+   position 00:55:47.98s 26:47:14.94w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+   position 00:43:13.33s 27:19:40.31w altitude 30000.00 ft
+      radial_acceleration 1.000 g
+
+      goto on_station
+   label go_home
+   position 00:26:01.38s 27:45:33.25w
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+
+
+
+
+
+route lrc-1
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel position 02:10:09.49n 24:07:36.81w
+      pause_time 10 minutes
+   label on_station position 03:56:45.91n 23:56:49.71w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 04:11:23.96n 23:20:16.91w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 03:50:19.77n 23:59:16.36w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+
+
+   label go_home
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route lrc-2
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel position 02:10:09.44n 24:07:37.01w
+      pause_time 10 minutes
+   label on_station position 02:35:20.63n 23:18:09.69w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 02:49:58.75n 22:41:39.59w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 02:29:03.64n 23:18:29.66w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+   label go_home position 00:22:09.89n 28:47:36.99w
+      altitude 30000 feet
+   label inbound_marshalling_point position 00:00n 29:55w
+      altitude 30000 feet
+
+
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route lrc-3
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+   label cap_refuel position 02:10:09.29n 24:07:37.52w
+      pause_time 10 minutes
+   label on_station position 01:05:45.33n 22:48:34.88w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 01:05:59.97n 22:30:12.28w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 01:00:52.58n 22:52:55.26w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+
+   label go_home
+   position 00:22:09.89n 28:47:36.99w altitude 30000.00 ft
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route lrc-4
+   position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel position 01:58:15.03s 24:16:53.57w
+      pause_time 10 minutes
+   label on_station position 00:55:23.99s 22:55:10.28w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 00:53:28.10s 22:31:18.85w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 00:50:50.05s 23:00:59.72w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+   label go_home position 01:58:15.03s 24:16:53.57w
+
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route lrc-5
+   position 00:00:00.00n 30:00:00.00w altitude 0.00 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel position 01:58:15.10s 24:16:53.34w
+      pause_time 10 minutes
+   label on_station position 03:32:12.50s 23:21:23.24w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 03:47:09.66s 22:55:09.59w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 03:34:34.21s 23:28:36.95w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+   label go_home position 01:58:15.10s 24:16:53.34w
+
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+
+route lrc-6
+   position 00:00n 30:00w altitude 0.0 ft  speed 420 kts
+
+   label outbound_marshalling_point
+   position 00:00n 29:55w altitude 0.0 ft  altitude 30000.00 ft
+      pause_time 5 min
+
+   position 00:14:06.48s 28:49:42.93w altitude 30000.00 ft
+   label cap_refuel position 01:58:15.05s 24:16:53.50w
+      pause_time 10 minutes
+   label on_station position 02:28:43.50s 23:02:49.82w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      execute OnStation
+   position 02:43:40.68s 22:36:37.81w
+      altitude 30000 feet
+      radial_acceleration 1 g
+   position 02:31:06.37s 23:09:05.14w
+      altitude 30000 feet
+      radial_acceleration 1 g
+      goto on_station
+   label go_home position 01:58:15.05s 24:16:53.50w
+
+
+   label inbound_marshalling_point
+   position 00:00n 29:55w  altitude 30000.00 ft
+   position 00:00n 30:00w  altitude 0.0 ft
+      execute atEndOfRoute
+end_route
+

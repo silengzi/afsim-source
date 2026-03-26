@@ -1,0 +1,696 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#include_once processors/quantum_agents/aiai/behavior_engage_weapon_task_target.txt
+include_once processors/quantum_agents/aiai/behavior_escort.txt
+include_once processors/quantum_agents/aiai/behavior_evade.txt
+include_once processors/quantum_agents/aiai/behavior_go_home.txt
+include_once processors/quantum_agents/aiai/behavior_planned_route.txt
+#include_once processors/quantum_agents/aiai/behavior_pursue-target_route_finder.txt
+include_once processors/quantum_agents/aiai/behavior_pursue_weapon_task_target.txt
+
+include_once behavior_fly_timeline.txt
+include_once behavior_engage_on_timeline.txt
+include_once air_combat_maneuvers.txt
+include_once common_timeline_scripts.txt
+
+processor  TIMELINE_PROC_FSM  WSF_QUANTUM_TASKER_PROCESSOR
+  #show_task_messages
+   script_debug_writes  off
+   update_interval 5 sec
+
+   script_variables
+      WsfDraw draw = WsfDraw();
+      int delayForSupport = 0;
+      double currentManeuverHeading = 0.0;
+      bool delayManeuverActive = false;
+      double mGeesToTurnWith = 6.0;   #TODO - what to use?
+
+      #debug stuff:
+      WsfDraw  mDraw  =  WsfDraw();
+   end_script_variables
+
+
+  //return values: 0 = don't delay
+  //               1 = perform a crank
+  //               2 = perform a beam
+  //               3 = perform a drag
+  //               4 = perform a posthole
+  script int EvaluateDelay()
+     double myPos = GetTargetDistance(PLATFORM, PROCESSOR);
+     WsfTrack myTrack = GetTimeLineTaskTargetTrack(PLATFORM, GetTimeLineTask(PROCESSOR));
+
+     //figure out if this platform is the closest to the target track
+     if (myTrack)
+     {
+        bool amLead = true;
+        Map<WsfPlatform, double> peerDistMap = Map<WsfPlatform, double>();
+        WsfPlatformList peerList = PLATFORM.Peers();
+        if (peerList.Count() == 0)
+        {
+           //find out if you can delay until the DOR, if so do that
+
+           double crankTime = TimeToPerformCrank(PLATFORM, myTrack);
+           double beamTime = TimeToPerformBeam(PLATFORM, myTrack);
+           double dragTime = TimeToPerformDrag(PLATFORM, myTrack);
+           double postHoleTime = 0.0;
+
+           crankTime = (crankTime * 2) + TIME_NOW;  //multiply by 2 to reflect going back to starting position
+           beamTime = (beamTime * 2) + TIME_NOW;    //multiply by 2 to reflect going back to starting position
+           dragTime = (dragTime * 2) + TIME_NOW;   //multiply by 2 to reflect going back to starting position
+           postHoleTime = dragTime;                //a 180 turn followed by a 180 turn is basically a posthole
+
+           Array<double> maneuverTimes = Array<double>();
+           maneuverTimes.PushBack(crankTime);
+           maneuverTimes.PushBack(beamTime);
+           maneuverTimes.PushBack(dragTime);
+           maneuverTimes.PushBack(postHoleTime);
+
+           double DORDist = GetTimeLineValueForKey(PROCESSOR, "DOR");
+           double FSRDist = GetTimeLineValueForKey(PROCESSOR, "FSR");
+
+           double furthestGate;
+           double closestGate;
+
+           if (DORDist > FSRDist)
+           {
+              furthestGate = FSRDist;
+              closestGate = DORDist;  //the terminology is tricky here, closest means closest in distance to the PLATFORM but furthest from the target
+           }
+           else
+           {
+              furthestGate = DORDist;
+              closestGate = FSRDist;
+           }
+           int curSafeIdx = 0;
+           int curIdx = 1;
+           foreach(double futureTime in maneuverTimes)
+           {
+              WsfGeoPoint myLoc = PLATFORM.FutureLocation(futureTime);
+              WsfGeoPoint targetLoc = myTrack.Target().FutureLocation(futureTime);
+
+              if (myLoc.IsValid() && targetLoc.IsValid())
+              {
+                 double futureDist = myLoc.SlantRangeTo(targetLoc);
+
+                 if (futureDist > furthestGate && futureDist < closestGate)  //we're inside the DOR
+                 {
+                    curSafeIdx = curIdx;
+                 }
+              }
+              curIdx = curIdx + 1;
+           }
+           if (curSafeIdx == 0)
+           {
+              return 0;
+           }
+           else
+           {
+              if (curSafeIdx == 3)   //don't allow drag maneuver right now
+              {
+                 curSafeIdx = 2;
+              }
+              return curSafeIdx;
+           }
+        }
+        foreach (WsfPlatform curPlat in peerList)
+        {
+           double dist = curPlat.SlantRangeTo(myTrack);
+           peerDistMap[curPlat] = dist;
+           if (dist < myPos)
+           {
+              amLead = false;
+           }
+        }
+        if (amLead)
+        {
+           //check to see if the closest follower is at least in FSR (or some other pre-determined distance on the timeline)
+           double FSRDist = GetTimeLineValueForKey(PROCESSOR, "FSR");
+           bool foundInFSR = false;
+           //loop through the map of peers and if all of the peers are outside of the FSRDist, we need to delay
+           foreach (WsfPlatform peer in peerList)
+           {
+              double peerDist = peerDistMap[peer];
+              if (peerDist <= FSRDist)
+              {
+                 foundInFSR = true;
+                 break;
+              }
+           }
+           if (foundInFSR)
+           {
+              return 0;
+           }
+           else
+           {
+              //no peer close enough, evaluate which delay tactic to do
+              double crankTime = TimeToPerformCrank(PLATFORM, myTrack);
+              double beamTime = TimeToPerformBeam(PLATFORM, myTrack);
+              double dragTime = TimeToPerformDrag(PLATFORM, myTrack);
+              double postHoleTime = 0.0;
+
+              crankTime = (crankTime * 2) + TIME_NOW;  //multiply by 2 to reflect going back to starting position
+              beamTime = (beamTime * 2) + TIME_NOW;    //multiply by 2 to reflect going back to starting position
+              dragTime = (dragTime * 2) + TIME_NOW;   //multiply by 2 to reflect going back to starting position
+              postHoleTime = dragTime;
+
+              //figure out how long it will take for the peer to get into FSRDist
+              //take into account the heading and speed of the track as well as the heading and speed of the peer
+              //evaluate each platform in 1 second intervals until a peer is in the FSR
+              bool peerInFSR = false;
+              double peerTimeToFSR = MATH.DOUBLE_MAX();
+              double futureTime = TIME_NOW + 1;
+              if (peerList.Count())
+              {
+                 while (!peerInFSR)
+                 {
+                    foreach (WsfPlatform peer in peerList)
+                    {
+                       WsfGeoPoint peerLoc = peer.FutureLocation(futureTime);
+                       WsfGeoPoint targetLoc = myTrack.Target().FutureLocation(futureTime);
+                       if (peerLoc.IsValid() && targetLoc.IsValid())
+                       {
+                          double futureDist = peerLoc.SlantRangeTo(targetLoc);
+                          if (futureDist <= FSRDist)
+                          {
+                             peerTimeToFSR = futureTime - TIME_NOW;
+                             peerInFSR = true;
+                          }
+                       }
+                    }
+
+                    futureTime = futureTime + 1;
+
+                    //if futuretime is beyond the length of this sim, stop
+                    if (futureTime > WsfSimulation.EndTime())
+                    {
+                        break;
+                    }
+                 }
+              }
+
+
+               //peer never reached FSR, return 0?
+              if (!peerInFSR)
+              {
+                 return 0;
+              }
+
+              if (peerTimeToFSR >= postHoleTime)
+              {
+                 return 4; //perform a posthole
+              }
+              else if (peerTimeToFSR < postHoleTime && peerTimeToFSR >= dragTime)
+              {
+                 return 3; //perform a drag
+              }
+              else if (peerTimeToFSR < dragTime && peerTimeToFSR >= beamTime)
+              {
+                 return 2;  //perform a beam
+              }
+              else
+              {
+                 return 1;  //perform a crank
+              }
+           }
+        }
+        else
+        {
+          return 0;
+        }
+     }
+     return 0;
+  end_script
+
+   script bool ShouldApproach()
+      #do we have a timeline task?
+      return GetTimelineTask(PROCESSOR).IsValid();
+   end_script
+
+   script bool ShouldDelay()
+      #compare risk level with range to nearest target
+      #only delay if risk MED:  past DOR and (want to shoot but out of range or waiting on existing shot)
+      #              risk HIGH: past MAR and (want to shoot but out of range or waiting on existing shot)
+      WsfTask timeline = GetTimelineTask(PROCESSOR);
+      if (!timeline.IsValid())
+      {
+         return false;
+      }
+      WsfTrack target  = GetNearestTimelineTarget(PLATFORM, PROCESSOR);
+      if (!target.IsValid())
+      {
+         return false;
+      }
+      string RISK = timeline.AuxDataString("RISK");
+      if (RISK == "HIGH")
+      {
+         double MAR          = timeline.AuxDataDouble("MAR");   #range (meters)
+         double slantRange   = PLATFORM.SlantRangeTo(target);
+         return (slantRange <= MAR);
+      }
+      else if (RISK == "MEDIUM")
+      {
+         double DOR          = timeline.AuxDataDouble("DOR");   #range (meters)
+         double slantRange   = PLATFORM.SlantRangeTo(target);
+         return (slantRange <= DOR);
+      }
+      else #if (RISK == "LOW")
+      {
+         //check to see if there is enough time to delay before it hits the DOR
+         delayForSupport = EvaluateDelay();
+         double DOR = timeline.AuxDataDouble("DOR");
+         if (delayForSupport > 0 && PLATFORM.SlantRangeTo(target) <= DOR)
+         {
+            return true;
+         }
+         return false;
+      }
+      return false;
+   end_script
+
+   script bool ShouldShoot()
+      #TODO - more work required here
+      #look at time required to turn, speed up, & pitch up for shot
+      #compare that to time until shot range will be reached
+      #use optimal shot range somehow?
+      #base this on current weapons &/or best weapon for the threat?
+      #cover all timeline targets - do any not have weapons on them?
+
+      WsfTask timeline = GetTimelineTask(PROCESSOR);
+      if (!timeline.IsValid())
+      {
+         return false;
+      }
+      WsfTrack target  = GetNearestTimelineTarget(PLATFORM, PROCESSOR);
+      if (!target.IsValid())
+      {
+         return false;
+      }
+      double FSR = timeline.AuxDataDouble("FSR");
+
+      return (PLATFORM.SlantRangeTo(target) <= FSR);
+   end_script
+
+   script bool ShouldReset()
+   //NAC+ DEBUG  This still needs some work
+      return false;
+   //NAC-
+      #look at time required to turn & leave & compare to time until next gate
+      #gate determined by risk level (LOW risk gate = DOR, MEDIUM risk gate = MAR)
+      WsfTask timeline = GetTimelineTask(PROCESSOR);
+      if (!timeline.IsValid())
+      {
+         return false;
+      }
+      WsfTrack target  = GetNearestTimelineTarget(PLATFORM, PROCESSOR);
+      if (!target.IsValid())
+      {
+         return false;
+      }
+      string RISK = timeline.AuxDataString("RISK");
+      if (RISK == "HIGH")
+      {
+         return false;
+      }
+      else if (RISK == "MEDIUM")
+      {
+         #calculate if its necessary to turn before the MAR now
+         double turnTime     = TimeToTurnFrom(PLATFORM, PLATFORM.Speed(), target, mGeesToTurnWith);
+         double MAR          = timeline.AuxDataDouble("MAR");   #range (meters)
+         double closingSpeed = PLATFORM.ClosingSpeedOf(target);
+         double slantRange   = PLATFORM.SlantRangeTo(target);
+         double timeUntilMAR = (slantRange-MAR)/closingSpeed;
+         return (turnTime >= timeUntilMAR);
+      }
+      else #if (RISK == "LOW")
+      {
+         #calculate if its necessary to turn before the DOR now
+         double turnTime     = TimeToTurnFrom(PLATFORM, PLATFORM.Speed(), target, mGeesToTurnWith);
+         double DOR          = timeline.AuxDataDouble("DOR");   #range (meters)
+         double closingSpeed = PLATFORM.ClosingSpeedOf(target);
+         double slantRange   = PLATFORM.SlantRangeTo(target);
+         double timeUntilDOR = (slantRange-DOR)/closingSpeed;
+         return (turnTime >= timeUntilDOR);
+      }
+      return false;
+   end_script
+
+   script bool ShouldGoHome()
+      #check weapons, fuel, force ratios, etc?
+      return false;
+   end_script
+
+   script bool ShouldSupport()
+      #are there weapons to support & am I allowed to emit to support them
+      return false;
+   end_script
+
+
+   script void DrawTimeLine()
+      WsfTrack target  = GetNearestTimeLineTarget(PLATFORM, PROCESSOR);
+
+      if (target.IsValid())
+      {
+         double FSRDist = GetTimeLineValueForKey(PROCESSOR, "FSR");
+         double DORDist = GetTimeLineValueForKey(PROCESSOR, "DOR");
+         double MARDist = GetTimeLineValueForKey(PROCESSOR, "MAR");
+
+
+         WsfGeoPoint platLoc = PLATFORM.Location();
+         WsfGeoPoint tgtLocFSR = target.Target().Location();
+         WsfGeoPoint tgtLocDOR = target.Target().Location();
+         WsfGeoPoint tgtLocMAR = target.Target().Location();
+
+         WsfTrack PlatformAsTrack = WsfTrack();
+         PlatformAsTrack.SetTarget(PLATFORM.Name());
+         PlatformAsTrack.SetLocation(platLoc);
+
+         //double headingFromTargetToPlatform = target.Target().RelativeHeadingOf(PlatformAsTrack);
+         double headingFromTargetToPlatform = target.Target().Location().TrueBearingTo(PLATFORM.Location());
+         //headingFromTargetToPlatform = MATH.Fabs(headingFromTargetToPlatform) + target.Target().Heading();
+
+
+
+
+         //extrapolate the tgtLoc point a distance of FSRDist along a heading in the direction of the PLATFORM
+         tgtLocFSR.Extrapolate(headingFromTargetToPlatform, FSRDist);
+         tgtLocDOR.Extrapolate(headingFromTargetToPlatform, DORDist);
+         tgtLocMAR.Extrapolate(headingFromTargetToPlatform, MARDist);
+
+         mDraw.SetDuration(5.0);
+         mDraw.SetColor(1.0, 0.557, 0.0314);
+         mDraw.SetLineSize(3);
+         mDraw.BeginLines();
+         mDraw.Vertex(PLATFORM);
+         mDraw.Vertex(target.Target());
+         mDraw.End();
+
+         //mDraw.SetPointSize(9);
+         //mDraw.BeginPoints();
+         //mDraw.SetColor(1.0, 0.0, 1.0);
+         //mDraw.Vertex(tgtLocFSR);
+         //mDraw.SetColor(0.0, 1.0, 0.0);
+         //mDraw.Vertex(tgtLocDOR);
+         //mDraw.SetColor(1.0, 1.0, 1.0);
+         //mDraw.Vertex(tgtLocMAR);
+         //mDraw.End();
+
+
+         WsfGeoPoint FSROne = WsfGeoPoint(tgtLocFSR);
+         FSROne.Extrapolate(0.0, 10000.0);
+         WsfGeoPoint FSRTwo = WsfGeoPoint(tgtLocFSR);
+         FSRTwo.Extrapolate(180.0, 10000.0);
+
+
+         WsfGeoPoint DOROne = WsfGeoPoint(tgtLocDOR);
+         DOROne.Extrapolate(0.0, 10000.0);
+         WsfGeoPoint DORTwo = WsfGeoPoint(tgtLocDOR);
+         DORTwo.Extrapolate(180.0, 10000.0);
+
+         WsfGeoPoint MAROne = WsfGeoPoint(tgtLocMAR);
+         MAROne.Extrapolate(0.0, 10000.0);
+         WsfGeoPoint MARTwo = WsfGeoPoint(tgtLocMAR);
+         MARTwo.Extrapolate(180.0, 10000.0);
+
+         mDraw.SetLineSize(5);
+         mDraw.SetColor(0.0, 1.0, 0.0);
+         mDraw.BeginLines();
+         mDraw.Vertex(FSROne);
+         mDraw.Vertex(FSRTwo);
+         mDraw.End();
+
+         mDraw.SetColor(1.0, 1.0, 0.0);
+         mDraw.BeginLines();
+         mDraw.Vertex(DOROne);
+         mDraw.Vertex(DORTwo);
+         mDraw.End();
+
+         mDraw.SetColor(1.0, 0.0, 0.0);
+         mDraw.BeginLines();
+         mDraw.Vertex(MAROne);
+         mDraw.Vertex(MARTwo);
+         mDraw.End();
+
+         //mDraw.SetTextSize(25);
+         //mDraw.SetColor(1.0, 1.0, 1.0);
+         //mDraw.SetLineStyle("solid");
+         //string fsrTxt = "FSR";
+         //mDraw.BeginText(fsrTxt);
+         //   mDraw.Vertex(PLATFORM.Location());
+         //mDraw.End();
+
+      }
+
+   end_script
+
+   script bool ShouldSupportWeapon()
+      #this (current state) contains script to perform in the state
+      //if a shot has been fired, support it?
+      WsfTrack target = GetTimeLineTaskTargetTrack(PLATFORM, GetTimeLineTask(PROCESSOR));
+      if (target.IsValid())
+      {
+         if (PLATFORM.WeaponsActiveFor(target.TrackId()) > 0)
+         {
+            Crank(PLATFORM, target, 35, PLATFORM.Speed());
+            return true;
+         }
+         else if (PLATFORM.WeaponsPendingFor(target.TrackId()) > 0)
+         {
+            Crank(PLATFORM, target, 35, PLATFORM.Speed());
+            return true;
+         }
+         else
+         {
+            return false;
+         }
+      }
+      return false;
+   end_script
+
+   #TODO - how to do things like evade behavior from each state?
+   #       have an EVADE state? maybe?
+
+   on_update
+    //DrawTimeLine();
+   end_on_update
+
+###########################################################
+##                                                       ##
+##                BEGIN STATE MACHINE                    ##
+##                                                       ##
+###########################################################
+   state COMMIT
+      #picture building, getting target, tracking target
+      on_entry
+         PLATFORM.Comment("COMMIT");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade   #TODO - move to evade state???
+            behavior_node  planned_route #TODO - move to this state!
+         end_selector
+      end_behavior_tree
+      next_state COMMIT
+         #this (current state) contains script to perform in the state
+            #fly planned route or formation
+         return false;
+      end_next_state
+
+      #best order for checking these?
+      #current opinion, check:   DELAY before APPROACH
+      #                          RESET before APPROACH
+      #                          SHOOT before DELAY
+      #                          RESET before SHOOT?????
+      next_state RESET     return ShouldReset();     end_next_state
+      next_state SHOOT     return ShouldShoot();     end_next_state
+      next_state DELAY     return ShouldDelay();     end_next_state
+      next_state APPROACH  return ShouldApproach();  end_next_state
+   end_state
+
+
+   state APPROACH
+      #main state to start in once we have a timeline task (which should contain targets)
+      #bulk of this state is intercepting nearest timeline target that isn't currently fired upon
+      #basic times to approach:
+      #   if risk low:  only when outside of DOR
+      #   if risk med:  only when outside of MAR -> chance to delay when out of weapons range or waiting on existing shot
+      #   if risk high: only all the time        -> chance to delay when out of weapons range or waiting on existing shot
+      #NOTE: switch to SHOOT when in weapons range
+      on_entry
+         PLATFORM.Comment("APPROACH");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade
+	         behavior_node  fly_timeline #TODO - move this script to inside this state?
+         end_selector
+      end_behavior_tree
+      next_state APPROACH
+         #this (current state) contains script to perform in the state
+         return false;
+      end_next_state
+      next_state RESET     return ShouldReset();     end_next_state
+      next_state DELAY     return ShouldDelay();     end_next_state
+      next_state SHOOT     return ShouldShoot();     end_next_state
+   end_state
+
+
+   state SHOOT
+      #once entered, will setup & take a shot
+      #balance this by limiting the shoot behavior:
+      #   add in conditions (speed+orientation) to it's precondition
+      on_entry
+         PLATFORM.Comment("SHOOT");
+      end_on_entry
+      behavior_tree
+         selector
+            behavior_node  evade
+	         behavior_node  fly_timeline
+            behavior_node  planned_route
+         end_selector
+	      behavior_node  engage_on_timeline #TODO - move this script to inside this state?
+      end_behavior_tree
+      next_state SHOOT
+
+         return false;
+      end_next_state
+      next_state SUPPORT_WEAPON return ShouldSupportWeapon(); end_next_state
+      next_state RESET     return ShouldReset();     end_next_state
+      next_state DELAY     return ShouldDelay();     end_next_state
+      next_state APPROACH  return ShouldApproach();  end_next_state
+   end_state
+
+   state SUPPORT_WEAPON
+      next_state SUPPORT_WEAPON
+         return ShouldSupportWeapon();
+      end_next_state
+      //next_state SHOOT return ShouldShoot(); end_next_state
+      //next_state DELAY return ShouldDelay(); end_next_state
+      next_state APPROACH return ShouldApproach(); end_next_state
+   end_state
+
+   state DELAY
+      on_entry
+         PLATFORM.Comment("DELAY");
+      end_on_entry
+      #only delay if risk MED:  past DOR and (want to shoot but out of range or waiting on existing shot)
+      #              risk HIGH: past MAR and (want to shoot but out of range or waiting on existing shot)
+      next_state DELAY
+          if (delayForSupport != 0 && delayManeuverActive)
+          {
+             //check current heading vs goal heading
+             double curHeading = PLATFORM.Heading();
+             if (curHeading < 0)
+             {
+                curHeading = 360 + curHeading;
+             }
+             if (MATH.Fabs(curHeading - currentManeuverHeading) <= 1)  //give a 1 degree margin of error
+             {
+                delayManeuverActive = false;
+                return false;
+             }
+          }
+         #this (current state) contains script to perform in the state
+         if (delayForSupport == 1 && !delayManeuverActive)
+         {
+            PLATFORM.Comment("DELAY CRANK");
+            currentManeuverHeading = Crank(PLATFORM, GetNearestTimeLineTarget(PLATFORM, PROCESSOR), 35, PLATFORM.Speed());
+            delayManeuverActive = true;
+            return true;
+         }
+         else if (delayForSupport == 2 && !delayManeuverActive)
+         {
+            PLATFORM.Comment("DELAY BEAM");
+            currentManeuverHeading = Beam(PLATFORM, GetNearestTimeLineTarget(PLATFORM, PROCESSOR));
+            delayManeuverActive = true;
+            return true;
+         }
+         else if (delayForSupport == 3 && !delayManeuverActive)
+         {
+            PLATFORM.Comment("DELAY DRAG");
+            currentManeuverHeading = Drag(PLATFORM, GetNearestTimeLineTarget(PLATFORM, PROCESSOR), PLATFORM.Speed(), PLATFORM.Altitude(), 6.0);
+            delayManeuverActive = true;
+            return true;
+         }
+         else if (delayForSupport == 4 && !delayManeuverActive)
+         {
+            PLATFORM.Comment("DELAY POSTHOLE");
+            currentManeuverHeading = PostHole(PLATFORM, "right");
+            delayManeuverActive = true;
+            return true;
+         }
+         else #(delayForSupport == 0)
+         {
+            if (delayManeuverActive)
+            {
+               return true;
+            }
+            else
+            {
+               PLATFORM.Comment("NO DELAY");
+               return false;
+            }
+         }
+         return false;
+      end_next_state
+      next_state RESET     return ShouldReset();     end_next_state
+      next_state SHOOT     return ShouldShoot();     end_next_state
+      next_state APPROACH  return ShouldApproach();  end_next_state
+   end_state
+
+
+   state SUPPORT
+      #this is basically a CRANK state for supporting active weapons while risk level allows it
+      #is this state needed?
+      on_entry
+         PLATFORM.Comment("SUPPORT");
+      end_on_entry
+      next_state SUPPORT
+         #this (current state) contains script to perform in the state
+         Crank(PLATFORM, GetNearestTimelineTarget(PLATFORM,PROCESSOR));
+         return false;
+      end_next_state
+      next_state RESET     return ShouldReset();     end_next_state
+      next_state SHOOT     return ShouldShoot();     end_next_state
+      next_state DELAY     return ShouldDelay();     end_next_state
+      next_state APPROACH  return ShouldApproach();  end_next_state
+   end_state
+
+
+   state RESET
+      #this is basically a DRAG state for getting back & ready for future shots
+      on_entry
+         PLATFORM.Comment("RESET");
+      end_on_entry
+
+      next_state RESET
+         #this (current state) contains script to perform in the state
+         Drag(PLATFORM, GetNearestTimelineTarget(PLATFORM,PROCESSOR), PLATFORM.Speed(), 6.0);
+         return false;
+      end_next_state
+      next_state SHOOT     return ShouldShoot();     end_next_state
+      next_state DELAY     return ShouldDelay();     end_next_state
+      next_state APPROACH  return ShouldApproach();  end_next_state
+   end_state
+
+
+   state HOME
+      #done, go home
+      on_entry
+         PLATFORM.Comment("HOME");
+      end_on_entry
+      next_state HOME
+         #no breaking out of this state? meh...
+         WsfWaypoint waypt = PLATFORM.Mover().Route().Front();
+         PLATFORM.GoToLocation(waypt);
+         return true;
+      end_next_state
+   end_state
+
+end_processor

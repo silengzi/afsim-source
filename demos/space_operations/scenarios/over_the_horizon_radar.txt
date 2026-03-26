@@ -1,0 +1,190 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# A modified version of the oth radar demo, used to simulate the effect of degraded HF operations.
+
+include sensors/radar/oth_radar.txt
+
+# ****************************************************************************
+# Define the system types (movers, sensors, weapons, etc.)
+# ****************************************************************************
+
+radar_signature FIGHTER_RADAR_SIGNATURE
+  constant 10 m^2
+end_radar_signature
+
+radar_signature TRANSPORT_RADAR_SIGNATURE
+  constant 100 m^2
+end_radar_signature
+
+# ****************************************************************************
+# Define the platform types
+# ****************************************************************************
+
+
+platform_type OTH_RADAR_SITE WSF_PLATFORM
+
+  icon Ground_Radar
+  mover WSF_GROUND_MOVER end_mover
+
+  sensor radar-1 OTH_RADAR_1
+     on
+     processor track_manager
+     processor draw_processor
+  end_sensor
+
+  processor track_manager WSF_TRACK_PROCESSOR
+     purge_interval 10 sec
+  end_processor
+
+  processor draw_processor WSF_SCRIPT_PROCESSOR
+     update_interval 10.0 sec
+
+     script_variables
+        WsfDraw mRadarDraw = WsfDraw();
+     end_script_variables
+
+     on_update
+        mRadarDraw.SetDuration(10.0);
+        mRadarDraw.SetColor(1, 1, 0);
+        mRadarDraw.SetLineSize(5);
+        mRadarDraw.SetPointSize(2);
+        foreach (WsfTrack track in PLATFORM.MasterTrackList())
+        {
+           if (track.IsValid())
+           {
+              string tgtName = track.TargetName();
+              WsfPlatform tgtPlatform = WsfSimulation.FindPlatform(tgtName);
+
+              double lat = track.AuxDataDouble("oth_reflection_point_lat");
+              double lon = track.AuxDataDouble("oth_reflection_point_lon");
+              double alt = track.AuxDataDouble("oth_reflection_point_alt");
+
+              mRadarDraw.BeginLines();
+                 mRadarDraw.Vertex(PLATFORM);
+                 mRadarDraw.VertexLLA(lat, lon, alt);
+              mRadarDraw.End();
+
+              mRadarDraw.BeginLines();
+              mRadarDraw.VertexLLA(lat, lon, alt);
+              mRadarDraw.Vertex(track.CurrentLocation());
+              mRadarDraw.End();
+
+              mRadarDraw.BeginPoints();
+              mRadarDraw.Vertex(PLATFORM);
+              mRadarDraw.VertexLLA(lat, lon, alt);
+              mRadarDraw.End();
+
+              mRadarDraw.BeginPoints();
+              mRadarDraw.VertexLLA(lat, lon, alt);
+              mRadarDraw.Vertex(track.CurrentLocation());
+              mRadarDraw.End();
+           }
+        }
+      end_on_update
+
+  end_processor
+end_platform_type
+
+platform_type STRIKER_PLATFORM WSF_PLATFORM
+  icon F-18E
+  side blue
+  mover WSF_AIR_MOVER end_mover
+  radar_signature FIGHTER_RADAR_SIGNATURE
+end_platform_type
+
+# ****************************************************************************
+#                        Define the platform instances
+# ****************************************************************************
+
+platform oth-radar-site-1 OTH_RADAR_SITE
+  side red
+  route
+    position 56:45n 126:38w
+    altitude 0 ft agl
+    heading 180 deg
+  end_route
+  sensor radar-1
+  on
+  end_sensor
+  processor track_manager
+  on
+  end_processor
+  processor draw_processor
+  on
+  end_processor
+end_platform
+
+platform striker-1 STRIKER_PLATFORM
+  route
+    position 28n 127w altitude 35 kft msl heading 0 deg speed 450 kts
+    extrapolate
+  end_route
+
+  side blue
+
+  heading 90 deg
+end_platform
+
+platform striker-2 STRIKER_PLATFORM
+  route
+    position 40n 100w altitude 35 kft msl speed 450 kts
+    position 41n 111w altitude 35 kft msl speed 450 kts
+    position 41n 117w altitude 35 kft msl speed 450 kts
+    position 41n 129w altitude 35 kft msl speed 450 kts
+    position 41n 145w altitude 35 kft msl speed 450 kts
+    extrapolate
+  end_route
+
+  side blue
+
+  heading 11 deg
+end_platform
+
+platform striker-3 STRIKER_PLATFORM
+  route
+    position 35n 145w altitude 35 kft msl heading 0 deg speed 450 kts
+    extrapolate
+  end_route
+
+  side blue
+
+  heading 90 deg
+end_platform
+
+zone ionized_d_layer
+   polygonal
+   lat_lon
+   point 90s 179.9w
+   point 90n 179.9w
+   point 90n 179.9e
+   point 90s 179.9e
+   minimum_altitude 80 kilometers
+   maximum_altitude 100 kilometers
+end_zone
+
+event_output
+   file output/replay_othTest.evt
+   enable PLATFORM_ADDED
+   enable PLATFORM_DELETED
+   enable SENSOR_TURNED_ON
+   enable SENSOR_TURNED_OFF
+   enable SENSOR_REQUEST_INITIATED
+   enable SENSOR_REQUEST_CANCELED
+   enable SENSOR_DETECTION_ATTEMPT
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_UPDATED
+   enable SENSOR_TRACK_DROPPED
+end_event_output
+
+terrain
+# load_cme_terrain
+end_terrain
+
+end_time 7 hr

@@ -1,0 +1,283 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#    * * ************************************** * *
+#    *   ****** Demonstration input file ******   *
+#    *   ******      UNCLASSIFIED        ******   *
+#    * * ************************************** * *
+
+###############################################################################
+##   BLUE FORCES
+###############################################################################
+
+
+platform blue_flight_lead FLIGHT_LEAD
+  side blue
+  position 38:28:10.34n 93:26:31.57w
+  commander SELF
+  icon Command_Truck
+  heading 100 deg
+  edit processor timeline
+    #show_task_messages
+     script_variables
+       #mKnownTargetTypes["RED_STRIKER"] = 1;
+        mPassivePlayers["blue_1"] = true;
+        mPassivePlayers["blue_2"] = true;
+     end_script_variables
+  end_processor
+
+#  edit processor task_mgr
+#     script_variables
+#        mKnownTargetTypes["RED_STRIKER"] = 1;
+#     end_script_variables
+#  end_processor
+
+end_platform
+
+
+platform_type    BLUE_STRIKER       STRIKER
+  side blue
+  icon F-18
+  indestructible
+   edit weapon  mrm
+      quantity 24
+   end_weapon
+
+#  edit processor task_mgr
+#     edit behavior engage_weapon_task_target
+#        script_variables
+#           DefaultPercentRangeMax = 0.85;
+#        end_script_variables
+#     end_behavior
+#  end_processor
+end_platform_type
+
+
+platform blue_1 BLUE_STRIKER
+  commander blue_flight_lead
+  route
+     position 38:50:26.64n 93:07:42.94w altitude 35000.00 ft msl speed 500 kts
+     position 38:43:07.17n 89:41:47.90w altitude 35000.00 ft msl speed 500 kts
+  end_route
+  heading 92 deg
+end_platform
+
+
+platform blue_2 BLUE_STRIKER
+  commander blue_flight_lead
+  route
+    position 38:35:18.18n 93:07:46.00w altitude 35000.00 ft  speed 500 kts
+    position 38:31:57.26n 89:41:10.05w altitude 35000.00 ft
+  end_route
+  heading 90 deg
+end_platform
+
+
+platform blue_3 BLUE_STRIKER
+  commander blue_flight_lead
+  route
+     position 38:44:24.12n 93:18:35.20w altitude 35000.00 ft msl speed 500 kts
+     position 38:39:06.92n 89:46:47.12w altitude 35000.00 ft msl speed 500 kts
+  end_route
+  heading 91 deg
+end_platform
+
+
+platform blue_4 BLUE_STRIKER
+  commander blue_flight_lead
+  route
+    position 38:40:58.60n 93:18:28.14w altitude 35000.00 ft  speed 500 kts
+    position 38:36:01.56n 89:46:51.22w altitude 35000.00 ft
+  end_route
+  heading 91 deg
+
+#  edit processor timeline_proc
+#     script_debug_writes off
+#  end_processor
+
+end_platform
+
+
+###############################################################################
+##   RED FORCES
+###############################################################################
+
+
+route cap_orbit
+  label start
+     offset  20   0 km speed 450 kts altitude 35000 ft msl   radial_acceleration 2 g
+     offset  20   5 km speed 450 kts altitude 35000 ft msl   radial_acceleration 2 g
+     offset  0    5 km speed 450 kts altitude 35000 ft msl   radial_acceleration 2 g
+     offset  0    0 km speed 450 kts altitude 35000 ft msl   radial_acceleration 2 g
+   goto start
+end_route
+
+
+platform red_flight_lead RED_FLIGHT_LEAD
+  side red
+  position 38:34:47.97n 89:21:40.97w
+  commander SELF
+  icon Command_Truck
+  heading 100 deg
+  edit processor timeline
+    on
+  end_processor
+end_platform
+
+
+platform_type   RED_STRIKER    STRIKER
+   side red
+   icon weasel
+   edit processor timeline_proc
+      script_variables
+         DefaultPercentRangeMax  = 0.50;
+      end_script_variables
+   end_processor
+end_platform_type
+
+
+platform red_west_cap_1 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:19:58.29n 89:46:14.66w altitude 35000.00 ft msl speed 450 kts
+      position 38:32:37.76n 90:08:04.09w altitude 35000.00 ft msl speed 450 kts
+      insert_route cap_orbit reference_heading 315.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+
+platform red_west_cap_2 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:16:47.03n 89:47:17.53w altitude 35000.00 ft msl speed 450 kts
+      position 38:29:10.35n 90:08:34.69w altitude 35000.00 ft msl speed 450 kts
+      insert_route cap_orbit reference_heading 315.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+
+platform red_west_cap_3 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:37:19.43n 90:02:28.29w altitude 35000.00 ft  speed 450 kts
+      position 38:23:44.47n 89:39:16.70w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 135.0 deg
+   end_route
+   heading 127 deg
+end_platform
+
+
+platform red_west_cap_4 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:34:08.17n 90:03:31.15w altitude 35000.00 ft  speed 450 kts
+      position 38:20:17.06n 89:39:47.19w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 135.0 deg
+   end_route
+   heading 127 deg
+end_platform
+
+
+platform red_east_cap_1 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:54:11.76n 89:01:51.31w altitude 35000.00 ft  speed 450 kts
+      position 39:06:51.23n 89:23:44.93w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 315.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+
+platform red_east_cap_2 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 38:51:00.50n 89:02:54.49w altitude 35000.00 ft  speed 450 kts
+      position 39:03:23.82n 89:24:15.48w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 315.0 deg
+   end_route
+   heading 307 deg
+end_platform
+
+
+platform red_east_cap_3 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 39:08:36.39n 89:21:27.42w altitude 35000.00 ft  speed 450 kts
+      position 38:54:46.57n 88:56:57.07w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 135.0 deg
+   end_route
+   heading 126 deg
+end_platform
+
+
+platform red_east_cap_4 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 39:11:47.65n 89:20:24.06w altitude 35000.00 ft  speed 450 kts
+      position 38:58:13.98n 88:56:26.53w altitude 35000.00 ft
+      insert_route cap_orbit reference_heading 135.0 deg
+   end_route
+   heading 126 deg
+end_platform
+
+platform red_sweep_1 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 39:26:55.35n 89:29:43.51w altitude 35000.00 ft   speed 450 kts
+      position 37:43:31.84n 92:56:58.50w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform
+
+platform red_sweep_2 RED_STRIKER
+   commander red_flight_lead
+   route
+      position 39:31:58.14n 89:34:14.01w altitude 35000.00 ft    speed 450 kts
+      position 37:48:34.64n 93:02:19.53w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform
+
+platform red_sweep_3 RED_STRIKER
+   commander red_flight_lead
+   route
+    position 39:37:52.89n 89:40:39.33w altitude 35000.00 ft    speed 450 kts
+    position 37:54:29.40n 93:09:35.81w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform
+
+platform red_sweep_4 RED_STRIKER
+   commander red_flight_lead
+   route
+    position 39:44:14.09n 89:45:44.89w altitude 35000.00 ft    speed 450 kts
+    position 38:00:50.60n 93:15:32.72w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform
+
+platform red_sweep_5 RED_STRIKER
+   commander red_flight_lead
+   route
+    position 39:49:04.65n 89:50:05.30w altitude 35000.00 ft    speed 450 kts
+    position 38:05:41.17n 93:20:45.01w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform
+
+platform red_sweep_6 RED_STRIKER
+   commander red_flight_lead
+   route
+    position 39:54:30.08n 89:54:47.30w altitude 35000.00 ft    speed 450 kts
+    position 38:11:06.61n 93:26:19.24w altitude 35000.00 ft
+   end_route
+   heading 239 deg
+end_platform

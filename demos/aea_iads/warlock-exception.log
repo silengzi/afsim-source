@@ -1,0 +1,30 @@
+########################################################################
+Mon Dec 15 19:22:00 2025
+
+Version: 2.9.0
+Compiler: win_1916_64bit_release-hwe
+Called std::terminate().
+Stacktrace:
+     0# 0x7ffacde13371 (ut::WriteTerminateLog) at ??
+     1# 0x7ffaef308928 (ut::qt::TerminateHandler) at ??
+     2# 0x7ffb2f4e1f98 (terminate) at ??
+     3# 0x7ffb25cb2b12 (is_exception_typeof) at ??
+     4# 0x7ffb25cb30df (is_exception_typeof) at ??
+     5# 0x7ffb25cbc15d (_CxxFrameHandler3) at ??
+     6# 0x7ffb31c923df (_chkstk) at ??
+     7# 0x7ffb31c414a4 (RtlRaiseException) at ??
+     8# 0x7ffb31c411f5 (RtlRaiseException) at ??
+     9# 0x7ffb2f76cb69 (RaiseException) at ??
+    10# 0x7ffb25cb485d (CxxThrowException) at ??
+    11# 0x7ffa6b6df280 (WsfDisUDP_Device::WsfDisUDP_Device) at ??
+    12# 0x7ffa6b6c4312 (WsfDisInterface::ActivateConnection) at ??
+    13# 0x7ffa6b6c8715 (WsfDisInterface::PrepareExtension) at ??
+    14# 0x7ffa6ba508c3 (WsfSimulation::Initialize) at ??
+    15# 0x7ffa6b9db7cb (WsfEventStepSimulation::Initialize) at ??
+    16# 0x7ffa6ba58d5b (WsfStandardApplication::InitializeSimulation) at ??
+    17# 0x7ffa5a69a2f6 (warlock::RunManager::WriteHistory) at ??
+    18# 0x7ffa6c83eaa0 (QThread::start) at ??
+    19# 0x7ffb2fcd7604 (BaseThreadInitThunk) at ??
+    20# 0x7ffb31c426a1 (RtlUserThreadStart) at ??
+
+

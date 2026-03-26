@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This test runs timeline agent maneuvers
+define_path_variable CASE timeline_maeuvers_test
+# setup include paths
+
+file_path .
+file_path ../base_types/processors/timeline_agents
+
+end_time 30 min
+random_seed 142535
+# setup simulation output and data logging
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+include event_output.txt
+event_output file output/$(CASE).evt end_event_output
+
+#types
+include_once platforms/common.txt
+include_once platforms/flight_lead.txt
+include_once platforms/striker.txt
+#laydowns
+include scenarios/test_maneuvers.txt
+
+platform_availability
+   #red
+   name flight_lead_red availability 1
+   name red_1           availability 1 // East
+   name red_2           availability 0 // East
+   name red_3           availability 0 // West
+   name red_4           availability 0 // South
+   name red_5           availability 0 // North
+   #blue
+   name flight_lead_blue availability 1
+   name blue_1           availability 1
+   name blue_2           availability 0
+end_platform_availability

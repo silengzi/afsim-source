@@ -1,0 +1,61 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+include_once ../weapons/aam/simple_a2a_missile.txt
+
+
+#all guesses in this platform type definition are simply scaled up values from other known jets
+
+platform_type RED_ADV_FIGHTER_1_BASE WSF_PLATFORM
+
+   icon F-22
+   category fighter
+
+   mover WSF_AIR_MOVER
+
+      # WAGs - Luke Miklos
+      roll_rate_limit               1.4 rad/sec
+      default_linear_acceleration   1.2 g
+      default_radial_acceleration   7.0 g
+      default_climb_rate            500 fps
+
+      # Mach 2.0 at altitude, WAG - Luke Miklos
+      maximum_speed                 1288.6 knots
+
+      # Ceiling, WAG - Luke Miklos
+      maximum_altitude              60000 ft
+      minimum_altitude              50 ft
+
+      # g limit, WAG - Luke Miklos
+      maximum_linear_acceleration   10 g
+
+      #no_pitch
+      at_end_of_path extrapolate
+
+   end_mover
+
+   fuel WSF_VARIABLE_RATE_FUEL
+      rate 7.0 lb/s
+      initial_quantity 14000 lb
+      maximum_quantity 14000 lb
+   end_fuel
+
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval  60 sec
+      update_interval 1 sec
+   end_processor
+
+
+   weapon int_missile SIMPLE_A2A_MISSILE_WEAPON end_weapon
+
+
+end_platform_type

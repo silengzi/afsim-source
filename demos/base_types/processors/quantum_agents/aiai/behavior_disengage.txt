@@ -1,0 +1,177 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior disengage
+
+   script_debug_writes off
+
+   script_variables
+      double   cDIVE_ALTITUDE          =        304.8;            # 1000 feet
+      double   cDEFAULT_SPEED          =        200.0;            # m/s
+      double   cMAX_SPEED              = 9999999999.99;           # m/s
+      double   cGRAVITY_ACCEL          =          9.80665;        # 1 G
+      double   cDEFAULT_ACCEL          = (cGRAVITY_ACCEL * 7.5);  # m/s^2  ~7.5 Gs
+      double   cANGLE_TOLERANCE          =         45.0;            # degrees
+      bool     drawEscape = false;
+      WsfDraw draw = WsfDraw();
+   end_script_variables
+
+
+   on_init
+      draw.SetLineSize(2);
+      draw.SetColor(1.0, 0.0, 1.0); //purple
+   end_on_init
+
+
+   script bool IsFlightAsset(WsfPlatform aPlat)
+      if (aPlat.Mover().IsA_TypeOf("WSF_AIR_MOVER" ) ||
+          aPlat.Mover().IsA_TypeOf("WSF_6DOF_MOVER")    )
+      {
+         return true;
+      }
+      else if (aPlat.MakeTrack().AirDomain())
+      {
+         return true;
+      }
+      else if((aPlat.Altitude() > 152.4) && (aPlat.Speed() > 51.44) ) // ~500 feet alt, ~100 knots speed
+      {
+         return true;
+      }
+      return false;
+   end_script
+
+
+   script bool IsWeapon(WsfTrack aTrack)
+      if (aTrack.Target().IsValid() && aTrack.Target().WeaponEngagement().IsValid())
+      {
+         return true;
+      }
+      return false;
+   end_script
+
+
+   precondition
+      writeln("precondition disengage");
+
+      //check track list or threat processor for any threats
+      extern double mVisualRange;
+      double totalThreatsWVR = 0.0;
+      foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+      {
+         if (!t.SideValid() || t.Side() != PLATFORM.Side())
+         {
+            if ((!IsWeapon(t)) && (PLATFORM.SlantRangeTo(t) < mVisualRange))
+            {
+               writeln_d("    is threat: ", t.TargetName());
+               totalThreatsWVR = totalThreatsWVR + 1.0;
+            }
+         }
+      }
+
+      double assetCount = 0.0;
+      WsfRIPRProcessor cmdr = PROCESSOR.GetRIPRCommanderProcessor();  # get the flight lead
+      if (cmdr.IsValid())
+      {
+         WsfRIPRProcessor cmdr2 = cmdr.GetRIPRCommanderProcessor();  # check for gci
+         if (cmdr2.IsValid())
+         {
+            foreach (WsfPlatform aifl in cmdr2.Platform().Subordinates())
+            {
+               foreach (WsfPlatform aiai in aifl.Subordinates())
+               {
+                  if (IsFlightAsset(aiai) && PLATFORM.SlantRangeTo(aiai) < mVisualRange)
+                  {
+                     writeln_d("    is asset: ", aiai.Name());
+                     assetCount = assetCount + 1.0;
+                  }
+               }
+            }
+         }
+         else
+         {
+            foreach (WsfPlatform aiai in cmdr.Platform().Subordinates())
+            {
+               if (IsFlightAsset(aiai) && PLATFORM.SlantRangeTo(aiai) < mVisualRange)
+               {
+                  writeln_d("    is asset: ", aiai.Name());
+                  assetCount = assetCount + 1.0;
+               }
+            }
+         }
+      }
+
+      extern double mEngagementAggressiveness;
+      double requiredAggressiveness = totalThreatsWVR / (totalThreatsWVR + assetCount);
+
+      writeln_d("    required aggress for disengage: ", requiredAggressiveness, " mine: ", mEngagementAggressiveness);
+
+      if (mEngagementAggressiveness < requiredAggressiveness)
+      {
+         draw.SetDuration(PROCESSOR.UpdateInterval());
+         return true;   //disengage
+      }
+
+      //check if there are any threats that I need to evade
+      //if there are & I have an energy advantage (altitude &/or speed), then extend the escape & unload
+
+      //???
+      //???
+      //???
+
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing disengage.");
+      PLATFORM.Comment("disengage");
+
+      #double bestheading = 0.0;  //compute this as away from all threats
+      #PLATFORM.TurnToHeading(bestheading);
+
+      //calculate an average heading to incoming platforms weighted by distance
+      double y = 0;
+      double x = 0;
+      foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+      {
+         if (t.IsValid() && (!t.SideValid() || t.Side() != PLATFORM.Side()))
+         {
+            double distMod = 1 / PLATFORM.SlantRangeTo(t);
+            double bearingMod = MATH.NormalizeAngle0_360(PLATFORM.TrueBearingTo(t));
+            x = x + MATH.Sin(bearingMod) * distMod;
+            y = y + MATH.Cos(bearingMod) * distMod;
+            writeln_d("    Incoming ", t.TargetName(), " at distance: ", 1 / distMod, ", bearing: ", bearingMod);
+         }
+      }
+
+      if (x!=0 || y!=0) //if there is something to run from
+      {
+         double evadeHeading = MATH.NormalizeAngle0_360(MATH.ATan2(x, y) - 180);
+         writeln_d("    x: ", x, ", y: ", y, ", evade at: ", evadeHeading);
+
+         extern bool FlyHold   (WsfPlatform, double, double, double);
+         FlyHold( PLATFORM, evadeHeading, cDIVE_ALTITUDE, cMAX_SPEED);
+
+         if (drawEscape == true)
+         {
+            WsfGeoPoint pt = PLATFORM.Location();
+            pt.Extrapolate(evadeHeading, 1852 * 10);  //draw line in direction of egress, for 10 nautical miles
+            draw.BeginLines();
+               draw.Vertex(PLATFORM.Location());
+               draw.Vertex(pt);
+            draw.End();
+         }
+      }
+
+   end_execute
+
+end_behavior
+

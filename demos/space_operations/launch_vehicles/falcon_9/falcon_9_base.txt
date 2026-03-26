@@ -1,0 +1,203 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                              SpaceX Falcon 9
+#    (This corresponds to the Falcon 9 'Full Thrust' version on Wikipedia)
+#
+# Source(s) PUG:   SpaceX Falcon 9 Launch Vehicle Payload Users Guide UG SpaceX website, Falcon 9
+#           Wiki:  Wikipedia, Falcon 9
+#           SF101: http://spaceflight101.com/spacerockets/falcon-9-ft/
+#
+# This is the base vehicle. Users should edit stage 4 in their definition to
+# set the desired value of the payload mass.
+#==============================================================================
+
+aero FALCON_9_STAGE_1_AERO WSF_AERO
+   # The rocket diameter is 3.66 m (SF101), but the payload fairing is 5.2 m (PUG)
+   reference_area            21.24 m^2           # 5.2 m fairing (PUG)
+
+   # Reasonable data according to Dan Schueths
+   mach_and_cd 0.1 0.15      # 0.12-0.18
+   mach_and_cd 0.9 0.23
+   mach_and_cd 0.98 0.4
+   mach_and_cd 1.0  3.2
+   mach_and_cd 1.2  2.0
+   mach_and_cd 5.0  .21
+end_aero
+
+aero FALCON_9_STAGE_2_AERO WSF_AERO
+   reference_area            21.24 m^2           # 5.2 m diameter
+   zero_lift_cd              0.2
+end_aero
+
+#==============================================================================
+
+platform_type FALCON_9_BASE WSF_PLATFORM
+   icon HARM
+
+   mover WSF_GUIDED_MOVER
+      #show_status
+      integration_timestep 0.01 sec
+      update_interval      0.01 sec
+      coordinate_frame     eci
+      check_for_ground_impact          # Don't require a fuse on the platform
+
+      # From UG: Table 8-4: Falcon 9 sample flight timeline-LEO mission
+      #
+      # T-3   Ignition
+      # T+0   Liftoff
+      # T+82  MaxQ
+      # T+170 MECO
+      # T+175 Stage sep
+      # T+180 SES
+      # T+220 Fairing deploy
+      # T+540 SECO
+      # T+600 Stage sep
+
+      # Payload fairing (PF)
+      ejectable payload_fairing
+         mass   1750 kg   # SF101
+         time   225 sec
+      end_ejectable
+
+      # The first stage consists of 9 Merlin 1D+ engines. Wikipedia states the following about
+      # the engines:
+      #
+      #   Sea level   Thrust: 845 kN, Isp: 282 sec  (burn rate: 305.55 kg/s),  845 kN * 9 = 7605 kN
+      #   Vacuum      Thrust: 914 kN, Isp: 311 sec  (burn rate: 299.68 kg/s),  914 kN * 9 = 8226 kN
+      #
+      # When multipled by 9 the thrust values are slightly different than the total values of
+      # 7607 kN and 8227 kN given by SF101, but the difference is less than 0.1%.
+      #
+      # OK, so now to mass calculations. Assume a burn rate of 2700 kg/s (9 engines * 300 kg/s)
+      # and a burn time of 170 seconds. This gives a fuel mass of 459000 kg! This far exceeds
+      # the estimate given by SF101. The real problem is that we really don't know the throttle
+      # profile (both SF101 and the PUG indicate there is some throttle down near the end of
+      # the first stage.)
+
+      stage 1
+         aero                          FALCON_9_STAGE_1_AERO
+         empty_mass                    22200 kg            # SF101 (estimated 20-24 kg)
+         empty_mass                    24564 kg            # adding 2,364 kg assumed for interstage (see stage 4)
+         fuel_mass                     411000 kg           # SF101 (estimated)
+         sea_level_thrust              7607000 nt          # SF101 (Isp: 282 sec)
+         vacuum_thrust                 8227000 nt          # SF101 (Isp: 311 sec)
+         burn_rate                     2700 kg/s           # calculated from thrust and Isp, full throttle
+
+         # There is not much known about the throttle profile.
+         throttle
+            curve
+               independent_variable time units secs
+                 0.000  0.95
+                60.000  0.95
+                60.001  0.8
+                70.000  1.0
+                85.001  0.95
+               200.000  0.95  # Setting a large time will go until the fuel runs out
+            end_curve
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           10.0
+         pre_separation_coast_time     5 sec               # PUG
+      end_stage
+
+      # 1 Merlin 1D+ vacuum engine
+      #
+      # Again, nothing known about the throttle
+      stage 2
+         aero                          FALCON_9_STAGE_2_AERO
+         empty_mass                    4000 kg             # SF101 (estimated)
+         fuel_mass                     107500 kg           # SF101 (estimated)
+         # For engines that run ONLY in a vacuum, just use the normal thrust/impulse values.
+         thrust                        934000 nt           # SF101: (Isp 348 sec)
+         burn_rate                     273.68 kg/s         # calculated from thrust and Isp
+         #thrust_duration               392 sec             # SF101
+         #thrust_duration               360 sec             # PUG
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           100.0
+         pre_ignition_coast_time       5 sec               # PUG
+         pre_separation_coast_time     60 sec              # PUG   # TODO_JAJ IS IT THIS LONG!
+      end_stage
+
+      # The next-to-last stage contains ONLY the mass of the 'consumable' hardware
+      #  associated with attachment and deployment of the payload.
+      #
+      # Payload attach fitting (PAF): 240 kg
+
+      stage 3
+         aero                           none
+         total_mass                     240 kg              # No known, using Delta IV value
+      end_stage
+
+      # The last stage represents the final delivered payload (i.e.: the satellite).
+      # It should include nothing extra.
+      stage 4
+         aero                           none
+         # SF101 and the UG has a launch mas 549,054 kg. I am assuming this does NOT include any payload
+         # and the documents say it has a max payload to LEO of 22800 kg.
+         #
+         # The total to this point (without payload) is 546,690 kg. This means there is 2,364 kg somewhere.
+         # I am assuming this is the interstage - which doesn't seem to be accounted for anywhere...
+
+         total_mass                     22800 kg           # Max to LEO (they don't say what LEO means, I can get to 200km)
+         total_mass                     18000 kg           # I backed it off to get close to 400 km
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+
+     # During the initial launch phase no guidance is performed.
+     # The phase is exited when the vertical speed is enough to start pitch over.
+
+      phase LAUNCH
+         program NULL_PROGRAM end_program        # No guidance
+         # The next value is pretty sensitive.
+         next_phase PITCH_OVER when vertical_speed > 45 m/s # Sufficient to start pitch over
+      end_phase
+
+      # Pitch-over starts shortly after launch. A gentle turn is performed until
+      # the desired flight path angle (selected in the launch computer) is reached,
+      # at which point it exits the phase and starts a gravity turn.
+
+      phase PITCH_OVER
+         program FLIGHT_PATH_ANGLE_PROGRAM
+            # The launch computer will define the flight path angle that is used.
+            pitch_rate 0.145 deg/sec
+         end_program
+         next_phase GRAVITY_TURN when program FLIGHT_PATH_ANGLE_PROGRAM complete
+      end_phase
+
+      # Gravity turn and orbit insertion. The ORBIT_INSERTION_PROGRAM will fly a
+      # gravity turn until it becomes close to orbit insertion. It will stop the
+      # engines when the flight path is near zero and the speed is enough to
+      # maintain an orbit.
+
+      phase GRAVITY_TURN
+         program ORBIT_INSERTION_PROGRAM
+         end_program
+         next_phase ORBIT when program ORBIT_INSERTION_PROGRAM complete
+      end_phase
+
+      phase ORBIT
+         program NULL_PROGRAM end_program        # No guidance
+      end_phase
+
+   end_processor
+
+end_platform_type
+
+weapon FALCON_9_BASE WSF_EXPLICIT_WEAPON
+   tilt                      90 deg
+   launch_delta_v            0.0 0.0 0.0 m/s
+   launched_platform_type    FALCON_9_BASE
+   quantity                  1
+end_weapon

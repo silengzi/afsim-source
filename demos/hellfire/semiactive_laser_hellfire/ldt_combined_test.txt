@@ -1,0 +1,151 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =====================================================================================================
+# =====================================================================================================
+# "ldt_combined.txt" -  This is an example scenario to exercise and debug laser designations test,
+# with all platforms combined into one WSF instance.
+# =====================================================================================================
+# =====================================================================================================
+
+include  target_type.txt
+include  designator_type.txt
+include  longbow_type.txt
+
+# Since we wish to demonstrate navigation over uneven terrain, we must first pull in some DTED data:
+terrain
+   raw_dted 2 dted 39 -107 40 -106
+end_terrain
+
+laser_designations
+   #debug_laser_designations
+   stale_out_interval 4 sec
+   update_interval    5 sec
+   #debug_print_modulus 333
+end_laser_designations
+
+include ldt_dis.txt
+
+platform shooter LONGBOW
+
+   script_variables
+      bool sal_fired     = false;
+      WsfSensor  tracker;
+      //bool attemptedMissileFire = false; // inherited from parent object.
+   end_script_variables
+
+   update_interval 5 sec
+
+   on_update
+
+      if (attemptedMissileFire) return;
+
+      Sensor("tracker").CueToTrack(WsfSimulation.FindPlatform("target").MakeTrack());
+
+      if ((MasterTrackList().Count() > 0) && (MasterTrackList().Entry(0).TimeSinceStarted() > 15))
+      {
+         attemptedMissileFire = true;
+         sal_fired = PLATFORM.Weapon("hellfire_launcher").Fire(MasterTrackList().Entry(0));
+         if (sal_fired)
+         {
+            PLATFORM.Comment("Weapon fire successful.");
+            writeln("Hellfire Missile Launched.");
+         }
+         else
+         {
+            PLATFORM.Comment("Launch attempt failed for unknown reason.");
+            writeln("Hellfire Missile Launch Attempted, but Failed.");
+         }
+
+         WsfSensor tracker = PLATFORM.Sensor("tracker");
+         if (tracker.IsValid())
+         {
+             writeln("Laser tracker turned off after missile fire attempt.");
+             tracker.TurnOff();
+         }
+      }
+
+   end_on_update
+
+end_platform
+
+platform target TARGET
+end_platform
+
+platform designator AH-64A
+
+   script_variables
+
+      WsfSensor       mySensor;
+      WsfPlatform     myTarget;
+      WsfTrack        myTrack;
+      bool ok           = true;
+      bool errorPrinted = false;
+
+   end_script_variables
+
+   update_interval 1.0 sec
+
+   on_update
+      if (ok)
+      {
+         myTarget = WsfSimulation.FindPlatform("target");
+         ok = myTarget.IsValid();
+         if (ok)
+         {
+            myTrack = myTarget.MakeTrack();
+            ok = myTrack.IsValid();
+            if (ok)
+            {
+               mySensor.CueToTrack(myTrack);
+            }
+            else if (! errorPrinted)
+            {
+               writeln("Track is not valid");
+               errorPrinted = true;
+            }
+         }
+         else if (! errorPrinted)
+         {
+            writeln("Target is not Valid");
+            errorPrinted = true;
+         }
+      }
+   end_on_update
+
+   on_initialize
+      mySensor = Sensor("laser_designator");
+      ok = mySensor.IsValid();
+      if (ok)
+      {
+         mySensor.TurnOn();
+      }
+      else if (! errorPrinted)
+      {
+         writeln("ERROR:  Sensor of specified name not found.");
+         errorPrinted = true;
+      }
+   end_on_initialize
+
+end_platform
+
+event_output
+   file ldt_three_platforms.evt
+   #enable WEAPON_TERMINATED
+   #enable WEAPON_FIRED
+   enable PLATFORM_BROKEN
+end_event_output
+
+event_pipe 
+   file ldt_three_platforms.aer
+   use_preset full
+end_event_pipe
+
+end_time 20 min
+

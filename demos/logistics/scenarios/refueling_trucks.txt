@@ -1,0 +1,39 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform FuelTruck_1 FUELING_TRUCK
+
+   position 24.5515n 81.7596w # Slightly south of Key West Intl Airport
+
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 200 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform
+
+platform FuelTruck_2 FUELING_TRUCK
+
+   position 24.5515n 81.7598w # Slightly south of Key West Intl Airport
+
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 700 kg
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform

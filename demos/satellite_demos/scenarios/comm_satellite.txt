@@ -1,0 +1,66 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#                    Communications Satellites
+#####################################################################
+# This scenario requires a custom network topology due to legacy
+# usage of external linkage grabbing the first comm
+# it finds to send, since its just sending to "peers".
+# Since that is extremely vague and not compatible with
+# the new comms framework, we can force the desired
+# behavior by shaping the network topology to achieve
+# legacy behavior. In the future, external linkage
+# will support dedicated interface support, and this
+# will not be necessary.
+network ComsatNet WSF_COMM_NETWORK_GENERIC
+   comm_link_list
+      # uplinks to satellite
+      link SAT_GS-STL radio AO-51 uplink-1
+      link SAT_GS-LAX radio AO-51 uplink-1
+      # downlinks to ground stations
+      link AO-51 downlink-1 SAT_GS-STL radio
+      link AO-51 downlink-1 SAT_GS-LAX radio
+   end_comm_link_list
+end_network
+
+# TLE gotten from celestrak.com on 4/19/2005
+platform AO-51 COMSAT
+   mover
+     debug
+   end_mover
+   orbit
+1 28375U 04025K   05108.18171526  .00000126  00000-0  50790-4 0  2280
+2 28375  98.2173 173.1035 0085146  52.7175 308.1739 14.40449408 41978
+   end_orbit
+
+end_platform
+
+#####################################################################
+#                          Ground Stations
+#####################################################################
+
+platform COMMANDER-1 WSF_PLATFORM
+   category ground_station
+   icon C4I
+   side blue
+   commander SELF
+   position 41:58:46.500N 087:54:16.100W altitude 2 m agl
+end_platform
+
+platform SAT_GS-STL SAT_GS
+   category ground_station
+   commander COMMANDER-1
+   position 38:44:51.600N 090:21:36.000W altitude 2 m agl
+end_platform
+
+platform SAT_GS-LAX SAT_GS
+   category ground_station
+   commander COMMANDER-1
+   position 33:56:33.130N 118:24:29.068W altitude 2 m agl
+end_platform
+

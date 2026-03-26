@@ -1,0 +1,185 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#  THIS BEHAVIOR ASSUMES THE FOLLOWING VARIABLES EXIST AND ARE SET
+#      extern double mDesiredHeading;
+#      extern double mDesiredAltitude;
+#      extern double mDesiredSpeed;
+
+behavior pursue_fly_route_finder
+
+   script_debug_writes off
+
+   script_variables
+      //expected global externs
+      #extern Array<WsfGeoPoint> gAvoidPoints;
+      #extern Array<double>      gAvoidRadii;
+      WsfRouteFinder mRouteFinder = WsfRouteFinder();
+      bool           mDebugDraw = true;
+      WsfGeoPoint    mTargetPoint;
+      WsfDraw        mDraw = WsfDraw();
+
+      bool               mIgnoreHeadingFindMyOwn = false; // if true: find own heading towards target track
+
+      bool               mUseGlobalAvoids = false; //true:  use extern gAvoidPoints and gAvoidRadii
+                                                   //false: use these two arrays below
+      Array<WsfGeoPoint> mAvoidPoints = Array<WsfGeoPoint>();
+      Array<double>      mAvoidRadii  = Array<double>();
+   end_script_variables
+
+
+   on_init
+      mDraw.SetLayer("pursue-target_route_finder");
+      mDraw.SetLineSize(1);
+      #mRouteFinder.SetImpossibleRouteResponse(2);  //shift starting or ending point outside of any avoidances (dont shrink the avoidance regions)
+
+      if (mUseGlobalAvoids == true)
+      {
+         extern Array<WsfGeoPoint> gAvoidPoints;
+         extern Array<double>      gAvoidRadii;
+         for (int i=0; i < gAvoidPoints.Size() && i < gAvoidRadii.Size(); i=i+1)
+         {
+            WsfGeoPoint pt = gAvoidPoints[i];
+            double radius  = gAvoidRadii[i];
+            writeln_d(PLATFORM.Name(), " avoiding: ", pt.ToString(), ", at radius: ", radius);
+            mRouteFinder.Avoid(pt, radius);
+         }
+      }
+      else
+      {
+         for (int i=0; i < mAvoidPoints.Size() && i < mAvoidRadii.Size(); i=i+1)
+         {
+            WsfGeoPoint pt = mAvoidPoints[i];
+            double radius  = mAvoidRadii[i];
+            writeln_d(PLATFORM.Name(), " avoiding: ", pt.ToString(), ", at radius: ", radius);
+            mRouteFinder.Avoid(pt, radius);
+         }
+      }
+   end_on_init
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue_fly_route_finder, T=", TIME_NOW);
+
+      if (mIgnoreHeadingFindMyOwn == true)
+      {
+         WsfTrack targetTrack = PROCESSOR.GetTarget();
+         if (targetTrack.IsNull() || !targetTrack.IsValid())
+         {
+            writeln_d("    No valid target track found to pursue!");
+            return Failure("target track not found");
+         }
+         mTargetPoint = targetTrack.CurrentLocation();
+      }
+      else
+      {
+         //extrapolate desired heading foward far enough to account for our speed & turning ability
+         extern double mDesiredHeading;
+         double dist = 1852*10; //calculate based on speed & turning
+
+
+         mTargetPoint = PLATFORM.Location();
+         mTargetPoint.Extrapolate(mDesiredHeading, dist);
+      }
+      return true;
+   end_precondition
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing pursue_fly_route_finder, T=", TIME_NOW);
+      extern double mDesiredHeading;
+      extern double mDesiredAltitude;
+      extern double mDesiredSpeed;
+      extern double mDesiredLinearAccel;
+      #extern double mDesiredRadialAccel;    #this will be ignored, the route finder gives us this
+      extern double mDesiredClimbDiveAngle;
+
+#      PLATFORM.GoToSpeed(mDesiredSpeed, mDesiredLinearAccel);
+#      double altRateOfChange = PLATFORM.Speed() * MATH.Sin(mDesiredClimbDiveAngle);
+#      PLATFORM.GoToAltitude(mDesiredAltitude, altRateOfChange);
+#      PLATFORM.TurnToHeading(mDesiredHeading, mDesiredRadialAccel);
+
+
+      if (PLATFORM.SlantRangeTo(mTargetPoint) > (3*mDesiredSpeed))   // if we are more than 2 seconds away from our target
+      {
+        #mRouteFinder.SetImpossibleRouteResponse(3);  //dont shrink any avoidances or shift any points
+         mRouteFinder.SetImpossibleRouteResponse(2);  //shift points to exist outside of avoidances
+         WsfRoute path = mRouteFinder.Route(TIME_NOW, PLATFORM.Location(), mTargetPoint, mDesiredSpeed);
+         if (!path.IsValid())
+         {
+            writeln_d("***** ERROR: INVALID PATH!!!");
+            return;
+         }
+         WsfRoute avoidances = mRouteFinder.RouteAvoidances();
+         if (!avoidances.IsValid())
+         {
+            writeln_d("***** ERROR: INVALID AVOIDANCES!!!");
+            return;
+         }
+         writeln_d("T=", TIME_NOW, ", path size: ", path.Size(), ", avoidances: ", avoidances.Size());
+
+         if (path.Size() >= 2 && avoidances.Size() >= 1)
+         {
+            double speed = path[0].Speed();
+            double radAccel;
+            double heading;
+            double avoidAngle = 90;
+            if (PLATFORM.RelativeBearingTo(avoidances[0].Location()) < 0)
+            {
+               avoidAngle = -90;
+            }
+
+            if (path[0].Location().SlantRangeTo(path[1].Location()) < (speed*3))
+            {
+               //just stay orthogonal to avoidance, we are riding the edge of the circle now
+               heading = PLATFORM.TrueBearingTo(avoidances[0].Location()) - avoidAngle;
+               radAccel = path[0].RadialAcceleration();
+            }
+            else
+            {
+               //we are on a leg of the route, not on a circle right now
+               //just turn towards the next point
+               heading  = PLATFORM.TrueBearingTo(path[1].Location());
+               radAccel = 100;   //incredible radial acceleration, let mover limit it
+                                 //this is to get platform oriented onto straight leg of the route
+            }
+            writeln_d(PLATFORM.Name(), ", rad accel: ", radAccel, ", speed: ", speed, ", loc: ",  path[1].Location().ToString());
+            PLATFORM.TurnToHeading( heading, radAccel);
+            PLATFORM.GoToSpeed( path[0].Speed(), path[0].LinearAcceleration(), true);
+
+            if (mDebugDraw == true)
+            {
+               //draw white line on avoidance side, length = radius of avoidance
+               double radAccel = path[0].RadialAcceleration();
+               double speed = path[0].Speed();
+               double radius = speed * speed / radAccel;
+               WsfGeoPoint center = PLATFORM.Location();
+               center.Extrapolate(PLATFORM.Heading()+avoidAngle, radius);
+
+               mDraw.SetDuration(1);
+               mDraw.SetColor(1.0, 1.0, 1.0);   //white
+               mDraw.BeginLines();
+                  mDraw.Vertex(PLATFORM.Location());
+                  mDraw.Vertex(center);
+               mDraw.End();
+            }
+         }
+
+      }
+
+      if (mDebugDraw == true)
+      {
+         mRouteFinder.DrawRoute(PROCESSOR.UpdateInterval(), Vec3.Construct(0.0, 0.75, 0.0)); #green
+         mRouteFinder.DrawAvoidances(PROCESSOR.UpdateInterval(), Vec3.Construct(0.5, 0.5, 0.5)); #gray
+      }
+
+   end_execute
+
+end_behavior
+

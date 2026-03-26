@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#sp {impasse-conflict*resolve*reject-non-current
+#   (state <s> ^superstate nil)
+#   (state <ss> ^superstate <s>
+#               ^impasse conflict
+#               ^item <i1>
+#               ^item { <i2> <> <i1> } )
+#   (<i1> ^name pursue-target
+#         ^target.currently-targeted 1
+#         ^target.target-name <name1>
+#         ^target.update-time <ut> >= <st>)
+#   (<i2> ^name pursue-target
+#         ^target.currently-targeted 0
+#         ^target.target-name <name2>)
+#-->
+#   (write (crlf) |prefer-current: Operator conflict between | <name1> | & | <name2>)
+#   (<s> ^operator <i2> -)
+#}
+
+#sp {fix*operator*tie*impasse
+#   (state <s> ^attribute operator
+#              ^impasse tie
+#              ^item <i1> ^item {<i2> <> <i1> })
+#   (<i1> ^name pursue-target
+#         ^job-bid <v1>)
+#   (<i2> ^name pursue-target
+#         ^job-bid <v2>)
+#-->
+#   (<s> ^operator <i1> =)
+#   (<s> ^operator <i2> =)
+#}
+
+#sp {impasse-conflict*resolve*set-indifferent
+#     (state <s>  ^superstate nil)
+#     (state <ss> ^superstate <s>
+#                 ^impasse conflict
+#                 ^item <i1>
+#                 ^item <i2> <> <i1>)
+#     (<i1> ^name <oname1>
+#           ^target.target-name <name1>
+#     (<i2> ^name <oname2>
+#           ^target.target-name <name2>
+#           ^actions.pursue-target.pursuit-mode <pm2>)
+#-->
+#   (write (crlf) |set-indifferent: Operator conflict between | <oname1> |:| <name1> |:| <pm1>| & | <oname2> |:| <name2>|:| <pm2>)
+#   (<s> ^operator <i1> =)
+#   (<s> ^operator <i2> =)
+#}

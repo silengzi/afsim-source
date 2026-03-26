@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This file creates a scenario in which a launch vehicle experiences a staging failure
+# and is subsequently intercepted along its path.
+
+file_path .
+
+# =============================================================================
+# Scripts
+include_once scripts/mover_burned_out.txt
+
+include_once platforms/satellite.txt
+include_once platforms/delta_iv_m_staging_failure.txt
+# =============================================================================
+#             THIS IS WHERE EVERYTHING REALLY HAPPENS....
+# =============================================================================
+# Launches vehicle with staging failure
+include_once scenarios/launch.txt
+# Provides ability to interdict launch vehicle when staging failure is detected
+include_once scenarios/interdiction.txt
+
+# =============================================================================
+
+event_pipe
+   file output/launch_vehicle_interdiction.aer
+end_event_pipe
+
+event_output
+   file output/launch_vehicle_interdiction.evt #STDOUT
+   enable MOVER_BURNED_OUT
+   enable MOVER_STAGED
+   enable PLATFORM_ADDED
+   enable PLATFORM_DELETED
+end_event_output
+
+end_time 1 hrs
+#end_time 10 days

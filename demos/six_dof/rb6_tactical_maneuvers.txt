@@ -1,0 +1,712 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario presents a range of tactical maneuvers that SixDOF aircraft
+# movers can perform. The demo includes two aircraft. The first aircraft (red)
+# performs a series of maneuvers. The second aircraft (blue) pursues the first
+# aircraft.
+#
+# ******************************************************************************
+
+define_path_variable CASE rb_tactical_maneuvers
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 500 sec
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once platforms/fa-lgt.txt
+include_once platforms/fa-hvy.txt
+include_once scripts/six_dof_all_scripts.txt
+include_once scripts/six_dof_simple_scripts.txt
+include_once scripts/six_dof_maneuver_scripts.txt
+
+platform_type BlueFighter FA-LGT_RB6
+   update_interval 0.01 sec
+   side blue
+   icon f16
+   
+   script_variables
+      static double rollAndPull_BankAngle_deg  = 0.0;
+      static double rollAndPull_targetGLoad    = 0.0;
+      static bool   rollAndPull_diving         = true;
+      static string rollAndPull_mode           = "NONE";
+      static double rollAndPull_TgtRoll_deg    = 0.0;
+      static double rollAndPull_TotalAngle_deg = 0.0;
+   end_script_variables
+   
+   script void DetermineRollAndPull(WsfPlatform aAttackingPlatform, WsfPlatform aTargetPlatform)
+
+      WsfGeoPoint tgtPt = aTargetPlatform.Location();
+      double az_deg = aAttackingPlatform.RelativeAzimuthOf(tgtPt);
+      double el_deg = aAttackingPlatform.RelativeElevationOf(tgtPt);
+      double CosEl = Math.Cos(el_deg*Math.RAD_PER_DEG());
+      double SinEl = Math.Sin(el_deg*Math.RAD_PER_DEG());
+      double x  = Math.Cos(az_deg*Math.RAD_PER_DEG());
+      double y  = Math.Sin(az_deg*Math.RAD_PER_DEG());
+      double xy = Math.Sqrt( x*x + y*y );
+      double z  = 0.0;
+      if( Math.Fabs(CosEl) > 0.0000001 )
+      {
+         z  = (xy/CosEl) * SinEl;
+      }
+      double yz = Math.Sqrt( y*y + z*z );
+      double ang_deg = Math.DEG_PER_RAD() * Math.ATan2(yz,x);
+
+      rollAndPull_TgtRoll_deg    = 90.0 - Math.ATan2(z,y);
+      rollAndPull_TotalAngle_deg = ang_deg;
+
+   end_script
+
+   script void PursuitThinker()
+
+      WsfPlatform tgtPlatform = WsfSimulation.FindPlatform("ManeuverFighter");
+
+      DetermineRollAndPull(PLATFORM, tgtPlatform);
+
+      double rollRate_dps = 0.01 * rollAndPull_TgtRoll_deg * Math.Fabs(rollAndPull_TgtRoll_deg);
+      if( rollRate_dps > 360.0 )
+      {
+         rollRate_dps = 360.0;
+      }
+      if( rollRate_dps < -360.0 )
+      {
+         rollRate_dps = -360.0;
+      }
+      SetRollRate(PLATFORM,rollRate_dps);
+
+      double gLoad = 1.0;
+      if( rollAndPull_TotalAngle_deg > 90.0 )
+      {
+         rollAndPull_TotalAngle_deg = 90.0;
+      }
+
+      if( rollAndPull_TotalAngle_deg < 5.0 )
+      {
+         gLoad = 0.25;
+      }
+      else
+      {
+         if( rollAndPull_TotalAngle_deg > 45.0 )
+         {
+            gLoad = 6.5;
+         }
+         else if( rollAndPull_TotalAngle_deg > 30.0 )
+         {
+            gLoad = 4.5;
+         }
+         else if( rollAndPull_TotalAngle_deg > 20.0 )
+         {
+            gLoad = 3.0;
+         }
+         else if( rollAndPull_TotalAngle_deg > 10.0 )
+         {
+            gLoad = 2.0;
+         }
+         else // > 5 deg
+         {
+            gLoad = 1.0;
+         }
+      }
+
+      SetPitchGLoad(PLATFORM, gLoad);
+
+      PLATFORM.ExecuteAtTime(TIME_NOW + 0.01, "PursuitThinker");
+
+   end_script
+
+# ------------------------------------------------------------------------------
+
+   execute at_time 0.01 sec absolute
+      PursuitThinker();
+   end_execute
+   
+end_platform_type
+
+platform_type RedFighter FA-HVY_RB6
+   
+   update_interval 0.01 sec
+   
+   side red
+   icon mig29_rus
+
+   script_variables
+      static double targetBankAngle_deg = 0.0;
+      static double targetGLoad = 0.0;
+      static bool   diving = true;
+      static string mode = "NONE";
+   end_script_variables
+
+   script bool SlicebackRollAchieved(WsfPlatform aPlatform)
+
+      double currentRoll_deg = aPlatform.Roll();
+      bool angleMet = false;
+
+      if( targetBankAngle_deg < 0.0 )
+      {
+         if( currentRoll_deg <= (targetBankAngle_deg + 1) )
+         {
+            angleMet = true;
+         }
+      }
+      else
+      {
+         if( currentRoll_deg >= (targetBankAngle_deg - 1) )
+         {
+            angleMet = true;
+         }
+      }
+
+      return angleMet;
+
+   end_script
+
+   script bool SlicebackPitchAchieved(WsfPlatform aPlatform)
+
+      double currentRoll_deg = aPlatform.Roll();
+      double currentPitch_deg = aPlatform.Pitch();
+      bool angleMet = false;
+
+      if( diving )
+      {
+         if( (currentRoll_deg >= -90.0)&&(currentRoll_deg <= 90.0) )
+         {
+            if(currentPitch_deg >= 0.0)
+            {
+               angleMet = true;
+            }
+         }
+      }
+      else
+      {
+         if( (currentRoll_deg <= -90.0)||(currentRoll_deg >= 90.0) )
+         {
+            if(currentPitch_deg <= 0.0)
+            {
+               angleMet = true;
+            }
+         }
+      }
+
+      return angleMet;
+
+   end_script
+
+   script bool SlicebackRolloutAchieved(WsfPlatform aPlatform)
+
+      double currentRoll_deg = aPlatform.Roll();
+      double currentPitch_deg = aPlatform.Pitch();
+
+      bool angleMet = false;
+
+      if( diving )
+      {
+         if( (currentRoll_deg >= -0.1)&&(currentRoll_deg <= 0.1) )
+         {
+            if(currentPitch_deg >= 0.0)
+            {
+               angleMet = true;
+            }
+         }
+      }
+      else
+      {
+         if( (currentRoll_deg >= -0.1)&&(currentRoll_deg <= 0.1) )
+         {
+            if(currentPitch_deg >= 0.0)
+            {
+               angleMet = true;
+            }
+         }
+      }
+
+      return angleMet;
+
+   end_script
+
+   script void PerformSlicebackRoll(WsfPlatform aPlatform, string aCallbackName)
+      RollToBankAngle(aPlatform, targetBankAngle_deg);  // Roll to the target bank angle
+      if( diving )
+      {
+         SetPitchGLoad(aPlatform, 0.0);
+      }
+      else
+      {
+         SetPitchGLoad(aPlatform, 1.0);
+      }
+      mode = "PERFORMING_SLICEBACK_ROLL";
+      writeln("*** PerformSlicebackRoll ***");
+   end_script
+
+   script void PerformSlicebackPitch(WsfPlatform aPlatform, string aCallbackName)
+      SetRollRate(aPlatform, 0.0);
+      SetPitchGLoad(PLATFORM, targetGLoad);
+      mode = "PERFORMING_SLICEBACK_PITCH";
+      writeln("*** PerformSlicebackPitch ***");
+   end_script
+
+   script void PerformSlicebackRollout(WsfPlatform aPlatform, string aCallbackName)
+      RollToBankAngle(aPlatform, 0.0);
+      SetGamma(PLATFORM, 0.0);
+      mode = "PERFORMING_SLICEBACK_ROLLOUT";
+      writeln("*** PerformSlicebackRollout ***");
+   end_script
+
+   script void CompleteSliceback(WsfPlatform aPlatform, string aCallbackName)
+      RollToBankAngle(aPlatform, 0.0);
+      SetGamma(PLATFORM, 0.0);
+      mode = "IDLE";
+      writeln("*** CompleteSliceback ***");
+   end_script
+
+   script void Sliceback(WsfPlatform aPlatform, double aRollAngle_deg, double aGload, string aCallbackName)
+      // Allow any bank angle
+      SetMaxBankAngle(aPlatform, 180.0);
+
+      // Set bank angle and g-load
+      targetBankAngle_deg = aRollAngle_deg;
+      targetGLoad = aGload;
+
+      // Set the diving flag, based on roll/bank angle (up or inverted)
+      if( (aRollAngle_deg >= -90.0)&&(aRollAngle_deg <= 90.0))
+      {
+         diving = false;
+      }
+      else
+      {
+         diving = true;
+      }
+
+      PerformSlicebackRoll(PLATFORM,"SlicebackRollComplete");
+
+      // Call ProcessSliceback to perform the sliceback
+      aPlatform.ExecuteAtTime(TIME_NOW + 0.01, "ProcessSliceback", {aPlatform,aCallbackName});
+
+   end_script
+
+   script void SlicebackComplete()
+      writeln("*** SlicebackComplete ***");
+   end_script
+
+   script void ProcessSliceback(WsfPlatform aPlatform, string aCallbackName)
+
+      bool modeAchieved = false;
+
+      if( mode == "PERFORMING_SLICEBACK_ROLL" )
+      {
+         modeAchieved = SlicebackRollAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackRoll achieved...");
+            PerformSlicebackPitch(aPlatform,aCallbackName);
+         }
+      }
+      else if( mode == "PERFORMING_SLICEBACK_PITCH" )
+      {
+         modeAchieved = SlicebackPitchAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackPitch achieved...");
+            PerformSlicebackRollout(aPlatform,aCallbackName);
+         }
+      }
+      else if( mode == "PERFORMING_SLICEBACK_ROLLOUT" )
+      {
+         modeAchieved = SlicebackRolloutAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackRollout achieved...");
+            CompleteSliceback(aPlatform,aCallbackName);
+         }
+      }
+
+      if( mode != "IDLE" )
+      {
+         aPlatform.ExecuteAtTime(TIME_NOW + 0.01, "ProcessSliceback", {aPlatform,aCallbackName});
+      }
+
+   end_script
+   
+# ------------------------------------------------------------------------------
+
+   // The goal of this maneuver set is to always roll to put the target "on the canopy"
+   // and to pull-g to keep the target in the sweet-spot (within 10 deg).
+
+   script void DetermineRollAndPull3(WsfPlatform aPlatform, string aCallbackName)
+
+      bool modeAchieved = false;
+
+      if( mode == "PERFORMING_SLICEBACK_ROLL" )
+      {
+         modeAchieved = SlicebackRollAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackRoll achieved...");
+            PerformSlicebackPitch(aPlatform,aCallbackName);
+         }
+      }
+      else if( mode == "PERFORMING_SLICEBACK_PITCH" )
+      {
+         modeAchieved = SlicebackPitchAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackPitch achieved...");
+            PerformSlicebackRollout(aPlatform,aCallbackName);
+         }
+      }
+      else if( mode == "PERFORMING_SLICEBACK_ROLLOUT" )
+      {
+         modeAchieved = SlicebackRolloutAchieved(aPlatform);
+         if(modeAchieved)
+         {
+            writeln("  SlicebackRollout achieved...");
+            CompleteSliceback(aPlatform,aCallbackName);
+         }
+      }
+
+      if( mode != "IDLE" )
+      {
+         aPlatform.ExecuteAtTime(TIME_NOW + 0.01, "ProcessSliceback", {aPlatform,aCallbackName});
+      }
+
+   end_script
+
+end_platform_type
+
+script void SetPitchRate(WsfPlatform aPlatform, double pitchRate_dps)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotPitchRate(pitchRate_dps);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+script void SetDeltaPitch(WsfPlatform aPlatform, double deltaPitch_deg)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotDeltaPitch(deltaPitch_deg);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+script void SetDeltaRoll(WsfPlatform aPlatform, double deltaRoll_deg)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotDeltaRoll(deltaRoll_deg);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+script void SetKIAS(WsfPlatform aPlatform, double kias)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotSpeedKCAS(kias);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+script void SetKTAS(WsfPlatform aPlatform, double ktas)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotSpeedKTAS(ktas);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+script void SetBankAngle(WsfPlatform aPlatform, double angle_deg)
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      mover.SetAutopilotRollAngle(angle_deg);
+   }
+   else
+   {
+      writeln("--ERROR-- Not a SixDOF Mover.");
+   }
+end_script
+
+# ------------------------------------------------------------------------------
+
+platform PursuitFighter BlueFighter
+   route
+      position   21.180n  158.55w  altitude 14000.0 ft  speed 500.0 kts
+      position   21.480n  157.95w  altitude 14000.0 ft  speed 500.0 kts
+      position   21.520n  157.95w  altitude 14000.0 ft  speed 500.0 kts
+   end_route
+   follow_vertical_track
+end_platform
+
+# ------------------------------------------------------------------------------
+
+platform ManeuverFighter RedFighter
+   route
+      position   21.180n  158.55w  altitude 5000.0 ft  speed 550.0 kts
+      position   21.480n  157.95w  altitude 5000.0 ft  speed 550.0 kts
+      position   21.520n  157.95w  altitude 5000.0 ft  speed 550.0 kts
+   end_route
+   follow_vertical_track
+
+   execute at_time 5.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         SetKIAS(PLATFORM, 6000.0);
+         SetMaxBankAngle(PLATFORM,180.0);
+         SetMaxGLoad(PLATFORM,8.0);
+         SetMinGLoad(PLATFORM,0.0);
+         SetMaxRollRate(PLATFORM,180.0);
+         Comment("Light burner");
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 20.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         SetDeltaPitch(PLATFORM, 88.0);
+         SetDeltaRoll(PLATFORM, 0.0);
+         Comment("Pullback");
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 30.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         SetDeltaPitch(PLATFORM, 0.0);
+         SetDeltaRoll(PLATFORM, 90.0);
+         SetMaxRollRate(PLATFORM,30.0);
+         Comment("Roll right");
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 40.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         SetDeltaPitch(PLATFORM, 180.0);
+         SetDeltaRoll(PLATFORM, 0.0);
+         SetKIAS(PLATFORM, 450.0);
+         SetMaxRollRate(PLATFORM,180.0);
+         Comment("Pull over, cut throttle");
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 70.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Level off");
+         SetDeltaPitch(PLATFORM, 90.0);
+         SetDeltaRoll(PLATFORM, 0.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 85.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Barrel roll right");
+         SetDeltaPitch(PLATFORM, 20.0);
+         SetDeltaRoll(PLATFORM, 0.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 90.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Barrel roll right");
+         SetRollRate(PLATFORM, 25.0);
+         SetPitchRate(PLATFORM, 20.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 110.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Hard turn to right");
+         SetBankAngle(PLATFORM, 88.0);
+         SetPitchGLoad(PLATFORM, 6.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 120.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Roll out");
+         SetBankAngle(PLATFORM, 0.0);
+         SetFlightPathAngle(PLATFORM, 0.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 150.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Hard turn to right");
+         SetBankAngle(PLATFORM, 75.0);
+         SetPitchGLoad(PLATFORM, 8.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 245.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Hard turn to left");
+         SetBankAngle(PLATFORM, -70.0);
+         SetPitchGLoad(PLATFORM, 8.0);
+         SetKIAS(PLATFORM, 4500.0); // Go to high speed, forcing full burner
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 300.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Level off");
+         SetBankAngle(PLATFORM, 0.0);
+         SetFlightPathAngle(PLATFORM, 0.0);
+         SetKIAS(PLATFORM, 600.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 330.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         SetDeltaPitch(PLATFORM, 88.0);
+         SetKIAS(PLATFORM, 600.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 355.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Roll at top");
+         SetDeltaRoll(PLATFORM, -90.0);
+         SetPitchGLoad(PLATFORM, 0.0);
+         SetKIAS(PLATFORM, 6000.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 360.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Slice-back roll to left");
+         SetDeltaRoll(PLATFORM, 0.0);
+         SetPitchGLoad(PLATFORM, 8.0);
+         SetKIAS(PLATFORM, 6000.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+   execute at_time 460.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         Comment("Roll out and level off");
+         SetBankAngle(PLATFORM, 0.0);
+         SetFlightPathAngle(PLATFORM, 0.0);
+         SetKIAS(PLATFORM, 450.0);
+      }
+      else
+      {
+         writeln("--ERROR-- Not a SixDOF Mover.");
+      }
+   end_execute
+
+end_platform

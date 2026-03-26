@@ -1,0 +1,202 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This demonstrates how electromagnetic radiation, high energy particles, 
+# and low to medium energy particles from a solar event can affect satellite orientation, 
+# radar, and geolocation.  At time 2000 seconds, a burst of electromagnetic radiation
+# due to a coronal mass ejection (CME) impacts earth.  The orientation of an INTELSAT satellite (INTELSAT_18) 
+# is affected and it begins to tumble while still in orbit. The Over the Horizon Radar demo has been included
+# and the radar becomes nonoperational during the event.  GPS Denied Demo has also been included, 
+# but instead of the missiles' GPS receiver being jammed by the ground radar,
+# they experience a degraded GPS signal causing them to miss their intended target by up to 100 meters.  
+# The solar event lasts for 4600 seconds.  When the event ends, the INTELSAT satellite regains 
+# its orientation and the OTH radar becomes operational again.
+
+define_path_variable CASE space_weather
+log_file output/$(CASE).log
+
+file_path .
+file_path ../satellite_demos
+file_path ../oth_radar   // for OTH radar definition
+
+include_once  satellites/orbit_tle/intelsat.txt
+include       ground_networks/intelsat_ground.txt
+include       scenarios/gps_denied.txt
+include       scenarios/over_the_horizon_radar.txt
+include_once  platforms/intelsat.txt
+
+execute at_time .001 sec absolute
+   WsfPlatform plat_intel_18 = WsfSimulation.FindPlatform("INTELSAT_18");
+
+   for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+   {
+      WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+      if (myPlatform.IsA_TypeOf("INTELSAT") && myPlatform.Name() != "INTELSAT_18")
+      {
+         myPlatform.TurnCommOff("INTELSAT_DOWNLINK_TX");
+         myPlatform.TurnCommOff("INTELSAT_CL_TX");
+         myPlatform.TurnCommOff("INTELSAT_HANDHELD_DOWNLINK_TX");
+
+         WsfComm crosslink_comm = plat_intel_18.Comm("INTELSAT_CL_TX");
+         WsfComm downlink_comm = plat_intel_18.Comm("INTELSAT_DOWNLINK_TX");
+         crosslink_comm.AddConnection(myPlatform.Comm("INTELSAT_CL_RX").GetAddress());
+         downlink_comm.AddConnection(myPlatform.Comm("INTELSAT_UPLINK_RX").GetAddress());
+      }
+
+      if(myPlatform.IsA_TypeOf("INTELSAT_GS"))
+      {
+         // For all ground stations, link to INTELSAT_18
+         WsfComm downlink_comm = plat_intel_18.Comm("INTELSAT_DOWNLINK_TX");
+         downlink_comm.AddConnection(myPlatform.Comm("GROUNDSTATION_INTELSAT_DOWNLINK_RX").GetAddress());
+      }
+   }
+end_execute
+
+execute at_time 2000 sec absolute
+   WsfPlatform radar = WsfSimulation.FindPlatform("threat-ew-1");
+   
+   // Turning the EW radar off provides the effect of preventing the jamming that would
+   // otherwise occur in the GPS denied demo (we want the effect of degraded GPS instead).
+   radar.Sensor("ew-radar-1").SetOperational(false);
+   WsfPlatform OTH = WsfSimulation.FindPlatform("oth-radar-site-1");
+   OTH.Sensor("radar-1").SetOperational(false);
+   OTH.Processor("track_manager").SetOperational(false);
+   OTH.Processor("draw_processor").SetOperational(false);
+
+   WsfPlatform Platform1 = WsfSimulation.FindPlatform("SIRIUS_1");
+   WsfDraw draw = {};
+   draw.SetColor(1,0,0);
+   draw.SetDuration(4600);
+   draw.BeginText("duration of solar flare is 4600 seconds");
+   draw.Vertex(Platform1);
+   draw.End();
+
+   for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+   {
+      WsfPlatform AllPlatforms = WsfSimulation.FindPlatform(i);
+
+      if (AllPlatforms.IsValid())
+      {
+         AllPlatforms.SetGPS_Status(2); // GPS Degraded mode, providing the effect of scintillation.
+      }
+      if (AllPlatforms.IsA_TypeOf("ADM-160B"))
+      {
+         AllPlatforms.Comm("GPS_UPLINKL1_RX").SetOperational(false);
+      }
+   }
+end_execute
+
+// Start of Coronal Mass Ejection (CME) event
+execute at_time 2001 sec absolute
+   WsfPlatform Platform = WsfSimulation.FindPlatform("INTELSAT_18");
+   global int head = Platform.Heading();
+   global int pitch = Platform.Pitch();
+   global int roll = Platform.Roll();
+   Platform.SetGPS_Status(0); // Completely disabled
+   Platform.Comment(1,"Watch me! A Coronal Mass Ejection is about to interfere with my orientation");
+   Platform.Comment(2001,"Orientation temporarily affected");
+   Platform.Comment(2002, "Expected wait time: 4600 seconds");
+   Platform.Comment(6602, "Orientation has been corrected");
+   WsfDraw draw = {};
+   draw.BeginEllipsoid(0, 0, 0, 500000, 1000000, -1);
+   draw.SetDuration(4600);
+   draw.VertexLLA(56.75, -126.6333, 8000);
+   draw.End();
+   extern void DrawMagneticField(bool aDraw);
+   DrawMagneticField(true);
+end_execute
+
+execute at_interval_of 1 sec
+   WsfPlatform Platform = WsfSimulation.FindPlatform("INTELSAT_18");
+   WsfSpaceMover mover = (WsfSpaceMover)Platform.Mover();
+   if (Platform.GPS_Status() == 0)
+      {
+         mover.SetOrientation(Quaternion.Construct(head, pitch, roll));
+         head = head + 2;
+         pitch = pitch +  2;
+         roll = roll + 10;
+      }
+   else
+      {
+         mover.SetOrientation("nadir_with_eci_velocity_constraint");
+      }
+end_execute
+
+// End of CME event
+execute at_time 6602 sec absolute
+   WsfPlatform Platform = WsfSimulation.FindPlatform("INTELSAT_18");
+   WsfPlatform OTH = WsfSimulation.FindPlatform("oth-radar-site-1");
+   Platform.SetGPS_Status(1); // Normal operation
+   OTH.Sensor("radar-1").SetOperational(true);
+   OTH.TurnSensorOn("radar-1");
+   OTH.Processor("draw_processor").SetOperational(true);
+   OTH.TurnProcessorOn("draw_processor");
+   OTH.Processor("track_manager").SetOperational(true);
+   OTH.TurnProcessorOn("track_manager");
+end_execute
+
+// Draw a dipole magnetic field.   This is meant as an aid to show that the CME event is occurring,
+// with charged particles traveling along the field lines.
+script void DrawMagneticField(bool aDraw)
+   WsfDraw draw = {};
+   draw.SetId(1000);
+   if (aDraw)
+   {
+      draw.SetColor(1.0, 0.0, 0.0);
+      draw.SetPointSize(1);
+      draw.BeginPoints();
+      draw.SetDuration(4600);                                                  
+      Vec3 sunXVec = Sun.UnitVecWCS(WsfDateTime.CurrentTime()); // sun X vector
+      Vec3 sunZVec = Vec3.Construct(0.0, 0.0, 1.0);
+      Vec3 sunYVec = Vec3.Cross(sunZVec, sunXVec);
+      sunYVec.Normalize();
+      sunXVec = Vec3.Cross(sunYVec, sunZVec);
+      sunXVec.Normalize();
+      for (double L = 4; L <= 16; L += 4)
+      {
+         for (double phi = -180.0; phi < 180; phi += 10)
+         {
+            for (double gamma = 2; gamma <= 180.0; gamma += 2)
+            {
+               static double S0 = 2000000.0;
+               double r = S0 * L * MATH.Pow(MATH.Sin(gamma), 2);
+               double theta = 90 - gamma;
+               double z = r * MATH.Sin(theta);
+               double x = r * MATH.Cos(theta) * MATH.Cos(phi);
+               double y = r * MATH.Cos(theta) * MATH.Sin(phi);
+               Vec3 B = Vec3.Construct(x, y, z);
+               Vec3 Bp = Vec3.Construct(sunXVec[0] * B[0] + sunYVec[0] * B[1] + sunZVec[0] * B[2],
+                                        sunXVec[1] * B[0] + sunYVec[1] * B[1] + sunZVec[1] * B[2],
+                                        sunXVec[2] * B[0] + sunYVec[2] * B[1] + sunZVec[2] * B[2]);
+               WsfGeoPoint point = WsfGeoPoint.ConstructWCS(Bp);
+               draw.Vertex(point);
+            }
+         }
+      }               
+      draw.End();
+   }
+   else
+   {
+      draw.Erase(1000);
+   }   
+end_script
+
+event_output
+   file output/$(CASE).evt
+   enable COMMENT
+end_event_output
+
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe
+
+end_time 2 hr
+
+// When running satellites, the start date and time are required
+start_date Sep 18 2017
+start_time 18:00:00

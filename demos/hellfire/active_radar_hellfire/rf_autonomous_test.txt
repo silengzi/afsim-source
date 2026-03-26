@@ -1,0 +1,54 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#stream_debug_on
+
+# =====================================================================================================
+# =====================================================================================================
+# This is an example scenario to exercise and debug longbow rf missile functionality.
+# =====================================================================================================
+# =====================================================================================================
+
+include  target_type.txt
+include  longbow_type.txt
+
+# Since we wish to demonstrate navigation over uneven terrain,
+# we must first pull in some DTED data:
+terrain
+   raw_dted 2 dted 39 -107 40 -106
+end_terrain
+
+laser_designations
+   stale_out_interval 4 sec
+   update_interval    5 sec
+end_laser_designations
+
+include ldt_dis.txt
+
+platform shooter LONGBOW
+end_platform
+
+platform target TARGET
+end_platform
+
+event_output
+   file rf_auto_test.evt
+   enable WEAPON_TERMINATED
+   enable WEAPON_FIRED
+   enable PLATFORM_BROKEN
+   enable SENSOR_MODE_ACTIVATED
+   enable SENSOR_TRACK_INITIATED
+end_event_output
+
+event_pipe 
+   file rf_auto_test.aer
+   use_preset full
+end_event_pipe
+
+end_time 15 min
+

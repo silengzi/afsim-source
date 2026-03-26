@@ -1,0 +1,1439 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# TAIWAN FREEWAN-EXPRESSWAYS NETWORK
+
+# NATIONAL HIGHWAYS
+# 1  KEELUNG CITY-KAOHSIUNG
+# 2  TAOYUAN AIRPORT-NEW TAIPEI
+# 3  KEELUNG CITY- PINGTUNG
+# 3A TAIPEI CITY- SHENKENG
+# 4  TAICHUNG- FENGYUAN CITY
+# 5  TAIPEI CITY- SUAO
+# 6  TAICHUNG- NANTOU
+# 8  TAINAN CITY - XINHUA
+# 10 KAOHSIUNG CITY- QISHAN
+
+# EXPRESSWAYS
+# 61 BALI DISTRICT-QIGU
+# 62 KEELUNG-NEW TAIPEI
+# 64 BALI DISTRICT-ZHONGHE DISTRICT
+# 65 WUGU DISTICT-TUCHENG DISTRICT
+# 66 GUANYIN DISTRICT-TAOYUAN CITY
+# 68 NANLIAO-ZHUDONG
+# 72 HOULONG-SHITAN
+# 74 KUAIGUAN-TAICHUNG
+# 76 FUXING-YUANLIN
+# 78 TAIXI-GUKENG
+# 82 TAIBAO CITY-SHUISHANG
+# 84 GUANTIAN-YUJING
+# 86 RENDE-GUANMIAO
+# 88 FENGSHAN-CHAOZHOU
+
+route_network taiwan_freeways_expressways
+   # FREEWAYS
+  route
+    # zone Freeway_1
+    position 25:07:40.39n 121:44:20.54e
+    position   25.126958n 121.738514e
+    position  25.122305n 121.735547e
+    position  25.119252n 121.732536e
+    position  25.116921n 121.729853e
+    position  25.114911n 121.728312e
+    position  25.110852n 121.726486e
+    position  25.105151n 121.723887e
+    position  25.103887n 121.721960e
+    position  25.100969n 121.709669e
+    position  25.098072n 121.705060e
+    position  25.097958n 121.702709e  node_id 4141_/v/j/ #node w/Expressway 62
+    position  25.097742n 121.699885e
+    position  25.096246n 121.698040e
+    position  25.088988n 121.694784e
+    position  25.085853n 121.681892e
+    position  25.085346n 121.676054e
+    position  25.079811n 121.665481e
+    position  25.074847n 121.656507e
+    position  25.072635n 121.645581e node_id 4142_/v/j/ #node w/Freeway 3
+    position  25.071668n 121.639831e
+    position  25.068217n 121.634515e
+    position  25.065905n 121.616216e
+    position  25.063808n 121.596162e
+    position  25.070610n 121.573679e
+    position  25.071012n 121.561852e
+    position  25.072387n 121.557181e
+    position  25.072792n 121.536131e
+    position  25.073974n 121.527983e
+    position  25.076951n 121.519188e
+    position  25.077908n 121.508482e
+    position  25.076943n 121.499334e
+    position  25.073312n 121.483584e
+    position  25.075814n 121.467821e
+    position  25.074881n 121.460200e
+    position  25.067505n 121.426137e node_id 4137_/v/j/ #node w/Expressway 65
+    position  25.055834n 121.406333e
+    position  25.055792n 121.400560e
+    position  25.064050n 121.391205e
+    position  25.064483n 121.383379e
+    position  25.065931n 121.376760e
+    position   25.064796n 121.362810e
+    position  25.065580n 121.345485e
+    position  25.063038n 121.337055e
+    position  25.057857n 121.330112e
+    position  25.049390n 121.322766e
+    position  25.039196n 121.300394e
+    position  25.026651n 121.282702e
+    position  25.018898n 121.273505e node_id 4138_/v/j/ #node w/Freeway 2
+    position  24.995843n 121.244729e
+    position  24.956858n 121.199650e
+    position  24.935864n 121.189501e
+    position  24.935755n 121.189580e  node_id 4511_/v/j/ #node w/Expressway 66
+    position  24.927406n 121.173992e
+    position  24.908967n 121.164441e node_id 35_/v/j/ #node w/Highway 1
+    position  24.904755n 121.161766e
+    position  24.901795n 121.157457e
+    position  24.892727n 121.121649e
+    position  24.892812n 121.107921e
+    position  24.886285n 121.092263e
+    position  24.883666n 121.077922e
+    position  24.876706n 121.063690e
+    position  24.876626n 121.041280e
+    position  24.875756n 121.029459e
+    position  24.871551n 121.018842e
+    position  24.865068n 121.012655e
+    position  24.860364n 121.010728e
+    position  24.856546n 121.011030e
+    position  24.848305n 121.019149e
+    position  24.841030n 121.022065e
+    position  24.832583n 121.021572e
+    position  24.821294n 121.015889e
+    position  24.809313n 121.010830e
+    position  24.797431n 121.008119e
+    position  24.785997n 121.003959e
+    position  24.771562n 121.003161e
+    position  24.765967n 121.001219e
+    position  24.762243n 120.997623e
+    position  24.758882n 120.988982e
+    position  24.757335n 120.987773e  node_id 4145_/v/j/ #node w/Freeway 3
+    position  24.751602n 120.983147e
+    position  24.747636n 120.977239e
+    position  24.740689n 120.973349e
+    position  24.734393n 120.966122e
+    position  24.729062n 120.960066e
+    position  24.726449n 120.943378e
+    position  24.724807n 120.937304e
+    position  24.722030n 120.933413e
+    position  24.715313n 120.929668e
+    position  24.704481n 120.928192e
+    position  24.696586n 120.921549e
+    position  24.688174n 120.916147e
+    position  24.680867n 120.906641e
+    position  24.673209n 120.896920e
+    position  24.670727n 120.888400e
+    position  24.668623n 120.885708e
+    position  24.664623n 120.883559e
+    position  24.651857n 120.880407e
+    position  24.638373n 120.867069e
+    position  24.634816n 120.866052e
+    position  24.627728n 120.867180e
+    position  24.623153n 120.866737e
+    position  24.617155n 120.863665e
+    position  24.606828n 120.865341e
+    position  24.597763n 120.861468e
+    position  24.584474n 120.860380e
+    position  24.569786n 120.852162e
+    position  24.565230n 120.846614e
+    position  24.547777n 120.837651e
+    position  24.539653n 120.831025e
+    position  24.527996n 120.825448e
+    position  24.521822n 120.816752e
+    position  24.508590n 120.806226e
+    position  24.499948n 120.787495e
+    position  24.493789n 120.783027e
+    position  24.486512n 120.781831e
+    position  24.472415n 120.786749e
+    position  24.465888n 120.788110e
+    position  24.460817n 120.787594e
+    position  24.454592n 120.783599e
+    position  24.444324n 120.781538e
+    position  24.414218n 120.774321e
+    position  24.407644n 120.770309e
+    position  24.402509n 120.764989e
+    position  24.392376n 120.757759e
+    position  24.372270n 120.747606e
+    position  24.343000n 120.723415e
+    position  24.329539n 120.714697e
+    position  24.319409n 120.705995e
+    position  24.302136n 120.697589e
+    position  24.270607n 120.692812e  node_id 4302_/v/j/ #node w/Freeway 4
+    position  24.237357n 120.688295e
+    position  24.226751n 120.684623e
+    position  24.219997n 120.679832e
+    position  24.211872n 120.669889e
+    position  24.202042n 120.650222e
+    position  24.195348n 120.642501e
+    position  24.184637n 120.635662e
+    position  24.174989n 120.630707e
+    position  24.167331n 120.624006e
+    position  24.160839n 120.620998e
+    position  24.123162n 120.616292e
+    position  24.116479n 120.613247e
+    position  24.112900n 120.608679e
+    position  24.111492n 120.601171e
+    position  24.117907n 120.586774e
+    position  24.118473n 120.577128e  node_id 60_/v/j/ #node w/Highway 1
+    position  24.118334n 120.576622e
+    position  24.114471n 120.569180e
+    position  24.105591n 120.561430e node_id 4153_/v/j/  #Freeway 3
+    position  24.099369n 120.554598e
+    position  24.097062n 120.542150e
+    position  24.092060n 120.533412e
+    position  24.083432n 120.526477e
+    position  24.072102n 120.522824e
+    position  24.053903n 120.523865e
+    position  24.043306n 120.523470e
+    position  24.016214n 120.515262e
+     position  23.983683n 120.507393e node_id 4519_/v/j/ #node w/Expressway 76
+    position  23.978073n 120.506470e
+    position  23.953089n 120.506476e
+    position  23.938563n 120.503389e
+    position  23.923202n 120.498025e
+    position  23.908297n 120.497818e
+    position  23.901922n 120.497454e
+    position  23.886029n 120.492256e
+    position  23.868354n 120.489407e
+    position  23.851412n 120.485185e
+    position  23.827484n 120.484846e
+    position  23.814415n 120.484951e
+    position  23.795899n 120.481113e
+    position  23.781416n 120.475210e node_id 65_/v/j/ #node w/Highway 1
+    position  23.766208n 120.469501e
+    position  23.756837n 120.467586e
+    position  23.737400n 120.469434e
+    position  23.720645n 120.475287e
+    position  23.707952n 120.476010e
+    position  23.692991n 120.471477e
+    position 23.668035n 120.456415e  node_id 4521_/v/j/ #node w/Expressway 78
+    position  23.667693n 120.456190e
+    position  23.647360n 120.445850e
+    position  23.630156n 120.440556e
+    position  23.593322n 120.433419e
+    position  23.570480n 120.422714e
+    position  23.523425n 120.404771e
+    position  23.509623n 120.402540e
+    position  23.501727n 120.398213e
+    position  23.488692n 120.386246e
+    position  23.475734n 120.379513e
+    position  23.458951n 120.375296e
+    position  23.444434n 120.366728e
+    position  23.424324n 120.356598e node_id 4525_/v/j/ #node w/Expressway 82
+    position  23.424295n 120.356435e
+    position  23.411026n 120.354526e
+    position  23.391935n 120.355395e
+    position  23.38222n 120.354415e
+    position  23.373270n 120.350853e
+    position  23.363676n 120.344474e
+    position  23.355343n 120.334900e
+    position  23.344490n 120.318058e
+    position  23.337318n 120.309739e
+    position  23.330186n 120.303871e
+    position  23.299548n 120.285324e
+    position  23.283362n 120.276129e
+    position  23.273078n 120.266210e
+    position  23.228131n 120.242527e
+    position  23.218836n 120.239161e  node_id 4526_/v/j/ #node w/Expressway 84
+    position  23.212713n 120.237682e
+    position  23.182399n 120.235438e
+    position  23.163169n 120.231394e
+    position  23.155355n 120.230579e
+    position  23.146347n 120.231688e
+    position  23.133501n 120.236402e
+    position  23.112888n 120.244993e
+    position  23.079052n 120.252003e node_id 4308_/v/j/ #node w/Freeway 8
+    position  23.078853n 120.251988e
+    position  23.059509n 120.253468e
+    position  23.041974n 120.251411e node_id 71_/v/j/ #node w/Highway 1
+    position  23.041351n 120.251539e
+    position 23.028614n 120.249121e
+    position  23.017676n 120.250622e
+    position  23.007497n 120.248086e
+    position  22.974193n 120.248817e
+    position  22.967531n 120.250017e
+    position  22.947387n 120.248856e
+    position  22.942645n 120.249598e node_id 4530_/v/j/ #node w/Expressway 86
+    position  22.938082n 120.251009e
+    position  22.879332n 120.279167e
+    position  22.851654n 120.291313e
+    position  22.822919n 120.310568e
+    position  22.787789n 120.320528e
+    position  22.763058n 120.329914e
+    position  22.752601n 120.333901e
+    position  22.736935n 120.334121e
+    position  22.727527n 120.333737e
+    position  22.701975n 120.327917e
+    position  22.675234n 120.329038e node_id 4311_/v/j/ #node w/Freeway 10
+    position  22.675165n 120.329297e
+    position  22.663259n 120.330361e
+    position  22.654454n 120.334056e
+    position  22.64581n 120.336689e
+    position  22.636229n 120.337061e
+    position  22.624927n 120.335873e
+    position  22.615857n 120.337052e
+    position  22.602391n 120.342357e
+    position  22.598845n 120.341217e  node_id 4532_/v/j/ #node w/Expressway 88
+    position  22.585231n 120.327912e node_id 4135_/v/j/  #node w/Highway 17
+  end_route
+
+  route
+    # zone Freeway_2
+    position  24.939007n 121.324050e  node_id 4136_/v/j/ #node w/Freeway 3
+    position  24.958835n 121.324985e
+    position  24.964490n 121.323034e
+    position  24.969341n 121.318027e
+    position  24.972469n 121.311115e
+    position  24.976133n 121.292211e
+    position  24.979379n 121.285871e
+    position  24.983759n 121.282612e
+    position  24.988990n 121.281881e
+    position  24.994675n 121.282784e
+    position  25.000902n 121.283231e
+    position  25.006852n 121.281970e
+    position  25.012849n 121.277993e
+    position  25.018898n 121.273505e node_id 4138_/v/j/ #node w/Freeway 1
+    position  25.024844n 121.269024e
+    position  25.027024n 121.265578e
+    position  25.027407n 121.255682e
+    position  25.034957n 121.237415e node_id 5000_/v/j/ #node w/Highway 31
+    position  25.038780n 121.224773e
+    position 25.042524n 121.220720e
+    position  25.057824n 121.213482e
+    position  25.061338n 121.213431e
+    position  25.065028n 121.216817e
+end_route
+
+route
+  # zone Freeway_3
+   position  25.139674n 121.714523e node_id 4139_/v/j/ #node w/Highway 2
+   position  25.136683n 121.708308e
+   position  25.133583n 121.701882e
+   position  25.130326n 121.698719e
+   position   25.126750n 121.697473e node_id 4140_/v/j/ #node w/Highway 62
+   position  25.120655n 121.695970e
+   position 25.115251n 121.689941e
+   position  25.113096n 121.687500e
+   position  25.103180n 121.681090e
+   position  25.098289n 121.670988e
+   position  25.095938n 121.666255e
+   position  25.091697n 121.660471e
+   position  25.089526n 121.653299e
+   position  25.085547n 121.649630e
+   position  25.072635n 121.645581e node_id 4142_/v/j/ #node w/Freeway 1
+   position  25.059216n 121.641136e
+   position  25.055794n 121.637954e node_id 5001_/v/j/ #node w/Highway 5
+   position  25.051866n 121.629874e
+   position   25.049595n 121.627341e
+   position   25.045578n 121.625168e
+   position  25.039009n 121.623312e
+   position  25.035877n 121.620930e  node_id 4143_/v/j/ #node w/Freeway 5
+   position  25.026475n 121.605364e
+   position  25.024143n 121.602467e
+   position  25.017299n 121.598925e
+   position  25.001765n 121.594900e  node_id 4144_/v/j/ #node w/Freeway 3A
+   position 24.985997n 121.591456e
+   position  24.979629n 121.588116e
+   position  24.976232n 121.576436e
+   position  24.977070n 121.562901e
+   position  24.973929n 121.554664e
+   position 24.959209n 121.541524e
+   position  24.958452n 121.538259e
+   position  24.959434n 121.533677e
+   position  24.969271n 121.524627e
+   position  24.976194n 121.517693e
+   position  24.977847n 121.508091e
+   position  24.979601n 121.499388e
+   position  24.987630n 121.489031e
+   position  24.989032n 121.484342e
+   position  24.988324n 121.479426e
+   position  24.976247n 121.462961e
+   position  24.974904n 121.450461e
+   position  24.961018n 121.434821e
+   position  24.960326n 121.432115e  node_id 4500_/v/j/ #node w/Expressway 65
+   position  24.958534n 121.423643e
+   position  24.950594n 121.413378e
+   position  24.951733n 121.385017e
+   position  24.949234n 121.373789e
+   position  24.938438n 121.359459e
+   position  24.934604n 121.349354e
+   position  24.939335n 121.328750e
+   position  24.939007n 121.324050e  node_id 4136_/v/j/ #node w/Freeway 2
+   position  24.926823n 121.308693e
+   position  24.921459n 121.298913e
+   position  24.910550n 121.291109e
+   position  24.906111n 121.277491e
+   position  24.901080n 121.270249e
+   position  24.896017n 121.266421e
+   position  24.888054n 121.262445e
+   position  24.883177n 121.258633e
+   position  24.879418n 121.252007e
+   position  24.875095n 121.244614e
+   position  24.865822n 121.234651e
+   position  24.861375n 121.223069e
+   position  24.858176n 121.211363e
+   position  24.853182n 121.204077e
+   position  24.848223n 121.200565e
+   position  24.843393n 121.199087e
+   position  24.811625n 121.200509e
+   position  24.807991n 121.200066e
+   position  24.804338n 121.198784e
+   position  24.800128n 121.195173e
+   position  24.797584n 121.190867e
+   position  24.796474n 121.184714e
+   position  24.797528n 121.178413e
+   position  24.804633n 121.165181e
+   position  24.806884n 121.157094e
+   position  24.806967n 121.148736e
+   position  24.804942n 121.141260e
+   position  24.799938n 121.132773e
+   position  24.793604n 121.127359e
+   position  24.785926n 121.123150e
+   position  24.783072n 121.120698e
+   position  24.780556n 121.116722e
+   position  24.779516n 121.113106e
+   position  24.778573n 121.099926e
+   position  24.777238n 121.094992e
+   position  24.774798n 121.090044e
+   position  24.770562n 121.084705e
+   position  24.762626n 121.077293e
+   position  24.758963n 121.071708e
+   position  24.756984n 121.066894e
+   position  24.756632n 121.062383e
+   position  24.757985n 121.055927e
+   position  24.762469n 121.047449e
+   position  24.763263n 121.043378e
+   position  24.763141n 121.038400e
+   position  24.761076n 121.033713e
+   position  24.755881n 121.026717e
+   position  24.754464n 121.022656e
+   position  24.754244n 121.017783e
+   position  24.756457n 121.009391e
+   position  24.756945n 121.002985e
+   position  24.755539n 120.996222e
+   position  24.757335n 120.987773e  node_id 4145_/v/j/ #node w/Freeway 1
+   position  24.758359n 120.983639e
+   position  24.758306n 120.981068e
+   position  24.757660n 120.976987e
+   position  24.757711n 120.973300e
+   position  24.758900n 120.967074e
+   position  24.758724n 120.962322e
+   position  24.753551n 120.949248e
+   position  24.752974n 120.943550e
+   position  24.753092n 120.936911e
+   position  24.751740n 120.932228e
+   position  24.747735n 120.926841e
+   position  24.741467n 120.921403e
+   position  24.738639n 120.916981e
+   position  24.736486n 120.912272e node_id 4146_/v/j/ #node w/Highway 1
+   position  24.732857n 120.906623e node_id 4147_/v/j/ #node w/Highway 13
+   position  24.728804n 120.903168e
+   position  24.714349n 120.893296e
+   position  24.707817n 120.883046e
+   position  24.701275n 120.866306e node_id 4148_/v/j/ #node w/Expressway 61
+   position  24.697915n 120.859926e
+   position  24.687367n 120.849639e
+   position  24.679842n 120.847119e
+   position  24.675571n 120.847254e node_id 4149_/v/j/ #node w/Highway 1A
+   position  24.668248n 120.846557e
+   position  24.658684n 120.840986e
+   position  24.636357n 120.817918e
+   position  24.622552n 120.813103e
+   position  24.616411n 120.810604e
+   position  24.610990n 120.805168e
+   position  24.606618n 120.795973e
+   position  24.602239n 120.789787e
+   position  24.597807n 120.785822e node_id 4150_/v/j/ #node w/Highway 6
+   position  24.592337n 120.780540e
+   position  24.585455n 120.769449e
+   position  24.581484n 120.765689e
+   position  24.577692n 120.763408e
+   position  24.567758n 120.760878e
+   position  24.560225n 120.756513e
+   position  24.552879n 120.749510e
+   position  24.549139n 120.746374e
+   position  24.534417n 120.736533e
+   position  24.525445n 120.727401e
+   position  24.512535n 120.718968e
+   position  24.503099n 120.708645e
+   position  24.499303n 120.706025e
+   position  24.490628n 120.703652e
+   position  24.486733n 120.702178e
+   position  24.483512n 120.699979e
+   position  24.473895n 120.686750e
+   position  24.469809n 120.682906e
+   position  24.463114n 120.679617e
+   position  24.456289n 120.678335e
+   position  24.447449n 120.679238e
+   position  24.437229n 120.682413e
+   position  24.432174n 120.683280e
+   position  24.427511n 120.682567e
+   position  24.415265n 120.675814e
+   position  24.406771n 120.671771e
+   position  24.355210n 120.660637e
+   position  24.349673n 120.658538e
+   position  24.344123n 120.654912e
+   position  24.339063n 120.648626e
+   position  24.334891n 120.636250e
+   position  24.331724n 120.630322e
+   position  24.328745n 120.626740e
+   position  24.325102n 120.623824e
+   position  24.311752n 120.617220e
+   position  24.307337n 120.613176e node_id 4151_/v/j/ #node w/Freeway 4
+   position  24.302630n 120.607018e
+   position  24.300095n 120.604608e
+   position  24.296037n 120.602561e
+   position  24.288183n 120.601363e
+   position  24.283845n 120.600250e
+   position  24.279474n 120.597589e
+   position  24.274261n 120.593456e
+   position  24.268252n 120.590362e
+   position  24.262181n 120.588958e
+   position  24.249908n 120.590568e
+   position  24.242807n 120.593355e
+   position  24.238806n 120.593973e
+   position  24.233702n 120.593115e
+   position  24.224220n 120.587822e
+   position  24.207675n 120.581552e
+   position  24.194963n 120.572086e
+   position  24.191814n 120.566224e
+   position  24.189704n 120.558395e
+   position  24.186565n 120.553493e
+   position  24.176557n 120.547442e
+   position  24.174446n 120.545067e
+   position  24.169940n 120.536506e
+   position  24.162227n 120.529496e
+   position  24.148821n 120.519305e
+   position  24.140877n 120.520414e node_id 4152_/v/j/ #node w/Highway 61
+   position  24.125187n 120.529471e
+   position  24.111550n 120.545038e
+   position  24.106862n 120.554501e
+   position  24.105591n 120.561430e node_id 4153_/v/j/ #node w/Freeway 1
+   position  24.104087n 120.573148e
+   position  24.099742n 120.584974e
+   position  24.097724n 120.594445e node_id 4154_/v/j/ #node w/Highway 74
+   position  24.085851n 120.610747e
+   position  24.083219n 120.617652e
+   position  24.081911n 120.626020e
+   position  24.079364n 120.630862e
+   position  24.071939n 120.637150e
+   position  24.068308n 120.646225e
+   position  24.065156n 120.662934e node_id 5002_/v/j/ #node w/Highway 63
+   position  24.059599n 120.672205e
+   position  24.051437n 120.678110e node_id 4155_/v/j/ #node w/Highway 74
+   position  24.045590n 120.679035e
+   position  24.038785n 120.676762e
+   position  24.027268n 120.668728e node_id 4156_/v/j #node w/Freeway 6
+   position  24.012415n 120.658747e
+   position  24.005550n 120.652315e node_id 4157_/v/j #node w/Highway 14
+   position  24.000379n 120.650335e
+   position  23.986307n 120.652638e
+   position  23.982250n 120.652513e
+   position  23.972700n 120.648978e
+   position  23.967482n 120.648652e
+   position  23.958350n 120.654723e node_id 4158_/v/j #node w/Highway 76
+   position  23.953201n 120.665004e
+   position  23.948588n 120.669143e node_id 4159_/v/j #node w/Highway 14A
+   position  23.941917n 120.672564e
+   position  23.935049n 120.678938e
+   position 23.925246n 120.682259e
+   position  23.918887n 120.688891e
+   position  23.913632n 120.693603e
+   position  23.910005n 120.699987e
+   position  23.903575n 120.704306e
+   position  23.899282n 120.708649e
+   position  23.893752n 120.710824e
+   position  23.858405n 120.701603e
+   position  23.832475n 120.707919e
+   position  23.826676n 120.707871e
+   position  23.820021n 120.704921e
+   position  23.810838n 120.698054e
+   position  23.789401n 120.704181e
+   position  23.784162n 120.703724e
+   position  23.779321n 120.699951e
+   position  23.777002n 120.693084e
+   position  23.778403n 120.678292e
+   position  23.775036n 120.664709e
+   position  23.774038n 120.631500e
+   position  23.776128n 120.622534e
+   position  23.775522n 120.616303e
+   position  23.772247n 120.610560e
+   position  23.763341n 120.605659e
+   position  23.757133n 120.602633e
+   position  23.750682n 120.595241e
+   position  23.745185n 120.592190e
+   position  23.738450n 120.592214e
+   position  23.724696n 120.601417e
+   position  23.720222n 120.603204e
+   position  23.711278n 120.602680e
+   position  23.703103n 120.603123e
+   position  23.695034n 120.600527e
+   position  23.677717n 120.588929e
+   position  23.664495n 120.573686e node_id 4160_/v/j #node w/Highway 78
+   position  23.642814n 120.572637e
+   position  23.625224n 120.565472e
+   position  23.612377n 120.549562e
+   position  23.605738n 120.530945e
+   position 23.590628n 120.520003e
+   position  23.578490n 120.508828e
+   position  23.568999n 120.505338e
+   position  23.550699n 120.504858e
+   position  23.542750n 120.500707e
+   position  23.532713n 120.489119e
+   position  23.522187n 120.484698e
+   position  23.512095n 120.486106e
+   position  23.500116n 120.492770e
+   position  23.487149n 120.496274e
+   position  23.475946n 120.500263e
+   position  23.463302n 120.496457e
+   position  23.453598n 120.486699e
+   position  23.438855n 120.478897e
+   position  23.428276n 120.468008e node_id 4161_/v/j #node w/Highway 82
+   position  23.418458n 120.461606e
+   position  23.412583n 120.454201e
+   position  23.410042n 120.443615e
+   position  23.405826n 120.436192e
+   position  23.398047n 120.431279e
+   position  23.385888n 120.429625e
+   position  23.346986n 120.439389e
+   position  23.311930n 120.426687e
+   position  23.304133n 120.418919e
+   position  23.296442n 120.404014e
+   position  23.279795n 120.391009e
+   position  23.272623n 120.380458e
+   position  23.267134n 120.376825e
+   position  23.253957n 120.375231e
+   position  23.242691n 120.365782e
+   position  23.212676n 120.355989e
+   position  23.166196n 120.351898e node_id 4162_/v/j #node w/Highway 84
+   position  23.147380n 120.338877e
+   position  23.123432n 120.331486e
+   position  23.114121n 120.327893e
+   position  23.077091n 120.328721e
+   position  23.063971n 120.323689e node_id 4163_/v/j #node w/Freeway 8
+   position  23.053690n 120.321110e
+   position  23.040920n 120.324588e
+   position  23.028693n 120.327359e
+   position  23.011783n 120.320457e
+   position  22.987665n 120.320092e
+   position  22.976565n 120.324290e node_id 4164_/v/j #node w/Highway 86
+   position  22.970070n 120.338801e
+   position  22.951599n 120.353988e
+   position  22.917583n 120.349298e
+   position  22.909775n 120.350470e
+   position  22.896586n 120.357950e
+   position  22.878678n 120.360448e
+   position  22.867840n 120.364146e
+   position  22.851951n 120.380803e
+   position  22.843168n 120.386562e
+   position  22.833116n 120.405325e
+   position  22.821844n 120.419042e
+   position  22.806598n 120.425782e
+   position  22.784335n 120.426115e node_id 4165_/v/j #node w/Freeway 10
+   position  22.774641n 120.431417e
+   position  22.758620n 120.466965e
+   position  22.754507n 120.488801e
+   position  22.748674n 120.497438e
+   position  22.738074n 120.505679e
+   position  22.726997n 120.519767e
+   position  22.707361n 120.537288e
+   position  22.696480n 120.554819e
+   position  22.688388n 120.561508e
+   position  22.679494n 120.563149e
+   position  22.663333n 120.556688e
+   position  22.648693n 120.544146e
+   position  22.634285n 120.535896e
+   position  22.615834n 120.531727e
+   position  22.592421n 120.525091e
+   position  22.587067n 120.524602e
+   position  22.571285n 120.528037e node_id 4166_/v/j #node w/Highway 88
+   position  22.565864n 120.527856e
+   position  22.551326n 120.521736e
+   position  22.542929n 120.519143e
+   position  22.534340n 120.519008e
+   position  22.520830n 120.523276e
+   position  22.506946n 120.524791e
+   position  22.489757n 120.530002e
+   position  22.481739n 120.531448e
+   position  22.471619n 120.530237e
+   position  22.457282n 120.520717e
+   position  22.445348n 120.505666e node_id 25_/v/j #node w/Highway 17
+   position  22.442399n 120.502323e
+   position  22.441023n 120.496784e
+ end_route
+
+route
+    # zone Freeway_3A
+    position  25.001765n 121.594900e node_id 4144_/v/j/ #node w/Freeway 3A
+    position  25.004151n 121.584411e
+    position 25.005010n 121.578694e
+    position  25.007446n 121.573136e
+    position  25.010203n 121.563620e
+    position  25.013704n 121.560114e
+    position  25.014514n 121.552559e
+    position  25.021084n 121.544318e
+    position  25.021724n 121.538321e
+    position  25.022498n 121.536627e
+    position  25.022313n 121.532594e
+    position  25.019657n 121.529261e node_id 4300_/v/j/ #node w/Highway 9
+end_route
+
+route
+    # zone Freeway_4
+    position   24.305809n 120.596785e node_id 4301_/v/j/ #node w/Highway 17
+    position  24.305657n 120.596825e node_id 52_/v/j/ #node w/Highway 1
+    position  24.307337n 120.613176e node_id 4151_/v/j/ #node w/Freeway 3
+    position  24.305974n 120.624836e
+    position  24.299228n 120.639307e
+    position  24.293416n 120.646668e
+    position  24.287319n 120.656235e
+    position  24.277737n 120.669523e
+    position  24.272921n 120.675047e
+    position  24.270523n 120.680631e
+    position  24.270607n 120.692812e node_id 4302_/v/j/ #node w/Freeway 3
+    position  24.272708n 120.700170e
+    position  24.276079n 120.707827e
+    position  24.277672n 120.713449e
+    position  24.277895n 120.722237e node_id 4303_/v/j/ #node w/Highway 13
+    position  24.276504n 120.727756e
+    position  24.273453n 120.734994e
+    position  24.268492n 120.749666e node_id 4304_/v/j/ #node w/Highway 3
+end_route
+
+route
+  # zone Freeway 5
+    position  25.035877n 121.620930e node_id 4143_/v/j/ #node w/Freeway 3
+    position  25.034459n 121.626014e
+    position  25.032897n 121.630274e
+    position  25.022874n 121.637343e
+    position  25.012322n 121.643937e
+    position  25.005211n 121.650321e
+    position  24.993956n 121.652620e
+    position  24.989443n 121.657907e
+    position  24.983284n 121.661569e
+    position  24.981839n 121.664758e
+    position  24.981520n 121.671223e
+    position  24.978453n 121.675963e
+    position  24.958590n 121.683018e
+    position  24.952294n 121.688513e
+    position  24.945535n 121.709546e
+    position  24.920536n 121.727893e
+    position  24.898915n 121.754201e
+    position  24.865923n 121.782279e
+    position  24.860519n 121.787865e
+    position  24.847589n 121.791264e
+    position  24.842684n 121.789143e
+    position  24.831810n 121.790824e
+    position  24.827100n 121.789395e
+    position  24.821779n 121.784378e
+    position  24.816762n 121.781450e
+    position  24.812131n 121.781050e
+    position  24.803785n 121.782494e
+    position  24.796744n 121.782173e
+    position  24.787969n 121.779508e
+    position  24.781864n 121.778205e
+    position  24.772863n 121.778838e
+    position  24.768947n 121.778962e
+    position  24.762800n 121.777862e
+    position  24.756729n 121.778098e
+    position  24.749211n 121.780619e
+    position  24.745821n 121.781425e
+    position  24.738559n 121.781560e
+    position  24.733054n 121.782280e
+    position  24.711647n 121.789375e
+    position  24.705884n 121.790429e
+    position  24.691502n 121.790840e
+    position  24.687046n 121.791560e
+    position  24.671593n 121.795617e
+    position  24.666984n 121.797184e
+    position  24.656665n 121.803421e
+    position  24.652488n 121.804467e
+    position  24.641214n 121.804844e
+    position  24.624218n 121.809701e
+    position  24.621873n 121.811896e
+    position  24.621934n 121.815405e
+    position  24.622115n 121.819059e node_id 5003_/v/j #End of road
+end_route
+
+route
+  # zone Freeway 6
+    position  24.027268n 120.668728e node_id 4156_/v/j #node w/Freeway 3
+    position 24.019320n 120.684540e
+    position  24.014102n 120.692112e
+    position  24.011410n 120.700158e
+    position  24.007418n 120.707987e
+    position  24.006610n 120.718429e
+    position  24.006472n 120.724978e
+    position  24.002692n 120.735798e
+    position  23.998151n 120.741873e
+    position  23.994871n 120.748757e
+    position  23.992746n 120.751780e
+    position  23.985511n 120.758099e
+    position  23.982940n 120.763920e
+    position  23.982084n 120.769792e
+    position  23.983003n 120.774545e
+    position  23.986557n 120.779578e
+    position  23.988355n 120.782704e
+    position  23.988286n 120.787139e
+    position  23.986944n 120.791227e
+    position  23.988161n 120.796587e
+    position  23.990840n 120.800254e
+    position  23.995739n 120.801256e
+    position  23.997978n 120.802563e
+    position  24.002844n 120.808903e
+    position  24.004987n 120.813777e
+    position  24.000690n 120.841816e
+    position  23.997128n 120.848480e
+    position  23.992705n 120.853476e
+    position  23.987597n 120.857332e
+    position  23.982595n 120.863512e
+    position  23.978271n 120.867986e
+    position  23.976483n 120.873157e
+    position  23.977552n 120.878769e
+    position  23.980928n 120.886079e
+    position  23.981381n 120.889960e
+    position  23.978642n 120.903116e
+    position  23.980973n 120.926092e
+    position  23.983611n 120.932586e
+    position  23.987715n 120.937798e
+    position  23.990379n 120.944197e
+    position  23.991778n 120.957038e
+    position 23.992453n 120.962045e
+    position  23.988297n 120.971636e
+    position  23.986295n 120.978692e
+    position  23.982210n 120.989315e
+    position  23.982362n 120.991805e
+    position  23.978696n 120.992336e node_id 4305_/v/j/ #node w/Highway 14
+end_route
+
+route
+  # zone Freeway 8
+    position  23.059992n 120.191257e node_id 4306_/v/j/ #node w/Highway 17 & 17A
+    position  23.071173n 120.191585e
+    position  23.080047n 120.195371e
+    position  23.087283n 120.202499e
+    position  23.089595n 120.210170e node_id 4307_/v/j/ #node w/Highway 19
+    position  23.088745n 120.219388e
+    position  23.082570n 120.230957e
+    position  23.079991n 120.239559e
+    position  23.079052n 120.252003e node_id 4308_/v/j/ #node w/Freeway 1
+    position  23.076201n 120.261685e
+    position  23.070322n 120.270928e
+    position  23.062209n 120.280986e
+    position  23.059188n 120.288020e
+    position  23.058179n 120.297562e
+    position  23.059621n 120.305542e
+    position  23.063875n 120.316117e
+    position  23.063971n 120.323689e node_id 4163_/v/j #node w/Freeway 3
+    position  23.061251n 120.331828e node_id 4309_/v/j/ #node w/Highway 20
+end_route
+
+route
+  # zone Freeway 10
+    position  22.684871n 120.302770e node_id 4310_/v/j/ #node w/Highway 17
+    position  22.685202n 120.305772e
+    position  22.681138n 120.310205e
+    position  22.679266n 120.314139e
+    position  22.678769n 120.319060e
+    position  22.675781n 120.325132e
+    position  22.675234n 120.329038e node_id 4311_/v/j/ #node w/Freeway 1
+    position  22.676732n 120.333752e
+    position  22.685837n 120.353560e
+    position  22.688432n 120.356244e
+    position  22.691292n 120.357488e
+    position  22.706920n 120.360324e
+    position  22.720149n 120.359707e
+    position  22.746449n 120.362463e
+    position  22.750755n 120.364902e
+    position  22.755831n 120.370855e
+    position  22.758586n 120.377515e
+    position  22.760720n 120.388083e
+    position  22.766723n 120.398219e
+    position  22.768704n 120.401755e
+    position  22.774525n 120.416506e
+    position  22.779111n 120.422478e
+    position  22.784335n 120.426115e node_id 4165_/v/j #node w/Freeway 3
+    position  22.789888n 120.429582e
+    position  22.793681n 120.434066e
+    position  22.796593n 120.440389e
+    position  22.796473n 120.449063e
+    position  22.797382n 120.458269e
+    position  22.797651n 120.467688e
+    position  22.800429n 120.475318e
+    position  22.806548n 120.482327e
+    position  22.814268n 120.486168e
+    position  22.826224n 120.488492e
+    position  22.835215n 120.493976e
+    position  22.841418n 120.496095e
+    position  22.848720n 120.494844e
+    position  22.854473n 120.494822e
+    position  22.860839n 120.491800e
+    position  22.864036n 120.491711e
+    position  22.868846n 120.494872e node_id 4312_/v/j/ #node w/Highway 3
+end_route
+
+# EXPRESSWAYS
+route
+    # zone Expressway_61  PART OF THIS EXPRESSWAY USES SMALLER HIGHWAYS AS IT IS INCOMPLETE IN CONSTRUCTION (HIGHWAY 17 ESPECIALLY)
+    position  25.152560n 121.395862e
+    position  25.150033n 121.392652e node_id 4313_/v/j/ #node w/Expressway 64
+    position  25.143720n 121.381174e
+    position 25.138784n 121.375572e
+    position  25.138340n 121.374315e node_id 4326_/v/j/ #node w/Highway 15
+    position  25.134687n 121.363765e
+    position  25.125119n 121.339495e
+    position  25.122580n 121.334221e
+    position  25.121458n 121.306195e
+    position  25.123166n 121.301778e
+    position  25.120519n 121.295960e
+    position  25.117439n 121.290696e
+    position  25.116083n 121.271813e
+    position  25.117733n 121.266212e node_id 4325_/v/j/ #node w/Highway 15
+    position  25.117189n 121.253028e
+    position  25.112685n 121.244936e
+    position  25.107690n 121.223471e
+    position  25.101673n 121.208817e
+    position  25.094059n 121.198107e
+    position  25.092619n 121.194019e
+    position  25.082678n 121.179365e
+    position  25.075578n 121.157423e
+    position  25.074719n 121.148188e
+    position  25.070565n 121.140180e
+    position  25.069270n 121.122395e
+    position  25.065132n 121.111915e
+    position  25.057870n 121.102415e
+    position  25.048468n 121.083187e
+    position  25.040748n 121.073513e
+    position  25.029393n 121.053450e node_id 4314_/v/j/ #node w/Expressway 66
+    position  25.009143n 121.032033e
+    position 24.987951n 121.020820e
+    position  24.973009n 121.017138e
+    position  24.958189n 121.008963e
+    position  24.948953n 120.995905e
+    position  24.937313n 120.986576e
+    position  24.921796n 120.973042e
+    position  24.902841n 120.972717e node_id 4321_/v/j/ #node w/Highway 15
+    position  24.890887n 120.959146e
+    position  24.862869n 120.952133e
+    position  24.844040n 120.935575e node_id 4315_/v/j/ #node w/Expressway 68
+    position  24.831278n 120.926676e
+    position  24.827096n 120.927648e
+    position  24.819761n 120.926734e
+    position  24.818124n 120.924236e
+    position  24.811847n 120.921489e
+    position  24.807920n 120.918166e
+    position  24.802044n 120.920366e
+    position  24.793406n 120.919245e
+    position  24.766452n 120.912699e
+    position  24.763049n 120.908690e
+    position  24.758543n 120.906352e
+    position  24.746994n 120.902767e
+    position 24.725657n 120.871024e
+    position  24.701275n 120.866306e node_id 4148_/v/j/ #node w/Freeway 3
+    position  24.695840n 120.863436e
+    position 24.666503n 120.831868e
+    position  24.661051n 120.817217e
+    position  24.650586n 120.805284e
+    position  24.642270n 120.789051e
+    position  24.630795n 120.776301e
+    position  24.624232n 120.773875e
+    position  24.621364n 120.769170e
+    position  24.610574n 120.760518e
+    position  24.610232n 120.754092e
+    position  24.602529n 120.743427e
+    position  24.597627n 120.742021e
+    position  24.592827n 120.734890e
+    position  24.586853n 120.730839e
+    position  24.581406n 120.721969e
+    position  24.573889n 120.719777e
+    position  24.570309n 120.714805e node_id 50_/v/j/ #node w/Highway 1
+    position  24.569234n 120.712358e
+    position  24.549915n 120.699565e
+    position  24.503096n 120.688707e
+    position  24.502926n 120.688773e node_id 51_/v/j/ #node w/Highway 1
+    position  24.505295n 120.681315e
+    position  24.492188n 120.675708e
+    position  24.482074n 120.667923e
+    position  24.478498n 120.663699e
+    position  24.461987n 120.654173e
+    position  24.458255n 120.647496e
+    position  24.450884n 120.645196e
+    position  24.429977n 120.628639e
+    position  24.424400n 120.620944e
+    position  24.406458n 120.613939e
+    position  24.390906n 120.602276e
+    position  24.388050n 120.595338e
+    position  24.374394n 120.590443e
+    position  24.370659n 120.586218e
+    position  24.357430n 120.584819e
+    position  24.343326n 120.572045e
+    position  24.318218n 120.565181e
+    position  24.312750n 120.560319e
+    position  24.301306n 120.554392e
+    position  24.276971n 120.547870e node_id 4316/v/j/ #node w/Highway 10
+    position  24.249862n 120.536108e node_id 4317_/v/j/ #node w/Highway 12
+    position  24.198337n 120.514162e node_id 4318_/v/j/ #node w/Highway 17
+    position  24.178954n 120.482748e
+    position 24.169069n 120.471082e
+    position 24.158169n 120.459995e
+    position  24.133843n 120.440695e
+    position  24.095960n 120.432811e
+    position  24.080186n 120.418771e
+    position  24.057788n 120.408515e
+    position  24.052775n 120.405798e
+    position  24.046602n 120.406658e
+    position  24.041671n 120.405406e
+    position  24.037569n 120.395516e
+    position  23.994174n 120.377085e
+    position  23.986891n 120.368625e
+    position  23.972061n 120.358456e
+    position   23.970323n 120.349679e
+    position  23.957254n 120.342664e
+    position  23.950853n 120.332761e
+    position  23.931641n 120.321897e
+    position  23.924650n 120.322701e
+    position  23.920811n 120.321075e
+    position  23.917954n 120.313157e
+    position  23.872685n 120.294019e
+    position  23.854637n 120.296033e
+    position  23.744279n 120.264321e
+    position  23.740151n 120.261605e
+    position  23.737152n 120.254969e
+    position  23.737106n 120.240097e
+    position  23.727099n 120.220326e
+    position  23.718542n 120.214102e
+    position  23.716478n 120.207278e
+    position  23.712720n 120.201842e
+    position  23.710813n 120.186274e
+    position  23.691848n 120.177139e node_id 4319_/v/j/ #node w/Expressway 78
+    position   23.664326n 120.168192e
+    position  23.654577n 120.168419e
+    position  23.633722n 120.173614e
+    position  23.616389n 120.171413e
+    position  23.604543n 120.161787e
+    position   23.580288n 120.149714e
+    position  23.570536n 120.153514e
+    position  23.555200n 120.168749e
+    position  23.547728n 120.182739e
+    position  23.541621n 120.187347e
+    position  23.529041n 120.188012e
+    position  23.510533n 120.175299e
+    position  23.495804n 120.169913e
+    position  23.459377n 120.166204e node_id 4523_/v/j/ #node w/Expressway 82
+    position  23.437579n 120.165139e
+    position  23.426125n 120.161704e
+    position  23.419173n 120.162191e
+    position  23.402514n 120.167716e
+    position  23.395067n 120.167814e
+    position  23.378981n 120.156645e
+    position  23.319318n 120.155564e
+    position  23.296226n 120.143806e
+    position  23.280440n 120.126929e node_id 4320_/v/j/ #node w/Expressway 84
+    position  23.271478n 120.117433e
+    position  23.253107n 120.111558e
+    position  23.236332n 120.104858e
+    position  23.223361n 120.104071e
+    position  23.210592n 120.098158e
+    position  23.185357n 120.096497e
+    position  23.169781n 120.090176e
+    position  23.090119n 120.085844e node_id 5004_/v/j/ #End of road
+end_route
+
+route
+    # zone Expressway_62
+    position  25.142051n 121.703378e node_id 4329_/v/j/ #node w/Highway 2
+    position  25.140445n 121.703517e
+    position  25.130554n 121.697182e
+    position   25.126750n 121.697473e node_id 4140_/v/j/ #node w/Freeway 3
+    position  25.123575n 121.698418e
+    position  25.118682n 121.696703e
+    position  25.115922n 121.694436e
+    position  25.114317n 121.692574e
+    position  25.112910n 121.691704e
+    position  25.103421n 121.693327e
+    position  25.100658n 121.696279e
+    position  25.097958n 121.702709e node_id 4141_/v/j/ #node w/Freeway 1
+    position  25.099427n 121.706805e
+    position  25.101097n 121.709651e
+    position  25.103819n 121.720801e
+    position  25.104999n 121.723755e
+    position  25.104678n 121.728957e
+    position  25.105123n 121.731321e
+    position  25.103359n 121.740533e
+    position  25.102948n 121.743983e
+    position  25.100646n 121.749756e
+    position  25.104875n 121.759958e
+    position  25.107475n 121.761533e
+    position  25.110374n 121.776451e node_id 5005_/v/j/ #node w/Expressway 62 part 2
+    position 25.110852n 121.786809e
+    position  25.113112n 121.791414e
+    position  25.114466n 121.797704e
+    position  25.117798n 121.805123e
+    position  25.119915n 121.817640e
+    position  25.122697n 121.819500e node_id 5006_/v/j/ #node w/Highway 2
+end_route
+
+route
+ # zone Expressway_62 (Northern Section) (Part 2)
+    position  25.110374n 121.776451e node_id 5006_/v/j/ #node w/Expressway 62
+    position  25.114713n 121.775437e
+    position  25.123005n 121.780328e
+    position  25.129209n 121.777138e
+    position  25.132141n 121.772043e
+    position  25.135637n 121.770624e
+    position  25.138581n 121.759069e
+    position  25.140633n 121.756788e
+    position  25.139901n 121.754857e
+    position  25.139495n 121.752788e node_id 5007_/v/j/ #node w/Highway 2
+end_route
+
+route
+    # zone Expressway_64
+    position  25.150033n 121.392652e node_id 4313_/v/j/ #node w/Expressway 61
+    position 25.143489n 121.397931e
+    position  25.135347n 121.398578e
+    position  25.124711n 121.405584e
+    position 25.115601n 121.414045e
+    position  25.108481n 121.430019e
+    position  25.106215n 121.439703e
+    position  25.106953n 121.447648e
+    position  25.105152n 121.453515e
+    position  25.102254n 121.454029e
+    position  25.093115n 121.448828e
+    position  25.087879n 121.447802e
+    position  25.081249n 121.448576e
+    position  25.073329n 121.454050e
+    position 25.068229n 121.460237e
+    position  25.061873n 121.472128e
+    position  25.061465n 121.472943e node_id 30_/v/j/ #node w/Highway 1
+    position   25.057901n 121.475782e
+    position 25.049191n 121.479428e
+    position  25.047435n 121.479419e
+    position  25.046351n 121.478729e
+    position  25.045069n 121.478261e
+    position  25.039267n 121.480955e
+    position  25.037724n 121.477996e
+    position  25.036291n 121.471227e
+    position  25.033487n 121.464263e
+    position  25.031683n 121.463543e
+    position  25.018447n 121.471024e
+    position  25.012119n 121.476622e
+    position  25.009581n 121.481382e
+    position  25.005028n 121.484299e
+    position  24.995517n 121.485378e
+    position  24.994429n 121.486383e
+    position  24.993426n 121.504783e
+    position  24.991829n 121.517124e
+    position  24.990361n 121.524147e node_id 5008_/v/j/ #End of road
+end_route
+
+route
+#zone   Expressway 65
+position  25.067505n 121.426137e node_id 4137_/v/j/ #node w/Freeway 1
+position   25.058270n 121.442489e
+position  25.056691n 121.442281e node_id 31_/v/j/ #node w/Highway 1
+position  25.024784n 121.442447e
+position  25.019281n 121.446690e
+position  25.013251n 121.450289e
+position  25.003364n 121.452233e
+position  25.000826n 121.451898e
+position  24.998525n 121.450644e
+position  24.994212n 121.445479e
+position  24.990275n 121.442500e
+position  24.987647n 121.440450e
+position  24.981502n 121.438779e
+position  24.975809n 121.435613e
+position  24.972987n 121.432248e
+position  24.969858n 121.433726e
+position  24.967113n 121.432689e
+position  24.960326n 121.432115e  node_id 4500_/v/j/ #node w/Freeway 3
+end_route
+
+route
+#zone Expressway 66
+position  25.029393n 121.053450e node_id 4314_/v/j/ #node w/Expressway 61
+position   25.025194n 121.062224e node_id 4501_/v/j/ #node w/Highway 15
+position  25.015351n 121.079867e
+position  25.009318n 121.086564e
+position  24.994140n 121.109547e
+position  24.984043n 121.128680e
+position  24.979637n 121.132728e
+position  24.970296n 121.133936e
+position  24.962271n 121.135239e
+position  24.958473n 121.140503e
+position  24.956286n 121.149430e  node_id 4510_/v/j/ #node w/Highway 31
+position  24.954337n 121.155032e
+position  24.944110n 121.171678e
+position  24.935755n 121.189580e  node_id 4511_/v/j/ #node w/Freeway 1
+position  24.928516n 121.205883e
+position  24.928254n  121.212116e
+position  24.925131n 121.219114e
+position  24.908032n 121.229576e
+position  24.902261n 121.235853e
+position  24.899447n 121.243556e
+position 24.897943n 121.262299e node_id 5009_/v/j/ #End of road
+end_route
+
+route
+# zone Espressway 68
+position  24.844040n 120.935575e node_id 4315_/v/j/ #node w/Expressway 61
+position  24.842328n 120.939428e
+position  24.836368n 120.946879e
+position  24.831385n 120.955771e
+position  24.825927n 120.971646e
+position  24.819509n 120.995549e
+position  24.819433n 120.995521e node_id 40_/v/j/ #node w/Highway 1
+position  24.815534n 121.003014e
+position  24.810463n 121.010863e
+position  24.804988n 121.016903e
+position  24.799167n 121.025612e
+position   24.789076n 121.048478e
+position  24.785854n 121.053293e
+position  24.781927n 121.056621e
+position  24.763693n 121.065340e
+position  24.761869n 121.067237e
+position  24.760522n 121.070394e
+position  24.756505n 121.073408e
+position  24.754867n 121.076739e
+position  24.752326n 121.078023e
+position  24.744502n 121.089089e
+position  24.737620n 121.096835e
+position  24.733388n 121.100256e
+position  24.728810n 121.102221e
+position  24.722962n 121.101862e node_id 5010_/v/j/ #End of road
+end_route
+
+route
+#zone Expressway 72
+position  24.611832n 120.791763e  node_id 4512_/v/j/ #node w/Highway 1
+position 24.609553n 120.791560e
+position  24.602266n 120.807248e
+position  24.598958n 120.822939e
+position  24.596856n 120.826939e node_id 4513_/v/j/ #node w/Highway 13A
+position  24.593204n 120.833507e
+position  24.590847n 120.839824e
+position  24.588624n 120.843535e
+position  24.585358n 120.846017e
+position  24.578461n 120.846961e
+position  24.574487n 120.846481e node_id 4514_/v/j/ #node w/Highway 13
+position  24.569230n 120.845402e
+position  24.560050n 120.841796e
+position  24.549716n 120.835149e
+position  24.540932n 120.827759e
+position  24.537783n 120.824361e
+position  24.534191n 120.816622e  node_id 4515_/v/j/ #node w/Highway 6
+position  24.532028n 120.813953e
+position  24.523124n 120.807115e
+position  24.515995n 120.802976e
+position  24.506327n 120.802540e
+position  24.502283n  120.802626e
+position  24.494818n 120.802302e
+position  24.480479n 120.807057e
+position  24.477358n 120.808988e
+position  24.469381n 120.816842e
+position  24.463683n 120.830141e
+position  24.464792n 120.842009e
+position  24.464415n 120.845509e
+position  24.464251n 120.849061e
+position  24.460891n 120.854740e
+position  24.460502n 120.864290e
+position  24.462809n 120.870471e
+position 24.462317n 120.873272e
+position  24.459344n 120.876645e
+position  24.455778n 120.877872e node_id 4516_/v/j/ #node w/Highway 3
+end_route
+
+route
+# Expressway 74
+position  24.097724n 120.594445e node_id 4154_/v/j/ #node w/Freeway 3
+position  24.082594n 120.594377e  node_id 4902_/v/j/ #node w/Highway 14
+position  24.082660n 120.594342e
+position  24.077075n 120.592977e
+position  24.069913n 120.593597e
+position  24.064741n 120.593068e
+position  24.058749n 120.590096e
+position  24.052636n 120.583743e
+position  24.042699n 120.578540e
+position  24.034106n 120.575337e
+position  24.027469n 120.569977e
+position  24.016846n 120.549766e node_id 4517_/v/j/ #node w/Highway 1
+end_route
+
+route
+# Expressway 76
+position  24.011024n 120.486191e node_id 4518_/v/j/ #node w/Highway 19
+position  24.009156n 120.491490e
+position 24.006236n 120.494349e
+position  24.001977n 120.495497e
+position  23.983683n 120.507393e node_id 4519_/v/j/ #node w/Freeway 1
+position   23.973310n 120.515182e
+position  23.973003n 120.522363e
+position  23.966001n 120.541461e
+position  23.957819n 120.549566e
+position  23.951523n 120.551809e
+position  23.945025n 120.564896e
+position  23.944805n 120.577169e
+position  23.943286n 120.587315e
+position  23.940304n 120.591870e
+position  23.939820n 120.595985e
+position  23.940930n 120.600058e
+position  23.955084n 120.650835e
+position  23.958350n 120.654723e node_id 4158_/v/j #node w/Freeway 3
+end_route
+
+route
+# Expressway 78
+position  23.691848n 120.177139e node_id 4319_/v/j/ #node w/Expressway 61
+position 23.689166n 120.187430e
+position  23.688061n 120.196035e
+position  23.683679n 120.206225e
+position  23.682713n 120.219093e
+position  23.681528n 120.231411e
+position  23.681611n 120.244484e
+position  23.686209n 120.262254e
+position  23.689031n 120.272987e
+position  23.689586n 120.284248e
+position  23.688891n 120.289598e
+position 23.684517n 120.302559e
+position  23.686713n 120.314256e
+position  23.686873n 120.322230e node_id 4520_/v/j/ #node w/Highway 19
+position  23.682913n 120.332259e
+position  23.679827n 120.341574e
+position  23.679817n 120.349829e
+position  23.683268n 120.358926e
+position  23.690068n 120.367838e
+position  23.692981n 120.374797e
+position  23.692727n 120.381157e
+position  23.689762n 120.391294e
+position  23.691077n 120.406978e
+position  23.685158n 120.425622e
+position  23.682937n 120.437519e
+position  23.679917n 120.444236e
+position 23.668035n 120.456415e  node_id 4521_/v/j/ #node w/Freeway 1
+position  23.661930n 120.462590e
+position  23.656988n 120.473171e node_id 66_/v/j/ #node w/Highway 1
+position  23.656963n 120.473287e
+position  23.657187n 120.484767e
+position  23.662169n 120.500171e
+position  23.661906n 120.515228e
+position  23.669639n 120.537030e  node_id 4522_/v/j/ #node w/Highway 3
+position  23.670863n 120.544054e
+position  23.664495n 120.573686e node_id 4160_/v/j #node w/Freeway 3
+end_route
+
+route
+# Expressway 82
+position  23.457361n 120.151268e node_id 5011_/v/j/ #Start of road
+position  23.457065n 120.152508e
+position  23.458184n 120.153921e
+position  23.459377n 120.166204e node_id 4523_/v/j/ #node w/Expressway 61
+position  23.459762n 120.173473e
+position  23.455237n 120.197992e
+position 23.453278n 120.225912e
+position  23.451769n 120.244276e node_id 4524_/v/j/ #node w/Highway 19
+position  23.452219n 120.265993e
+position  23.450352n 120.273637e
+position  23.443914n 120.282874e
+position  23.434271n 120.293471e
+position  23.429758n 120.303515e
+position  23.428810n 120.318494e
+position  23.428134n 120.333580e
+position  23.424324n 120.356598e node_id 4525_/v/j/ #node w/Freeway 1
+position  23.418177n 120.388716e node_id 67_/v/j/ #node w/Highway 1
+position   23.417104n 120.396172e
+position  23.416993n 120.401567e
+position   23.420144n 120.411373e
+position  23.421304n 120.418816e
+position   23.424368n 120.424280e
+position  23.427516n 120.439050e
+position   23.433102n 120.456081e
+position  23.433094n 120.460442e
+position  23.428276n 120.468008e node_id 4161_/v/j #node w/Freeway 3
+end_route
+
+route
+# Expressway 84
+position  23.280440n 120.126929e node_id 4320_/v/j/ #node w/Expressway 61
+position  23.275050n 120.135804e
+position  23.272541n 120.151095e
+position  23.272627n 120.166310e
+position  23.270258n 120.173468e
+position  23.254469n 120.191718e
+position  23.249108n 120.199101e
+position  23.227681n 120.221848e
+position  23.224549n 120.226519e
+position  23.218836n 120.239161e  node_id 4526_/v/j/ #node w/Freeway 1
+position  23.213296n 120.249283e
+position  23.185150n 120.280952e
+position  23.182741n 120.295386e
+position  23.177732n 120.307750e
+position  23.164233n 120.330956e
+position  23.162849n 120.336751e
+position  23.163549n 120.340750e node_id 70_/v/j #node w/Highway 1
+position  23.166196n 120.351898e node_id 4162_/v/j #node w/Freeway 3
+position  23.167059n 120.356901e
+position  23.163887n 120.362979e
+position  23.144303n 120.368453e
+position   23.139478n 120.374017e
+position  23.142826n 120.422296e
+position  23.140756n 120.430608e
+position  23.120940n 120.455201e
+position  23.119508n 120.458259e node_id 4527_/v/j/ #node w/Highway 20
+end_route
+
+route
+# Expressway 86
+position  22.935833n 120.176392e node_id 4528_/v/j/ #node w/Highway 17
+position  22.935807n 120.179592e
+position   22.932521n 120.198076e
+position  22.927304n 120.204543e
+position  22.927781n 120.216924e
+position  22.929501n 120.220899e  node_id 4529_/v/j/ #node w/Highway 1
+position  22.943493n 120.243278e
+position  22.942645n 120.249598e node_id 4530_/v/j/ #node w/Freeway 1
+position  22.941099n 120.253634e
+position  22.934075n 120.261480e
+position  22.932174n 120.267358e
+position  22.932141n 120.278398e
+position  22.938419n 120.297110e
+position  22.941943n 120.301603e
+position  22.968798n 120.311597e
+position  22.972908n 120.315228e
+position  22.975046n 120.318801e  node_id 4531_/v/j/ #node w/Highway 19A
+position  22.976565n 120.324290e node_id 4164_/v/j #node w/Freeway 3
+end_route
+
+route
+# Expressway 88
+position  22.598845n 120.341217e  node_id 4532_/v/j/ #node w/Freeway 1
+position  22.591949n 120.346927e
+position  22.589051n 120.391291e
+position  22.586636n 120.402411e
+position  22.586436n 120.416035e
+position  22.591648n 120.422930e
+position  22.592732n 120.442724e
+position  22.586019n 120.465159e
+position  22.576791n 120.470017e
+position  22.570573n 120.478537e  node_id 4533_/v/j/ #node w/Highway 27
+position   22.566618n 120.486705e
+position  22.565346n 120.494398e
+position  22.564336n 120.508008e
+position  22.569997n 120.522357e
+position  22.571285n 120.528037e node_id 4166_/v/j #node w/Freeway 3
+position  22.570995n 120.533712e
+position  22.568765n 120.539975e node_id 5012_/v/j #End of road
+end_route
+
+
+end_route_network

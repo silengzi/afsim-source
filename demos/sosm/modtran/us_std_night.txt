@@ -1,0 +1,17 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =============================================================================
+# MODTRAN U.S. Standard, Night, Clear
+# =============================================================================
+
+atmosphere_model table
+   background_radiance      us_std_night.bgr
+   foreground_radiance      us_std_night.fgr
+   foreground_transmittance us_std_night.fgt
+end_atmosphere_model

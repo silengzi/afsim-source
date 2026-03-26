@@ -1,0 +1,72 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+include_once platforms/common.txt
+include_once platforms/cmdr_players.txt
+include_once platforms/radar_players.txt
+include_once platforms/sam_players.txt
+include scenarios/nets_zones.txt
+include scenarios/iads_laydown.txt
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+   optical_signature UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+end_platform_type
+
+horizontal_map
+   exclude sensor_type ACQ_RADAR
+   exclude sensor_type TTR_RADAR
+
+   analysis_map
+      file analysis_map-ucav-dry.dat
+      color_range 0.9 to 1.0 float 0.9 0.1 0.1 1.0
+      color_range 0.5 to 0.9 float 1.0 0.5 0.0 1.0
+      color_range 0.1 to 0.5 float 0.1 0.1 0.9 1.0
+      color_range 0.0 to 0.1 float 0.0 0.0 0.0 0.0
+      data_title Pd
+      units Pd
+   end_analysis_map
+
+   contour_level 0.5
+      line_color float 1. 0. 0.
+      line_width 2
+   end_contour_level
+
+   variable pd
+
+   target_region
+      #down_range_limits  -120 nm 120 nm
+      #down_range_step     1 nm
+      #cross_range_limits  -120 nm 120 nm
+      #cross_range_step    1 nm
+      latitude_limits 34n 44n
+      longitude_limits 122w 112w
+      latitude_step 0.05
+      longitude_step 0.05
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 30000 ft
+   target_speed    450 kts
+   target_pitch 0 deg
+   target_roll 0 deg
+end_horizontal_map
+
+terrain
+   #load_cme_terrain
+end_terrain

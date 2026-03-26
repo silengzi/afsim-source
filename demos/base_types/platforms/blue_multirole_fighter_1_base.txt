@@ -1,0 +1,155 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+//include_once ../sensors/blue_esm.txt
+//include_once ../weapons/blue_lr_a2a_rf_missile.txt
+//include_once ../weapons/blue_sr_a2a_ir_missile.txt
+//include_once ../weapons/harm2.txt
+//include_once ../weapons/jsow.txt
+//include_once aiai_weapon.txt
+
+include_once ../sensors/radar/blue_a2a_radar.txt
+include_once ../weapons/aam/simple_a2a_missile.txt
+include_once ../signatures/blue_multirole_fighter_3_radar_signature.txt
+
+
+platform_type BLUE_MULTIROLE_FIGHTER_1 WSF_PLATFORM
+
+   icon F-18E
+   category fighter
+
+   fuel WSF_VARIABLE_RATE_FUEL
+      rate 7.0 lb/s
+      initial_quantity 14000 lb
+      maximum_quantity 14000 lb
+   end_fuel
+
+   mover WSF_AIR_MOVER
+      roll_rate_limit               1 rad/sec
+      default_linear_acceleration   1.0 g
+      default_radial_acceleration   6.5 g
+      default_climb_rate            400 fps
+
+      //old value
+      //maximum_speed                 600.0 knots
+      // Janes Reference, Max level speed: more than M1.8 (1160 kts)
+      maximum_speed      1160.0 knots
+
+      //old value
+      //maximum_altitude              55000 ft
+      //Combat Ceiling, Janes Reference
+      maximum_altitude              50000 ft
+
+      minimum_altitude              50 ft
+      maximum_linear_acceleration   8 g
+      #no_pitch
+      at_end_of_path extrapolate
+   end_mover
+
+   radar_signature blue_multirole_fighter_3_radar_signature
+
+   sensor blue_a2a_radar BLUE_A2A_RADAR
+      //debug
+      on
+      internal_link track_manager
+      ignore_same_side
+   end_sensor
+
+   sensor esm-1 BLUE_ESM
+      //debug
+      off
+      internal_link track_manager
+   end_sensor
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval  60 sec
+      update_interval 1 sec
+   end_processor
+
+   weapon int_missile SIMPLE_A2A_MISSILE_WEAPON end_weapon
+
+
+//   weapon blue_lr_a2a_rf_missile BLUE_LR_A2A_RF_MISSILE
+//      quantity 10
+//   end_weapon
+//   weapon blue_sr_a2a_ir_missile BLUE_SR_A2A_IR_MISSILE
+//      quantity 2
+//   end_weapon
+//   weapon HARM2 HARM2_WEAPON
+//      quantity 2
+//   end_weapon
+//   weapon JSOW JSOW_WEAPON
+//      quantity 2
+//   end_weapon
+
+end_platform_type
+
+
+
+
+#xobject BLUE_MULTIROLE_FIGHTER_1 {
+#x    name "BLUE_MULTIROLE_FIGHTER_1 %d"
+#x    icon "f_18"
+#    opponent_icon "f_18"
+#x    team blue
+#    extern_attribute body_type_id  12
+#    sensors (
+#x             BLUE_A2A_RADAR
+#x             BLUE_ESM
+#             IFF )
+#x    tactics military_tactics
+#x    dynamics powered_dynamics
+#x    aero_model (
+#x        linear_accel 1.0 G
+#x        radial_accel 6.5 G
+#x        climb_rate 400.0 fps
+#x        max_speed 850.0 knots
+#x  max_alt    55000 ft
+#x  min_alt       50 ft
+#        fuel_table (   76 (115  1.37 pps
+#                           150  1.59 pps
+#                           301  6.76 pps
+#                           321 23.4  pps)
+#                     5473 (143  1.24 pps
+#                           187  1.44 pps
+#                           293  4.65 pps
+#                           318 16.50 pps)
+#                    10671 (206  1.20 pps
+#                           236  1.27 pps
+#                           271  2.13 pps
+#                           295  7.37 pps))
+#        max_speed_table (   76  321
+#                          4573  318
+#                         10671  295)
+#        fuel 14000 lb
+#    )
+#    launch_to_alt    32000 ft
+#    launch_to_speed    500 knots
+#x    stores (
+#x            blue_lr_a2a_rf_missile BLUE_LR_A2A_RF_MISSILE
+#x            HARM2 HARM2
+#x            JSOW
+#x            blue_sr_a2a_ir_missile BLUE_SR_A2A_IR_MISSILE)
+#    //nonsense accuracy values for testing
+#    tgt_err_attributes target_range_err       10.0 ft
+#    tgt_err_attributes target_az_err           0.01 deg
+#    tgt_err_attributes target_el_err           0.02 deg
+#    tgt_err_attributes target_rdot_err         1.0 ft
+#    tgt_err_attributes target_azdot_err        0.03 deg
+#    tgt_err_attributes target_eldot_err        0.04 deg
+#    tgt_err_attributes launch_azalign_err      0.05 deg
+#    tgt_err_attributes launch_elalign_err      0.06 deg
+#    tgt_err_attributes launch_rollalign_err    0.07 deg
+#    tgt_err_attributes launch_msl_align_err    0.08 deg
+#x    ir_signature (1.0 1.6 2.1 2.4 2.6 2.6 2.6 2.6 2.6 2.6 2.5 2.1
+#x                  1.6 2.1 2.5 2.6 2.6 2.6 2.6 2.6 2.6 2.4 2.1 1.6)
+#x    rcs3d             F15CRCS
+#x}
+#

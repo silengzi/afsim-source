@@ -1,0 +1,278 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE coherent_sensor_demo
+log_file output/$(CASE).log
+
+radar_signature FIGHTER_RADAR_SIGNATURE
+   constant 10 m^2
+end_radar_signature
+
+# ****************************************************************************
+#                     Early Warning Radar
+
+antenna_pattern EW_RADAR_ANTENNA
+   rectangular_pattern
+      peak_gain           35 dB
+      minimum_gain       -20 dB
+      azimuth_beamwidth   10 deg
+      elevation_beamwidth 45 deg
+   end_rectangular_pattern
+end_antenna_pattern
+
+sensor EW_RADAR WSF_RADAR_SENSOR
+   #show_calibration_data
+   frame_time                      10.0 sec
+
+   beam 1
+      one_m2_detect_range          100 nm
+      maximum_range                120 nm
+
+      antenna_height               6 m
+
+      scan_mode                    azimuth
+      azimuth_scan_limits         -180 deg 180 deg
+
+      transmitter
+         antenna_pattern           EW_RADAR_ANTENNA
+         beam_tilt                  10 deg
+         power                     750 kw
+         pulse_width                50 usec
+         pulse_repetition_interval 750 usec // max PRI range of 225 km
+         frequency                 920 mhz
+      end_transmitter
+
+      receiver
+         antenna_pattern           EW_RADAR_ANTENNA
+         bandwidth                 2.0 mhz
+      end_receiver
+
+   end_beam
+
+   beam 2
+      transmitter
+         frequency 925 mhz
+      end_transmitter
+   end_beam
+
+   required_pd                     0.5
+
+   hits_to_establish_track         3 5
+   hits_to_maintain_track          1 3
+
+   reports_range
+   reports_bearing
+   reports_iff
+end_sensor
+
+#platform_type GROUND_SITE WSF_PLATFORM
+#   icon C4I
+#   processor multi_sensor_detector WSF_HCS_PROCESSOR
+#      debug
+#      sensor_name ew_radar_1
+#      sensor_name ew_radar_2
+#   end_processor
+#end_platform_type
+
+platform_type EW_RADAR_SITE WSF_PLATFORM
+   icon Ground_Radar
+   mover WSF_GROUND_MOVER end_mover
+
+   add processor track_manager WSF_TRACK_PROCESSOR
+      purge_interval 20 sec
+   end_processor
+
+   sensor ew_radar_1 EW_RADAR
+      processor track_manager
+      ignore_same_side
+   end_sensor
+
+   sensor ew_radar_2 EW_RADAR
+      processor track_manager
+      ignore_same_side
+   end_sensor
+
+   processor multi_sensor_detector WSF_COHERENT_SENSOR_PROCESSOR
+      debug
+      debug_level 2
+
+      update_interval 10 secs
+
+      use_target_result true
+      //result_processing_type RSS_BASED
+      result_processing_type SNR_BASED
+      fusion_method  weighted_average
+
+      processor track_manager
+      #internal_link track_manager
+
+      sensors
+         sensor ew_radar_1
+         sensor ew_radar_2
+      end_sensors
+   end_processor
+
+   # ---------------------------------------------
+   # Draw track for HCS Processor Tracks
+   # ---------------------------------------------
+   script_variables
+      # Create a WsfDraw object.
+      WsfDraw draw = WsfDraw();
+   end_script_variables
+
+   execute at_interval_of 10.0 s
+      foreach (WsfTrack track in MasterTrackList())
+      {
+         if (track.IsValid() &&
+             (track.ProcessorName() == "multi_sensor_detector"))
+         {
+            #string str = write_str("T=", (string)track.UpdateTime(), " Count=", (string)track.UpdateCount(), " SNR=", (string)Math.LinearToDB(track.SignalToNoise()));
+            #writeln("T=" + track.UpdateTime().ToString() + "Count=" + track.UpdateCount().ToString() + " SNR=" + (string)Math.LinearToDB(track.SignalToNoise()));
+            #writeln(str);
+            # use the track ID as a unique draw ID
+            # a track icon and a line to the track icon
+            # is drawn at each track update
+            string trackId = track.TrackId().ToString();
+            draw.SetId(trackId);
+            draw.SetDuration(10.0); # this is faster than calling erase every time
+            draw.SetColor(0,1,0);
+            draw.BeginIcons(track.Heading(), "Wedge");
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+
+            # Draw a line to the track
+            draw.SetLineStyle("dashed");
+            draw.BeginLines();
+            draw.Vertex(PLATFORM);
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+
+            # draw the text for the track
+            double snr = Math.LinearToDB(track.SignalToNoise());
+            string str = " SNR: " + (string)snr + " dB";
+            draw.BeginText(str);
+            draw.Vertex(track.CurrentLocation());
+            draw.End();
+         }
+      }
+   end_execute
+
+end_platform_type
+
+platform_type STRIKER_PLATFORM WSF_PLATFORM
+   icon F-18E
+   side blue
+   mover WSF_AIR_MOVER end_mover
+   radar_signature FIGHTER_RADAR_SIGNATURE
+end_platform_type
+
+
+platform ew-radar-site_1 EW_RADAR_SITE
+   side red
+
+   route
+      position 37:00:00n 116:00:00w
+      altitude 0.0 ft agl
+      heading   90 deg
+    end_route
+
+   sensor ew_radar_1
+      on
+      location 0 -25 0 m
+   end_sensor
+
+   sensor ew_radar_2
+      on
+      location 0 25 0 m
+   end_sensor
+end_platform
+
+platform striker-1 STRIKER_PLATFORM
+   side blue
+
+   route
+      position 36:27:36n 115:15:00w
+      altitude 35000 ft
+      speed     450 kts
+      heading     0 deg
+   end_route
+end_platform
+
+#platform striker-2 STRIKER_PLATFORM
+#   side blue
+#
+#   route
+#      position 36:27:30n 115:45:00w
+#      altitude 35000 ft
+#      speed     450 kts
+#      heading     0 deg
+#   end_route
+#end_platform
+
+event_output
+   #enable COMM_TURNED_OFF
+   #enable COMM_TURNED_ON
+   #enable JAMMING_ATTEMPT
+   #enable JAMMING_REQUEST_CANCELED
+   #enable JAMMING_REQUEST_INITIATED
+   #enable JAMMING_REQUEST_UPDATED
+   #enable LOCAL_TRACK_CORRELATION
+   #enable LOCAL_TRACK_DECORRELATION
+   #enable LOCAL_TRACK_INITIATED
+   #enable LOCAL_TRACK_UPDATED
+   #enable LOCAL_TRACK_DROPPED
+   #enable MESSAGE_DISCARDED
+   #enable MESSAGE_UPDATED
+   #enable MESSAGE_QUEUED
+   #enable MESSAGE_RECEIVED
+   #enable MESSAGE_TRANSMITTED
+   #enable OPERATING_LEVEL_CHANGED
+   #enable PLATFORM_ADDED
+   #enable PLATFORM_DELETED
+   #enable PLATFORM_BROKEN
+   #enable PROCESSOR_TURNED_OFF
+   #enable PROCESSOR_TURNED_ON
+   enable SENSOR_DETECTION_ATTEMPT
+   #enable SENSOR_FREQUENCY_CHANGED
+   #enable SENSOR_MODE_ACTIVATED
+   #enable SENSOR_MODE_DEACTIVATED
+   #enable SENSOR_REQUEST_CANCELED
+   #enable SENSOR_REQUEST_INITIATED
+   #enable SENSOR_REQUEST_UPDATED
+   enable SENSOR_TRACK_INITIATED
+   enable SENSOR_TRACK_UPDATED
+   enable SENSOR_TRACK_DROPPED
+   #enable SENSOR_TURNED_ON
+   #enable SENSOR_TURNED_OFF
+   #enable TASK_ASSIGNED
+   #enable TASK_CANCELED
+   #enable TASK_COMPLETED
+   #enable WEAPON_FIRE_ABORTED
+   #enable WEAPON_FIRE_REQUESTED
+   #enable WEAPON_FIRED
+   #enable WEAPON_HIT
+   #enable WEAPON_MISSED
+   #enable WEAPON_RELOAD_STARTED
+   #enable WEAPON_RELOAD_ENDED
+   #enable WEAPON_TERMINATED
+   #enable WEAPON_TURNED_OFF
+   #enable WEAPON_TURNED_ON
+  file output/$(CASE).evt
+end_event_output
+
+# Specify parameters for a replay file
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe
+
+terrain
+   #load_cme_terrain
+end_terrain
+
+end_time 480 sec

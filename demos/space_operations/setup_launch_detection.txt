@@ -1,0 +1,46 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Use this file to set parameters for launch vehicle assembly
+
+# Setup times to add stages
+script_variables
+   double first_stage_time = 1000; #Time for addition of first stage
+   double second_stage_time = 2000; #Time for addition of second stage
+   double third_stage_time = 3000; #Time for addition of third stage
+end_script_variables
+
+# Set the optical signature of each stage
+optical_signature LAUNCH_VEHICLE_SIG
+   state FIRST_STAGE
+      constant 10 m^2 #optical signature of first stage
+
+   state SECOND_STAGE
+      constant 20 m^2 #optical signature of second stage
+
+   state THIRD_STAGE
+      constant 30 m^2 #optical signature of third stage
+
+   state default
+      constant 0 m^2
+end_optical_signature
+
+# Set the inherent contrast of each stage
+inherent_contrast LAUNCH_VEHICLE_CONTRAST
+   state FIRST_STAGE
+      constant 1      #inherent contrast of the first stage
+
+   state SECOND_STAGE
+      constant 1      #inherent contrast of the second stage
+
+   state THIRD_STAGE
+      constant 1      #inherent contrast of the third stage
+
+   state default
+      constant 1
+end_inherent_contrast

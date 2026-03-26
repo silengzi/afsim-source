@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Uplink
+include_once patterns/uniformPattern.txt
+include_once processors/establish_link_processor.txt
+include_once processors/linkable_targets_processor.txt
+include_once comms/uplink.txt
+
+platform_type UPLINK WSF_PLATFORM 
+
+  include platforms/starlink_linkable.txt
+    
+  group_join UPLINK
+  
+  comm uplink UPLINK
+     group_join UPLINK
+     pitch 90 deg 
+  end_comm
+
+  visual_part uplink WSF_VISUAL_PART
+     pitch 90 deg
+     azimuth_slew_limits -80 deg 80 deg
+     elevation_slew_limits -80 deg 80 deg     
+  end_visual_part
+  
+  edit sensor detect  
+     // Set realistic angles for laser transmission.
+     elevation_scan_limits 30 deg 90 deg 
+  end_sensor
+  
+end_platform_type

@@ -1,0 +1,107 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ============================================================================
+# An example SAR typical of what might be on a 'flying wing'-type aircraft.
+#
+# Data provided by Tim Brown on 11-Feb-2009.
+#
+# NOTE: The user is responsible for setting the installation angles using the
+#       yaw and pitch commands. This allows this definition to be be used on
+#       various types of aircraft.
+# ============================================================================
+
+# The antenna_pattern using the 'steered_array_pattern' is not used because
+# it is much more numerically intensive. The other pattern will be used for now.
+
+/*
+antenna_pattern BOMBER_SAR_ANTENNA
+
+   # 7628 modules @ 2 watts/module = 15256 watts
+   # 2.5 modules/wavelength
+   # area = 4.0 ft^2 = 3716.1216 cm^2
+   # wavelength = c / 16 ghz = 1.875 cm
+
+   steered_array_pattern
+      element_spacing_x                0.75 cm             # wavelength / 2.5
+      element_spacing_y                0.649519052 cm      # sqrt(3)/2 * x spacing
+
+      # Assume a square array. Note that the following only results in 7614 modules,
+      # but that doesn't really matter because this is simply used to compute the
+      # antenna gain pattern. The power is set in the transmitter.
+
+      number_elements_x                81                  # sqrt(area) / x spacing
+      number_elements_y                94                  # sqrt(area) / y spacing
+
+      edge_angle_x                     0 deg
+      edge_angle_y                     60 deg
+end_antenna_pattern
+*/
+
+///*
+antenna_pattern BOMBER_SAR_ANTENNA
+   # Approximately the same as the 'steered_array_pattern' above.
+   circular_pattern
+      beamwidth                        1.15 deg
+      peak_gain                        40.6 db
+end_antenna_pattern
+//*/
+
+sensor BOMBER_SAR WSF_SAR_SENSOR
+   #show_calibration_data
+   slew_mode                           azimuth_and_elevation
+   azimuth_slew_limits                 -65 deg 65 deg
+   elevation_slew_limits               -40 deg 40 deg
+
+   mode_template
+
+      maximum_range                    150 nm
+      azimuth_field_of_view            -0.62 deg 0.62 deg
+      elevation_field_of_view          -0.53 deg 0.53 deg
+
+      electronic_beam_steering         azimuth_and_elevation
+      electronic_beam_steering_limit   65.0 deg            # same as slew limits
+      electronic_beam_steering_loss_exponent 1.4
+
+      transmitter
+         antenna_pattern               BOMBER_SAR_ANTENNA
+         frequency                     16 ghz
+         power                         15256.0 w           # 7628 modules * 2 watts/modules
+         pulse_width                   100 us
+         # The pulse repetition frequency is not defined. It will be dynamically determined.
+         internal_loss                 6.74 db
+         attenuation_model             earce
+      end_transmitter
+
+      receiver
+         antenna_pattern               BOMBER_SAR_ANTENNA
+         # Assume a matched-filter for a pulse width of 100 us
+         bandwidth                     10 khz
+         noise_figure                  4 absolute
+      end_receiver
+
+      resolution                       1 meter
+	  #dwell_time                       10 sec
+      maximum_dwell_time               10 sec
+      minimum_clutter_to_noise_ratio   4 db
+
+      doppler_filter_broadening_factor 1.20                # Ka
+      doppler_foldover_margin_factor   1.20                # Kd
+
+      reports_location
+   end_mode_template
+
+   mode SPOT
+      operating_mode                   spot
+   end_mode
+
+   mode STRIP
+      operating_mode                   strip
+   end_mode
+
+end_sensor

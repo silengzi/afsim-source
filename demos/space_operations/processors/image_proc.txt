@@ -1,0 +1,51 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Image processor used to detect the addition of stages
+# onto a launch vehicle at a launch facility
+
+processor IMAGE_PROC WSF_IMAGE_PROCESSOR
+   script_variables
+      Map<int,double> prev_size_map = Map<int,double>();
+      Map<int,int> num_stages_map = Map<int,int>();
+   end_script_variables
+
+   on_message
+      type WSF_VIDEO_MESSAGE
+
+      script
+         WsfVideoMessage msg = (WsfVideoMessage)MESSAGE;
+         for (int i = 0; i < msg.Image().ObjectCount(); i=i+1)
+         {
+            int pixels = msg.Image().PixelCount(i);
+            double size_m2 = pixels * msg.Image().WidthResolution() * msg.Image().HeightResolution(); # detected size of current assembly
+#            writeln(size_m2);
+            int truthIndex = (int)msg.Image().ObjectTruthIndex(i);
+            if (prev_size_map.Exists(truthIndex))
+            {
+               if (num_stages_map.Exists(truthIndex))
+               {
+                  int num_stages = num_stages_map.Get(truthIndex);
+                  double diff = size_m2 - prev_size_map.Get(msg.Image().ObjectTruthIndex(i));
+                  if (diff > 1)
+                  {
+                     num_stages = num_stages + 1;
+                     num_stages_map.Set(truthIndex, num_stages);
+                     writeln("COMMANDER: New stage detected at time t=", TIME_NOW, ". Launch Vehicle now has ", num_stages, " stage(s).");
+                  }
+               }
+               else
+               {
+                  num_stages_map.Set(truthIndex, 0);
+               }
+            }
+            prev_size_map.Set(truthIndex,size_m2);
+         }
+      end_script
+   end_on_message
+end_processor

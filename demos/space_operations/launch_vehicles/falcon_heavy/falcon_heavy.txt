@@ -1,0 +1,24 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                                Falcon Heavy
+#
+# This is a convenience that defines a FALCON_HEAVY using the base without changes.
+#==============================================================================
+
+include falcon_heavy_base.txt
+
+platform_type FALCON_HEAVY FALCON_HEAVY_BASE
+end_platform_type
+
+weapon FALCON_HEAVY FALCON_HEAVY_BASE
+   launched_platform_type FALCON_HEAVY
+end_weapon

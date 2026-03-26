@@ -1,0 +1,145 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Find the next equinox or solstice, starting at the current simulation time.
+
+#===================================================================================================
+# Helper scripts...
+
+# Return a string with increased precision on the time.
+script string ToString_Calendar(Calendar c)
+  double timeOfDay = c.Hour() * 3600.0 + c.Minute() * 60.0 + c.Second();
+  return c.ToStringDate() + " " + Format.Time(timeOfDay, 5);
+end_script
+
+#===================================================================================================
+# Find the next equinox or solstice event starting with the current calendar.
+#
+# Note: This is purely geometric. It does not adjust for the time it actually takes for light to
+#       to reach the Earth.
+#
+# @param c  The calendar containing the current time at which to begin the search.
+#           It will be updated to reflect the time of equinox or solstice that was found.
+# @param dt The timestep used. The initial call should specify a value of 0 which indicates
+#           to initialize the timestep to a large value for the initial search. This
+#           script will recursively call itself with smaller and smaller timesteps until a
+#           solution is found.
+# @return:  = 0: no solution found.
+#           = 1, vernal equinox, 2=summer solstice, 3=autumnal equinox, 4=winter solstice
+
+script int FindNextEquinoxOrSolstice(Calendar c,
+                                     double   dt)
+   if (dt <= 0.0) dt = 100000.0;                      # A timestep of zero indicates to use the initial timestep
+
+   writeln_d("****** Refining solution starting at ", ToString_Calendar(c), ", dt=", dt);
+
+   Vec3 loc = Sun.LocationECI(c);
+   Vec3 lastLoc;
+   bool found = false;
+   while (!found)
+   {
+      lastLoc = loc;
+      c.AdvanceTime(dt);
+      loc = Sun.LocationECI(c);
+      writeln_d(ToString_Calendar(c), " Loc=", Format.Scientific(loc, 8));
+      if ((loc.Get(0) * lastLoc.Get(0) < 0.0) ||      # Found a solstice transition
+          (loc.Get(1) * lastLoc.Get(1) < 0.0))        # Found an equinox transition
+      {
+         found = true;
+         break;
+      }
+   }
+
+   int returnValue = -1;                              # Default to not found
+   if (found)
+   {
+      if (dt <= 0.000011)
+      {
+         if (loc.Get(0) * lastLoc.Get(0) < 0)         # Found a solstice transition
+         {
+            returnValue = 1;                          # Assume summer
+            if (loc.Get(1) < 0.0) returnValue = 3;    # Nope, winter
+            # Pick the best time (smallest absolute value of X)
+            if (Math.Fabs(lastLoc.Get(0)) < Math.Fabs(loc.Get(0)))
+            {
+               c.AdvanceTime(-dt);
+            }
+         }
+         else                                         # Must have been an equinox transition
+         {
+            returnValue = 0;                          # Assume vernal
+            if (loc.Get(0) < 0.0) returnValue = 2;    # Nope, autumnal
+            # Pick the best time (smallest absolute value of Y)
+            if (Math.Fabs(lastLoc.Get(1)) < Math.Fabs(loc.Get(1)))
+            {
+               c.AdvanceTime(-dt);
+            }
+         }
+      }
+      else
+      {
+         # Refine the solution (divide the timestep by 10)
+         c.AdvanceTime(-dt);
+         returnValue = FindNextEquinoxOrSolstice(c, 0.1 * dt);
+      }
+   }
+   else
+   {
+      writeln_d("***** No solution found at ", ToString_Calendar(c), " dt=", dt);
+   }
+   return returnValue;
+end_script
+
+#===================================================================================================
+# Find all the equinox and solstice events for the specified year...
+
+script void ShowAllEquinoxAndSolsticeEvents(int year)
+   Array<string> event = { "   Vernal equinox", "  Summer solstice", " Autumnal equinox", "  Winter solstice" };
+   Calendar c = Calendar.Construct();
+   c.SetDate(year, 03, 10);      # Start a few days before the vernal equinox
+
+   writeln("");
+   writeln("Finding all equinox and solstice events for the year: ", c.Year());
+   writeln(" (The adjusted event times include the time it takes for light to reach the Earth)");
+   writeln("");
+
+   for (int i = 0; i < 4; i = i + 1)
+   {
+      int type = FindNextEquinoxOrSolstice(c, 0.0);
+      if (type < 0)
+      {
+         writeln("***** NO SOLUTION FOUND!");
+         break;
+      }
+
+      string out = write_str(event[type], " at ", ToString_Calendar(c));
+
+      Vec3 sunLoc = Sun.LocationECI(c);
+
+      # Display an adjusted event time that takes into account the time it takes for light to reach the Earth
+
+      double delay = sunLoc.Magnitude() / Math.LIGHT_SPEED();
+      c.AdvanceTime(delay);
+      out = out + write_str(" (adjusted: ", ToString_Calendar(c), ")");
+
+      # Compute the tilt of the Earth's axis from vertical, relative to the vector to the Sun
+      Vec3 sunVec = Vec3(sunLoc);
+      sunVec.Normalize();
+      Vec3 northPoleVec = Vec3.Construct(0.0, 0.0, 1.0);
+      double cosTilt = Math.Limit(Vec3.Dot(northPoleVec, sunVec), 1.0);
+      double tilt = 90.0 - Math.ACos(cosTilt);
+      if (Math.Fabs(tilt) < 1.0E-8) tilt = 0.0;
+
+      writeln(out, ", Tilt to/from Sun=", Format.Fixed(tilt,3).Pad(7), " deg, Distance to Sun=", sunLoc.Magnitude() * 0.001, " km");
+
+      c.AdvanceTime(80 * 86400);         # Advance past the event just found
+      c.SetTime(0, 0, 0);                # Set time to a nice starting time
+   }
+   writeln("");
+end_script
+

@@ -1,0 +1,88 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+behavior pursue_heading_smooth
+
+   script_debug_writes off
+
+   script_variables
+      //parameters for user edit
+      double mInterceptRevectorThreshold  =    5.0; # percent of range
+      double mInterceptLargeHeadingChange =   10.0; # degrees
+      //private
+      WsfTrack mTargetTrack;
+      WsfGeoPoint mInterceptLoc = WsfGeoPoint();
+   end_script_variables
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue_heading_smooth, T=", TIME_NOW);
+      //get target from ripr processor, to be sure
+      mTargetTrack = PROCESSOR.GetTarget();
+      if (mTargetTrack.IsNull() || !mTargetTrack.IsValid())
+      {
+         writeln_d("    No valid target track found to pursue!");
+         return Failure("target track not found");
+      }
+      return true;
+   end_precondition
+
+
+   execute
+      string comment = write_str(PLATFORM.Name(), " executing pursue_heading_smooth, T=", TIME_NOW);
+      writeln_d(comment);
+      #PLATFORM.Comment(comment);
+
+      extern double mDesiredHeading;      //for read/write
+      extern double mDesiredRadialAccel;  //for read/write
+      extern double mDesiredSpeed;        //for read only here
+
+      // The intercept point may fluctuate because of manuevers or track errors.
+      // Minor changes in the intercept point are ignored.
+
+      WsfGeoPoint newInterceptLoc = mTargetTrack.CurrentLocation();
+      double interceptDelta    = newInterceptLoc.SlantRangeTo(mInterceptLoc);
+      double revectorThreshold = mInterceptRevectorThreshold * 0.01 * PLATFORM.SlantRangeTo(newInterceptLoc);
+      if (interceptDelta > revectorThreshold)
+      {
+         mInterceptLoc.Set(newInterceptLoc);
+      }
+
+      // The standard air mover will turn at the current maximum allowable rate to make the
+      // heading change. This causes a lot of wing-wobble that wouldn't appear in real life.
+
+      // Compute the minimum acceleration needed to complete the turn well before predicted intercept
+      double headingChange    = PLATFORM.RelativeBearingTo(mInterceptLoc);
+      double absHeadingChange = MATH.Fabs(headingChange);
+      double interceptRange   = PLATFORM.SlantRangeTo(mInterceptLoc);
+      double timeToIntercept  = interceptRange / mDesiredSpeed;
+      double minRadialAccel   = (absHeadingChange / (0.5 * timeToIntercept)) * mDesiredSpeed;
+      if (minRadialAccel < 0.01) minRadialAccel = 0.01;
+
+      // Major heading changes (greater than mInterceptLargeHeadingChange degrees) are performed
+      // at 1g. Minor heading changes are performed at successively smaller rates. Both are
+      // subject to the minimum computed above.
+      double radialAccel = 9.8;
+      if (absHeadingChange < mInterceptLargeHeadingChange)
+      {
+         radialAccel = 9.8 * (absHeadingChange * absHeadingChange) /
+                             (mInterceptLargeHeadingChange * mInterceptLargeHeadingChange);
+      }
+      if (radialAccel < minRadialAccel)
+      {
+         radialAccel = minRadialAccel;
+      }
+
+      //set the values of the required parameters when calculated
+      mDesiredHeading = PLATFORM.TrueBearingTo(mInterceptLoc);
+      mDesiredRadialAccel = radialAccel;
+   end_execute
+
+end_behavior

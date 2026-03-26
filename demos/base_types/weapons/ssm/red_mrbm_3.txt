@@ -1,0 +1,502 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+ # This model was derived from unclassified sources
+/* BEGIN COMMENT
+http://www.sinodefence.com/strategic/missile/df21.asp
+Specifications
+Official name: DongFeng 21 (DF-21)
+NATO reporting name: CSS-5
+Contractor: CASIC 4th Academy
+Service status: In service
+Configuration: Two-stage, solid propellant
+Deployment: Road mobile, 6X6 tractor truck + six-wheel trailer; or silo
+Length: 10.7m
+Diameter: 1.4m
+Launch weight: 14,700kg
+Range: 1,770km
+Re-entry vehicle mass: 600kg
+Warhead: One single 500kT yield, or conventional
+Guidance: Inertial + terminal radar guidance
+Accuracy: CEP 300~400m
+
+http://www.missilethreat.com/missilesoftheworld/id.26/missile_detail.asp
+CSS-5
+Country:        People's Republic of China
+Alternate Name:         DF-21
+Class:          MRBM
+Basing:         Road mobile
+Length:         10.70 m
+Diameter:       1.40 m
+Launch Weight:          14700 kg
+Payload:        Single warhead, 600 kg
+Warhead:        Nuclear 250 or 500kT, HE, submunitions, or chemical
+Propulsion:     2-stage solid
+Range:          2150 km
+Status:         Operational
+In Service:     1987
+
+http://www.fas.org/nuke/guide/china/theater/df-21.htm
+Contractor      Academy of Rocket Motors Technology - ARMT
+Operator        Second Artillery Corps
+# Basing        Chuxiong # Jianshui # Lianxiwang # Tonghua
+Configuration   Two Stage
+Length [meters] 10.7
+Diameter [meters]       1.4
+Mass [kilograms]        14,700
+Propellant      Solid
+Guidance        Inertial
+First Flight    May 1985
+IOC     1989-1991
+Deployment      Mobile
+Range (km)      1,800
+Re-entry Vehicle Mass (kg)      600
+Warhead Yield   200-300 KT
+CEP (meters)    300-400
+Launch Preparation Time 10-15 minutes
+
+http://www8.janes.com/JDIC/JDET/documentView.do?docId=/content1/janesdata/binder/
+jsws/jsws0411.htm@current&pageSelected=allJanes&keyword=css-5%20df-21&backPath=
+http://jdet.janes.com/JDIC/JDET/search&Prod_Name=JSWS&activeNav=http://www8.janes.com/JDIC/JDET
+
+DF-21
+Length:         10.7 m
+Body diameter:  1.4 m
+Launch weight:  14,700 kg
+Payload:        Single warhead; 600 kg
+Warhead:        250 or 500 kT nuclear, HE, submunitions or chemical
+Guidance:       Inertial
+Propulsion:     2-stage solid propellant
+Range:  2,150 km
+Accuracy:       700 m CEP
+
+DF-21A/-21B
+Length:         12.3 m
+Body diameter:  1.4 m
+Launch weight:  15,200 kg
+Payload:        Single warhead, 500 kg
+Warhead:        90 kT or selectable between 20, 90 and 150 kT nuclear, HE,
+chemical, submunitions or EMP
+Guidance:       Inertial with GPS and radar correlation
+Propulsion:     2-stage solid propellant
+Range:  2,500 km
+Accuracy:       50 m CEP (21A), 10 m CEP (21B)
+
+
+http://www.astronautix.com/lvs/df21.htm
+Intermediate range ballistic missile.
+IOC: 1988.
+Country: China.
+Status: Active.
+Department of Defence Designation: CSS-5.
+Popular Name: Dong Feng-21.
+JL-1 land based version. 2 stage vehicle.
+Manufacturer: Shanxi.
+Launches: 15. Failures: 3.
+Success Rate: 80.00%.
+First Launch Date: 1985-05-01.
+Last Launch Date: 2007-01-11.
+Launch data is: continuing.
+Apogee: 500 km (310 mi).
+Liftoff Thrust: 0 N ( lbf).
+Total Mass: 14,664 kg (32,328 lb).
+Core Diameter: 1.40 m (4.50 ft).
+Total Length: 10.43 m (34.21 ft).
+Span: 1.40 m (4.50 ft).
+Standard warhead mass: 600 kg (1,320 lb).
+Maximum range: 1,810 km (1,120 mi).
+Number Standard Warheads: 1.
+Standard warhead yield: 250 KT.
+Boost Propulsion: Solid rocket.
+Guidance: Inertial.
+Total Number Built: 50.
+
+    * Stage1: 1 x JL-1-1.
+    Gross Mass: 10,000 kg (22,000 lb).
+    Motor: 1 x DF-21-1.
+    Length: 6.00 m (19.60 ft).
+    Diameter: 1.41 m (4.62 ft).
+    Propellants: Solid.
+
+    * Stage2: 1 x DF-21-2.
+    Gross Mass: 4,000 kg (8,800 lb).
+    Motor: 1 x DF-21-2.
+    Length: 4.00 m (13.10 ft).
+    Diameter: 1.41 m (4.62 ft).
+
+
+END COMMENT
+*/
+# Weapon Definition starts here.
+# script_debug_writes on
+script_debug_writes on
+
+
+# Signature data is unknown...
+infrared_signature RED_MRBM_3_INFRARED_SIGNATURE
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  RED_MRBM_3_OPTICAL_SIGNATURE
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    RED_MRBM_3_RADAR_SIGNATURE
+   constant 1 m^2
+end_radar_signature
+
+# Weapon effects
+weapon_effects RED_MRBM_3_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 150 m 1.0
+end_weapon_effects
+
+########### Aero definitions ##################################################
+aero RED_MRBM_3_STAGE_EMPTY_AERO WSF_AERO # The stage gets a lot of drag...
+   reference_area            1.56 m^2           # 1.41 m diameter
+   aspect_ratio              4.0
+   cl_max                    1.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.40
+   cd_zero_supersonic        0.45
+   mach_begin_cd_rise        0.9
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       5.00
+end_aero
+
+aero RED_MRBM_3_STAGE_1_AERO WSF_AERO
+   reference_area            1.56 m^2           # 1.41 m diameter
+   aspect_ratio              2.0
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.35
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       10.00
+end_aero
+
+aero RED_MRBM_3_STAGE_2_AERO WSF_AERO
+   reference_area            1.56 m^2           # 1.41 m diameter
+   aspect_ratio              2.0
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.35
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       10.00
+end_aero
+
+aero RED_MRBM_3_STAGE_3_AERO WSF_AERO   #smaller cone warhead
+   reference_area            .572 m^2
+   aspect_ratio              2.0
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.35
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       10.00
+end_aero
+
+
+########### RED_MRBM_3 Mover definition  ##########################################
+mover RED_MRBM_3_MOVER WSF_GUIDED_MOVER
+   show_status
+   update_interval           0.05 secs
+   stage 1
+       aero                   RED_MRBM_3_STAGE_1_AERO
+       total_mass             10000 kg
+       fuel_mass               8000 kg
+       specific_impulse       240 sec # The platform script will vary this.
+       thrust_duration        52 sec
+   end_stage
+   stage 2
+       aero                   RED_MRBM_3_STAGE_2_AERO
+       pre_ignition_coast_time 3 sec
+       total_mass             4000 kg
+       fuel_mass              3350 kg
+       specific_impulse       240 sec  # adjusted for max range of 2000 km
+       thrust_duration        46 sec
+       pre_separation_coast_time  10 sec
+   end_stage
+   stage 3  # warhead
+       aero                  RED_MRBM_3_STAGE_3_AERO
+       total_mass            400 kg
+       fuel_mass               0 kg
+   end_stage
+end_mover
+
+############ RED_MRBM_3 Guidance ##################################################
+############ The values are SPECIFIC to the aero and body mass information####
+processor RED_MRBM_3_GUIDANCE WSF_GUIDANCE_COMPUTER
+#show_status
+#show_evaluations
+   phase LAUNCH
+      next_phase 200-1000 if target_ground_range < 1000 km
+      next_phase 1000-1100 if target_ground_range < 1100 km
+      next_phase 1100-1200 if target_ground_range < 1200 km
+      next_phase 1200-1300 if target_ground_range < 1300 km
+      next_phase 1300-1350 if target_ground_range < 1350 km
+      next_phase 1350-1400 if target_ground_range < 1400 km
+      next_phase 1400-1450 if target_ground_range < 1450 km
+      next_phase 1450-1500 if target_ground_range < 1500 km
+      next_phase 1500-1550 if target_ground_range < 1550 km
+      next_phase 1550-1600 if target_ground_range < 1600 km
+      next_phase 1600-1650 if target_ground_range < 1650 km
+      next_phase 1650-1700 if target_ground_range < 1700 km
+      next_phase 1700-1750 if target_ground_range < 1750 km
+      next_phase 1750-1800 if target_ground_range < 1790 km
+      next_phase 1780-1820 if target_ground_range < 1820 km
+      next_phase 1810-1840 if target_ground_range < 1840 km
+      next_phase 1840-1860 if target_ground_range < 1860 km
+      next_phase 1860-1900 if target_ground_range < 1900 km
+      next_phase 1900-1950 if target_ground_range < 1950 km
+      next_phase 1940-1980 if target_ground_range < 1980 km
+      next_phase 1980-2000 if target_ground_range < 2000 km
+      next_phase 2000-2050 if target_ground_range < 2100 km
+
+   end_phase
+   phase 200-1000
+       g_bias                  1.1 # 200-1000
+       maximum_commanded_g     4 g # 200-1000
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1000-1100
+       g_bias                  1.2 # 1000
+       maximum_commanded_g     5 g # 1000
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1100-1200
+       g_bias                  1.4 #
+       maximum_commanded_g     1 g #
+       guidance_delay          8 sec
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+   phase 1200-1300
+       g_bias                  1.5 #
+       maximum_commanded_g     1 g #
+       guidance_delay          9.5 sec
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+   phase 1300-1350
+       g_bias                  1.6 #
+       maximum_commanded_g     1 g #
+       guidance_delay          10 sec
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1350-1400
+       g_bias                  1.8 #  1200-1400
+       maximum_commanded_g     1 g #  1200-1400
+       guidance_delay 11       secs # 1200-1400
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+    phase 1400-1450
+       g_bias                  3 # 1500
+       maximum_commanded_g     1 g # 1500
+       guidance_delay 14       secs # 1500
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+    phase 1450-1500
+       g_bias                  3.5 # 1500
+       maximum_commanded_g     1 g # 1500
+       guidance_delay 15.3       secs # 1500
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+    phase 1500-1550
+       g_bias                  4.5 # 1500
+       maximum_commanded_g     1 g # 1500
+       guidance_delay 16.7       secs # 1500
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+    phase 1550-1600
+       g_bias                  5 # 1500
+       maximum_commanded_g     1 g # 1500
+       guidance_delay 17.1      secs # 1500
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+
+    phase 1600-1650
+       g_bias                  5.6 # 1500
+       maximum_commanded_g     1 g # 1500
+       guidance_delay 17.5      secs # 1500
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+    end_phase
+    phase 1650-1700
+       g_bias                  6 # 1600-1700
+       maximum_commanded_g     1 g # 1600-1700
+       guidance_delay 17.7       secs # 1600-1700
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1700-1750
+       g_bias                  6 #  1700-1750
+       maximum_commanded_g     1 g # 1700-1750
+       guidance_delay 18       secs # 1700-1750
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1750-1800
+       g_bias                  7 # 1750-1800
+       maximum_commanded_g     1 g # 1750-1800
+       guidance_delay 18.4       secs # 1750-1800
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1780-1820
+       g_bias                  7 # 1780-1820
+      maximum_commanded_g     1 g # 1780-1820
+     guidance_delay 18.5       secs # 1780-1820
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1810-1840
+       g_bias                  7 # 1810-1840
+      maximum_commanded_g     1 g # 1810-1840
+     guidance_delay 18.7       secs # 1810-1840
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+   phase 1840-1860
+       g_bias                  8 # 1840-1860
+       maximum_commanded_g     1 g # 1840-1860
+       guidance_delay 18.7       secs # 1840-1860
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+   phase 1860-1900
+       g_bias                  8.5 # 1840-1860
+       maximum_commanded_g     1 g # 1840-1860
+       guidance_delay 18.8       secs # 1840-1860
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1900-1950
+       g_bias                  9 # 1860-1950
+       maximum_commanded_g     1 g #
+       guidance_delay 19       secs #
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1940-1980
+       g_bias                  9.2 # 1940-1980
+       maximum_commanded_g     1 g #
+       guidance_delay 19.2       secs #
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+   phase 1980-2000
+       g_bias                  9.5 # 1980-2000
+      maximum_commanded_g     1 g #
+     guidance_delay 19.4       secs #
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+   phase 2000-2050
+       g_bias                  9.8 #
+      maximum_commanded_g     1 g #
+     guidance_delay 19.6       secs #
+       next_phase TERMINAL when phase_time > 101 secs # burnout time
+   end_phase
+
+
+   phase TERMINAL
+      maximum_commanded_g 2 g
+   end_phase
+end_processor
+
+#############STAGE 1 & 2 SPENT STAGES PLATFORM TYPES#########################################
+platform_type RED_MRBM_3_STAGE1 WSF_PLATFORM
+  icon sam-a_missile
+  mover WSF_NEW_UNGUIDED_MOVER
+     update_interval 0.5 sec
+     show_status
+     aero RED_MRBM_3_STAGE_EMPTY_AERO
+     total_mass            2500  kg
+  end_mover
+  processor fuse WSF_GROUND_TARGET_FUSE
+  end_processor
+end_platform_type
+
+weapon RED_MRBM_3_STAGE1 WSF_EXPLICIT_WEAPON
+   launched_platform_type RED_MRBM_3_STAGE1
+   firing_delay   0 secs
+   quantity               1
+end_weapon
+
+platform_type RED_MRBM_3_STAGE2 WSF_PLATFORM
+  icon sam-a_missile
+  mover WSF_NEW_UNGUIDED_MOVER
+     update_interval 0.5 sec
+     show_status
+     aero RED_MRBM_3_STAGE_EMPTY_AERO
+     total_mass            30  kg # extremely low to show ballistic fall
+  end_mover
+  processor fuse WSF_GROUND_TARGET_FUSE
+  end_processor
+end_platform_type
+
+weapon RED_MRBM_3_STAGE2 WSF_EXPLICIT_WEAPON
+   launched_platform_type RED_MRBM_3_STAGE2
+   quantity               1
+end_weapon
+
+
+############### RED_MRBM_3 platform #############################################
+platform_type RED_MRBM_3 WSF_PLATFORM
+   icon Scud_Missile
+   infrared_signature RED_MRBM_3_INFRARED_SIGNATURE
+   optical_signature  RED_MRBM_3_OPTICAL_SIGNATURE
+   radar_signature    RED_MRBM_3_RADAR_SIGNATURE
+   weapon_effects     RED_MRBM_3_LETHALITY
+
+   mover RED_MRBM_3_MOVER
+   end_mover
+
+   # used to instantiate the stage falling off
+   weapon red_mrbm_3_stage1 RED_MRBM_3_STAGE1
+      quantity 1
+      launch_delta_v  -1 0 0 fps
+   end_weapon
+   # used to instantiate the stage falling off
+   weapon red_mrbm_3_stage2 RED_MRBM_3_STAGE2
+      quantity 1
+      launch_delta_v  -100 0 00 fps
+   end_weapon
+
+   script void on_stage_separation(int aStage)
+      writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " separation");
+      if (aStage == 1)
+         {
+         WsfWeapon weapon = PLATFORM.Weapon("red_mrbm_3_stage1");
+         weapon.Fire();
+         }
+      if (aStage == 2)
+         {
+         WsfWeapon weapon = PLATFORM.Weapon("red_mrbm_3_stage2");
+         weapon.Fire();
+         }
+   end_script
+
+   processor guidance RED_MRBM_3_GUIDANCE
+     # show_status
+      guide_to_truth true #TODO TESTING
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+
+   processor seeker WSF_PERFECT_TRACKER
+      update_interval 0.5 sec
+   end_processor
+
+end_platform_type
+#####################RED_MRBM_3 EXPLICIT WEAPON###################################
+weapon RED_MRBM_3 WSF_EXPLICIT_WEAPON
+   launched_platform_type RED_MRBM_3
+   tilt  89.9 degrees
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+   firing_delay   1.0 secs
+   quantity               1
+end_weapon

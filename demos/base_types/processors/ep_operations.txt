@@ -1,0 +1,131 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# CLASSIFICATION: UNCLASSIFIED
+#
+# This script is for controlling the mutually exclusive aspect of the
+# SLB and SLC operations currently.
+#
+# The sensor name and technique names may be changed on the instantiation
+# of the processor on the platform definition.
+#
+# Also note that the update_interval is set to 10.0 sec as the default and
+# may need changed if it needs updated at a different interval (e.g. scan
+# rate of the radar).
+# --------------------------------------------------------------------------
+
+processor EP_OPERATIONS WSF_SCRIPT_PROCESSOR
+   #script_call_trace off
+   #script_debug_writes off
+
+   update_interval 10.0 sec // default, need to update once per scan of the radar
+
+   script_variables
+      Array<string> mSensorNameList = Array<string>();
+      string mSLB_TechName = "sidelobe_blanking";
+      string mSLC_TechName = "sidelobe_canceling";
+
+      bool mStateChange = false;
+      string mPerceptionString = "";
+   end_script_variables
+
+   on_initialize
+      if (mSensorNameList.Empty())
+      {
+         int sensorCount = PLATFORM.SensorCount();
+         for (int i = 0; i < sensorCount; i = i + 1)
+         {
+            mSensorNameList.PushBack(PLATFORM.SensorEntry(i).Name());
+            writeln_d("EP_OPERATIONS script auto added platform:sensor ", PLATFORM.Name(),
+                      ":", PLATFORM.SensorEntry(i).Name(), " to control list.");
+         }
+      }
+      else
+      {
+         foreach (string sensorName in mSensorNameList)
+         {
+            writeln_d("EP_OPERATIONS script manually added platform:sensor ", PLATFORM.Name(),
+                      ":", sensorName, " to control list.");
+         }
+      }
+
+      if (mSensorNameList.Empty())
+      {
+         writeln("****WARNING: EP_OPERATIONS script has empty sensor list on ", PLATFORM.Name());
+      }
+   end_on_initialize
+
+   on_update
+      // Loop the sensor list and get each sensor in list to update
+      foreach (string sensorName in mSensorNameList)
+      {
+         // Get the sensor
+         WsfSensor sensor = PLATFORM.Sensor(sensorName);
+
+         // Update the operating status of the techniques
+         bool mSLB_Operating = sensor.IsEP_TechniqueActive(mSLB_TechName);
+         bool mSLC_Operating = sensor.IsEP_TechniqueActive(mSLC_TechName);
+
+         if (sensor.ContinuousJammingPerceived())
+         {
+            if (! mSLC_Operating)
+            {
+               mSLC_Operating = sensor.SelectEP_Technique(mSLC_TechName);
+               mPerceptionString = "Continuous jamming perceived";
+               mStateChange = true;
+            }
+
+            if (mSLB_Operating && mSLC_Operating)
+            {
+               mSLB_Operating = (! sensor.DeselectEP_Technique(mSLB_TechName));
+            }
+         }
+         else if (sensor.PulseJammingPerceived())
+         {
+            writeln_d("Perceived pulse jamming");
+
+            if (! mSLB_Operating)
+            {
+               mSLB_Operating = sensor.SelectEP_Technique(mSLB_TechName);
+               mPerceptionString = "Pulse jamming perceived";
+               mStateChange = true;
+            }
+
+            if (mSLB_Operating && mSLC_Operating)
+            {
+               mSLC_Operating = (! sensor.DeselectEP_Technique(mSLC_TechName));
+            }
+         }
+         else
+         {
+            if (mSLC_Operating)
+            {
+               mSLC_Operating = (! sensor.DeselectEP_Technique(mSLC_TechName));
+               mPerceptionString = "Jamming not perceived";
+               mStateChange = true;
+            }
+
+            if (mSLB_Operating)
+            {
+               mSLB_Operating = (! sensor.DeselectEP_Technique(mSLB_TechName));
+               mPerceptionString = "Jamming not perceived";
+               mStateChange = true;
+            }
+         }
+
+         if (mStateChange)
+         {
+            mStateChange = false;  // reset the state change flag
+            writeln_d("T=", TIME_NOW, " ", PLATFORM.Name(), ":", sensorName, " ", mPerceptionString);
+            writeln_d("   SLB=", mSLB_Operating);
+            writeln_d("   SLC=", mSLC_Operating);
+         }
+      }
+   end_on_update
+end_processor

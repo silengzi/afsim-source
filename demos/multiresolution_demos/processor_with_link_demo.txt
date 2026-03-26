@@ -1,0 +1,68 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###################################################################################
+# processor_with_link_demo.txt
+# This example demonstrates a simple use of multiresolution_processor in which 
+# internal links are used. Two WSF_SCRIPT_PROCESSORS are included which just have
+# different implementations. Two platforms send messages to each other over a comm,
+# and messages are routed to the script processor.
+###################################################################################
+
+define_path_variable CASE processor_with_link_demo
+log_file output/$(CASE).log
+
+include_once processors/processor_include.txt
+
+end_time 1 min
+
+event_output
+   file output/$(CASE).evt
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+end_event_output
+
+network mesh_net WSF_COMM_NETWORK_MESH
+end_network
+
+platform tortoise WSF_PLATFORM
+   add comm my_comm WSF_COMM_TRANSCEIVER
+      network_name mesh_net
+      internal_link message_processor
+   end_comm
+   
+   add multiresolution_processor message_processor MR_MESSAGE_PROCESSOR
+      fidelity 1.0
+   end_multiresolution_processor
+   
+   execute at_interval_of 30.0 sec
+      WsfMessage message = WsfMessage();
+      message.SetDataTag(1.61803398875);
+      PLATFORM.Comm("my_comm").SendMessage(message, "achilles", "my_comm");
+   end_execute
+end_platform
+
+platform achilles WSF_PLATFORM
+   add comm my_comm WSF_COMM_TRANSCEIVER
+      network_name mesh_net
+      internal_link message_processor
+   end_comm
+   
+   add multiresolution_processor message_processor MR_MESSAGE_PROCESSOR
+      fidelity 0.0
+   end_multiresolution_processor
+   
+   execute at_interval_of 30.0 sec
+      WsfMessage message = WsfMessage();
+      message.SetDataTag(3.14159265359);
+      PLATFORM.Comm("my_comm").SendMessage(message, "tortoise", "my_comm");
+   end_execute
+end_platform

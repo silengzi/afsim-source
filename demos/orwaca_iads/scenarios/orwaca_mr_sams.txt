@@ -1,0 +1,227 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+/* vespa <range_ring name="MRSAM_50-1" uid="14381">
+
+  <name>MRSAM_50-1</name>
+  <position>
+    <latitude>47:13:38.40n</latitude>
+    <longitude>122:58:38.98w</longitude>
+    <altitude>3.28 ft</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+
+  <minimum_distance>50.00 nm</minimum_distance>
+
+  <distance_increment>100 nm</distance_increment>
+
+  <number_rings>1</number_rings>
+
+  <line_color>00FF00FF</line_color>
+
+  <line_width>5</line_width>
+
+</range_ring> end_vespa */
+
+platform mr_sam_battalion_1 MR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 47:13:40.76n 122:58:38.18w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+platform mr_sam_acq_radar_1 MR_SAM_ACQ_RADAR
+   side red
+   commander mr_sam_battalion_1
+   position 47:13:38.40n 122:58:38.98w altitude 3.28 ft agl
+end_platform
+platform mr_sam_ttr_radar_1  MR_SAM_TTR_RADAR
+   side red
+   commander mr_sam_battalion_1
+   position 47:13:36.92n 122:58:38.22w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_1-1 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_1
+   position 47:13:48.22n 122:58:45.39w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_1-2 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_1
+   position 47:13:27.50n 122:58:44.32w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_1-3 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_1
+   position 47:13:39.67n 122:58:20.21w altitude 3.28 ft agl
+end_platform
+
+
+/* vespa <range_ring name="MRSAM_50-2" uid="14435">
+
+  <name>MRSAM_50-2</name>
+
+  <position>
+    <latitude>46:11:13.39n</latitude>
+    <longitude>122:11:29.07w</longitude>
+    <altitude>3.28 ft</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+
+  <minimum_distance>50.00 nm</minimum_distance>
+
+  <distance_increment>100 nm</distance_increment>
+
+  <number_rings>1</number_rings>
+
+  <line_color>00FF00FF</line_color>
+
+  <line_width>5</line_width>
+
+</range_ring> end_vespa */
+platform mr_sam_battalion_2 MR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 46:11:13.39n 122:11:29.07w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+platform mr_sam_acq_radar_2 MR_SAM_ACQ_RADAR
+   side red
+   commander mr_sam_battalion_2
+   position 46:11:16.62n 122:11:26.55w altitude 3.28 ft agl
+end_platform
+platform mr_sam_ttr_radar_2  MR_SAM_TTR_RADAR
+   side red
+   commander mr_sam_battalion_2
+   position 46:11:09.89n 122:11:30.43w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_2-1 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_2
+   position 46:11:32.25n 122:11:38.58w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_2-2 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_2
+   position 46:11:00.74n 122:11:45.74w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_2-3 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_2
+   position 46:11:11.24n 122:11:02.52w altitude 3.28 ft agl
+end_platform
+
+
+/* vespa <range_ring name="MRSAM_50-3" uid="14489">
+
+  <name>MRSAM_50-3</name>
+
+  <position>
+    <latitude>45:14:26.51n</latitude>
+    <longitude>122:00:28.33w</longitude>
+    <altitude>3.28 ft</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+
+  <minimum_distance>50.00 nm</minimum_distance>
+
+  <distance_increment>100 nm</distance_increment>
+
+  <number_rings>1</number_rings>
+
+  <line_color>00FF00FF</line_color>
+
+  <line_width>5</line_width>
+
+</range_ring> end_vespa */
+platform mr_sam_battalion_3 MR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 45:14:26.45n 122:00:25.73w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+platform mr_sam_acq_radar_3 MR_SAM_ACQ_RADAR
+   side red
+   commander mr_sam_battalion_3
+   position 45:14:28.35n 122:00:27.91w altitude 3.28 ft agl
+end_platform
+platform mr_sam_ttr_radar_3  MR_SAM_TTR_RADAR
+   side red
+   commander mr_sam_battalion_3
+   position 45:14:26.16n 122:00:28.92w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_3-1 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_3
+   position 45:14:33.40n 122:00:29.09w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_3-2 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_3
+   position 45:14:21.53n 122:00:35.31w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_3-3 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_3
+   position 45:14:22.89n 122:00:19.67w altitude 3.28 ft agl
+end_platform
+
+/* vespa <range_ring name="MRSAM_50-1_clone_2" uid="14543">
+
+  <name>MRSAM_50-1_clone_2</name>
+
+  <position>
+    <latitude>48:46:37.49n</latitude>
+    <longitude>121:49:55.12w</longitude>
+    <altitude>__UNKNOWN__</altitude>
+    <altitude_reference>__UNKNOWN__</altitude_reference>
+  </position>
+
+  <minimum_distance>50.00 nm</minimum_distance>
+
+  <distance_increment>100 nm</distance_increment>
+
+  <number_rings>1</number_rings>
+
+  <line_color>00FF00FF</line_color>
+
+  <line_width>5</line_width>
+
+</range_ring> end_vespa */
+platform mr_sam_battalion_4 MR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 48:46:39.90n 121:49:55.12w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+platform mr_sam_acq_radar_4 MR_SAM_ACQ_RADAR
+   side red
+   commander mr_sam_battalion_4
+   position 48:46:38.91n 121:49:55.77w altitude 3.28 ft agl
+end_platform
+platform mr_sam_ttr_radar_4  MR_SAM_TTR_RADAR
+   side red
+   commander mr_sam_battalion_4
+   position 48:46:39.04n 121:49:54.18w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_4-1 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_4
+   position 48:46:41.85n 121:49:52.23w altitude 3.28 ft agl
+end_platform
+platform mr_sam_launcher_4-2 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_4
+   position 48:46:39.43n 121:49:59.42w altitude 3.28 ft agl
+end_platform
+
+platform mr_sam_launcher_4-3 MR_SAM_LAUNCHER
+   side red
+   commander mr_sam_battalion_4
+   position 48:46:36.16n 121:49:54.12w altitude 3.28 ft agl
+end_platform

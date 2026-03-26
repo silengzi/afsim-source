@@ -1,0 +1,74 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ============================================================================
+# 'sensor_plot' input file to generate the data necessary to create the 'SAR
+# constraint' plot for the 'bomber_sar' sensor.
+#
+# The file can be plotted with 'gnuplot sn_bomber.gnu -'.
+# ============================================================================
+
+include bomber_sar.txt
+
+# ============================================================================
+platform_type BOMBER WSF_PLATFORM
+   mover WSF_AIR_MOVER
+      angle_of_attack_table
+         altitude 0 m
+            speed    0 kts angle 5 deg           # <--- Angle of attack
+      end_angle_of_attack_table
+   end_mover
+
+   sensor sar BOMBER_SAR
+      sar_constraint_plotting     true           ###### Required for SAR constraint plotting
+      yaw   60 deg                               # <--- Installed azimuth
+      pitch -65 deg                              # <--- Installed elevation
+   end_sensor
+end_platform_type
+
+# ============================================================================
+platform bomber BOMBER
+   route
+      position 0n 0e altitude 40000 ft heading 0 deg speed 450 kts
+   end_route
+
+   execute at_time 0.001 secs absolute
+      PLATFORM.Sensor("sar").CueToAbsoluteAzEl(45.0, -9.5);     # <--- Cue the sensor
+   end_execute
+end_platform
+
+# ============================================================================
+radar_signature TARGET_RADAR_SIG
+   constant 100 m^2
+end_radar_signature
+
+optical_signature TARGET_OPTICAL_SIG
+   constant 100 m^2
+end_optical_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature   TARGET_RADAR_SIG
+   optical_signature TARGET_OPTICAL_SIG
+end_platform_type
+
+# ============================================================================
+horizontal_map
+   down_range_limits         -100 nm 100 nm
+   down_range_step           0.2 nm
+   cross_range_limits        -100 nm 100 nm
+   cross_range_step          0.2 nm
+
+   # Default target speed is 250 m/s. Must override so SAR will detect it.
+   target_speed              0 kts
+
+   # Don't try to cue to the target point. Leave the cue where it was initialized.
+
+   automatic_target_cueing   false
+   gnuplot_file              sn_bomber.plt
+   variable                  signal_to_noise
+end_horizontal_map

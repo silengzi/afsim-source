@@ -1,0 +1,201 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once ./logistics_platform.txt
+
+platform_type FUELING_TRUCK LOGISTICS_PLATFORM
+
+   # DESCRIPTION:  A fueling-truck (FT) picks up fuel at the airport fuel tank
+   # (AFT), transports it to the aircraft needing fueled, offloads the quantity
+   # required, and waits for assigment to another aircraft needing fuel.  It
+   # will not depart the AFT until its tank is full, but then will not return
+   # to the AFT until it is empty.  (Another FT may have to finish the aircraft
+   # fueling in progress.) Traffic avoidance is not modeled, collisions are ignored.
+
+   # PROPERTIES:
+   # Maximum Quantity = 2,000 USG X 6.84 (lb/USG) X  1/(2.2 lb/kg) = 6200.0 kg
+   # Maximum Rate = 500 USG/min X (3.7854 L/USG) X (min/60sec) X (0.820 kg/L) =
+   #                                                 25.9 kg/sec (use 30 kg/sec)
+
+   icon Fuel_Truck
+
+   add processor transportProcessor PLATFORM_TO_PLATFORM_TRANSPORT_PROCESSOR
+   end_processor
+
+   edit processor exchanger
+
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 6200 kg
+            maximum_mass_rate       30 kg/sec
+         end_commodity
+         initial_mass_quantity 3200 kg
+      end_container
+
+      edit transactor fuel_offering_transactor
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      edit transactor fuel_requesting_transactor
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+   end_processor
+
+   mover WSF_SURFACE_MOVER
+      maximum_speed 25 mph
+      minimum_speed 10 mph
+      maximum_linear_acceleration 0.5 g
+      maximum_radial_acceleration 0.5 g
+      update_interval 5 sec
+   end_mover
+
+   script bool FT_Init()
+
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_1");
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_2");
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_3");
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_4");
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_5");
+      fuelPossibleReceiversToAdd.PushBack("StrikeBomber_6");
+
+      fuelPossibleSuppliersToAdd.PushBack("KeyWestAirportFuelTank");
+
+      bool success = LP_Init();
+      return success;
+
+   end_script
+
+   on_initialize2
+
+      bool success = FT_Init();
+
+      if (success)
+      {
+         transportProcessor = PLATFORM.Processor("transportProcessor");
+         success = transportProcessor.IsValid();
+      }
+
+      if (success)
+      {
+         # These are declared as variables, rather than in-lined, simply to document syntax.
+         bool isFuelRelated = true;
+
+         success = (bool)transportProcessor.Execute("PTPTP_Init",
+            { fuelOfferTransactor, fuelContainer, runSilent, isFuelRelated } );
+
+         if (! success)
+         {
+            Say("PTPTP_Init() FAILED.");
+         }
+      }
+
+      if (success)
+      {
+         Say("FUELING_TRUCK Initialize succeeded.");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("FUELING_TRUCK Initialize FAILED.");
+      }
+
+   end_on_initialize2
+
+   execute at_interval_of 202 sec
+
+      if (isInitialized && ! allPlayersResolved)
+      {
+         allPlayersResolved = ResolvePlayersToAdd();
+         if (! allPlayersResolved)
+         {
+            Say("FUELING_TRUCK ResolvePlayersToAdd() not yet fully successful.");
+            return;
+         }
+
+         if (fuelPossibleSuppliers.Size() == 1)
+         {
+            SetFuelOfferingPlatform(fuelPossibleSuppliers.Get(0));
+         }
+
+         if (fuelPossibleReceivers.Size() == 1)
+         {
+            SetFuelRequestingPlatform(fuelPossibleReceivers.Get(0));
+         }
+
+         if (! FuelOfferingPlatform().IsValid())
+         {
+            Say("FUELING_TRUCK permanent server assignment failed.  FATAL.");
+            writeln("   - problem is with one of =>");
+            foreach(string val in fuelPossibleSuppliersToAdd)
+            {
+               writeln("      ", val);
+            }
+            allPlayersResolved = false;
+         }
+      }
+
+      if (isInitialized && allPlayersResolved)
+      {
+         # Update a couple of critical flags:
+         if (fuelContainer.IsEmpty() && haveFuelToGive)
+         {
+            Say("FUELING_TRUCK ran out of fuel to give.");
+            haveFuelToGive = false;
+            fuelIsReserved = false;
+         }
+         if (fuelContainer.IsFull() && ! haveFuelToGive)
+         {
+            Say("FUELING_TRUCK now has a full load of fuel to give.");
+            haveFuelToGive = true;
+         }
+
+         # Our job is to continuously try to ask for fuel from our supplying
+         # depot, if we can get it...  Doesn't matter if possible or not.
+         bool canAskForFuel =   fuelOfferingPlatform.IsValid() &&
+                              ! fuelRequestTransactor.IsInProgress() &&
+                              ! fuelContainer.IsFull();
+
+         if (canAskForFuel && ! isRequestingFuel)
+         {
+            bool didRequest = fuelRequestTransactor.RequestFrom(
+               fuelOfferingPlatform, fuelRequestTransactor.Container().TenderNeeded());
+            if (didRequest)
+            {
+               isRequestingFuel = true;
+               Say("FUELING_TRUCK RequestFrom succeeded.  isRequestingFuel set true.");
+            }
+            else
+            {
+               Say("FUELING_TRUCK RequestFrom failed.");
+            }
+         }
+         else if (canAskForFuel && isRequestingFuel)
+         {
+            fuelRequestTransactor.RequestFrom(
+               fuelOfferingPlatform, fuelRequestTransactor.Container().TenderNeeded());
+         }
+
+         // Our job is also to continuously make fuel available for any requesting receivers
+         if (haveFuelToGive && ! fuelIsReserved)
+         {
+            fuelIsReserved = fuelOfferTransactor.ReserveAll();
+            if (fuelIsReserved)
+            {
+               Say("FUELING_TRUCK Fuel Reserve was successful.");
+            }
+            else
+            {
+               Say("FUELING_TRUCK Fuel Reserve was NOT successful.");
+            }
+         }
+      }
+
+   end_execute
+
+end_platform_type

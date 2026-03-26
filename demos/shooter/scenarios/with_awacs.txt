@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform awacs1 AWACS
+   side blue
+   commander SELF
+   route
+    position 37:00:54n 136:45:06e altitude 20000 ft agl
+       speed 150 kts
+    position 37:35:54n 136:48:54e altitude 20000 ft agl
+       speed 150 kts
+   end_route
+end_platform
+
+
+platform jet_aircraft8 JET_AIRCRAFT
+   side blue
+   icon F-18
+   commander awacs1
+   route
+    position 37:27:54n 136:37:06e altitude 20000 ft agl
+       speed 300 kts
+    position 37:45:54n 136:48:54e altitude 20000 ft agl
+       speed 300 kts
+     position 38:00:24n 136:53:54e altitude 20000 ft agl
+       speed 300 kts
+     position 38:04:06n 136:55:42e altitude 20000 ft agl
+       speed 300 kts
+     position 38:05:30n 137:02:30e altitude 20000 ft agl
+       speed 300 kts
+     position 37:59:18n 137:07:54e altitude 20000 ft agl
+       speed 300 kts
+     position 37:51:48n 137:11:12e altitude 20000 ft agl
+       speed 300 kts
+     position 37:29:30n 137:27:12e altitude 20000 ft agl
+       speed 300 kts
+   end_route
+
+   weapon aa_mrm
+      quantity 8
+   end_weapon
+end_platform
+
+#platform target1 AIR_TARGET
+#   icon F-18
+#   side red
+#   indestructible
+#   route
+#      position 38n 137e altitude 25000 ft agl
+#        speed 280 kts
+#      position 39:27:18n 137:04:12e altitude 25000 ft agl
+#        speed 280 kts
+#   end_route
+#end_platform

@@ -1,0 +1,81 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#include_once processors/quantum_agents/aifl/fl_quantum_tasker.txt
+ include_once flight_lead_timeline_tasks_from_data.txt
+#include_once flight_lead_filtered_timeline.txt
+
+
+platform_type RED_FLIGHT_LEAD WSF_PLATFORM
+
+  #side  blue / red
+
+   comm sub_net FINITE_DATALINK
+      network_name <local:master>
+      internal_link data_mgr
+     #internal_link task_mgr
+      internal_link perception
+      internal_link timeline
+   end_comm
+
+   comm cmdr_net FINITE_DATALINK
+      network_name <local:slave>
+      internal_link data_mgr
+     #internal_link task_mgr
+      internal_link perception
+      internal_link timeline
+   end_comm
+
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval             30    seconds
+      report_to commander        via   cmdr_net
+      report_to subordinates     via   sub_net to cmdr_net
+     #report_interval            4 sec
+      report_interval            1 sec
+      fused_track_reporting      on
+      raw_track_reporting        off
+      circular_report_rejection  true
+   end_processor
+
+   processor perception WSF_PERCEPTION_PROCESSOR
+      on
+      script_debug_writes      off
+      reporting_self           true
+      reporting_others         true
+      report_interval          10  sec
+     #report_to commander:peers via sub_net
+      report_to commander      via cmdr_net
+      asset_perception         status_messages
+      asset_update_interval     5 sec
+      max_asset_load           10
+      threat_update_interval    5 sec
+      max_threat_load          10
+   end_processor
+
+#   processor  task_mgr  FL_QUANTUM_TASKER
+#    #script_debug_writes off
+#    #show_task_messages
+#   end_processor
+
+   #TODO - where should this really be found?
+   script_variables
+      Map<int, int> mGrinderPairings = Map<int, int>();
+   end_script_variables
+
+   processor timeline FLIGHT_LEAD_DATA
+      script_variables
+         RISK = "MEDIUM";
+         mStaticRiskLevel = true;
+         FSR  = 40 * MATH.M_PER_NM();
+         DOR  = 35 * MATH.M_PER_NM();
+         MAR  = 20 * MATH.M_PER_NM();
+      end_script_variables
+   end_processor
+
+end_platform_type

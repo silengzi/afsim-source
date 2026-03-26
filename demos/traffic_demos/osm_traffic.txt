@@ -1,0 +1,154 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+define_path_variable CASE osm_traffic
+log_file output/$(CASE).log
+
+include_once setup.txt
+
+include roads/osm_roadnetwork.txt
+include scenarios/osm_traffic.txt
+
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+end_time 100 sec
+
+execute at_time 0.001 sec absolute
+   WsfDraw draw = WsfDraw();
+   WsfRouteNetwork network = WsfRouteNetwork.FindRouteNetwork("osm_roadnetwork");
+   WsfOSM_Traffic traffic = WsfOSM_Traffic.Traffic();
+   Array<WsfRoute> trafficRoutes = traffic.TrafficRoutes("osm_roadnetwork");
+
+   foreach (WsfRoute rte in trafficRoutes)
+   {
+      WsfRoute route = rte.Copy();
+      route.SetAltitude(10);
+      draw.SetColor(.93,.51,.93);
+      draw.SetLayer(route.Name());
+      draw.SetId(route.Name());
+      draw.SetLineSize(2);
+      draw.BeginPolyline();
+      draw.VertexRoute(route);
+      draw.End();
+      draw.SetId(route.Name());
+      draw.SetTextSize(6);
+      draw.SetColor(0,0,0);
+      # If aux_data should be listed on the map, uncomment and add to this section
+      #    if (route.AuxDataExists("maxspeed") || route.AuxDataExists("name")) {
+      #       string name = (string)route.AuxDataInt("name");
+      #       string speedLimit = (string)route.AuxDataDouble("maxspeed") + " mph";
+      #       draw.BeginText(name);
+      #    }
+      draw.BeginText(route.Name());
+      WsfGeoPoint textPos = route.Waypoint(0).Location();
+      textPos.SetAltitudeAGL(30);
+      draw.Vertex(textPos);
+      #draw.Vertex(route.Waypoint(0).Location());
+      draw.End();
+      draw.SetColor(0,0,0);
+      draw.SetLineSize(1);
+      draw.BeginLines();
+      draw.Vertex(route.Waypoint(0).Location());
+      draw.Vertex(textPos);
+      draw.End();
+   }
+   
+   WsfDraw draw2 = WsfDraw();
+   foreach (WsfRoute rte in network.Routes())
+   {
+      WsfRoute route = rte.Copy();
+      foreach (WsfWaypoint node in route) {
+         if (node.AuxDataExists("stop") &&
+             node.AuxDataBool("stop"))
+         {
+             draw2.SetColor(1,0,0);
+             draw2.SetEllipseMode("fill");
+             draw2.BeginCircle(0, 10);
+             draw2.VertexLLA(node.Latitude(), node.Longitude(), 10);
+             draw2.End();
+         }
+
+         if (node.AuxDataExists("traffic_signals") &&
+             node.AuxDataBool("traffic_signals"))
+         {
+             draw2.SetColor(1,1,0);
+             draw2.SetEllipseMode("fill");
+             draw2.BeginCircle(0, 10);
+             draw2.VertexLLA(node.Latitude(), node.Longitude(), 10);
+             draw2.End();
+         }
+      }
+   }
+end_execute
+
+script void DrawRoads()
+   WsfDraw draw = WsfDraw();
+   WsfRouteNetwork network = WsfRouteNetwork.FindRouteNetwork("network_name");
+   WsfOSM_Traffic traffic = WsfOSM_Traffic.Traffic();
+   Array<WsfRoute> trafficRoutes = traffic.TrafficRoutes("network_name");
+
+   foreach (WsfRoute rte in trafficRoutes) {
+      WsfRoute route = rte.Copy();
+      route.SetAltitude(10);
+      draw.SetColor(.93,.51,.93);
+      draw.SetLayer(route.Name());
+      draw.SetId(route.Name());
+      draw.SetLineSize(2);
+      draw.BeginPolyline();
+      draw.VertexRoute(route);
+      draw.End();
+      draw.SetId(route.Name());
+      draw.SetTextSize(6);
+      draw.SetColor(0,0,0);
+      # If aux_data should be listed on the map, uncomment and add to this section
+      #    if (route.AuxDataExists("maxspeed") || route.AuxDataExists("name")) {
+      #       string name = (string)route.AuxDataInt("name");
+      #       string speedLimit = (string)route.AuxDataDouble("maxspeed") + " mph";
+      #       draw.BeginText(name);
+      #    }
+      draw.BeginText(route.Name());
+      WsfGeoPoint textPos = route.Waypoint(0).Location();
+      textPos.SetAltitudeAGL(30);
+      draw.Vertex(textPos);
+      #draw.Vertex(route.Waypoint(0).Location());
+      draw.End();
+      draw.SetColor(0,0,0);
+      draw.SetLineSize(1);
+      draw.BeginLines();
+      draw.Vertex(route.Waypoint(0).Location());
+      draw.Vertex(textPos);
+      draw.End();
+   }
+end_script
+
+ # Simple script to draw colored shapes where stop signs and traffic lights are located
+ script void DrawStops()
+    WsfDraw draw = WsfDraw();
+    WsfRouteNetwork network = WsfRouteNetwork.FindRouteNetwork("network_name");
+    foreach (WsfRoute rte in network.Routes()) {
+       WsfRoute route = rte.Copy();
+       foreach (WsfWaypoint node in route) {
+          if (node.AuxDataExists("stop") && node.AuxDataBool("stop")) {
+             draw.SetColor(1,0,0);
+             draw.SetEllipseMode("fill");
+             draw.BeginCircle(0, 10);
+             draw.VertexLLA(node.Latitude(), node.Longitude(), 10);
+             draw.End();
+          }
+
+          if (node.AuxDataExists("traffic_signals") && node.AuxDataBool("traffic_signals")) {
+             draw.SetColor(1,1,0);
+             draw.SetEllipseMode("fill");
+             draw.BeginCircle(0, 10);
+             draw.VertexLLA(node.Latitude(), node.Longitude(), 10);
+             draw.End();
+          }
+       }
+    }
+ end_script

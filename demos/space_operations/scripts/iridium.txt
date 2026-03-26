@@ -1,0 +1,56 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# These scripts establish the ability to create dynamic network links with
+# satellites in the iridium constellation. This is done using sensors on platforms
+# that are intended to link into the network to sense when satellites are nearby.
+
+# Want to take action when satellite enters range of platform and when
+# satellite leaves range of platform
+observer
+   enable SENSOR_TRACK_INITIATED track_initiated
+   enable SENSOR_TRACK_DROPPED track_dropped
+end_observer
+
+# Enter field of view
+script void track_initiated(WsfPlatform aPlatform, WsfSensor aSensor, WsfTrack aTrack)
+      if (TIME_NOW > 0)
+      {
+         WsfPlatform sat_to_link = aTrack.Target();
+         string myCommName = aPlatform.Name();
+         WsfComm satComm = sat_to_link.Comm("iridium_handheld");
+         string net_to_link = satComm.NetworkName();
+         aPlatform.Comm(myCommName).AddConnection(net_to_link, true); # link platform to satellite's network
+         satComm.AddConnection(aPlatform.Name(), true); # also link satellite to platform's network
+
+
+#//============================== Uncomment to print out information about connections ===============================================
+#            writeln(TIME_NOW, ": ", aPlatform.Name(), " established communication with ", sat_to_link.Name());
+#            string str = write_str(TIME_NOW, ": ", aPlatform.Name(), ":");
+#            Array<string> current_connections = aPlatform.Comm(myCommName).NetworkConnections();
+#            for (int i = 0; i < current_connections.Size(); i = i + 1)
+#            {
+#               str = str + write_str(" ", current_connections[i]);
+#            }
+#            writeln(str);
+#//===================================================================================================================================
+      }
+end_script
+
+# Exit field of view
+script void track_dropped(WsfPlatform aPlatform, WsfSensor aSensor, WsfTrack aTrack)
+      if (TIME_NOW > 0)
+      {
+         WsfPlatform sat_to_drop = aTrack.Target();
+         string myCommName = aPlatform.Name();
+         WsfComm satComm = sat_to_drop.Comm("iridium_handheld");
+         string net_to_drop = satComm.NetworkName();
+         aPlatform.Comm(myCommName).RemoveConnection(net_to_drop); # remove connection of platform to satellite
+         satComm.RemoveConnection(myCommName); # remove connection of satellite to platform
+      }
+end_script

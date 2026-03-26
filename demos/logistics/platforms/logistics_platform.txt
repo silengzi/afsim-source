@@ -1,0 +1,467 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This platform type is generic, and does include script variables that may not
+# always be valid for all players.  For example, in this scenario, only the strike
+# aircraft have need of a mechanic to repair them, but all have the
+# repairOfferingPlatform variable.  For any player, any unused references are
+# left undefined, so an IsValid() check should always be made prior to use.
+
+# NOTE:  Motion functionality for players is not addressed here.  For instance,
+# some players are permanently stationary, with other simulated entities coming to
+# them, or the opposite, modeling the itinerant player who visits others.  It is
+# up to the either the locomotive or proximity checking logic to enable or disable
+# transactors which need to exchange products or services.  This is done using the
+# SetEnableSupplyingFuel(), SetEnableReceivingFuel(), SetEnableSupplyingRepair(), and
+# SetEnableReceivingRepair() functions.  Due to accounting problems during debugging
+# and development, the transfer mechanism is made fairly rigid, and it goes like
+# this:
+
+# No transaction of a commodity or service is permitted until the previous
+# transaction is known to be complete, or explicitly cancelled, and the
+# other side platform has been explicitly set to NULL.  BOTH sides of the
+# transaction must be known in advance, and the "other" side _MUST_ be an
+# identified known supplier or receiver.   These constraints are checked
+# before a new transaction can be brokered.  There are three flags used to
+# orchestrate events;  xxxXxxxEnabled, xxxXxxxBegan, and xxxXxxxComplete.
+# Each must begin false, then transition to true before the transaction is
+# deemed complete, and another one may begin.  This makes for a ton load
+# of flags, but is the only way to keep conflicts from occuring.
+
+include_once processors/exchange_processor.txt
+
+platform_type LOGISTICS_PLATFORM WSF_PLATFORM
+
+   # update_interval 20 sec # (Not allowed)
+
+   script_variables
+
+      bool doIntendToSupplyFuel    = false; // Top level "Intent".  Set this once, and leave it.
+      bool doIntendToSupplyRepair  = false; // Top level "Intent".  Set this once, and leave it.
+      bool doIntendToReceiveFuel   = false; // Top level "Intent".  Set this once, and leave it.
+      bool doIntendToReceiveRepair = false; // Top level "Intent".  Set this once, and leave it.
+
+      bool runSilent               = true;  // Default
+      bool isInitialized           = false;
+      bool allPlayersResolved      = false;
+
+      bool haveFuelToGive          = false;
+      bool fuelIsReserved          = false;
+      bool haveRepairsToGive       = false;
+      bool repairsAreReserved      = false;
+
+      bool isRequestingFuel        = false; // dynamically updated...
+
+      WsfExchangeProcessor exProc;
+      WsfProcessor transportProcessor;  // WARNING - This may be null!
+
+      # ========== FUEL ACCOUNTING and TRANSFERS ==========
+
+      Container            fuelContainer;
+
+      Transactor           fuelRequestTransactor;
+      Transactor           fuelOfferTransactor;
+
+      WsfPlatform          fuelRequestingPlatform;
+      WsfPlatform          fuelOfferingPlatform;
+
+      Array<WsfPlatform>   fuelPossibleReceivers = Array<WsfPlatform>();
+      Array<WsfPlatform>   fuelPossibleSuppliers = Array<WsfPlatform>();
+
+      Array<string>        fuelPossibleReceiversToAdd = Array<string>();
+      Array<string>        fuelPossibleSuppliersToAdd = Array<string>();
+
+      # ========== REPAIR ACCOUNTING and TRANSFERS ==========
+
+      Container            repairContainer;
+
+      Transactor           repairRequestTransactor;
+      Transactor           repairOfferTransactor;
+
+      WsfPlatform          repairRequestingPlatform;
+      WsfPlatform          repairOfferingPlatform;
+
+      Array<WsfPlatform>   repairPossibleReceivers = Array<WsfPlatform>();
+      Array<WsfPlatform>   repairPossibleSuppliers = Array<WsfPlatform>();
+
+      Array<string>        repairPossibleReceiversToAdd = Array<string>();
+      Array<string>        repairPossibleSuppliersToAdd = Array<string>();
+
+   end_script_variables
+
+   script void Say(string aMsg)
+      if ((runSilent || gDebugNone) && (! gDebugAll)) return;
+      writeln("At t=", TIME_NOW,", ",PLATFORM.Name(), " - ", aMsg);
+   end_script
+
+   # ========== FUEL ACCOUNTING and TRANSFERS ==========
+
+   script WsfPlatform FuelOfferingPlatform()
+      return fuelOfferingPlatform;
+   end_script
+
+   script void SetFuelOfferingPlatform(WsfPlatform aPlatform)
+      if (aPlatform == fuelOfferingPlatform) return;
+      string oldP = "<unknown>";
+      if (fuelOfferingPlatform.IsValid()) oldP = fuelOfferingPlatform.Name();
+      string newP = "<unknown>";
+      if (aPlatform.IsValid()) newP = aPlatform.Name();
+      string msg = "Switched fuelOfferingPlatform from " + oldP + " to " + newP;
+      Say(msg);
+      fuelOfferingPlatform = aPlatform;
+   end_script
+
+   script WsfPlatform FuelRequestingPlatform()
+      return fuelRequestingPlatform;
+   end_script
+
+   script void SetFuelRequestingPlatform(WsfPlatform aPlatform)
+      if (aPlatform == fuelRequestingPlatform) return;
+      string oldP = "<unknown>";
+      if (fuelRequestingPlatform.IsValid())
+      {
+         oldP = fuelRequestingPlatform.Name();
+      }
+      string newP = "<unknown>";
+      if (aPlatform.IsValid())
+      {
+         newP = aPlatform.Name();
+      }
+      string msg = "Switched fuelRequestingPlatform from " + oldP + " to " + newP;
+      Say(msg);
+      fuelRequestingPlatform = aPlatform;
+   end_script
+
+   script bool AddFuelSupplierP(WsfPlatform aPlatform)
+      foreach(WsfPlatform plat in fuelPossibleSuppliers)
+      {
+         if (plat == aPlatform)
+         {
+            string msg = "Possible fuel supplier " +
+               aPlatform.Name() + " was a duplicate.";
+            Say(msg);
+            return false;
+         }
+      }
+      fuelPossibleSuppliers.PushBack(aPlatform);
+      return true;
+   end_script
+
+   script bool AddFuelPossibleSupplier(string aPlatformName)
+      WsfPlatform p = WsfSimulation.FindPlatform(aPlatformName);
+      if (p.IsValid())
+      {
+         return AddFuelSupplierP(p);
+      }
+      else
+      {
+         string msg = "Could not add possible fuel supplier " + aPlatformName;
+         Say(msg);
+      }
+      return false;
+   end_script
+
+   script bool AddFuelReceiverP(WsfPlatform aPlatform)
+      foreach(WsfPlatform plat in fuelPossibleReceivers)
+      {
+         if (plat == aPlatform)
+         {
+            string msg = "Possible fuel receiver " +
+               aPlatform.Name() + " was a duplicate.";
+            Say(msg);
+            return false;
+         }
+      }
+      fuelPossibleReceivers.PushBack(aPlatform);
+      return true;
+   end_script
+
+   script bool AddFuelPossibleReceiver(string aPlatformName)
+      WsfPlatform p = WsfSimulation.FindPlatform(aPlatformName);
+      if (p.IsValid())
+      {
+         return AddFuelReceiverP(p);
+      }
+      string msg = "Possible fuel receiver " +
+                   aPlatformName + " not found.";
+      Say(msg);
+      return false;
+   end_script
+
+   # ========== REPAIR ACCOUNTING and TRANSFERS ==========
+
+   script void SetRepairRequestingPlatform(WsfPlatform aPlatform)
+      if (aPlatform == repairRequestingPlatform) return;
+      string oldP = "<unknown>";
+      if (repairRequestingPlatform.IsValid())
+      {
+         oldP = repairRequestingPlatform.Name();
+      }
+      string newP = "<unknown>";
+      if (aPlatform.IsValid())
+      {
+         newP = aPlatform.Name();
+      }
+      string msg = "Switched repairRequestingPlatform from " + oldP + " to " + newP;
+      Say(msg);
+      repairRequestingPlatform = aPlatform;
+   end_script
+
+   script WsfPlatform RepairRequestingPlatform()
+      return repairRequestingPlatform;
+   end_script
+
+   script void SetRepairOfferingPlatform(WsfPlatform aPlatform)
+      if (aPlatform == repairOfferingPlatform) return;
+      string oldP = "<unknown>";
+      if (repairOfferingPlatform.IsValid())
+      {
+         oldP = repairOfferingPlatform.Name();
+      }
+      string newP = "<unknown>";
+      if (aPlatform.IsValid())
+      {
+         newP = aPlatform.Name();
+      }
+      string msg = "Switched repairOfferingPlatform from " + oldP + " to " + newP;
+      Say(msg);
+      repairOfferingPlatform = aPlatform;
+   end_script
+
+   script WsfPlatform RepairOfferingPlatform()
+      return repairOfferingPlatform;
+   end_script
+
+   script bool AddRepairSupplierP(WsfPlatform aPlatform)
+      foreach(WsfPlatform plat in repairPossibleSuppliers)
+      {
+         if (plat == aPlatform)
+         {
+            string msg = "Possible repair supplier " +
+                 aPlatform.Name() + " was a duplicate.";
+            Say(msg);
+            return false;
+         }
+      }
+      repairPossibleSuppliers.PushBack(aPlatform);
+      return true;
+   end_script
+
+   script bool AddRepairPossibleSupplier(string aPlatformName)
+      WsfPlatform p = WsfSimulation.FindPlatform(aPlatformName);
+      if (p.IsValid())
+      {
+         AddRepairSupplierP(p);
+         return true;
+      }
+      else
+      {
+         string msg = "Could not add possible repair supplier " + aPlatformName;
+         Say(msg);
+      }
+      return false;
+   end_script
+
+   script bool AddRepairReceiverP(WsfPlatform aPlatform)
+      foreach(WsfPlatform plat in repairPossibleReceivers)
+      {
+         # Do not add if already present.
+         if (plat == aPlatform)
+         {
+            return false;
+         }
+      }
+      repairPossibleReceivers.PushBack(aPlatform);
+      return true;
+   end_script
+
+   script bool AddRepairPossibleReceiver(string aPlatformName)
+      WsfPlatform p = WsfSimulation.FindPlatform(aPlatformName);
+      if (p.IsValid())
+      {
+         return AddRepairReceiverP(p);
+      }
+      string msg = "Possible repair receiver " + aPlatformName + " not found.";
+      Say(msg);
+      return false;
+   end_script
+
+   script bool ResolvePlayersToAdd()
+      bool success = true;
+      foreach(string name in fuelPossibleReceiversToAdd)
+      {
+         if (! AddFuelPossibleReceiver(name))
+         {
+            string msg = "****** Couldnt AddFuelPossibleReceiver " + name + " ********";
+            Say(msg);
+            success = false;
+         }
+      }
+      foreach(string name in fuelPossibleSuppliersToAdd)
+      {
+         if (! AddFuelPossibleSupplier(name))
+         {
+            string msg = "****** Couldnt AddFuelPossibleSupplier " + name + " ********";
+            Say(msg);
+            success = false;
+         }
+      }
+      foreach(string name in repairPossibleReceiversToAdd)
+      {
+         if (! AddRepairPossibleReceiver(name))
+         {
+            string msg = "****** Couldnt AddRepairPossibleReceiver " + name + " ********";
+            Say(msg);
+            success = false;
+         }
+      }
+      foreach(string name in repairPossibleSuppliersToAdd)
+      {
+         if (! AddRepairPossibleSupplier(name))
+         {
+            string msg = "****** Couldnt AddRepairPossibleSupplier " + name + " ********";
+            Say(msg);
+            success = false;
+         }
+      }
+      return success;
+   end_script
+
+   script Array<WsfPlatform> PossibleFuelReceivers()
+      return fuelPossibleReceivers;
+   end_script
+
+   script Array<WsfPlatform> PossibleFuelSuppliers()
+      return fuelPossibleSuppliers;
+   end_script
+
+   processor exchanger EXCHANGE_PROCESSOR
+
+      # NOTE:  The components below are named placeholders, but
+      # need to be filled in.  The derived classes must set their
+      # own quantities and rates for these objects!  (Use 'edit').
+
+      #debug
+      update_interval 15 sec
+
+      container fuel_container
+         # Derived types must set values in this!
+      end_container
+
+      transactor fuel_offering_transactor
+         container_name fuel_container
+         is_offeror
+         continue_to_offer      true
+         proximity_limit         100 m     # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         #maximum_mass_rate  xx.0 kg/sec   # Derived types must set values in this!
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      transactor fuel_requesting_transactor
+         container_name fuel_container
+         is_receiver
+         proximity_limit          100 m    # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         #maximum_mass_rate  xx.0 kg/sec    # Derived types must set values in this!
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      container good_engine_container
+         # Derived types must set values in this!
+      end_container
+
+      transactor repair_offering_transactor
+         container_name good_engine_container
+         is_offeror
+         continue_to_offer        true
+         proximity_limit          100 m    # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         #maximum_mass_rate  xx.0 kg/sec    # Derived types must set values in this!
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      transactor repair_requesting_transactor
+         container_name good_engine_container
+         is_receiver
+         proximity_limit          300 m    # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         #maximum_mass_rate  xx.0 kg/sec    # Derived types must set values in this!
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+   end_processor
+
+   script bool LP_Init()
+
+      bool success = true;
+
+      WsfProcessor p1 = PLATFORM.Processor("exchanger");
+      exProc = (WsfExchangeProcessor)p1;
+      if (! exProc.IsValid())
+      {
+         Say("WsfExchangeProcessor 'exchanger' not found.");
+         success = false;
+      }
+
+      fuelContainer = exProc.FindContainer("fuel_container");
+      if (! fuelContainer.IsValid())
+      {
+         Say("WsfExchangeProcessor 'fuel_container' not found.");
+         success = false;
+      }
+
+      fuelRequestTransactor = exProc.FindTransactor("fuel_requesting_transactor");
+      if (! fuelRequestTransactor.IsValid())
+      {
+         Say("WsfExchangeProcessor 'fuel_requesting_transactor' not found.");
+         success = false;
+      }
+
+      fuelOfferTransactor = exProc.FindTransactor("fuel_offering_transactor");
+      if (! fuelOfferTransactor.IsValid())
+      {
+         Say("WsfExchangeProcessor 'fuel_offering_transactor' not found.");
+         success = false;
+      }
+
+      repairContainer = exProc.FindContainer("good_engine_container");
+      if (! repairContainer.IsValid())
+      {
+         Say("WsfExchangeProcessor 'good_engine_container' not found.");
+         success = false;
+      }
+
+      repairRequestTransactor = exProc.FindTransactor("repair_requesting_transactor");
+      if (! repairRequestTransactor.IsValid())
+      {
+         Say("WsfExchangeProcessor 'repair_requesting_transactor' not found.");
+         success = false;
+      }
+      repairOfferTransactor = exProc.FindTransactor("repair_offering_transactor");
+      if (! repairOfferTransactor.IsValid())
+      {
+         Say("WsfExchangeProcessor 'repair_offering_transactor' not found.");
+         success = false;
+      }
+
+      if (success)
+      {
+         Say("LP_Init() succeeded");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("LP_Init() FAILED");
+      }
+      return success;
+
+   end_script
+
+end_platform_type
+

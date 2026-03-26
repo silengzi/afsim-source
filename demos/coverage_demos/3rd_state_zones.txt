@@ -1,0 +1,30 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Startup - 3rd_state_zones.txt - Coverage_Demo
+
+define_path_variable CASE 3rd_state_zone
+log_file output/$(CASE).log
+event_pipe file output/$(CASE).aer end_event_pipe
+file_path  .
+
+// Satellite platform and constellation definition
+include_once platforms/sat2.txt
+include scenarios/sat_con_1_autogen.txt
+
+// State zone definitions
+include_once zones/state_zones.txt
+
+// Coverage and grid definition
+include_once coverage_grids/state_zone_lat_lon_grid_coverage.txt
+
+// Sim start epoch and end time
+start_date jul 07 2020 
+start_time 01:30:00.00
+
+end_time 4000 seconds

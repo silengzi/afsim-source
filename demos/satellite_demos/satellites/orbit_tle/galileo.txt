@@ -1,0 +1,197 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+include_once platforms/galileo.txt
+
+# galileo CONSTELLATION SCENARIO (Europe-GPS)
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+platform GSAT0101  GALILEO
+side ESA
+edit mover
+orbit
+1 37846U 11060A   17155.89423508 -.00000078  00000-0  00000-0 0  9990
+2 37846  55.8174  72.0556 0004739 343.9950  15.9768  1.70473766 34993
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0102 GALILEO
+side ESA
+edit mover
+orbit
+1 37847U 11060B   17158.46650807 -.00000072  00000-0  00000-0 0  9995
+2 37847  55.8200  71.9829 0005318 324.2179 217.7403  1.70476091 34929
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0103 GALILEO
+side ESA
+edit mover
+orbit
+1 38857U 12055A   17158.28429760  .00000070  00000-0  00000-0 0  9991
+2 38857  54.9080 192.3049 0005398 246.7209 113.3077  1.70473886 28952
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0104 GALILEO
+side ESA
+edit mover
+orbit
+1 38858U 12055B   17157.04544259  .00000066  00000-0  00000-0 0  9991
+2 38858  54.9085 192.3380 0004331 248.2676 111.7699  1.70473925 28931
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0201 GALILEO
+side ESA
+edit mover
+orbit
+1 40128U 14050A   17158.35832533 -.00000114  00000-0  00000-0 0  9996
+2 40128  50.3020  45.6072 1624527  63.1836 312.5308  1.85518538 17188
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0202 GALILEO
+side ESA
+edit mover
+orbit
+1 40129U 14050B   17158.08700329 -.00000116  00000-0  00000-0 0  9996
+2 40129  50.3553  44.6144 1625261  64.1860 311.6994  1.85519177 19311
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0203 GALILEO
+side ESA
+edit mover
+orbit
+1 40544U 15017A   17158.02230129 -.00000073  00000-0  00000-0 0  9993
+2 40544  55.6075  72.2880 0002307 275.2705  84.6949  1.70475022 13646
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0204 GALILEO
+side ESA
+edit mover
+orbit
+1 40545U 15017B   17157.21877989 -.00000076  00000-0  00000-0 0  9998
+2 40545  55.6138  72.3215 0000186  29.7969 330.1929  1.70475200 13642
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0205 GALILEO
+side ESA
+edit mover
+orbit
+1 40889U 15045A   17156.87207386 -.00000073  00000-0  00000-0 0  9996
+2 40889  57.0225 312.4370 0002585  40.0283 319.9637  1.70475110 10789
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0206 GALILEO
+side ESA
+edit mover
+orbit
+1 40890U 15045B   17158.26517132 -.00000071  00000-0  00000-0 0  9994
+2 40890  57.0221 312.3963 0001306  73.2727 286.7117  1.70475287 10830
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0209 GALILEO
+side ESA
+edit mover
+orbit
+1 41174U 15079A   17157.26411972  .00000067  00000-0  00000-0 0  9995
+2 41174  54.9208 192.0205 0006493 280.4975  79.5132  1.70473996  9139
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0208 GALILEO
+side ESA
+edit mover
+orbit
+1 41175U 15079B   17158.65720481  .00000071  00000-0  00000-0 0  9993
+2 41175  54.9192 191.9829 0005654 277.7448  82.2760  1.70474075  9164
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0211 GALILEO
+side ESA
+edit mover
+orbit
+1 41549U 16030A   17157.01748346 -.00000072  00000-0  00000-0 0  9997
+2 41549  57.1624 312.1747 0000964 280.7467  79.2147  1.70474953  6442
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0210 GALILEO
+side ESA
+edit mover
+orbit
+1 41550U 16030B   17158.48390723 -.00000070  00000-0  00000-0 0  9991
+2 41550  57.1612 312.1370 0001774 206.8203 153.1400  1.70475034  6467
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0207 GALILEO
+side ESA
+edit mover
+orbit
+1 41859U 16069A   17158.14440245  .00000068  00000-0  00000-0 0  9999
+2 41859  54.5805 192.6375 0006412 270.6839  89.3284  1.70473984  3423
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0212 GALILEO
+side ESA
+edit mover
+orbit
+1 41860U 16069B   17155.65143326  .00000058  00000-0  00000-0 0  9993
+2 41860  54.5779 192.7084 0005089 280.2836  79.7381  1.70473921  3406
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0213 GALILEO
+side ESA
+edit mover
+orbit
+1 41861U 16069C   17157.77778485  .00000067  00000-0  00000-0 0  9999
+2 41861  54.5805 192.6511 0005566 253.1118 106.9125  1.70473960  3449
+end_orbit
+end_mover
+end_platform
+
+platform GSAT0214 GALILEO
+side ESA
+edit mover
+orbit
+1 41862U 16069D   17157.33780014  .00000066  00000-0  00000-0 0  9992
+2 41862  54.5787 192.6599 0004787 254.8975 105.1341  1.70473964  3421
+end_orbit
+end_mover
+end_platform

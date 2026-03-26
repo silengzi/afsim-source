@@ -1,0 +1,200 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#---------------------------------------------
+# Ground HEL vs. Hypersonic Vehicle Test Scenario
+#
+# Megawatt-class ground-based HEL engages and
+# destroys a hypersonic vehicle passing overhead.
+# This demo includes a scripted time delay,
+# meant to simulate the HEL's locking onto
+# the target.
+#---------------------------------------------
+define_path_variable CASE ground_hel_vs_hypersonic
+log_file output/$(CASE).log
+
+include_once ./atmosphere/coefficients.txt
+
+weapon_effects hel_lethality WSF_HEL_LETHALITY
+
+   //min_fluence 1.0e4 joules/m^2
+   category HYPERSONIC
+      minimum_energy_density 5 kj/cm^2
+      damage_radius 20 cm
+   end_category
+
+end_weapon_effects
+
+weapon HEL WSF_LASER_WEAPON
+
+   #debug
+
+   // The firing time per shot.
+   firing_time 5000.0 sec
+   firing_update_interval 0.1 seconds
+
+   // The total number of shots allowed before the cooling time begins.
+   //number_of_shots 5
+
+   // The cooling time before the HEL is ready for another salvo.
+   // !!! You must use either cooling time or thermal_system, but not both.
+   //cooling_time 25 minutes
+
+   // The lethality model used by this HEL.
+   weapon_effects hel_lethality
+
+   //-------------------------------------------------------------------
+   //  The following begins the fluence model-specific block of data.
+   //-------------------------------------------------------------------
+
+   fluence_model default
+
+      // The aperture for the HEL beam.
+      // The beam diffraction is inversely proportional to the aperture diameter.
+      aperture_diameter 1 m
+
+      // The laser power (typically, expressed in kw).
+      power 1000 kw // megawatt class laser
+
+      // The characteristic wavelength for the measurement.
+      wavelength 1.064 microns // Re-evaluate (optimal FEL wavelength?)_
+
+      // Select version of CN2 to use
+      CN2_form hv57
+
+      // The total jitter of the beam on target.
+      // More jitter gives a larger spot size and less power/area.
+      jitter 6.61e-7 radians
+
+      // A measure of how close the beam is to a perfect gaussian.
+      // Valid values are >= 1.0, where 1.0 is best.
+      beam_quality 1.8  // revisit- evaluate boundary layer at target
+
+   end_fluence_model
+
+end_weapon
+
+
+script_interface
+  #debug
+end_script_interface
+
+platform_type HEL WSF_PLATFORM
+
+   add processor targeting WSF_SCRIPT_PROCESSOR
+     on
+     update_interval 1.0 seconds
+
+     script_variables
+       WsfLaserWeapon mLaser = (WsfLaserWeapon)PLATFORM.Weapon("hel");
+       double mFireTime = 0.0;         // The time at which to begin firing
+       bool mLockonDelay = false;      // Whether we are waiting for lockon
+       double mLockonDelayTime = 5.0;  // seconds
+     end_script_variables
+
+     script void FireAtTarget()
+
+         WsfPlatform target = WsfSimulation.FindPlatform("hypersonic-1");
+
+         if (target.IsValid())
+         {
+            WsfTrack track = target.MakeTrack();
+
+            double groundRange = PLATFORM.GroundRangeTo(target);
+            double slantRange = PLATFORM.SlantRangeTo(target);
+            double elevation = MATH.ACos(groundRange / slantRange);
+
+            if (elevation > 60.0)
+            {
+               if (mLockonDelay && (TIME_NOW >= mFireTime))
+               {
+                  writeln(TIME_NOW, ": firing, elevation: ", elevation);
+                  writeln("Firing at target ", target.Name());
+                  WsfPlatform target = WsfSimulation.FindPlatform("hypersonic-1");
+                  if (! mLaser.IsFiring())
+                  {
+                     mLaser.Fire(target.Name(), "");
+                  }
+                  mLockonDelay = false;
+               }
+               else if ((! mLockonDelay) && (! mLaser.IsFiring()))
+               {
+                  writeln(TIME_NOW, ": Delaying ", mLockonDelayTime, " seconds to lock onto target.");
+                  mLockonDelay = true;
+                  mFireTime = TIME_NOW + mLockonDelayTime;
+                  writeln("   will fire at time: ", mFireTime);
+               }
+            }
+            else if (mLaser.IsFiring())
+            {
+               writeln(TIME_NOW, ": CeaseFire (elevation too low) ", elevation);
+               mLaser.CeaseFire();
+            }
+         }
+         else if (mLaser.IsFiring())
+         {
+            writeln(TIME_NOW, ": CeaseFire (target destroyed) ");
+            mLaser.CeaseFire();
+         }
+
+         //PROCESSOR.TurnOff();
+     end_script
+
+     on_update
+        FireAtTarget();
+     end_on_update
+
+   end_processor
+
+   weapon hel HEL
+      #debug
+   end_weapon
+
+end_platform_type
+
+event_output
+  file output/$(CASE).evt
+  disable all
+  flush_output enabled
+  //enable LASER_SENSOR_STATE_CHANGE
+  enable IMPLICIT_WEAPON_BEGIN_ENGAGEMENT
+  enable IMPLICIT_WEAPON_END_ENGAGEMENT
+  enable DIRECTED_ENERGY_WEAPON_BEGIN_SHOT
+  enable DIRECTED_ENERGY_WEAPON_UPDATE_SHOT
+  enable DIRECTED_ENERGY_WEAPON_END_SHOT
+  enable SENSOR_MODE_ACTIVATED
+  enable SENSOR_MODE_DEACTIVATED
+  enable WEAPON_HIT
+  enable PLATFORM_DELETED
+end_event_output
+
+platform hel-1 HEL
+  side red
+  icon 2s1
+  position 40:00:00.00n 90:00:38.62w
+end_platform
+
+platform hypersonic-1 WSF_PLATFORM
+  side blue
+  icon wedge
+  category HYPERSONIC
+  heading 270 deg
+  add mover WSF_AIR_MOVER
+  end_mover
+  route
+    position 40:00:00.00n 86:47:55.98w altitude 100000.00 ft agl
+    speed 3422 mph
+    position 40:00:00.00n 88:38:32.52w altitude 100000.00 ft
+  end_route
+end_platform
+
+end_time 10 minutes
+
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe

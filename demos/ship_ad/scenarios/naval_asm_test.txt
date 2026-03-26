@@ -1,0 +1,43 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# * * ************************************** * *
+# *   ****** Demonstration input file ******   *
+# *   ******      UNCLASSIFIED        ******   *
+# * * ************************************** * *
+
+
+platform 1000_test_ship RED_MISSILE_DESTROYER
+   side blue
+   commander SELF
+   route
+     position 30:00:00n  78:00:00w altitude 0 ft agl
+        speed 0 kts
+   end_route
+end_platform
+
+platform 1000_helo RED_NAVAL_HELICOPTER
+   side blue
+   commander 1000_test_ship
+   route
+     position 30:00:00n  77:45:00w altitude 5000 ft agl
+     speed 0 kts  heading 90 deg
+   end_route
+end_platform
+
+platform 1000_target_ship RED_MISSILE_FRIGATE
+   side red
+   sensor top_plate
+      off
+   end_sensor
+   route
+      position 30:00:00n  77:30:00w altitude 0 m agl
+         speed 10 kts
+      position 30:30:00n  77:30:00w altitude 0 m agl
+   end_route
+end_platform

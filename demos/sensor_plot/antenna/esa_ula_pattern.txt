@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# A ESA-based ULA pattern that approximates the 'Uniform Linear Array'
+###############################################################################
+
+antenna_pattern ESA_ULA_PATTERN
+   steered_array_pattern
+      minimum_gain                     -60.0 db
+      element_spacing_x                0.25 m
+      number_elements_x                4
+      element_spacing_y                0.25 m
+      number_elements_y                1
+end_antenna_pattern

@@ -1,0 +1,318 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Scenario to test maneuvers used in timelines.
+# Setup is blue headed east with optional red platforms
+# on all sides
+
+# From  base_types/processors/timeline_agents
+# used to create maneuvers for blue
+include_once air_combat_maneuvers.txt
+
+#----------------------------------------------------------------
+#                       BLUE AIR
+#----------------------------------------------------------------
+
+platform flight_lead_blue FLIGHT_LEAD
+  side blue
+  position 38:47:31.12n 90:15:32.46w
+  commander SELF
+  icon Command_Truck
+  heading 100 deg
+
+  add sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      on
+      azimuth_field_of_view   -180.0 degrees  180.0 degrees
+      elevation_field_of_view  -10.0 degrees   90.0 degrees
+      minimum_range 0 m
+     #maximum_range 277800 m     //about 150 nm
+      maximum_range 175940 m     //about  95 nm
+      frame_time    0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      track_quality 1.0
+      internal_link data_mgr
+      #internal_link task_mgr
+      ignore_same_side
+   end_sensor
+
+  edit processor task_mgr
+     off // Not creating tasks in tests
+     #show_task_messages
+#     behavior_tree
+#       behavior_node debug_quantum_tasker
+#     end_behavior_tree
+   end_processor
+
+   edit processor timeline_data
+      off // Not creating tasks in tests
+   end_processor
+end_platform
+
+
+platform blue_1 STRIKER
+  side blue
+  icon F-15
+  commander flight_lead_blue
+  heading 90 deg
+  route
+     position 38:50:58n 90:13:16.19w altitude 35000.00 ft msl speed 475 kts
+     position 38:50:58n 88:28:14.67w altitude 35000 feet // East
+     # other direction test cases
+     #position 36:50:58n 90:13:16.19w altitude 35000 feet // South
+     #position 38:50:58n 92:28:14.67w altitude 35000 feet // West
+     #position 40:50:58n 90:13:16.19w altitude 35000 feet // North
+  end_route
+
+  edit processor task_mgr
+     off // Not using behavior tree in tests
+  end_processor
+
+   #-- MANEUVER TESTS --
+
+   # test Beam
+   execute at_interval_of 5 sec
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         # Get away from nose of track and then turn to engage
+         if (Math.Fabs(track.RelativeBearingTo(PLATFORM)) <= 45 )
+         {
+            Beam(PLATFORM, track);
+         }
+         else
+         {
+            Engage(PLATFORM, track, "pure", 237, 35000 * Math.M_PER_FT(), 6.0);
+         }
+      }
+   end_execute
+
+
+   # test Crank / Drag
+   /*
+   execute at_interval_of 5 sec
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         //if (PLATFORM.SlantRangeTo(track) <= 60 * Math.M_PER_NM())
+         if (Math.Fabs(track.RelativeBearingTo(PLATFORM)) <= 45 )
+         {
+            #Crank(PLATFORM, track);
+            Drag(PLATFORM, track);
+         }
+      }
+   end_execute
+   */
+
+   /*
+   # test Fire Maneuver
+   execute at_time 9 min absolute
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         FireManeuver(PLATFORM, track);
+      }
+   end_execute
+
+   execute at_time 9.5 min absolute
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         Weapon("mrm").Fire(track);
+      }
+   end_execute
+
+   execute at_time 9.7 min absolute
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         Drag(PLATFORM, track);
+      }
+   end_execute
+   */
+
+   /*
+   # test Post Hole
+   execute at_time 600 sec absolute
+        double finishHeading = PostHole(PLATFORM, "right");
+
+        writeln("Finish heading : ", finishHeading);
+        writeln("Current heading : ", PLATFORM.Heading());
+   end_execute
+   */
+
+   /*
+   # test drag / re-engage
+   execute at_time 9.5 min absolute
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         Drag(PLATFORM, track);
+      }
+   end_execute
+
+   execute at_interval_of 5 sec
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid() && TIME_NOW >= 800)
+      {
+         Engage(PLATFORM, track, "lead", 237, 35000 * Math.M_PER_FT(), 6.0);
+      }
+   end_execute
+   */
+
+   #-- MANEUVER TESTS --
+
+end_platform
+
+
+platform blue_2 STRIKER
+  side blue
+  icon F-15
+  commander flight_lead_blue
+  heading 90 deg
+  route
+     position 38:49:11n 90:14:23.91w altitude 35000.00 ft msl
+     position 38:49:11n 88:28:14.67w altitude 35000 feet
+  end_route
+
+  edit processor task_mgr
+     off // Not using behavior tree in tests
+  end_processor
+
+end_platform
+
+
+
+#----------------------------------------------------------------
+#                        RED AIR
+#----------------------------------------------------------------
+
+
+platform flight_lead_red FLIGHT_LEAD
+  side red
+  position 39:04:34.54n 85:14:39.03w
+  commander SELF
+  icon Command_Truck
+  heading 220 deg
+
+  edit processor task_mgr
+     off // Not creating tasks in tests
+     #show_task_messages
+#     behavior_tree
+#       behavior_node debug_quantum_tasker
+#     end_behavior_tree
+   end_processor
+
+   edit processor timeline_data
+      off // Not creating tasks in tests
+   end_processor
+end_platform
+
+platform red_1 STRIKER
+   commander flight_lead_red
+   side red
+   icon SU-27
+
+   edit processor task_mgr
+     off // Not using behavior tree in tests
+   end_processor
+
+   route
+      position 38:57:41.56n 85:45:42.63w altitude 35000.00 ft msl speed 450 kts
+      position 38:59:53.98n 88:00:55.77w altitude 35000.00 ft msl speed 450 kts
+   end_route
+   heading 272 deg
+end_platform
+
+platform red_2 STRIKER
+   side red
+   icon SU-27
+   commander flight_lead_red
+
+   edit processor task_mgr
+     off // Not using behavior tree in tests
+   end_processor
+
+   route
+      position 38:22:45.40n 85:56:23.69w altitude 35000.00 ft msl speed 450 kts
+      position 38:43:58.54n 87:56:52.39w altitude 35000.00 ft msl speed 450 kts
+   end_route
+   heading 272 deg
+end_platform
+
+platform red_3 STRIKER
+   side red
+   icon SU-27
+   commander flight_lead_red
+
+   edit processor task_mgr
+     off // Not using behavior tree in tests
+   end_processor
+
+   route
+      position 36:30:41.23n 89:59:27.37w
+         altitude 35000 feet
+         speed 450 nm/h
+      position 38:06:31.93n 90:00:11.75w
+         altitude 35000 feet
+         speed 450 nm/h
+   end_route
+   heading 272 deg
+end_platform
+
+platform red_4 STRIKER
+   side red
+   icon SU-27
+   commander flight_lead_red
+
+   edit processor task_mgr
+     off // Not using behavior tree in tests
+   end_processor
+
+   route
+      position 38:43:22.67n 93:35:26.27w
+         altitude 35000 feet
+         speed 450 nm/h
+      position 38:44:10.40n 90:56:51.79w
+         altitude 35000 feet
+         speed 450 nm/h
+   end_route
+   heading 272 deg
+end_platform
+
+
+platform red_5 STRIKER
+   side red
+   icon SU-27
+   commander flight_lead_red
+
+   edit processor task_mgr
+     off // Not using behavior tree in tests
+   end_processor
+
+   route
+      position 40:58:33.93n 90:03:39.91w
+         altitude 35000 feet
+         speed 450 nm/h
+      position 39:25:44.23n 90:04:32.58w
+         altitude 35000 feet
+         speed 450 nm/h
+   end_route
+   heading 272 deg
+
+   execute at_interval_of 5 sec
+      WsfTrack track = PLATFORM.MasterTrackList().Entry(0);
+      if (track.IsValid())
+      {
+         Engage(PLATFORM, track, "pure", 237, 35000 * Math.M_PER_FT(), 6.0);
+      }
+   end_execute
+end_platform
+

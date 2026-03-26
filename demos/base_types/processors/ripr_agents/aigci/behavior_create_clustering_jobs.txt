@@ -1,0 +1,259 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior create_clustering_jobs
+
+   script_debug_writes  off
+
+
+   script_variables
+      ##########################################################################
+      ##  user parameters, change these at will
+      ##########################################################################
+      bool    mDrawClusters           =  false;
+      int     mMaxJobWinners          =  1;
+      string  mClusterMethod          =  "H_TREE_MAX";         //valid: K_MEANS, H_TREE_MIN, H_TREE_MAX
+      string  mDistanceFunction       =  "POSITION_VELOCITY";  //valid: POSITION_VELOCITY, POSITION_ONLY, 2D_POSITION
+      double  mClusterDistanceLimit   =  50*1852;       // ~50 nautical miles
+      int     mNumClusters            =  -1; //not used unless positive (over-rides distance limit)
+      double  mClusterJobPriority     =  1;  //if set to zero or less, then number of cluster occupants will be the priority
+      bool    mRequireKnownCategory   = false;  //if set to true, only threats of a known category will be clustered
+
+      ##########################################################################
+      ##  script variables, used by methods below, do not change
+      ##########################################################################
+      Array<WsfTrack>         trackArray       = Array<WsfTrack>();
+      Map<int, int>           mJobToWinnerMap  = Map<int, int>();
+      WsfDraw                 draw             = WsfDraw();
+      WsfClusterManager       cManager;
+   end_script_variables
+
+
+   on_init
+      cManager = WsfClusterManager.Create(); // creates a cluster manager owned by this script
+      cManager.SetClusterMethod(mClusterMethod);
+      cManager.SetDistanceLimit(mClusterDistanceLimit);
+      if (mNumClusters > 0)
+      {
+         cManager.SetNumClustersToCreate(mNumClusters);
+      }
+      else
+      {
+         cManager.SetDistanceFunction(mDistanceFunction);
+      }
+   end_on_init
+
+
+   precondition
+      writeln_d("precondition create_clustering_jobs");
+      draw.SetDuration(PROCESSOR.UpdateInterval());
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+
+      ##########################################################################
+      ##    only update cluster jobs during a bid window
+      ##########################################################################
+      if ((!(((WsfRIPRProcessor)PROCESSOR).IsBidWindowOpen())) || ((WsfRIPRProcessor)PROCESSOR).IsJobWindowOpen())
+      {
+         writeln_d("GCI agent will not change zone (cluster) jobs unless bid window open & job window closed!");
+         return Failure("bid window closed or job window open");
+      }
+
+      return true;
+   end_precondition
+
+
+   ############################################################################
+   ##  utility method used to draw lines around tracks in a cluster
+   ##  lines are drawn according to the convex hull of the cluster members
+   ############################################################################
+   script void draw_cluster_hull(WsfCluster cluster)
+      Array<WsfGeoPoint> pts = cluster.ConvexHull();
+      if (pts.Size() <= 0)
+      {
+         return;
+      }
+      WsfGeoPoint first = pts.Get(0);
+      draw.SetColor(1.0,0.5,0.0);  //orange?
+      draw.SetLineStyle("solid");
+      draw.SetLineSize(2);
+      draw.BeginPolyline();
+      for (int j = 0; j < pts.Size(); j = j + 1 )
+      {
+         WsfGeoPoint pt = pts.Get(j);
+         draw.Vertex(pt);
+      }
+      draw.Vertex(first);
+      draw.End();
+   end_script
+
+
+   ############################################################################
+   ##  utility method used to add a cluster job
+   ############################################################################
+   script void add_cluster_job(WsfCluster cluster)
+      #new cluster, job not created yet, so create one
+      int occupants = cluster.Count();
+      int clusterId = cluster.Id();
+      string jobName = "cluster_" + (string)clusterId;
+      double ClusterPriority = mClusterJobPriority;
+      if (ClusterPriority <= 0)
+      {
+         ClusterPriority = (double)occupants;
+      }
+      WsfRIPRJob temp = WsfRIPRJob.Create(   ((WsfRIPRProcessor)PROCESSOR),
+                                             "zone",
+                                             jobName,
+                                             ClusterPriority,
+                                             mMaxJobWinners );
+      temp.SetData( "clusterId", clusterId );
+      temp.SetData( "ZoneName", jobName );
+      temp.SetData( "ZonePoint", WsfGeoPoint(cluster.MeanLocation()) );
+      temp.SetData( "ZoneBearing", cluster.Bearing() );
+      temp.SetData( "ZoneBearingValid", cluster.BearingValid() );
+      temp.SetData( "ZoneNumThreats", occupants );
+      temp.SetData( "for_air", 1 );
+
+      Array<string> arr = Array<string>();
+      for (int i = 0; i < occupants; i = i + 1 )
+      {
+         arr.PushBack(cluster.Entry(i).TargetName());
+         writeln_d("job cluster member: ", cluster.Entry(i).TargetName());
+      }
+      temp.SetData( "ZoneThreatNameArray", arr );
+      ((WsfRIPRProcessor)PROCESSOR).AddJob(temp);
+      writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", temp.Name(), ", id: ", clusterId);
+   end_script
+
+
+   ############################################################################
+   ##  utility method used to remove a cluster job
+   ############################################################################
+   script void remove_cluster_job(WsfRIPRJob aJob)
+         int clusterId = (int)aJob.GetData("clusterId");
+         writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", aJob.GetDescription(), ", id: ", clusterId);
+         ((WsfRIPRProcessor)PROCESSOR).RemoveJob( aJob );
+   end_script
+
+
+   ############################################################################
+   ##  utility method used to update a cluster job
+   ##  returns true if job exists & was updated
+   ##  returns false if job by that name does not exist
+   ############################################################################
+   script bool update_cluster_job(WsfCluster cluster)
+      int clusterId = cluster.Id();
+      WsfRIPRJob aJob = ((WsfRIPRProcessor)PROCESSOR).GetJobByData("clusterId", clusterId);
+      if (aJob.IsValid())
+      {
+         //if we are here, the cluster job is identified as having same list of threats
+         //so these data are the same:  job priority, ZoneNumThreats, ZoneThreatNameArray,
+         aJob.SetData( "ZonePoint", WsfGeoPoint(cluster.MeanLocation()) );
+         aJob.SetData( "ZoneBearing", cluster.Bearing() );
+         aJob.SetData( "ZoneBearingValid", cluster.BearingValid() );
+         return true;
+      }
+      return false;
+   end_script
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing create_clustering_jobs, T=", TIME_NOW);
+
+      ##########################################################################
+      ##   update the cluster manager with the current master track list
+      ##########################################################################
+     #extern bool TestTrackCategory( WsfTrack, string );
+      WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+      trackArray.Clear();
+      foreach (WsfTrack track in localTracks)
+      {
+         if (!mRequireKnownCategory || !TestTrackCategory(track, "unknown"))
+         {
+            track.SetBearing( track.Heading() );  #useful for the cluster processing
+            trackArray.PushBack(track);
+         }
+      }
+      cManager.UpdateClusters(TIME_NOW,trackArray);
+
+      ##########################################################################
+      ##  update or add jobs for all the clusters
+      ##########################################################################
+      Map<int, int> updatedJobs = Map<int, int>();
+      int NumClusters = cManager.Count();
+      for (int i = 0; i < NumClusters; i = i + 1 )
+      {
+         WsfCluster cluster = cManager.Entry(i);
+         int clusterId = cluster.Id();
+
+         if (mDrawClusters == true)
+         {
+            draw_cluster_hull(cluster);
+         }
+
+         if( cluster.Count() > 0 )
+         {
+            if (update_cluster_job(cluster))
+            {
+               //writeln_d("cluster already exists & was updated!");
+            }
+            else
+            {
+               add_cluster_job(cluster);
+            }
+            updatedJobs.Set(clusterId, 1);
+         }
+      }
+
+      ##########################################################################
+      ##  remove any old jobs for clusters that have gone away
+      ##########################################################################
+      Array<WsfRIPRJob> jobs = ((WsfRIPRProcessor)PROCESSOR).GetJobs();
+      foreach( WsfRIPRJob aJob in jobs )
+      {
+         if (aJob.Name() == "zone")
+         {
+            int clusterId = (int)aJob.GetData("clusterId");
+            if (updatedJobs.Get(clusterId) != 1)
+            {
+               remove_cluster_job( aJob );
+            }
+         }
+      }
+
+      ##########################################################################
+      ##  print out a message if there are any new winners of jobs
+      ##########################################################################
+      jobs = ((WsfRIPRProcessor)PROCESSOR).GetJobs();
+      foreach( WsfRIPRJob aJob in jobs )
+      {
+         if( ! mJobToWinnerMap.Exists( aJob.GetId() ) )
+         {
+            mJobToWinnerMap.Set( aJob.GetId(), 0 );
+         }
+         else
+         {
+            int currWinners = aJob.GetNumWinners();
+            int lastWinners = mJobToWinnerMap.Get( aJob.GetId() );
+            if( currWinners != lastWinners )
+            {
+               string NewComment = "AIGCI - Sub took a job: " + aJob.Name() + " - " + aJob.GetDescription();
+               PLATFORM.Comment(NewComment);
+               mJobToWinnerMap.Set( aJob.GetId(), currWinners );
+            }
+         }
+      }
+
+   end_execute
+
+end_behavior

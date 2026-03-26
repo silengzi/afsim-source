@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                                UNCLASSIFIED
+#
+#       A simple LWIR sensor with uniform response in the 8-12 um band.
+###############################################################################
+
+sensor_model default
+
+   #show_response
+
+   # The band over which the sensor can detect objects.
+   response_limits                8 um 12 um
+
+   # A response_curve isn't provided, so uniform response of 1.0 will be assumed.
+
+   noise_equivalent_irradiance    2.0e-13 w/cm^2
+
+   # The signal-to-noise ratio required for detection.
+   detection_threshold            10.0 absolute
+end_sensor_model
+

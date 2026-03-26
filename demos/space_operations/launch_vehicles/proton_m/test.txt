@@ -1,0 +1,48 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Simple test of PROTON-M
+
+include proton-m.txt
+
+event_pipe
+   file replay.aer
+end_event_pipe
+
+end_time 700 secs
+
+platform_type PROTON-M_MOD PROTON-M
+   edit mover
+      show_status
+   end_mover
+   edit processor guidance
+      show_status
+      show_diagnostics
+   end_processor
+end_platform_type
+
+platform baikonur WSF_PLATFORM
+   side red
+   icon SA-10_LAUNCHER
+
+   position 46.1n 63.0e altitude 1 m agl heading 61.3 deg
+
+   add weapon rocket PROTON-M
+      launch_computer WSF_LAUNCH_COMPUTER
+         commanded_loft_angle 44 deg
+      end_launch_computer
+      launched_platform_type PROTON-M_MOD
+   end_weapon
+
+   execute at_time 1 sec relative
+      WeaponEntry(0).Fire();
+   end_execute
+end_platform
+
+
+

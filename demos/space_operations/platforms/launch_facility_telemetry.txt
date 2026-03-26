@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch facility that receive telemetry data sent back from launch vehicle.
+
+platform_type     LAUNCH_FACILITY           WSF_PLATFORM
+   comm LF_comm WSF_COMM_TRANSCEIVER
+      internal_link message_proc
+   end_comm
+
+   # "Network" to receive telemetry messages from launch vehicle
+   group_join telemetry
+
+   processor message_proc WSF_SCRIPT_PROCESSOR
+      on_message
+         script
+            PLATFORM.Comment("Receiving telemetry data");
+         end_script
+      end_on_message
+   end_processor
+end_platform_type

@@ -1,0 +1,36 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This defines a truck with a radar sensor on it.
+# Strictly speaking, the radar should have been defined in
+# the sensors/radar directory and then be included in this file
+
+platform_type RADAR_TRUCK WSF_PLATFORM
+  icon Command_Truck
+  mover WSF_GROUND_MOVER end_mover
+  sensor sensor-1 WSF_RADAR_SENSOR
+    on
+    frame_time                 10 sec
+    pitch                      90 deg
+    azimuth_field_of_view   -180.0 deg 180.0 deg     # All the way around
+    elevation_field_of_view  -60.0 deg  60.0 deg
+    reports_location
+    hits_to_establish_track   2 3   # 2 of last 3 scans to establish track
+    hits_to_maintain_track    1 3   # 1 of last 3 scans to maintain  track
+    transmitter
+       power 10000 kw
+       frequency 100 mhz
+    end_transmitter
+    one_m2_detect_range 25000 km
+  end_sensor
+
+  processor dump-radar WSF_MESSAGE_PROCESSOR
+  end_processor
+end_platform_type
+

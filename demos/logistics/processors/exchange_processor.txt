@@ -1,0 +1,26 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+processor EXCHANGE_PROCESSOR WSF_EXCHANGE_PROCESSOR
+
+   commodity_and_capability_pairing JP-8_FUEL     SUPPLY_FUEL
+   service_and_capability_pairing   ENGINE_REPAIR VEHICLE_REPAIR
+
+   #debug
+   update_interval 10 sec
+
+   /*script void on_request_failed(Transactor aTransactor)
+     writeln(" request-timed-out"); // You may define this script if needed.
+   end_script*/
+
+   script void on_transaction_complete(Transactor aTransactor)
+     writeln(" *** transaction-successful *** "); // You may define this script if needed.  This is just a placeholder.
+   end_script
+
+end_processor

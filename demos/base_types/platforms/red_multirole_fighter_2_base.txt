@@ -1,0 +1,129 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+//include_once ../sensors/red_esm.txt
+//include_once ../sensors/rwr_esm.txt
+//include_once ../weapons/x_jammer_red.txt
+
+include_once ../sensors/radar/red_a2a_radar.txt
+
+include_once ../weapons/aam/simple_a2a_missile.txt
+
+
+platform_type RED_MULTIROLE_FIGHTER_2_BASE WSF_PLATFORM
+
+   icon SU-27
+   category fighter
+
+   mover WSF_AIR_MOVER
+      roll_rate_limit               1 rad/sec
+      default_linear_acceleration   1.0 g
+      default_radial_acceleration   6.0 g
+      default_climb_rate            400 fps
+      maximum_speed                 850.0 knots
+      maximum_altitude              50000 ft
+      minimum_altitude              50 ft
+      maximum_linear_acceleration   8 g
+      at_end_of_path extrapolate
+   end_mover
+
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval  60 sec
+      update_interval 1 sec
+   end_processor
+
+
+
+   sensor red_multirole_fighter_2_radar RED_A2A_RADAR
+      on
+      processor track_manager
+      ignore_same_side
+   end_sensor
+
+//   sensor red_esm RED_ESM
+//      processor track_manager
+//   end_sensor
+//   sensor rwr_esm RWR_ESM
+//      processor track_manager
+//   end_sensor
+
+
+   weapon int_missile SIMPLE_A2A_MISSILE_WEAPON end_weapon
+
+//   weapon disrupt1 X_JAMMER_RED
+//      on
+//   end_weapon
+
+
+   fuel WSF_FUEL
+    //maximum_quantity 6531 kg
+    //10,000 lbs is about 4536 kg
+      maximum_quantity 4536 kg
+    //initial_quantity 6000 kg
+      initial_quantity 4500 kg
+      consumption_rate 1 kg/sec
+      bingo_quantity   1500 kg
+      on_bingo
+          writeln_d ("!!! ", PLATFORM.Name(), " on_bingo fuel");
+      end_on_bingo
+      on_empty
+          writeln_d ("!!! ", PLATFORM.Name(), " on_empty fuel");
+      end_on_empty
+   end_fuel
+
+end_platform_type
+
+
+
+
+#object RED_MULTIROLE_FIGHTER_2 {
+#    name "RED_MULTIROLE_FIGHTER_2 %d"
+#    team red
+#    icon "su_27"
+#    opponent_icon "su_27"
+#    //opponent_icon "CH_53"
+#    sensors (RED_A2A_RADAR RED_ESM RWR_ESM)
+#    tactics military_tactics
+#    dynamics powered_dynamics
+#    aero_model (
+#        linear_accel  1.0 G
+#        radial_accel  6.0 G
+#        climb_rate    400.0 fps
+#        max_speed     850.0 knots
+#  max_alt       50000 ft
+#  min_alt          50 ft
+#        fuel_table (   76 (115  1.37 pps
+#                           150  1.59 pps
+#                           301  6.76 pps
+#                           321 23.4  pps)
+#                     5473 (143  1.24 pps
+#                           187  1.44 pps
+#                           293  4.65 pps
+#                           318 16.50 pps)
+#                    10671 (206  1.20 pps
+#                           236  1.27 pps
+#                           271  2.13 pps
+#                           295  7.37 pps))
+#        max_speed_table (   76  321
+#                          4573  318
+#                         10671  295)
+#        fuel 10000 lb
+#    )
+#    launch_to_alt    32000 ft
+#    launch_to_speed    500 knots
+#    net off
+#x    ir_signature (1.0 1.2 1.6 1.8 2.0 2.0 2.0 2.0 2.0 2.0 1.9 1.8
+#x                  1.7 1.9 2.0 2.0 2.0 2.0 2.0 2.0 2.0 1.8 1.6 1.2)
+#    rcs3d FTR_RCS
+#}
+#
+#

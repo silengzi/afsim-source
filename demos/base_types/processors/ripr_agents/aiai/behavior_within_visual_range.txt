@@ -1,0 +1,77 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+include_once   behavior_disengage.txt
+include_once   behavior_in_danger.txt
+   #include_once   behavior_unload.txt
+   #include_once   behavior_force_overshoot.txt
+include_once   behavior_low_speed_recovery.txt
+include_once   behavior_avoid_overshoot.txt
+include_once   behavior_snap_shot.txt
+include_once   behavior_roll_over_top.txt
+
+
+behavior within_visual_range
+
+   script_debug_writes off
+
+   script_variables
+      double   mVisualRange              =  37040.0;  //meters = 20 nm
+                                                      // used by behavior_in_danger, behavior_snap_shot & behavior_disengage
+   end_script_variables
+
+
+   precondition
+
+      writeln_d("precondition within_visual_range");
+      //check if any threats are within visual range ~20 nm
+
+      foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+      {
+         writeln_d("    checking WVR on ", t.TargetName(), ", slant range: ", PLATFORM.SlantRangeTo(t));
+
+         if (PLATFORM.SlantRangeTo(t) < mVisualRange)
+         {
+            writeln_d("    within visual range -> apply WVR tactics");
+            return true;
+         }
+      }
+      writeln_d("    outside of visual range");
+
+      return Failure("outside of visual range");
+   end_precondition
+
+
+   execute
+      writeln("executing within_visual_range.");
+      PLATFORM.Comment("within_visual_range");
+   end_execute
+
+
+   //any child nodes get run after "execute" if the precondition is satisfied
+
+   selector    #for within visual range
+
+      behavior disengage           end_behavior  #executes if the current force ratio compares poorly against the agent's aggressiveness
+
+      behavior in_danger           end_behavior  #executes if a threat has positional advantage, *** includes unload & force_overshoot ***
+
+      behavior low_speed_recovery  end_behavior  #executes if the platform is traveling below its desired min speed
+
+      behavior avoid_overshoot     end_behavior  #executes if the platform is inside the targets turning circle
+
+      behavior snap_shot           end_behavior  #executes if no other threats around & if speed & angle are advantageous
+
+      behavior roll_over_top       end_behavior  #executes if the agent needs to climb & bleed off speed to make a tighter turn towards it's target
+
+   end_selector
+
+end_behavior

@@ -1,0 +1,50 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include ../../aea_iads/sensors/radar/acq_radar.txt
+include ../../iads/signatures/ucav_radar_sig.txt
+
+radar_signature TARGET_RADAR_SIG
+   constant -20 dbsm
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+end_platform_type
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   sensor sensor ACQ_RADAR end_sensor
+end_platform_type
+
+use_default_radar_frequencies true
+
+vertical_coverage
+
+   required_pd 0.5
+
+   target_speed 450 kts
+   target_pitch 0 deg
+   target_roll  0 deg
+
+   elevation_limits -5.0 deg 89.9 deg
+   elevation_step 0.1 deg
+
+   #maximum_range 100 km # comment out for auto range finding
+   large_range_step 5000 m
+   small_range_step  100 m
+
+   output_file acq_radar.vcd
+   range_units nm
+   altitude_units kft
+   x_units nm
+   y_units kft
+
+   output_max_height
+   output_max_range
+
+end_vertical_coverage

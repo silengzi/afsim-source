@@ -1,0 +1,119 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#####################################################################
+# This demo provides an example of aerobraking for a space platform
+# using the WSF_INTEGRATING_SPACE_MOVER. This scenario makes use
+# of the atmospheric drag orbital dynamics term to model the
+# effect of the passage through the Earth's atmosphere on the platform.
+# The initial conditions are not chosen to represent some realistic
+# application of aerobraking.
+#####################################################################
+
+start_date sep 22 2020
+start_time 12:00:00.000
+end_time 30 days
+
+event_pipe file output/aerobraking.aer end_event_pipe
+
+atmosphere_model atmo WSF_PIECEWISE_EXPONENTIAL_ATMOSPHERE
+end_atmosphere_model
+
+platform sat WSF_PLATFORM
+   icon stereo_satellite
+   side blue
+   
+   empty_mass 100 kg
+   
+   add mover WSF_INTEGRATING_SPACE_MOVER
+      raan 0 deg
+      inclination 22 deg
+      argument_of_periapsis 70 deg
+      periapsis_altitude 125 km
+      apoapsis_altitude 367344.31 km
+      true_anomaly 180 deg
+      
+      integrator prince_dormand_78
+         error_criterion L_infinity
+         tolerance 1.0e-10
+         max_step_size 3600
+         min_step_size 0
+      end_integrator
+      
+      dynamics
+         term earth_monopole 
+         end_term
+         
+         term atmospheric_drag 
+            cross_sectional_area 10.0 m^2
+            drag_coefficient 1.2
+            atmosphere_model atmo
+         end_term
+      end_dynamics
+   end_mover
+end_platform
+
+# This script is used in a scripted orbital event, and intentionally does
+# nothing.
+script void DoNothing()
+end_script
+
+# This script reports out the apoapsis or periapsis altitude.
+script void Report(string aWhich)
+   WsfPlatform sat = WsfSimulation.FindPlatform("sat");
+   writeln("Platform 'sat' has reached ", aWhich, ":");
+   writeln("   ", WsfDateTime.CurrentTime(), "   altitude: ", Format.Fixed(sat.Altitude() / 1000.0, 3), " km");
+end_script
+
+# Report the periapsis altitude, and schedule some work to set up the next
+# reporting event at apoapsis.
+script void ReportPeriapsis()
+   Report("periapsis");
+   WsfSimulation.ExecuteAtTime(TIME_NOW + 3600.0, "ScheduleApoapsis");
+end_script
+
+# Report the apoapsis altitude, and schedule some work to set up the next
+# reporting event at periapsis.
+script void ReportApoapsis()
+   Report("apoapsis");
+   WsfSimulation.ExecuteAtTime(TIME_NOW + 3600.0, "SchedulePeriapsis");
+end_script
+
+# This script sets up a scripted orbital event that will execute only once, reporting
+# the altitude, and then complete.
+script void Schedule(WsfOrbitalEventCondition aCondition, string aExecutor)
+   WsfOrbitalScriptEvent evt = WsfOrbitalScriptEvent.Construct(aCondition,
+                                                               "DoNothing",
+                                                               aExecutor,
+                                                               "DoNothing",
+                                                               "");
+   WsfPlatform plat = WsfSimulation.FindPlatform("sat");
+   WsfIntegratingSpaceMover mover = (WsfIntegratingSpaceMover)plat.Mover();
+   WsfOrbitalMissionSequence sqn = WsfOrbitalMissionSequence.Construct();
+   sqn.AddEvent(evt);
+   mover.ExecuteManeuverSequence(sqn);
+end_script
+
+# Set up the next mission event to report altitude at apoapsis.
+script void ScheduleApoapsis()
+   Schedule(WsfOrbitalEventCondition.AT_APOAPSIS(), "ReportApoapsis");
+end_script
+
+# Set up the next mission event to report altitude at periapsis.
+script void SchedulePeriapsis()
+   Schedule(WsfOrbitalEventCondition.AT_PERIAPSIS(), "ReportPeriapsis");
+end_script
+
+# This script gets the chain of orbital events going. Each event will occur
+# either at orbit apoapsis or orbit periapsis, and will print out the altitude
+# of the 'sat' platform at that event. The event will additionally schedule
+# the creation of the next orbital event.
+execute at_time 1 hr absolute
+   SchedulePeriapsis();
+end_execute

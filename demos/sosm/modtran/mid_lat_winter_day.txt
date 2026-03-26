@@ -1,0 +1,17 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# =============================================================================
+# MODTRAN Mid-Latitude, Winter, Day, Clear
+# =============================================================================
+
+atmosphere_model table
+   background_radiance      mid_lat_winter_day.bgr
+   foreground_radiance      mid_lat_winter_day.fgr
+   foreground_transmittance mid_lat_winter_day.fgt
+end_atmosphere_model

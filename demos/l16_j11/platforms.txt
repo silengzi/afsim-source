@@ -1,0 +1,87 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ../base_types/weapons/aam/blue_sr_a2a_ir_missile.txt
+include_once jtids.txt
+
+###############################################################################
+# Network enabled weapon
+platform_type NE_SR_A2A_IR BLUE_SR_A2A_IR_MISSILE_BASE
+
+   // The command chain must be defined when using the JTIDS terminal 
+   // otherwise the terminal will fail initialization.
+   // This is problematic as the commander of an explicit weapon
+   // is by default the platform that fired the weapon.
+   command_chain NETWORK_ENABLED_WEAPON SELF
+
+   comm j11_comm J11_COMM
+#      debug
+      internal_link l16_computer
+      internal_link track-processor
+   end_comm
+
+   processor l16_computer WEAPON_LINK16_COMPUTER
+#      debug
+      comm j11_comm
+   end_processor
+
+   processor track-processor WSF_WEAPON_TRACK_PROCESSOR
+      update_interval 1 sec
+   end_processor
+
+end_platform_type
+
+// --- * --- * ---
+weapon NE_SR_A2A_IR BLUE_SR_A2A_IR_MISSILE
+   launched_platform_type NE_SR_A2A_IR
+end_weapon
+
+###############################################################################
+infrared_signature FIGHTER_INFRARED_SIG
+   constant 1000 watts/steradian
+end_infrared_signature
+
+optical_signature FIGHTER_OPTICAL_SIG
+   constant 30 m^2
+end_optical_signature
+
+radar_signature FIGHTER_RADAR_SIG
+   constant 10 m^2
+end_radar_signature
+
+// --- * --- * ---
+platform_type FIGHTER WSF_PLATFORM
+
+   icon F-18E
+
+   infrared_signature   FIGHTER_INFRARED_SIG
+   optical_signature    FIGHTER_OPTICAL_SIG
+   radar_signature      FIGHTER_RADAR_SIG
+
+   mover WSF_AIR_MOVER end_mover
+
+end_platform_type
+
+// --- * --- * ---
+platform_type WEAPON_FIGHTER FIGHTER
+
+   command_chain NETWORK_ENABLED_WEAPON SELF
+
+   comm j11_comm J11_COMM
+      internal_link l16_computer
+   end_comm
+
+   processor l16_computer FIGHTER_LINK16_COMPUTER
+      comm j11_comm
+   end_processor
+
+   weapon network_enabled_weapon NE_SR_A2A_IR
+   end_weapon
+
+end_platform_type

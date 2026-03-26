@@ -1,0 +1,246 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/gps_control.txt
+
+# Canadian wide-area reference stations
+
+platform GOOSE_BAY_NEWFOUNDLAND_AND_LABRADOR GPS_CONTROL
+  position  53.308720955n   60.419401330w altitude 37.842 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform GANDER_NEWFOUNDLAND_AND_LABRADOR GPS_CONTROL
+  position  48.966447828n   54.597532074w altitude 146.891 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform WINNIPEG_MANITOBA GPS_CONTROL
+  position  49.900606898n   97.259280113w altitude 222.046 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform IQALUIT_NUNAVUT GPS_CONTROL
+  position  63.731446844n   68.543393603w altitude 9.998 m agl
+  commander SELF
+  side indigo
+end_platform
+
+
+# Mexican wide-area reference stations
+
+platform MEXICO_CITY GPS_CONTROL
+  position  19.431653193n   99.068389463w altitude 2236.638 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform PUERTO_VALLARTA_JALISCO GPS_CONTROL
+  position  20.679034758n   105.249200735w altitude 11.077 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform MERIDA-YUCATAN GPS_CONTROL  #
+  position  20.931919004n   89.662872977w altitude 29.157 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform TAPACHULA_CHIAPAS GPS_CONTROL
+  position  14.791340027n   92.367991216w altitude 54.922 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform SAN_JOSE_DEL_CABO_BAJA_CALIFORNIA GPS_CONTROL
+  position  23.160416093n   109.717667886w altitude 104.286 m agl
+  commander SELF
+  side indigo
+end_platform
+
+# U.S. Wide-area reference stations
+
+platform BETHEL_ALASKA GPS_CONTROL
+  position  60.787898226n   161.841705626w altitude 52.202 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform BILLINGS_MONTANA GPS_CONTROL
+  position  45.803726761n   108.539727967w altitude 1112.261 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform BARROW_ALASKA GPS_CONTROL  #
+  position  71.282786134n   156.789914977w altitude 15.581 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform COLD_BAY_ALASKA GPS_CONTROL
+  position  55.200376531n   162.718528459w altitude 53.652 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform FAIRBANKS_ALASKA GPS_CONTROL
+  position  64.809686817n   147.847403468w altitude 149.888 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform HONOLULU_HAWAII GPS_CONTROL
+  position  21.312783159n   157.920876933w altitude 24.922 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform JUNEAU_ALASKA GPS_CONTROL
+  position  58.362530123n   134.585495176w altitude 16.024 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform KOTZEBUE_ALASKA GPS_CONTROL
+  position  66.887352636n   162.611355542w altitude 10.911 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform ALBUQUERQUE_NEW_MEXICO GPS_CONTROL  #
+  position  35.173560874n   106.567308273w altitude 1620.154 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform ANCHORAGE_ALASKA GPS_CONTROL
+  position  61.229174557n   149.780364869w altitude 80.654 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform AURORA_ILLINOIS GPS_CONTROL
+  position  41.782616622n   88.331308050w altitude 195.922 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform NASHUA_NEW_HAMPSHIRE GPS_CONTROL
+  position  42.735705193n   71.480378445w altitude 39.141 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform LESSBURG_VIRGINIA GPS_CONTROL
+  position  39.101556058n   77.542750106w altitude 80.085 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform LONGMONT_COLORADO GPS_CONTROL  #
+  position  40.187286655n   105.127181633w altitude 1541.389 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform FORT_WORTH_TEXAS GPS_CONTROL
+  position  32.830614792n   97.066488376w altitude 155.604 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform HOUSTON_TEXAS GPS_CONTROL
+  position  29.961833882n   95.331462501w altitude 10.947 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform HILLIARD_FLORIDA GPS_CONTROL
+  position  30.698824796n   81.908178358w altitude 2.141 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform OLATHE_KANSAS GPS_CONTROL
+  position  38.880140378n   94.790729104w altitude 305.814 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform PALMDALE_CALIFORNIA GPS_CONTROL
+  position  34.603503189n   118.083872233w altitude 763.546 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform SALT_LAKE_CITY_UTAH GPS_CONTROL  #
+  position  40.786007936n   111.952158417w altitude 1287.420 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform MIAMI_FLORIDA GPS_CONTROL
+  position  25.824644475n   80.319246501w altitude -7.882 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform MEMPHIS_TENNESSEE GPS_CONTROL
+  position  35.067423639n   89.955391700w altitude 68.788 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform FARMINGTON_MENNESOTA GPS_CONTROL
+  position  44.637444415n   93.152039309w altitude 262.667 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform RONKONKOMA_NEW_YORK GPS_CONTROL
+  position  40.784293219n   73.097181151w altitude 6.108 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform FREMONT_CALIFORNIA GPS_CONTROL
+  position  37.543019928n   122.015922570w altitude -3.459 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform OBERLIN_OHIO GPS_CONTROL  #
+  position  41.297135898n   82.206391657w altitude 224.115 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform AUBURN_WASHINGTON GPS_CONTROL
+  position  47.286919203n   122.188372739w altitude 82.128 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform HAMPTON_GEORGIA GPS_CONTROL
+  position  33.379671593n   84.296678124w altitude 261.142 m agl
+  commander SELF
+  side indigo
+end_platform
+
+# Puerto Rican wide-area reference stations
+
+platform SAN_JUAN_PUERTO_RICO GPS_CONTROL
+  position  18.431249167n   65.993480433w altitude -28.547 m agl
+  commander SELF
+  side indigo
+end_platform

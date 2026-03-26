@@ -1,0 +1,193 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+#                                ATLAS V 401
+#
+# Source(s) SF101: http://spaceflight101.com/spacerockets/atlas/
+#==============================================================================
+
+aero ATLAS_V_401_STAGE_1_AERO WSF_AERO
+   reference_area            11.40 m^2           # 3.81 m diameter (SF101)
+
+   # Reasonable data according to Dan Schueths
+   mach_and_cd 0.1 0.15      # 0.12-0.18
+   mach_and_cd 0.9 0.23
+   mach_and_cd 0.98 0.4
+   mach_and_cd 1.0  3.2
+   mach_and_cd 1.2  2.0
+   mach_and_cd 5.0  .21
+end_aero
+
+aero ATLAS_V_401_STAGE_2_AERO WSF_AERO
+   reference_area            7.31 m^2           # 3.05 m diameter (SF101)
+   zero_lift_cd              0.2
+end_aero
+
+#==============================================================================
+
+platform_type ATLAS_V_401_BASE WSF_PLATFORM
+   icon HARM
+
+   mover WSF_GUIDED_MOVER
+      #show_status
+      integration_timestep 0.01 sec
+      update_interval      0.01 sec
+      coordinate_frame     eci
+      check_for_ground_impact          # Don't require a fuse on the platform
+
+      ejectable interstage
+         mass 947 kg    # (SF101)
+         time 253 sec   # (SF101) end of first stage
+      end_ejectable
+
+      ejectable aft_stub_adapter
+         mass 181.7 kg  # (SF101)
+         time 253 sec   # UNKNOWN
+      end_ejectable
+
+      ejectable payload_fairing
+         # Pick the desired payload fairing
+         mass   2127 kg # LPF (SF101)
+         #mass   2305 kg # EPF (SF101)
+         #mass   2487 kg # XEPF (SF101)
+         time   300 sec # UNKNOWN
+      end_ejectable
+
+      # Common core booster RS-180
+      stage 1
+         aero                          ATLAS_V_401_STAGE_1_AERO
+         empty_mass                    21054 kg            # (SF101)
+         fuel_mass                     284089 kg           # (SF101)
+         sea_level_thrust              3827000 nt          # (SF101) Isp 311 sec
+         vacuum_thrust                 4152000 nt          # (SF101) Isp 338 sec
+         # mdot = thrust / (g0 * Isp)
+         # mdot(sl)  = 3827000 / (9.8 * 311) = 1,255.66 kg/s
+         # mdot(vac) = 4152000 / (9.8 * 338) = 1,253.47 kg/s
+         # Use an average of 1,264 kg
+         burn_rate                     1254.56 kg/s        # average of above calculations
+         #thrust_duration               253 sec             # (SF101)
+
+         # The thrust_duration calculated from fuel_mass / burn_rate is 226.45 sec is less than
+         # the thrust duration in SF101. This implies there is some throttle schedule. In the
+         # abscence of a throttle schedule a uniform throttle factor of 226.45 / 253 = 0.895
+         # will be used.
+         #
+         # SF101 says the throttle capability is 50-100%
+
+         throttle
+            curve
+               independent_variable time units sec
+                 0.0  0.895
+               999.0  0.895   # A large time will run until out of fuel
+            end_curve
+
+         thrust_vectoring_angle_limit  8 deg               # (SF101)
+         lateral_thrust_gain           10.0
+
+         pre_separation_coast_time     0 sec               # UNKNOWN
+      end_stage
+
+      # Centaur RL-10C-1
+      stage 2
+         aero                          ATLAS_V_401_STAGE_2_AERO
+         empty_mass                    2243 kg             # (SF101)
+         fuel_mass                     20830 kg            # (SF101)
+         # For engines that run ONLY in a vacuum, just use the normal thrust/impulse values.
+         thrust                        101800 nt           # (SF101) Isp 449.7 sec
+         # mdot = thrust / (g0 * Isp)
+         #      = 101800 / (9.8 * 449.7) = 23.1
+         burn_rate                     23.1 kg/s           # calculated above
+         # (SF101) lists the thrust duration as variable. At full throttle the thrust duration would becomes
+         #   20830 kg / 23.1 kg/s = 901.7 sec
+         thrust_duration               901.7 sec           # (SF101)
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           100.0
+
+         pre_ignition_coast_time       0 sec               # UNKNOWN
+         pre_separation_coast_time     0 sec               # UNKNOWN
+
+         # Attitude control via thrusters 4 x 27-N (roll?) and 8 x 40-N (lateral) (SF101)0
+      end_stage
+
+      # The next-to-last stage contains ONLY the mass of the 'consumable' hardware
+      #  associated with attachment and deployment of the payload.
+      #
+      # Payload adapter
+
+      stage 3
+         aero                           none
+         #total_mass                     2000 kg              # Not known
+      end_stage
+
+      # The last stage represents the final delivered payload (i.e.: the satellite).
+      # It should include nothing extra.
+      stage 4
+         aero                           none
+         total_mass                     9083 kg # (UG) 500 km
+         total_mass                     9365 kg # (UG) 400 km
+         #total_mass                     9607 kg # (UG) 300 km
+         #total_mass                     9797 kg # (UG) 200 km
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+
+     # During the initial launch phase no guidance is performed.
+     # The phase is exited when the vertical speed is enough to start pitch over.
+
+      phase LAUNCH
+         program NULL_PROGRAM end_program        # No guidance
+         # The weapon_tools tune.txt will help guide in setting the speed for pitch over
+         # to start. Run just the initial guess and adjust this as needed. Setting it
+         # to low (50 m/s) will result in everything crashing and setting it too high (100 m/s)
+         # will result in everything burning out at high altitude. We want it to be as
+         # low as reasonably possible.
+         next_phase PITCH_OVER when vertical_speed > 70 m/s # Sufficient to start pitch over
+      end_phase
+
+      # Pitch-over starts shortly after launch. A gentle turn is performed until
+      # the desired flight path angle (selected in the launch computer) is reached,
+      # at which point it exits the phase and starts a gravity turn.
+
+      phase PITCH_OVER
+         program FLIGHT_PATH_ANGLE_PROGRAM
+            # The launch computer will define the flight path angle that is used.
+            pitch_rate 0.125 deg/sec      # Derived by tuning...
+         end_program
+         next_phase ORBIT_INSERTION when program FLIGHT_PATH_ANGLE_PROGRAM complete
+      end_phase
+
+      # Gravity turn and orbit insertion. The ORBIT_INSERTION_PROGRAM will fly a
+      # gravity turn until it becomes close to orbit insertion. It will stop the
+      # engines when the flight path is near zero and the speed is enough to
+      # maintain an orbit. (Turning off the engines signals boost completion.)
+
+      phase ORBIT_INSERTION
+         program ORBIT_INSERTION_PROGRAM
+         end_program
+         next_phase ORBIT when program ORBIT_INSERTION_PROGRAM complete
+      end_phase
+
+      phase ORBIT
+         program NULL_PROGRAM end_program        # No guidance
+      end_phase
+
+   end_processor
+
+end_platform_type
+
+weapon ATLAS_V_401_BASE WSF_EXPLICIT_WEAPON
+   tilt                      90 deg
+   launch_delta_v            0.0 0.0 0.0 m/s
+   launched_platform_type    ATLAS_V_401_BASE
+   quantity                  1
+end_weapon

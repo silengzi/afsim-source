@@ -1,0 +1,232 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+##
+## purse_base, aggregate behavior
+##    this behavior owns the bidding block for pursue-target jobs and acquires the target
+##    this behavior owns the [main] precondition block for this set of behaviors
+##    this behavior owns the variables for heading, alt, speed, but child behaviors calculate them
+##    last child behavior should actually do the flying
+##
+
+include_once behavior_pursue_heading.txt        //original ripr intercept logic
+#include_once behavior_pursue_heading_smooth.txt //option: smooth turning intercept
+include_once behavior_pursue_altitude.txt
+include_once behavior_pursue_speed.txt
+include_once behavior_pursue_fly_simple.txt        //original ripr flight command
+#include_once behavior_pursue_fly_route_finder.txt  //option: fly around avoidances using WsfRouteFinder
+
+
+behavior pursue_base
+
+   script_debug_writes off
+
+   script_variables
+
+      //**********************************************************************//
+      //**  aggregate parameters (modifeid by or used by child behaviors)   **//
+      //**********************************************************************//
+      //these three are modified by child behaviors, not edited here
+      double mDesiredHeading;
+      double mDesiredAltitude;
+      double mDesiredSpeed;
+      //user can edit these three
+      double mDesiredLinearAccel    = 7.5 * Earth.ACCEL_OF_GRAVITY();   // 7.5 G  (m/s^2)
+      double mDesiredRadialAccel    = 6.0 * Earth.ACCEL_OF_GRAVITY();   // 6.0 G  (m/s^2) //default max limit for air mover
+      double mDesiredClimbDiveAngle = 35;   //(degrees) //should this be climb/dive rate instead of angle?
+
+      //**********************************************************************//
+      //**  bidding parameters (pursue-target jobs)                         **//
+      //**     slant range and closing speed are the most important         **//
+      //**     bids are now in units of distance (meters)                   **//
+      //**     all other bid contributions are converted with their weight  **//
+      //**     range will dominate the bids                                 **//
+      //**********************************************************************//
+      double cMIN_JOB_BID                        =  -MATH.DOUBLE_MAX();
+
+      double cMAX_SLANT_RANGE                    = 1000000.0;  #over 539 nm away, target ranges beyond this are considered unfavorable
+      double cWEIGHT_SLANT_RANGE_TO              =       1.0;
+
+      double cMIN_CLOSING_SPEED                  =   -1050.0;  #threats running away (negative closing) faster are considered unfavorable
+      double cWEIGHT_CLOSING_SPEED               =       1.0;  #scale for how closing speed translates to distance
+
+      double cWEIGHT_FUEL                        =       0.0;  #try a value of 2.0 if you care about fuel
+      double cWEIGHT_MY_WEAPONS_ACTIVE           =       0.0;  #changes bid if your own weapons are active on target
+      double cWEIGHT_PEERS_WEAPONS_ACTIVE        =       0.0;  #changes bid if your peers weapons are active on target
+      double cWEIGHT_THREAT_WEAPONS_ENVELOPE     =       0.0;  #uses the global "mWeaponsEnvelope" array, try value of 10000 if you care about that
+      //careful with these two parameters, they are stateful
+      double cWEIGHT_CURRENT_TARGET              =       0.0;   #changes bid if you are currently targeting the threat
+      double cWEIGHT_OTHERS_TARGETING            =       0.0;   #changes bid if peers are currently targeting the threat
+
+
+      //**********************************************************************//
+      //** control / mode of operation parameters                           **//
+      //**********************************************************************//
+     #bool mFilterJobsOnWeapons  = true;  # ignore pursue-target jobs that we cant shoot a weapon at
+      bool mFilterJobsOnWeapons  = false;  # ignore pursue-target jobs that we cant shoot a weapon at
+      bool mFilterJobsOnCategory = false; # ignore pursue-target jobs that are for platform of unknown category
+      bool mFilterJobsOnFuel     = false; # ignore pursue-target jobs that we dont have the fuel to reach
+
+      bool mFilterJobsOnZone     = false; # ignore pursue-target jobs that are for platforms outsize of zone "mZoneName"
+      string  mZoneName = "";
+      WsfZone mFezZone;
+
+      bool    mCheckOwnJobBoardToo  = false; # can this agent bid on & win a job off his own board
+
+      //**********************************************************************//
+      //** debugging parameters                                             **//
+      //**********************************************************************//
+     #bool     mDrawSteering     = false;
+
+      //**********************************************************************//
+      //********* VARIABLES BELOW THIS LINE ARE NOT FOR USER EDITING *********//
+      //**********************************************************************//
+      WsfRIPRJob mCurrentJob;
+     #WsfDraw  mDraw             = WsfDraw();
+      string   mOldTargetStr     = "no target";
+      double   mLastTime         = 0.0;
+
+   end_script_variables
+
+
+  script bool HaveWeaponsForThreat(WsfTrack track)
+
+    extern bool IsWeaponDomainCapable(WsfTrack, Map<string, Object>);
+    extern Array<Map<string, Object>> mWeaponArray;
+    foreach (Map<string, Object> curWeapon in mWeaponArray)
+    {
+      WsfWeapon weapon = (WsfWeapon)curWeapon["weapon"];
+      if (weapon.QuantityRemaining() > 0 &&
+          IsWeaponDomainCapable(track,curWeapon))
+      {
+        if (curWeapon.Exists("onlyUseInRange")       &&
+            (int)curWeapon["onlyUseInRange"] == 1    &&
+            PLATFORM.SlantRangeTo(track) > (double)curWeapon["rangeMax"] )
+        {
+          continue;
+        }
+        return true;
+      }
+    }
+    return false;
+  end_script
+
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue-target, T=", TIME_NOW);
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }   //   ((WsfRIPRProcessor)PROCESSOR)
+
+      double duration = TIME_NOW - mLastTime;
+      mLastTime = TIME_NOW;
+      if (duration > (1.5*PROCESSOR.UpdateInterval()))
+      {
+         mOldTargetStr = "no target";
+      }
+      string anOldTargetStr = mOldTargetStr;
+      mOldTargetStr = "no target";
+
+      WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+      if (commander.IsValid())
+      {
+         if (commander.IsJobWindowOpen())
+         {
+            writeln_d("pursue-target: commander.GetJobFor()");
+            mCurrentJob = commander.GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+         }
+         else
+         {
+            writeln_d("pursue-target: commander's job window closed, keeping current job!");
+         }
+      }
+      if (mCheckOwnJobBoardToo &&
+          (mCurrentJob.IsNull() || !mCurrentJob.IsValid()))
+      {
+         writeln_d("pursue-target: myself.GetJobFor()");
+         mCurrentJob = ((WsfRIPRProcessor)PROCESSOR).GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+      }
+
+      if (mCurrentJob.IsNull() || !mCurrentJob.IsValid() )
+      {
+         writeln_d("pursue-target ClearTarget -> job not a valid pursue-target job");
+         ((WsfRIPRProcessor)PROCESSOR).ClearTarget();
+         return Failure("job is not a valid pursue-target job");
+         }
+      if (mCurrentJob.Name() != "pursue-target")
+      {
+         string msg = write_str("job is a ", mCurrentJob.Name(), " instead of a pursue-target job");
+         writeln_d(msg);
+         return Failure("job is not a pursue-target job");
+      }
+
+      extern WsfTrack GetTrackByName        (WsfPlatform, string);
+      string   targetName  = (string)mCurrentJob.GetData("targetTrackName");
+      WsfTrack targetTrack = GetTrackByName(PLATFORM, targetName);
+
+      if (!targetTrack.IsValid())
+      {
+         writeln_d("    No valid target track found for target named ", targetName);
+         return Failure("target track not found");
+      }
+
+      ########################################################################
+      ###   print output / comments for any target change
+      #######################################################################
+      mOldTargetStr = "Job: " + mCurrentJob.Name() + ", " + mCurrentJob.GetDescription();
+      writeln_d("    - ", mOldTargetStr);
+      if (mOldTargetStr != anOldTargetStr)
+      {
+         PLATFORM.Comment(mOldTargetStr);
+      }
+      ((WsfRIPRProcessor)PROCESSOR).SetTarget(targetTrack);
+      return true;
+   end_precondition
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing pursue_base, T=", TIME_NOW);
+
+#      if (mDrawSteering == true)
+#      {
+#         mDraw.SetLayer("behavior_pursue_target");
+#         mDraw.SetDuration(PROCESSOR.UpdateInterval());
+#         mDraw.SetColor(1.0, 0.5, 0.0);
+#         mDraw.SetLineSize(1);
+#         mDraw.BeginLines();
+#            mDraw.Vertex(PLATFORM.Location());
+#            mDraw.Vertex(mTargetPoint);
+#         mDraw.End();
+#      }
+   end_execute
+
+
+   parallel
+      precondition
+         WsfTrack target = ((WsfRIPRProcessor)PROCESSOR).GetTarget();
+         if (target.IsNull() || !target.IsValid()) {
+            return Failure("target track not found");
+         }
+         if (!target.AirDomain()) {
+            #writeln("track is not for an air-domain target");
+            return Failure("track is not for an air-domain target");
+         }
+         return true;
+      end_precondition
+      behavior_node pursue_heading
+      behavior_node pursue_altitude
+      behavior_node pursue_speed
+      behavior_node pursue_fly_simple
+   end_parallel
+
+
+end_behavior

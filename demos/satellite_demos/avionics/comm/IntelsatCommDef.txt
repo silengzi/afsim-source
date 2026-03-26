@@ -1,0 +1,129 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+# INTELSAT SATELLITE COMMUNICATIONS DEFINITIONS
+
+include_once ../../patterns/SATCOM_nadir.txt
+#include_once ../../patterns/uniformPattern.txt
+
+# 4 COMM TYPES
+#1) Gateway (ground) -> Satellite up-link (29.1-29.3 GHz)
+#2) Satellite -> Gateway (ground) down-link (19.1-19.6 GHz)
+#3) Inter-satellite link (22.55-23.55 GHz)
+#4) Satellite link to handheld users (1616-1626 MHz)
+
+# References
+# 1)
+
+
+comm INTELSAT_DOWNLINK_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   -77 deg
+   network_name intelsat_dl_ul
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           19.25 ghz    #
+      bandwidth                           31.5 kHz     #
+      propagation_model                   none
+      power                               50 dBW       #
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm INTELSAT_UPLINK_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+   network_name intelsat_dl_ul
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           19.25 ghz      #
+      bandwidth                           31.5 kHz      #
+      noise_power                         -69.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm
+
+comm INTELSAT_CL_TX	WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   -77.0 deg
+   network_name intelsat_cl
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           23.05 ghz     #
+      bandwidth                           31.5 kHz      #
+      propagation_model                   none
+      power                               11 dBW        #
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm INTELSAT_CL_RX	WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+   network_name intelsat_cl
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           23.05 ghz      #
+      bandwidth                           31.5 kHz      #
+      noise_power                         -95.0 dbm
+      detection_threshold                 5.0 dB
+   end_receiver
+
+end_comm
+
+comm INTELSAT_HANDHELD_DOWNLINK_TX	WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   -77.0 deg
+   network_name intelsat_handheld
+
+   transmitter
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      attenuation                         none
+      frequency                           1626 mhz    #
+      bandwidth                           10.5 mhz
+      propagation_model                   none
+      power                               11 dBW       #
+      pulse_width                         15.0 usec
+      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm INTELSAT_HANDHELD_UPLINK_RX	WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90.0 deg   0.0 deg
+   network_name intelsat_handheld
+
+   receiver
+      antenna_pattern                     SATELLITE_NADIR_CONE
+      frequency                           1616 mhz      #
+      bandwidth                           10.5 mhz
+      noise_power                         -95.0 dbm
+      detection_threshold                 5.0 dB
+   end_receiver
+
+end_comm

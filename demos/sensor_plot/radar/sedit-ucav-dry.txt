@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ../../aea_iads
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+include sensors/radar/acq_radar.txt
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+   optical_signature UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+end_platform_type
+
+platform sensor-1 WSF_PLATFORM
+   position 39n 90w heading 90 deg
+   add sensor radar ACQ_RADAR
+   end_sensor
+end_platform
+
+horizontal_map
+   sedit_file cntr-ucav-dry.sed
+
+   contour_level 0.5
+      line_color float 1. 0. 0.
+      line_width 2
+   end_contour_level
+
+   variable pd
+
+   target_region
+      down_range_limits  -120 nm 120 nm
+      down_range_step     1 nm
+      cross_range_limits  -120 nm 120 nm
+      cross_range_step    1 nm
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 30000 ft
+   target_speed    450 kts
+   target_pitch 0 deg
+   target_roll 0 deg
+end_horizontal_map

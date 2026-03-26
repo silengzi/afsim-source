@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# === === OCEAN TANKERS PLAYERS: === ===
+
+platform GalvestonBasedTanker_1 OCEAN_GOING_TANKER
+
+   #position 29.3167n 94.7833w # Port of Galveston, TX
+   position 29.3167n 94.6833w # Port of Galveston, TX (slide a bit to the east)
+
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 9000000.0 kg # Almost Full
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = false;
+   end_on_initialize
+
+end_platform
+
+platform GalvestonBasedTanker_2 OCEAN_GOING_TANKER
+
+   # This one starts at Key West Fuel Pier, as it is ready to unloaded its fuel to it.
+   #position 24.56709n 81.79592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier)
+   position 24.56709n 81.89592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier, slide a bit to the west)
+
+   edit processor exchanger
+      edit container fuel_container
+         initial_mass_quantity 5000000.0 kg # Half Full
+      end_container
+   end_processor
+
+   on_initialize
+      #runSilent = true;
+   end_on_initialize
+
+end_platform

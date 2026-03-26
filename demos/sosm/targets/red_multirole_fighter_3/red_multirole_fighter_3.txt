@@ -1,0 +1,80 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                                   UNCLASSIFIED
+#
+#  SOSM target representation for a multirole fighter with no special treatments.
+#
+# NOTE: This definition only includes one Mach number (1.2) and one band (LWIR)
+#       All Mach numbers will use the Mach 1.2 definitions and the target will
+#       not be visible to MWIR.
+###############################################################################
+
+# body_and_plume xxx reads xxx.bda/xxx.bdi/xxx.pla/xxx.pli
+# body           xxx reads xxx.bda/xxx.bdi
+# plume          xxx reads xxx.pla/xxx.pli
+
+target_model table
+
+   state 10k_m12
+      altitude_range         0 ft 12500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_10k_12m_lwir end_band
+   end_state
+
+   state 15k_m12
+      altitude_range         12500 ft 17500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_15k_12m_lwir end_band
+   end_state
+
+   state 20k_m12
+      altitude_range         17500 ft 22500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_20k_12m_lwir end_band
+   end_state
+
+   state 25k_m12
+      altitude_range         22500 ft 27500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_25k_12m_lwir end_band
+   end_state
+
+   state 30k_m12
+      altitude_range         27500 ft 32500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_30k_12m_lwir end_band
+   end_state
+
+   state 35k_m12
+      altitude_range         32500 ft 37500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_35k_12m_lwir end_band
+   end_state
+
+   state 40k_m12
+      altitude_range         37500 ft 42500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_40k_12m_lwir end_band
+   end_state
+
+   state 45k_m12
+      altitude_range         42500 ft 47500 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_45k_12m_lwir end_band
+   end_state
+
+   state 50k_m12
+      altitude_range         47500 ft 200000 ft
+      mach_range             0.0 10.0
+      band lwir body_and_plume red_multirole_fighter_3_50k_12m_lwir end_band
+   end_state
+
+end_target_model
+

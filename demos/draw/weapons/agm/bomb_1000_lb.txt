@@ -1,0 +1,83 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+processor BOMB_GUIDANCE_COMPUTER WSF_GUIDANCE_COMPUTER
+  proportional_navigation_gain  10.0
+  velocity_pursuit_gain         10.0
+  g_bias                         1.0
+  maximum_commanded_g          25.0 g
+  guidance_delay                0.0 sec
+  time_between_GPS_fixes      600.0 sec
+  IMU_drift_rate                0.0 m/s
+  update_interval               0.5 s
+end_processor
+
+processor CONTACT_FUSE WSF_GROUND_TARGET_FUSE
+   proximity_cancel_on_loss_of_target
+end_processor
+
+# Made up aero
+aero BOMB_1000_LB_AERO WSF_AERO
+  reference_area      1.078 ft2 # 14.06 in dia
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max             10.400
+  aspect_ratio        4.000
+end_aero
+
+
+platform_type BOMB_1000_LB WSF_PLATFORM
+  icon agm109
+  mover WSF_GUIDED_MOVER
+    aero BOMB_1000_LB_AERO
+    mass 1015.0 lbm
+    update_interval 0.5 s
+  end_mover
+  processor guidance_computer BOMB_GUIDANCE_COMPUTER
+  end_processor
+  processor detonator CONTACT_FUSE
+  end_processor
+
+  script_variables
+     WsfDraw draw = WsfDraw();
+  end_script_variables
+
+  execute at_time 0.1 sec relative
+     draw.SetLayer("gbu-layer");
+     draw.SetEllipseMode("fill");
+     draw.SetColor(0.0, 1.0, 0.0, 0.25);
+     draw.BeginEllipsoid(PLATFORM.Heading(), 0, 0, 75, 25, 25);
+        draw.Vertex(PLATFORM);
+     draw.End();
+  end_execute
+  category weapon
+end_platform_type
+
+
+
+weapon_effects BOMB_1000_LB_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   30.0 m
+  maximum_radius   35.0 m
+  maximum_damage   1.0
+  minimum_damage   0.1
+  threshold_damage 0.2
+  exponent         1.0
+end_weapon_effects
+#################################################################################
+#   Now define the explicit weapon from a platform_type definition
+#################################################################################
+weapon BOMB_1000_LB WSF_EXPLICIT_WEAPON
+   launched_platform_type BOMB_1000_LB
+   weapon_effects         BOMB_1000_LB_EFFECT
+   category               1000_POUNDER
+   category               glide_bomb_unit
+end_weapon

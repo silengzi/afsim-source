@@ -1,0 +1,46 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform shooter2 JET_AIRCRAFT
+   side blue
+   icon F-18
+   commander SELF
+   route
+    position 38:18:24n 134:44:00e altitude 20000 ft agl
+       speed 300 kts
+    position 38:30:36n 135:34:00e altitude 20000 ft agl
+       speed 300 kts
+     position 39:00:36n 136:30:48e altitude 20000 ft agl
+       speed 300 kts
+   end_route
+
+   weapon aa_mrm
+      quantity 8
+   end_weapon
+
+end_platform
+
+platform shooter3 JET_AIRCRAFT
+   side blue
+   icon F-18
+   commander SELF
+   route
+    position 38:03:24n 134:59:24e altitude 20000 ft agl
+       speed 300 kts
+    position 38:15:36n 135:49:24e altitude 20000 ft agl
+       speed 300 kts
+     position 38:45:36n 136:46:12e altitude 20000 ft agl
+       speed 300 kts
+   end_route
+
+   weapon aa_mrm
+      quantity 8
+   end_weapon
+
+end_platform

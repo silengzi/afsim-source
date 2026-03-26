@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once blue_sr_a2a_ir_missile.txt
+include_once blue_sr_a2a_ir_missile_ata_launch_computer_alt10kft_0.6mach.txt
+
+
+platform_type SIMPLE_A2A_MISSILE BLUE_SR_A2A_IR_MISSILE_BASE
+	// max speed about 850 m/s according to Wikipedia (mach 2.5)
+   category ignored-by-iads-radar
+end_platform_type
+
+
+launch_computer SIMPLE_A2A_LAUNCH_COMPUTER BLUE_SR_A2A_IR_MISSILE_ATA_LAUNCH_COMPUTER_10KFT_0.6MACH
+end_launch_computer
+
+
+weapon SIMPLE_A2A_MISSILE_WEAPON BLUE_SR_A2A_IR_MISSILE
+   launched_platform_type SIMPLE_A2A_MISSILE
+   launch_computer        SIMPLE_A2A_LAUNCH_COMPUTER end_launch_computer
+   quantity               4  // should be 2
+end_weapon

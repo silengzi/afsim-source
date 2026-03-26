@@ -1,0 +1,73 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+sp {propose*pursue-target*pure*outside-max-range
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link <il>
+              ^io.input-link.track-root <tr>
+#              ^target-name <tn>
+                           )
+   (<il> ^ownship-engagement-range-max <erx>)
+   (<tr> ^<target> <t>)
+   (<t> ^target-name <tn>
+        ^slant-range-to <srt> > <erx>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name pursue-target
+        ^target <t>
+        ^actions <a>)
+   (<a> ^pursue-target <command>)
+   (<command> ^pursuit-mode pure
+              ^target-name <tn>)
+}
+
+sp {propose*pursue-target*pure*inside-max-range-head-to-x
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link <il>
+              ^io.input-link.track-root <tr>
+#              ^target-name <tn>
+                           )
+   (<il> ^ownship-engagement-range-max <erx>)
+   (<tr> ^<target> <t>)
+   (<t> ^target-name <tn>
+        ^slant-range-to <srt> <= <erx>
+        ^positioning <pos> << head-to-head head-to-tail >>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name pursue-target
+        ^target <t>
+        ^actions <a>)
+   (<a> ^pursue-target <command>)
+   (<command> ^pursuit-mode pure
+              ^target-name <tn>)
+}
+
+#this rule may not be necessary, consider removing?
+sp {evaluate*pursue-target*reject-pure*too-close-bad-positioning
+   (state <s> ^name RIPR-AIAI
+              ^operator <o1> +
+              ^io.input-link.ownship-engagement-range-max <oerx>)
+   (<o1> ^actions.pursue-target.pursuit-mode pure
+         ^target.slant-range-to <srt> < <oerx>
+        -^target.positioning << head-to-head head-to-tail >>)
+-->
+   (<s> ^operator <o1> -)
+}
+
+#sp {evaluate*pursue-target*reject-pure*closing-too-fast-too-close
+#   (state <s> ^name RIPR-AIAI
+#              ^operator <o1> +
+#              ^io.input-link.ownship-closing-speed-max <csx>
+##              ^io.input-link.ownship-engagement-range-max <oerx>
+#                                                       )
+#   (<o1> ^actions.pursue-target.pursuit-mode pure
+##         ^target.slant-range-to <srt> < <oerx>
+#         ^target.closing-speed-of <cso> > <csx>)
+#-->
+#   (<s> ^operator <o1> -)
+#}

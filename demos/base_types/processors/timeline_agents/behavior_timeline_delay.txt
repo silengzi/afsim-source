@@ -1,0 +1,169 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once common_timeline_scripts.txt
+include_once air_combat_maneuvers.txt
+include_once weapon_defs.txt
+
+behavior timeline_delay
+
+   script_debug_writes off
+
+   script_variables
+      WsfQuantumTaskerProcessor processor;
+   end_script_variables
+
+   on_init
+      if (PROCESSOR.IsA_TypeOf("WSF_QUANTUM_TASKER_PROCESSOR"))
+      {
+         processor = (WsfQuantumTaskerProcessor)PROCESSOR;
+      }
+   end_on_init
+
+
+   #returns true (to wait) if no free target can be shot at (current range)
+   #if target already has weapon on it, it is ignored
+   script bool WaitToTurnAndShoot(Array<WsfTrack> targets)
+      #only consider free targets (a target with no weapons on it)
+      #compare max weapon range to each free target
+      #calculate time to turn & face for a shot
+      #return false if any target can be turned on & engaged
+      foreach(WsfTrack target in targets)
+      {
+         WsfLocalTrack masterTarget = GetMasterTrackByName(PLATFORM, target.TargetName());
+         if (!masterTarget.IsValid())
+         {
+            continue;
+         }
+         bool checkPeerWeapons = false;
+
+         if (FiredOn(PLATFORM, masterTarget, checkPeerWeapons))
+         {
+            #LBM TODO - figure out time until weapon terminates
+            #           compare that to turn time too
+            #           dont necessarily skip this target
+            continue;
+         }
+
+         double weaponMaxRange = 0.0;
+         WsfWeapon maxRangeWeapon;
+         for (int i=0; i < PLATFORM.WeaponCount(); i+=1)
+         {
+            WsfWeapon weapon = PLATFORM.WeaponEntry(i);
+            if (WeaponCapableAvailableAgainstThreat(weapon, masterTarget))
+            {
+               double weaponRange = MaxRange(PLATFORM,weapon,masterTarget);
+               if (weaponRange > weaponMaxRange)
+               {
+                  weaponMaxRange = weaponRange;
+                  maxRangeWeapon = weapon;
+               }
+            }
+         }
+
+         if (maxRangeWeapon.IsValid())
+         {
+            #valid weapon found with an intelligible max range
+            double targetRange = PLATFORM.GroundRangeTo(masterTarget.CurrentLocation());
+            #double weaponMaxRange;
+            double rangeRemaining = targetRange - weaponMaxRange;
+            if(rangeRemaining <= 0)
+            {
+               return false;
+            }
+
+            #targets speed towards me:
+            double hisClosingSpeed = masterTarget.Speed() * MATH.Cos(masterTarget.RelativeBearingTo(PLATFORM));
+            #my avg speed towards him (assuming an immediate turn towards him):
+            double myMinClosingSpeed = PLATFORM.Speed() * MATH.Cos(PLATFORM.RelativeBearingTo(masterTarget));
+            double myMaxClosingSpeed = PLATFORM.Speed();   #assumes I turn & face
+            double myAvgClosingSpeed = (myMinClosingSpeed+myMaxClosingSpeed)/2.0;
+            #closing speed to use:
+            double closingSpeed = hisClosingSpeed + myAvgClosingSpeed;
+            extern double mGeesToTurnWith;
+            double turnTime = TimeToTurnAndFace(PLATFORM.MakeTrack(), masterTarget.CurrentLocation(), mGeesToTurnWith);
+            if (turnTime >= rangeRemaining/closingSpeed)
+            {
+               return false;   #dont wait, time to turn & shoot this guy!!!
+            }
+         }
+      }
+      return true;
+   end_script
+
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition  timeline_delay,  T=", TIME_NOW);
+      if (!processor.IsValid())
+      {
+         return Failure("behavior not attached to a WSF_QUANTUM_TASKER_PROCESSOR");
+      }
+
+      extern bool mRequiredToSupportWeapons;
+      if (mRequiredToSupportWeapons == true && PLATFORM.WeaponsActiveFor(WsfTrackId()) > 0)
+      {
+         return Failure("required to support active weapons - do not delay");
+      }
+
+      WsfTask timeline = GetTimeLineTask(processor);
+      if (!timeline.IsValid())
+      {
+         return Failure("not assigned a TIMELINE task");
+      }
+
+      extern WsfLocalTrack mNearestTimeLineTarget;
+      if (!mNearestTimeLineTarget.IsValid())
+      {
+         return Failure("no TIMELINE target to fly against");
+      }
+
+
+      #compare risk level with range to nearest target
+      #only delay if risk MED:  past DOR and (want to shoot but out of range or waiting on existing shot)
+      #              risk HIGH: past MAR and (want to shoot but out of range or waiting on existing shot)
+      string RISK = timeline.AuxDataString("RISK");
+      if (RISK == "HIGH")
+      {
+         double MAR          = timeline.AuxDataDouble("MAR");   #range (meters)
+         double slantRange   = PLATFORM.GroundRangeTo(mNearestTimeLineTarget.CurrentLocation());
+         if (slantRange > MAR)
+         {
+            return Failure("HIGH RISK agent outside of MAR, dont bother delaying");
+         }
+         Array<WsfTrack> targets = (Array<WsfTrack>)timeline.AuxDataObject("targets");
+         return WaitToTurnAndShoot(targets);
+      }
+      else if (RISK == "MEDIUM")
+      {
+         double DOR          = timeline.AuxDataDouble("DOR");   #range (meters)
+         double slantRange   = PLATFORM.GroundRangeTo(mNearestTimeLineTarget.CurrentLocation());
+         if (slantRange > DOR)
+         {
+            return Failure("MEDIUM RISK agent outside of DOR, dont bother delaying");
+         }
+         Array<WsfTrack> targets = (Array<WsfTrack>)timeline.AuxDataObject("targets");
+         return WaitToTurnAndShoot(targets);
+      }
+      else #if (RISK == "LOW")
+      {
+         return Failure("LOW RISK agent does not go past DOR, no need to delay");
+      }
+   end_precondition
+
+   on_new_execute
+      PLATFORM.Comment("delay");
+   end_on_new_execute
+
+   execute
+      #TODO - select beam or posthole or whatever
+      Beam(PLATFORM, mNearestTimeLineTarget);
+   end_execute
+
+end_behavior
+

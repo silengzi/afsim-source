@@ -1,0 +1,662 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# The scenario portion of the gps_denied_demo (see gps_denied.txt)
+
+network GPS_Net WSF_COMM_NETWORK_MESH
+end_network
+
+include_once ../satellites/orbit_nominal/gps.txt
+
+route bogus_route_1  # mald route 1
+   position 39:16:57.69n 87:09:26.66w altitude 37000.00 ft msl #speed 500 knots
+   position 40:13:18.92n 89:22:09.13w altitude 35000.00 ft msl #speed 450 knots
+   position 39:51:00.01n 90:35:21.10w altitude 35000.00 ft msl #speed 400 knots
+end_route
+
+route bogus_route_2  # mald route 2
+   position 39:17:21.57n 89:04:41.24w altitude 36000.00 ft msl #speed 500 knots
+   position 39:53:18.75n 91:00:51.95w altitude 35000.00 ft msl #speed 450 knots
+end_route
+
+route final_route
+   position 39:46:13.97n 92:07:27.91w
+   position 39:36:44.03n 92:21:58.30w
+   position 39:25:47.16n 92:11:48.86w
+   position 39:19:30.38n 91:35:02.68w
+   position 39:32:14.44n 91:07:44.61w
+   position 39:47:58.27n 91:07:52.76w
+   position 39:53:07.00n 91:52:44.37w
+end_route
+
+radar_signature DECOY_MISSILE_RADAR_SIGNATURE
+   constant 1 m^2
+end_radar_signature
+
+aero DECOY_MISSILE_WINGS_FOLDED_AERO WSF_AERO
+  cd_zero_subsonic    0.180
+  cd_zero_supersonic  0.410
+  mach_begin_cd_rise  0.850
+  mach_end_cd_rise    1.350
+  mach_max_supersonic 2.000
+  reference_area      0.092347 m2 # 19cm body dia
+  cl_max              1.000    # unknown
+  aspect_ratio        4.000    # unknown
+  oswalds_factor      0.950    # unknown
+end_aero
+
+
+aero DECOY_MISSILE_AERO WSF_AERO
+  cd_zero_subsonic    0.120
+  cd_zero_supersonic  0.410
+  mach_begin_cd_rise  0.930
+  mach_end_cd_rise    1.350
+  mach_max_supersonic 2.000
+  reference_area      0.092347 m2 # 19cm body dia
+  cl_max              8.000    # unknown
+  aspect_ratio        10.000    # unknown
+  oswalds_factor      0.950    # unknown
+end_aero
+
+# -------------------------
+
+platform_type    DECOY_MISSILE       WSF_PLATFORM
+   category DECOY_MISSILE
+   icon mald
+   radar_signature DECOY_MISSILE_RADAR_SIGNATURE
+
+   mover WSF_GUIDED_MOVER
+         update_interval 0.10 s
+         integration_timestep 0.1 sec
+         #debug
+		   #show_status
+         #show_trajectory
+         stage 1 # Drop for 1 sec with folded wings
+           aero               DECOY_MISSILE_WINGS_FOLDED_AERO
+           pre_separation_coast_time 0.2 sec
+         end_stage
+         stage 2 # Open wings and fire off engine
+         total_mass         250 lb
+         fuel_mass          200 lb  # Guess 80% fuel
+         thrust             800 Nt
+         thrust_duration      100 min
+         aero                DECOY_MISSILE_AERO
+         end_stage
+   end_mover
+
+   comm GPS_UPLINKL1_RX WSF_RADIO_RCVR
+      network_name GPS_Net
+      azimuth_field_of_view                  -180.0 deg 180.0 deg
+      elevation_field_of_view                   0.0 deg  90.0 deg
+
+      receiver
+         antenna_pattern                     SATELLITE_NADIR_CONE
+         frequency                           1575.42 mhz
+         bandwidth                           200 mhz
+         noise_power                         -105.0 dbm
+         detection_threshold                 3.0 dB
+      end_receiver
+
+      jamming_perception_threshold   3.0 dB
+      jamming_perception_timeout     1.0 sec
+
+   end_comm
+
+   navigation_errors
+      gps_status 1
+      gps_degraded_multiplier 100
+      gps_in_track_error 1 m
+      gps_cross_track_error 1 m
+      gps_vertical_error 1 m
+      ins_accelerometer_bias_error 1 m/s^2
+      ins_gyroscope_bias_error 1 deg/hr
+      ins_random_walk_error 1 deg/sqrt-hr
+      ins_vertical_error 1 m
+   end_navigation_errors
+
+	processor guidance WSF_GUIDANCE_COMPUTER
+      #show_status
+      #show_evaluations
+      #debug
+
+      script_variables
+         double TimeLeft = 1;
+      end_script_variables
+
+      phase DROP
+         next_phase CRUISE when phase_time >= .1 sec
+      end_phase
+
+      phase CRUISE
+         on_entry
+            SetAllowRouteFollowing(true);
+            if(PLATFORM.Name().Contains("_1"))
+            {
+               PLATFORM.SetRoute("bogus_route_1");
+               SetCommandedMach(0.90);
+#               SetCommandedAltitudeAGL(9000);
+               SetMaximumCommandedGees(15);
+            }
+            else
+            {
+               PLATFORM.SetRoute("bogus_route_2");
+               SetCommandedMach(0.91);
+#               SetCommandedAltitudeAGL(9000);
+               SetMaximumCommandedGees(15);
+            }
+
+            TimeLeft = 5200 - (PLATFORM.TimeSinceCreation()); # give time to get back to target. Change TimeLeft to 5200 - (PLATFORM.TimeSinceCreation()); to have the missles go to phase "OVER TARGET"
+         end_on_entry
+
+         next_phase OVER_TARGET if end_of_route
+         next_phase TERMINAL1 if phase_time >=  /variable TimeLeft
+         #next_phase TERMINAL when phase_time >= 100 min     # allow 9 minutes for target endpoint / ditchpoint
+      end_phase
+
+      phase OVER_TARGET
+         on_entry
+            SetAllowRouteFollowing(true);
+            PLATFORM.SetRoute("final_route");
+            SetCommandedMach(0.80);
+            SetCommandedAltitude(11000);
+            SetMaximumCommandedGees(10);
+            TimeLeft = 5200 - (PLATFORM.TimeSinceCreation()); # give time to get back to target. Change TimeLeft to 5200 - (PLATFORM.TimeSinceCreation()); to have the missles go to phase "OVER TARGET"
+         end_on_entry
+
+           next_phase TERMINAL1 if phase_time >= /variable TimeLeft
+           next_phase OVER_TARGET if end_of_route
+      end_phase
+
+      phase TERMINAL1
+         on_entry
+            SetCommandedAltitude(11000);
+         end_on_entry
+
+         maximum_commanded_g 15 g
+         next_phase FINAL_DIVE when target_ground_range <= 7 km
+      end_phase
+
+      phase  FINAL_DIVE
+         maximum_commanded_g 10 g
+      end_phase
+
+   end_processor
+
+   execute at_interval_of 1 sec
+     if(PLATFORM.Comm("GPS_UPLINKL1_RX").JammingPerceived() == true)
+     {
+        PLATFORM.SetGPS_Status(-1); # GPS Not available; revert to INS errors.
+#        writeln(PLATFORM.Name(),"'s location is ",PLATFORM.Location()," but believes it is at ",PLATFORM.PerceivedLocation());
+     }
+   end_execute
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+      max_time_of_flight_to_detonate  100 min
+      proximity_all_on_loss_of_target  # weapon keeps going even if target lost
+   end_processor
+
+end_platform_type
+
+# -------------------------
+
+weapon_effects DECOY_MISSILE_EFFECTS WSF_SPHERICAL_LETHALITY
+  # Note:  Does not consider the hardness of any target.  All are treated the same.
+  minimum_radius  1.0 ft # largest blast radius at which damage inflicted is maximum.
+  maximum_damage   1.0    # maximum damage level achievable upon the target.
+  maximum_radius  5.0 ft # blast radius beyond which the damage inflicted is Zero.
+  minimum_damage   0.05   # damage level acheived at the maximum radius.
+  threshold_damage 0.20   # initial damage level which must be acheived
+                          # before effects begin to accumulate upon the target
+  exponent         1.00   # exponent of proportionality of damage with radius.
+                          # ( e = 1.0 ==> linear damage within blast region,
+                          #   e > 1.0 ==> more damaging within the blast region,
+                          #   0.0 < e < 1.0 ==> less damaging within blast region. )
+end_weapon_effects
+
+# -------------------------
+
+weapon DECOY_MISSILE WSF_EXPLICIT_WEAPON
+   launched_platform_type DECOY_MISSILE
+#   aux_data
+#      double lar_meters = 926000 # meters = 500 nm
+#   end_aux_data
+
+   weapon_effects         DECOY_MISSILE_EFFECTS
+
+end_weapon
+################################################################################################
+
+electronic_warfare JAM_EA WSF_ELECTRONIC_ATTACK
+   technique noise_jamming WSF_EA_TECHNIQUE
+      mitigation_class noise_jamming
+      effect noise_effect WSF_POWER_EFFECT
+         jamming_delta_gain 10 dB
+      end_effect
+   end_technique
+end_electronic_warfare
+
+antenna_pattern SPOT_JAMMER_ANTENNA
+  circular_pattern
+     peak_gain 5 dB
+  end_circular_pattern
+end_antenna_pattern
+
+weapon SPOT_JAMMER WSF_RF_JAMMER
+   #ignore_side green
+   pitch 90 deg
+   transmitter
+      power           2000 watts
+      frequency       1575.42 mhz
+      bandwidth         24 mhz
+      antenna_pattern SPOT_JAMMER_ANTENNA
+      electronic_attack JAM_EA end_electronic_attack
+   end_transmitter
+end_weapon
+
+antenna_pattern EARLY_WARNING_RADAR_ANTENNA
+  constant_pattern
+     peak_gain            28 dB
+     azimuth_beamwidth     4 deg
+     elevation_beamwidth  15 deg
+  end_constant_pattern
+end_antenna_pattern
+
+sensor EARLY_WARNING_SENSOR WSF_RADAR_SENSOR
+  frame_time  1 sec
+  location  0.0 0.0 -30 ft
+  scan_mode  azimuth
+  minimum_range    0 nm
+  maximum_range  160 nm
+
+  transmitter
+     antenna_pattern EARLY_WARNING_RADAR_ANTENNA
+     antenna_tilt  5 deg
+     power  500 kw
+     pulse_width                 2.0e-6 sec
+     pulse_repetition_frequency  400 hz
+     frequency  1285 mhz
+  end_transmitter
+
+  receiver
+     antenna_pattern EARLY_WARNING_RADAR_ANTENNA
+     antenna_tilt  5 deg
+     bandwidth  1 mhz
+     internal_loss  19 dB
+  end_receiver
+
+  swerling_case  1
+  number_of_pulses_integrated  44
+  detector_law  square
+  probability_of_false_alarm  1.0e-6
+  azimuth_error_sigma  0.5 deg
+  elevation_error_sigma  0.0 deg
+  range_error_sigma  1.2 nm
+
+  filter WSF_ALPHA_BETA_FILTER
+    alpha  0.6
+    beta   0.2
+  end_filter
+
+  hits_to_establish_track  3 5
+  hits_to_maintain_track  1 3
+  reports_location
+  reports_signal_to_noise
+  reports_range
+  reports_bearing
+end_sensor
+
+processor DECOY_MISSILE_LAUNCH_COMPUTER WSF_TASK_PROCESSOR
+#   script_debug_writes on
+#   show_state_transitions
+#   show_task_messages
+
+   script_variables
+      string WEAPON_NAME               = "decoy_missile";
+      int SALVO_SIZE                   = 1;
+      # the following variable is used internally and should not be modified by the
+      # user
+      string mShootTaskStr      = "Shoot";
+   end_script_variables
+
+    script bool InInterceptEnvelopeOf(WsfWeapon aWeapon)
+       bool canIntercept = false;
+       double maxRng = 555600; # 300 nm
+       double minRng = 300;
+       WsfTrackId id = TRACK.TrackId();
+       double targetrange = PLATFORM.GroundRangeTo(TRACK);
+       if ((targetrange > minRng) && (targetrange < maxRng))
+       {
+         canIntercept = true;
+         writeln_d("Target is in range to intercept");
+       }
+       return canIntercept;
+   end_script
+
+   script bool HaveWeapons()
+      WsfWeapon weapon = PLATFORM.Weapon(WEAPON_NAME);
+      bool haveWeapons = false;
+      if (weapon.QuantityRemaining() >= SALVO_SIZE)
+      {
+          haveWeapons = true;
+      }
+      return haveWeapons;
+   end_script
+
+   script bool LaunchWeapon()
+      WsfWeapon   weapon;
+      weapon = PLATFORM.Weapon(WEAPON_NAME);
+      bool canInterceptNow = false;
+      if (HaveWeapons())
+      {
+         canInterceptNow = InInterceptEnvelopeOf(weapon);
+      }
+      bool launched = false;
+      if (canInterceptNow)
+      {
+         launched = FireAt(TRACK, mShootTaskStr, weapon, SALVO_SIZE);
+         if (launched)
+         {
+            writeln("*** T=", TIME_NOW, " ", PLATFORM.Name(), " ",
+                      TRACK.TargetName(), " R=", PLATFORM.SlantRangeTo(TRACK),
+                      " FIRE!!!!");
+         }
+      }
+      return launched;
+   end_script
+
+# State Machine
+# Very simple state machine
+  evaluation_interval GOHOME 2.0 sec
+  state GOHOME  # Goes back to Loiter if out of weapons
+      next_state ENGAGE
+         bool weaponavail = true;
+         if (! HaveWeapons())
+         {
+             weaponavail = false;
+             PLATFORM.ReturnToRoute();
+             writeln_d("Turning off launch computer");
+             PROCESSOR.TurnOff();
+         }
+         return weaponavail;
+      end_next_state
+   end_state
+
+   evaluation_interval ENGAGE 2.0 sec
+   state ENGAGE  # Engages and fires the weapon if it can
+      next_state GOHOME
+         bool launched = false;
+         if (InInterceptEnvelopeOf(PLATFORM.Weapon(WEAPON_NAME)))
+         {
+             writeln_d("Trying to launch weapon " );
+             launched = LaunchWeapon();
+         }
+         return launched;
+      end_next_state
+   end_state
+end_processor
+################################################################################
+# Define the platform type for notional EW radar site.
+platform_type    EW_RADAR_SITE       WSF_PLATFORM
+   icon ground_radar
+   sensor ew-radar-1 EARLY_WARNING_SENSOR
+      processor track-proc
+   end_sensor
+
+   processor track-proc WSF_TRACK_PROCESSOR
+   end_processor
+
+   weapon jammer SPOT_JAMMER
+   //debug
+   pitch 90 deg
+   off
+   end_weapon
+
+   execute at_interval_of 1 sec
+      if(PLATFORM.Sensor("ew-radar-1").ActiveTrackCount() == 1)
+      {
+         WsfWeapon jammer = PLATFORM.Weapon("jammer");
+         // Any of the jamming routines can be used at this point
+         jammer.StartJamming(1575420000., 240000000., "noise_jamming");
+         jammer.SetEA_DeltaGainTechnique("power_adjust", true, "delta_power", -3.0, "", "SENSOR", 0, 0);
+      }
+   end_execute
+
+end_platform_type
+
+################################################################################
+// Define the platform type for the notional AWACS.
+
+platform_type    AWACS       WSF_PLATFORM
+   icon abn_cmdr
+
+   mover WSF_AIR_MOVER
+     maximum_radial_acceleration .5 g
+     maximum_linear_acceleration .5 g
+   end_mover
+
+   comm rcvr-1 WSF_RADIO_RCVR
+      frequency 1200 mhz
+   end_comm
+
+   comm xmtr-1 WSF_RADIO_XMTR
+      frequency 1200 mhz
+   end_comm
+
+   // The 'perfect' ESM device.  It can perfectly locate any transmitter in L-band
+   sensor esm-1 WSF_ESM_SENSOR
+      on
+      frame_time 5 sec
+      frequency_band 1000 mhz 2000 mhz    // L-band
+      reports_location
+      reports_frequency
+      processor track-proc
+      ignore DECOY_MISSILE
+      ignore no_awacs_esm
+      ignore GPS
+   end_sensor
+
+   processor track-proc WSF_TRACK_PROCESSOR
+      update_interval 2 sec
+      report_to command_chain GOOD_GUYS subordinates via xmtr-1 to rcvr-1
+   end_processor
+end_platform_type
+################################################################################
+# Define the platform type for the notional fighter/bomber.
+platform_type    FIGHTER_BOMBER       WSF_PLATFORM
+   category no_awacs_esm
+   icon FIGHTER
+
+   mover WSF_AIR_MOVER
+     maximum_radial_acceleration 1.12 g
+     maximum_linear_acceleration 2 g
+   end_mover
+
+   comm rcvr-1 WSF_RADIO_RCVR
+      frequency 1200 mhz
+      processor track-proc
+      processor attack-proc
+   end_comm
+
+   comm xmtr-1 WSF_RADIO_XMTR
+      frequency 1200 mhz
+   end_comm
+
+   processor track-proc WSF_TRACK_PROCESSOR
+   end_processor
+
+   processor attack-proc WSF_SCRIPT_PROCESSOR
+
+      on_message
+         type WSF_TRACK_MESSAGE
+            script
+               WsfTrackMessage trackMsg = (WsfTrackMessage)MESSAGE;
+               WsfTrack        track    = trackMsg.Track();
+               WsfTrackId      trackId  = track.TrackId();
+               double     targetLat     = track.Latitude();
+               double     targetLon     = track.Longitude();
+               if (TIME_NOW < 50.0)
+               {
+                  writeln("Received track message from ", trackId.OwningPlatform());
+               }
+
+               // If we aren't attacking then start the 'attack'
+               WsfProcessor launchComputer = PLATFORM.Processor("decoy_missile-launch-computer");
+               if (! launchComputer.IsTurnedOn())
+               {
+                  writeln_d("Starting attack at T=", TIME_NOW);
+                  launchComputer.TurnOn();
+                  PLATFORM.GoToLocation(targetLat, targetLon);
+               }
+            end_script
+
+         type default
+            script
+               writeln_d("Received message of type ", MESSAGE.Type());
+            end_script
+      end_on_message
+   end_processor
+
+   weapon decoy_missile DECOY_MISSILE
+   end_weapon
+
+   processor decoy_missile-launch-computer DECOY_MISSILE_LAUNCH_COMPUTER
+     off
+     #on
+     update_interval 1 sec
+   end_processor
+end_platform_type
+
+################################################################################
+# And now the scenario
+
+platform threat-ew-1 EW_RADAR_SITE
+   side red
+   position 39:31:42.42n 91:38:35.111w
+
+   sensor ew-radar-1
+      on
+   end_sensor
+
+#   execute at_time 1 minutes absolute
+#      PLATFORM.TurnSensorOn("ew-radar-1");
+#   end_execute
+end_platform
+
+platform awacs-1 AWACS
+   side blue
+   command_chain GOOD_GUYS SELF
+
+   sensor esm-1
+     on
+   end_sensor
+   execute at_time 5 minutes absolute
+     # PLATFORM.TurnSensorOn("esm-1"); # Turn on the ground radar system instead...
+   end_execute
+
+   route
+      label awacs_loiter
+      position 42:07:45.70n 88:53:57.96w altitude 30000.00 ft speed 450 kts
+      position 43:07:45.49n 88:54:57.67w
+      position 43:07:45.64n 88:23:28.31w
+      position 42:07:45.64n 88:23:29.35w
+      goto awacs_loiter
+   end_route
+  heading 359 deg
+end_platform
+
+platform strike-1 FIGHTER_BOMBER
+   side blue
+   command_chain GOOD_GUYS awacs-1
+
+   heading 5 deg
+
+   route
+      label Loiter_Cap
+      position 39:12:32.96n 83:59:04.84w altitude 40000.00 ft msl speed 250 kts
+      position 39:18:28.95n 83:58:21.90w altitude 40000.00 ft agl speed 270 kts
+      position 39:22:40.95n 83:57:37.59w altitude 40000.00 ft speed 400 kts
+      position 39:33:04.96n 83:52:17.31w altitude 40000.00 ft
+      position 39:30:16.95n 83:37:40.98w
+      position 39:20:46.95n 83:33:33.22w altitude 40000.00 ft speed 250 kts
+      position 39:08:16.96n 83:40:06.06w altitude 40000.00 ft agl speed 220 kts
+      goto Loiter_Cap
+   end_route
+
+   weapon decoy_missile
+      quantity 2
+      firing_interval 4 sec
+   end_weapon
+end_platform
+
+end_time 2 hr
+
+### SOURCES: ####
+/*
+Raytheon version (ADM-160B)
+ALL SOURCES UNCLASSIFIED:
+https://en.wikipedia.org/wiki/ADM-160_MALD
+Specifications (Raytheon ADM-160B)
+Length : 2.84 m (9 ft 7 in)
+Wingspan : 1.71 m (5 ft 7 in) fully extended
+Weight : 115 kg (250 lb)
+Speed : Mach 0.91
+Ceiling : Over 12,200 m (40,000 ft)
+Range : Approximately 920 km (575 mi) with ability to loiter over target
+Endurance : Over 45 min at altitude
+Propulsion : Hamilton Sundstrand TJ-150 turbojet
+
+https://www.pw.utc.com/Content/Press_Kits/pdf/me_TJ150_pCard.pdf
+TJ-150 Characteristics
+Type Single-Spool Turbojet
+Thrust Class 150 Pounds (670 Newtons)
+Engine Control FADEC (Full Authority Digital Engine Control) or Customer-Supplied (P&W supplies control logic)
+Engine Architecture Single-Stage Mixed Flow Compressor
+Annular, Reverse-Flow Combustor
+Single-Stage Radial Flow Turbine
+Convergent, Fixed Area Jet Nozzle
+Electric Power Up to 1.2 kW from embedded Permanent Magnet Generator (PMG)
+Engine Life Up to 2 Hours
+
+http://www.raytheon.com/capabilities/products/mald/
+The MALD  decoy is a flexible and modular system that has the potential to keep aviators and aircraft out of harm s way.
+It's an expendable air-launched flight vehicle that looks like a U.S. or allied aircraft to enemy integrated air defense systems (IADS).
+The U.S. and its allies can confuse and deceive enemy IADS by sending a formation of MALD decoys into hostile airspace. Weighing less than 300 pounds, the weapon has a range of approximately 500 nautical miles (575 statute miles).
+After it is launched from its host aircraft, the MALD decoy flies a preprogrammed mission.
+In addition to protecting valuable aircraft, the weapon offers counter air operations to neutralize air defense systems that pose a threat to U.S. and allied pilots.
+MALD-J DECOY
+The MALD-J decoy is the jammer variant of the basic decoy, and the first ever stand-in jammer to enter production.
+The unmanned MALD-J decoy navigates and operates much closer to the victim radar than conventional electronic warfare when jamming the electronics, allowing aviators and aircraft to stay out of harm s way.
+And, it is able to loiter in the target area for an extended time period   plenty of time to complete the mission.
+The weapon can operate alone or in pairs, but is designed to work with and leverage other electronic warfare platforms.
+
+http://www.airforce-technology.com/projects/miniature-air-launched-decoy-mald-flight-vehicle/
+Miniature Air Launched Decoy (MALD) is a small unmanned air-launched flight vehicle designed and manufactured by Raytheon Missile Systems. The vehicle is currently used by the US Air Force (USAF) and the US Navy.
+The MALD air vehicle offers superior protection for the aviators and aircraft against air defence systems in combat operations. It also increases airborne electronic attack missions of the US and allied pilots in the battlespace.
+The aerial decoy is deployed on the USAF's F-16 Fighting Falcon aircraft and B-52 Stratofortress bomber.
+Raytheon delivered 1,000th MALD-J jammer variant, which uses jamming and radar signature technology, to the USAF under the Lot 5 production contract in May 2014.
+Design and features of MALD air-launched vehicle
+The turbojet-powered modular and programmable MALD is launched from fighters as a decoy. It is used to perform counter air operations to inactivate air defence systems. The unmanned air-launched vehicle has a length of approximately 3.04m and weighs less than 300lb. The range of the MALD vehicle is around 500nmi.
+The flexible and swing-wing vehicle degrades enemy radars and integrated air defence systems by accurately duplicating all combat flight profiles and radar signatures of the US and allied aircraft in the battlefield.
+
+Development, flight testing and production of the MALD aerial decoy
+The USAF awarded a contract to Raytheon for the development of the highly effective ADM-160B MALD flight vehicles in 2003. The vehicles were developed at the company's facility in Tucson, Arizona.
+In October 2006, the USAF and Raytheon demonstrated the MALD system separation from the F-16 Fighting Falcon aircraft during a series of test flights conducted at Eglin Air Force Base in Florida. MALD was also test-fired by B-52 Stratofortress bomber.
+The MALD vehicle performed powered flight performance when test fired from the F-16 Fighting Falcon aircraft in June 2007. Flight testing by the government and Raytheon seamless verification team was completed in January 2008. The USAF announced its decision to begin low rate initial production (LRIP) of the decoy in June 2008.
+In March 2009, the USAF accepted the first MALD LRIP unit, and the first MALD initial operational test and evaluation unit was delivered in June 2009. An operationally significant quantity of the MALD vehicles was delivered to the USAF in March 2010.
+Raytheon received $96.7m from the USAF for third production lot of about 300 additional MALD vehicles in May 2010. The company also agreed to deliver MALD-Js as part of the contract.
+Raytheon launched two MALD instrumented shapes from the ramp of a C-130 Hercules equipped with the new Raytheon-funded MALD Cargo Air Launched System (MCALS) in May 2011. The USAF awarded $5m to Raytheon for the conversion of Lot 4 production of the basic MALD platform to the jammer configuration in November 2011.
+In February 2013, Raytheon and General Atomics Aeronautical Systems partnered to integrate MALD into Predator B/MQ-9 Reaper Remotely Piloted Aircraft (RPA).
+
+MALD-J jammer variant
+The ADM-160C MALD-J is a radar jammer variant of the basic MALD aerial decoy and it can operate in both decoy and jammer configurations based on the warfighters' mission requirements. It adds radar-jamming capabilities to the MALD platform and can perform missions either as a stand-alone system or as part of the constellation.
+The unmanned MALD-J stand-in jammer is capable of navigating and operating closer to hostile radars compared to conventional electronic warfare systems, to help aviators and aircraft stay away from enemy's path.
+The USAF awarded a two-year, $80m contract to Raytheon for Phase II risk reduction and critical design review of the highly autonomous MALD-J variant in March 2008. The company was responsible for development, integration and testing of the radar-jamming variant.
+In January 2009, Raytheon received a $12.2m contract for feasibility study of increasing power and adding a data link capability for the MALD-J variant. Under the contract, the company integrated a radio frequency data link and more powerful jammer amplifiers into the baseline MALD/MALD-J vehicle.
+The MALD-J vehicle's preliminary design review was completed in June 2009 and critical design review in February 2010. The first free-flight tests were completed in January 2010.
+In September 2011, the USAF conducted the initial test of the MALD-J in a simulated operational environment as part of a Functional Configuration Audit. The vehicle demonstrated its ability to protect manned aircraft during the trails.
+*/

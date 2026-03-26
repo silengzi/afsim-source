@@ -1,0 +1,169 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ****************************************************************************
+# Mission design with Astrolabe instructions:
+# - Right click on the platform "proton-m" name text below, then select 
+#   "Open with Astrolabe"
+#	- Other ways to reach the "Open with Astrolabe" option:
+#		- Right click on the platform "proton-m" in the Platform Browser panel,
+#		  then select "Open with Astrolabe"
+#			- Go to View -> Platform Browser to toggle on/off
+#		- Right click on the platform "proton-m" in the Map Display window,
+#		  then select "Open with Astrolabe"
+#			- Go to View -> Map Display to toggle on/off
+# - Select the top-level "SEQUENCE" in the "Event Type" Panel
+# - Press the "Verify Mission" button to run through the sequence, and 
+#   populate the fields in the Event Type panel.  You will be able to see the 
+#   constituent orbits in the sequence on the Wizard Map Window.
+# - Use the up/down keys or click on individual mission events.  
+#   Maneuver events will be displayed in the Map Window.
+# ****************************************************************************
+# Things to try:
+# - Try to use less delta-V by making slight changes to the maneuver sequence.
+# - The final orbit is geosynchronous.  Change orbit number and / or condition 
+#   on the final maneuver to position the satellite in different final 
+#   longitude "slots".
+# ****************************************************************************
+
+start_date jun 24 2016
+start_time 12:00:00
+end_time 3 days
+
+# ****************************************************************************
+# The design of the proton upper stage with payload is based on information  
+# contained in the Proton Launch System Mission Planner s Guide:
+# https://mk0ilslaunchupbj5chy.kinstacdn.com/wp-content/uploads/pdf/PMPG%20Section%202.pdf
+# The baseline mission profile is based on that on p.2-13 
+# (first burn not modeled).
+# ****************************************************************************
+platform proton-m WSF_PLATFORM 
+   side red
+   icon stereo_satellite
+   
+   add mover WSF_SPACE_MOVER
+   
+      inclination 51.5 deg
+      semi_major_axis 6800 km
+      eccentricity 0.0
+      raan 90 deg  // tweak as necessary
+      mean_anomaly 125 deg
+      
+      maneuvering rocket
+         stage  // breeze-M APT (Auxiliary Propellant Tank; modeled as a separate stage, as it is jettisoned).
+            specific_impulse 326 seconds
+            thrust 19620 newtons
+            empty_mass 1125 kg  // APT Only
+            fuel_mass 10920 kg  // APT Only
+         end_stage
+         
+         stage  // breeze-M upper stage
+            specific_impulse 326 seconds
+            thrust 19620 newtons
+            empty_mass 1125 kg
+            fuel_mass 8300 kg
+         end_stage
+
+         stage  // payload with mr-107 aerojet small thrusters
+            specific_impulse 236 s
+            thrust           1028 newtons // assume x4
+            empty_mass       2000 kg
+            fuel_mass        500 kg       // guess
+         end_stage
+         
+      end_maneuvering
+       
+      mission_sequence
+         execute_at relative_time 0 seconds
+
+         maneuver tangent
+            execute_at ascending_node
+            finite
+            duration 18.2 minutes
+            update_interval 1 seconds
+            delta_v -0 m/s
+         end_maneuver
+
+         maneuver tangent
+            execute_at ascending_node
+            finite
+            duration 11.45 minutes
+            update_interval 1 seconds
+            delta_v 0 m/s
+         end_maneuver
+
+         event perform_staging
+            execute_at relative_time 0 seconds
+         end_event
+
+         maneuver tangent
+            execute_at relative_time 2 minutes
+            finite
+            duration 5 minutes
+            update_interval 1 seconds
+            delta_v 0 m/s
+         end_maneuver
+
+         maneuver change_inclination
+            execute_at descending_node
+            inclination 0 degrees
+         end_maneuver
+
+         maneuver circularize
+            execute_at descending_radius 42164 kilometers
+         end_maneuver
+
+      end_mission_sequence
+      
+   end_mover
+   
+end_platform
+
+script void WritePlatLLA(WsfPlatform aP)
+   writeln(TIME_NOW);
+   writeln( "    ", aP.Name(), " LLA: ", aP.Latitude(), ", ", aP.Longitude(), ", ", aP.Altitude());
+end_script
+
+script void OrbitalManeuverInitiated(WsfPlatform        aPlatform,
+                                     WsfSpaceMover      aSM,
+                                     WsfOrbitalManeuver aManeuver)
+   WritePlatLLA(aPlatform);                                               
+   writeln("    begin ", aManeuver.Type());
+   string comment = "End Maneuver: " + aManeuver.Type();
+   aPlatform.Comment(comment);
+end_script
+                                     
+script void OrbitalManeuverCompleted(WsfPlatform        aPlatform,
+                                     WsfSpaceMover      aSM,
+                                     WsfOrbitalManeuver aManeuver)
+   WritePlatLLA(aPlatform);                                          
+   writeln("    end ", aManeuver.Type());   
+   string comment = "End Maneuver: " + aManeuver.Type();
+   aPlatform.Comment(comment);
+   if (aManeuver.Type() == "TANGENT")
+   {
+   }
+   writeln("   Fuel: ", aPlatform.FuelMass());
+end_script
+
+event_output
+   file ./output/mission_design.evt
+   enable ORBITAL_MANEUVER_INITIATED  
+   #enable ORBITAL_MANEUVER_UPDATED  
+   enable ORBITAL_MANEUVER_COMPLETED  
+end_event_output
+
+observer   
+   enable ORBITAL_MANEUVER_INITIATED OrbitalManeuverInitiated 
+   enable ORBITAL_MANEUVER_COMPLETED OrbitalManeuverCompleted 
+end_observer 
+
+event_pipe
+   file ./output/mission_design.aer   
+end_event_pipe
+

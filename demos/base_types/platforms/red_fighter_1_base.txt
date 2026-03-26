@@ -1,0 +1,58 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+include_once ../weapons/aam/simple_a2a_missile.txt
+
+
+platform_type RED_FIGHTER_1_BASE WSF_PLATFORM
+
+   icon SU-27
+   category fighter
+
+   mover WSF_AIR_MOVER
+
+      roll_rate_limit               1 rad/sec
+      default_linear_acceleration   1.0 g
+      default_radial_acceleration   6.5 g
+      default_climb_rate            400 fps
+
+      # Mach 1.85 (1192.0 kts) at altitude, Janes Reference
+      maximum_speed                 1192.0 knots
+
+      # Ceiling, Janes Reference
+      maximum_altitude              59000 ft
+      minimum_altitude              50 ft
+
+      # g limit, Janes Reference
+      maximum_linear_acceleration   9 g
+
+      #no_pitch
+      at_end_of_path extrapolate
+
+   end_mover
+
+   fuel WSF_VARIABLE_RATE_FUEL
+      rate 7.0 lb/s
+      initial_quantity 19842 lb
+      #max internal fuel + max external stores load, Janes reference
+      #(4500 internal + 4500 external = 9000 kg)
+      maximum_quantity 19842 lb
+   end_fuel
+
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval  60 sec
+      update_interval 1 sec
+   end_processor
+
+   weapon int_missile SIMPLE_A2A_MISSILE_WEAPON end_weapon
+
+end_platform_type

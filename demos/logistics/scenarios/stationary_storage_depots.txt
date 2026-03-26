@@ -1,0 +1,156 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# === === === STATIONARY DEPOTS: === === ===
+
+# (To state the obvious, none of these players move, so
+#  processors to control their motions are not needed.);
+
+platform GalvestonPierFuelDepot STATIONARY_STORAGE_DEPOT
+
+   icon cmd_post
+   # This guy has an 'endless' supply of product, and will never need to request of anyone.
+   # He will supply to the <various> shuttling Ocean Going Tankers assigned to him.
+   # He will automatically supply to any requester, but only to one at a time.
+
+   position 29.3167n 94.7833w # Port of Galveston, TX
+
+   edit processor exchanger
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 20000000.0 kg
+            mass_rate                  277.8 kg/sec
+         end_commodity
+         initial_mass_quantity 10000000.0 kg # Half Full
+      end_container
+      edit transactor fuel_offering_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+      edit transactor fuel_requesting_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+   end_processor
+
+   on_initialize
+      doIntendToSupplyFuel = true;
+      fuelPossibleReceiversToAdd.PushBack("GalvestonBasedTanker_1");
+      fuelPossibleReceiversToAdd.PushBack("GalvestonBasedTanker_2");
+   end_on_initialize
+
+end_platform
+
+
+platform KeyWestPierFuelDepot STATIONARY_STORAGE_DEPOT
+
+   # This guy does _NOT_ have an 'endless' supply of product,
+   # so, on occasion, will need to request from a passing
+   # Ocean Going Tanker (OGT) to get topped off.
+
+   icon cmd_post
+
+   position 24.56709n 81.79592w # Fleming Key Cut, KW, Fl (Tanker Mooring Pier)
+
+   edit processor exchanger
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 10000000.0 kg
+            mass_rate                  250.0 kg/sec
+         end_commodity
+         initial_mass_quantity 1000000.0 kg # 1/10 Full
+      end_container
+      edit transactor fuel_offering_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+      edit transactor fuel_requesting_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+   end_processor
+
+   on_initialize
+      doIntendToSupplyFuel  = true;
+      doIntendToReceiveFuel = true;
+      fuelPossibleSuppliersToAdd.PushBack("GalvestonBasedTanker_1");
+      fuelPossibleSuppliersToAdd.PushBack("GalvestonBasedTanker_2");
+      fuelPossibleReceiversToAdd.PushBack("FuelSemi_1");
+      fuelPossibleReceiversToAdd.PushBack("FuelSemi_2");
+   end_on_initialize
+
+end_platform
+
+
+platform KeyWestAirportFuelTank STATIONARY_STORAGE_DEPOT
+
+   # This guy does _NOT_ have an 'endless' supply of product,
+   # so on occasion, will need to request from a passing
+   # Semi Tanker Truck (STT) to get topped off.
+
+   icon cmd_post
+
+   position 24.5515n 81.7594w # Slightly south of Key West Intl Airport
+
+   edit processor exchanger
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 1000000.0 kg
+            mass_rate                 150.0 kg/sec
+         end_commodity
+         initial_mass_quantity 200000.0 kg # 1/10 Full
+      end_container
+      edit transactor fuel_offering_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+      edit transactor fuel_requesting_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+   end_processor
+
+   on_initialize
+      doIntendToSupplyFuel  = true;
+      doIntendToReceiveFuel = true;
+      fuelPossibleReceiversToAdd.PushBack("FuelTruck_1");
+      fuelPossibleReceiversToAdd.PushBack("FuelTruck_2");
+      fuelPossibleSuppliersToAdd.PushBack("FuelSemi_1");
+      fuelPossibleSuppliersToAdd.PushBack("FuelSemi_2");
+   end_on_initialize
+
+end_platform
+
+## This is different, as it deals with services...
+platform KeyWestAirportPartsStorageDepot STATIONARY_STORAGE_DEPOT
+
+   # This guy has an 'endless' supply of product,
+   # and will never need to request of anyone.
+
+   icon cmd_post
+
+   position 24.5520n 81.7594w # Slightly south of Key West Intl Airport
+
+   edit processor exchanger
+      edit container good_engine_container
+         commodity ENGINE_REPAIR
+            maximum_quantity 200.0
+            rate              0.1 # One in ten seconds (VERY FAST!)
+         end_commodity
+         initial_quantity 200.0
+      end_container
+      edit transactor repair_offering_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+      edit transactor repair_requesting_transactor
+         time_out_clock_interval 3 sec
+      end_transactor
+   end_processor
+
+   on_initialize
+      doIntendToSupplyRepair = true;
+      repairPossibleReceiversToAdd.PushBack("Mechanic_1");
+      repairPossibleReceiversToAdd.PushBack("Mechanic_2");
+   end_on_initialize
+
+end_platform
+

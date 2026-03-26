@@ -1,0 +1,507 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# A constellation of sensing satellites monitors the build
+# and reports images to a commander
+
+processor REPORT WSF_SCRIPT_PROCESSOR
+      on_message
+         type WSF_VIDEO_MESSAGE
+            script
+               WsfVideoMessage message = (WsfVideoMessage)MESSAGE;
+               if((message.Image().ObjectCount() == 0) ||
+                  (!PLATFORM.CommEntry(0).PathExistsTo(WsfSimulation.FindPlatform("commander").Comm("commander").GetAddress())))
+               {
+                  SuppressMessage();
+               }
+            end_script
+      end_on_message
+end_processor
+
+# Satellite constellation #####################################################
+platform sat_sensor_1 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 0 deg
+      anomaly 0 deg
+   end_mover
+
+   add comm sat_sensor_1 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_1
+   end_comm
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add processor report REPORT
+      report_to commander via sat_sensor_1 to commander
+   end_processor
+
+end_platform
+
+platform sat_sensor_2 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 0 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_2 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_2
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_2 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_3 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 0 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_3 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_3
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_3 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_4 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 0 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_4 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_4
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_4 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_5 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 60 deg
+      anomaly 0 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_5 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_5
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_5 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_6 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 60 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_6 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_6
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_6 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_7 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 60 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_7 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_7
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_7 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_8 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 60 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_8 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_8
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_8 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_9 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 120 deg
+      anomaly 0 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_9 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_9
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_9 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_10 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 120 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_10 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_10
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_10 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_11 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 120 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_11 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_11
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_11 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_12 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 120 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_12 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_12
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_12 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_13 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 180 deg
+      anomaly 0 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_13 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_13
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_13 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_14 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 180 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_14 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_14
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_14 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_15 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 180 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_15 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_15
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_15 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_16 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 180 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_16 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_16
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_16 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_17 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 240 deg
+      anomaly 0 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_17 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_17
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_17 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_18 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 240 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_18 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_18
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_18 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_19 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 240 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_19 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_19
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_19 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_20 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 240 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_20 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_20
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_20 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_21 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 300 deg
+      anomaly 0 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_21 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_21
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_21 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_22 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 300 deg
+      anomaly 90 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_22 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_22
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_22 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_23 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 300 deg
+      anomaly 180 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_23 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_23
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_23 to commander
+   end_processor
+end_platform
+
+platform sat_sensor_24 SAT_SENSOR
+   commander commander
+   edit mover
+      raan 300 deg
+      anomaly 270 deg
+   end_mover
+
+   add sensor sat_sensor SAT_SENSOR
+      internal_link report
+   end_sensor
+
+   add comm sat_sensor_24 WSF_COMM_TRANSCEIVER
+      network_name sat_sensor_24
+   end_comm
+
+   add processor report REPORT
+      report_to commander via sat_sensor_24 to commander
+   end_processor
+end_platform
+

@@ -1,0 +1,53 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =====================================================================================================
+# =====================================================================================================
+# This is an example scenario to exercise and debug laser designation functionality across DIS.
+# This particular input file models the target only.  Shooter and Designator are separate.
+# =====================================================================================================
+# =====================================================================================================
+
+include target_type.txt
+
+realtime
+clock_rate 10.0
+
+# Since we wish to demonstrate navigation over uneven terrain, we must first pull in some DTED data:
+terrain
+   raw_dted 2 dted 39 -107 40 -106
+end_terrain
+
+laser_designations
+   debug_laser_designations
+   stale_out_interval 4 sec
+   update_interval    5 sec
+   debug_print_modulus 333
+end_laser_designations
+
+include ldt_dis.txt
+
+dis_interface
+   application  2
+   # You must specify an interface address for multicast. You can't use default.
+   multicast 227.1.1.1 10. 
+   port 3031
+end_dis_interface
+
+platform target TARGET
+end_platform
+
+event_output
+   file ldt_target_only.evt
+   enable WEAPON_TERMINATED
+   enable WEAPON_FIRED
+   enable PLATFORM_BROKEN
+end_event_output
+
+end_time 20 min

@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#  THIS BEHAVIOR ASSUMES THE FOLLOWING VARIABLES EXIST AND ARE SET
+#     #extern double mDesiredHeading;
+#     #extern double mDesiredAltitude;
+#     #extern double mDesiredSpeed;
+
+behavior pursue_fly_simple
+
+   script_debug_writes off
+
+   #script_variables
+   #end_script_variables
+
+   precondition
+      writeln_d(PLATFORM.Name(), " precondition pursue_fly_simple, T=", TIME_NOW);
+      return true;
+   end_precondition
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing pursue_fly_simple, T=", TIME_NOW);
+      extern double mDesiredHeading;
+      extern double mDesiredAltitude;
+      extern double mDesiredSpeed;
+      extern double mDesiredLinearAccel;
+      extern double mDesiredRadialAccel;
+      extern double mDesiredClimbDiveAngle;
+
+      writeln_d("flying heading: ", mDesiredHeading, ", alt: ", mDesiredAltitude, ", speed: ", mDesiredSpeed);
+      PLATFORM.GoToSpeed(mDesiredSpeed, mDesiredLinearAccel);
+      double altRateOfChange = PLATFORM.Speed() * MATH.Sin(mDesiredClimbDiveAngle);
+      PLATFORM.GoToAltitude(mDesiredAltitude, altRateOfChange);
+      PLATFORM.TurnToHeading(mDesiredHeading, mDesiredRadialAccel);
+   end_execute
+
+end_behavior

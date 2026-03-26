@@ -1,0 +1,302 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario determines the maximum range and maximum flight time
+# (endurance) for a P6DOF aircraft.
+#
+# This test is set up to use the FA_LGT model, but can be easily changed to use
+# another model by changing the include model type and the MOVER_TYPE variables.
+#
+# This test can execute a single run at a given altitude and speed, or execute
+# multiple runs at a variety of altitudes and/or speeds. This is controlled by
+# modifying the variables in the script_variables block.
+#
+# ******************************************************************************
+
+define_path_variable CASE range_endurance
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 12:00:00.000
+
+end_time 250 min
+
+# ------------------------------------------------------------------------------
+# Change the include file path and the MOVER_TYPE here, to execute the
+# FlightEnvelopeTest on a different p6dof model
+include_once p6dof_types/aircraft/fa-lgt/fa-lgt.txt
+$define MOVER_TYPE FA-LGT
+# ------------------------------------------------------------------------------
+
+# Use these variables to change the test parameters
+script_variables
+ 
+   # Altitude and Velocity settings
+   double initialAltitude_m = 20000.0*MATH.M_PER_FT();
+   double finalAltitude_m   = 50000.0*MATH.M_PER_FT();
+   double altitudeStep_m    = 10000.0*MATH.M_PER_FT();
+   
+   # Mach 1.0 is roughly 343 mps
+   double initialVelocity_mps = 300.0*MATH.MPS_PER_NMPH();
+   double finalVelocity_mps   = 600.0*MATH.MPS_PER_NMPH();
+   double velocityStep_mps    =  50.0*MATH.MPS_PER_NMPH();
+
+   # Fuel at which the aircraft is considered out of fuel, and it has reached
+   # maximum range.
+   double bingoFuelQuantity_lbs = 500;
+
+   # Tolerances for velocity and altitude
+   double altTolerance_m   = 5;
+   double velTolerance_mps = 5;
+
+end_script_variables
+
+# ------------------------------------------------------------------------------
+
+include_once p6dof_types/environment/p6dof_environment.txt
+include_once p6dof_types/scripts/p6dof_all_scripts.txt
+
+script_struct DataStruct
+   script_variables
+      double startAltitude_m = 0;
+      double startVelocity_mps = 0;
+      double flightTime_sec = 0;
+      double flightRange_km = 0;
+   end_script_variables
+end_script_struct
+
+script_variables
+   Map<int, DataStruct> mData = Map<int, DataStruct>();
+   int maxNumberOfRuns = 0;
+end_script_variables
+
+platform_type TEST_PLATFORM WSF_PLATFORM
+   spatial_domain air
+   mover WSF_P6DOF_MOVER
+      p6dof_object_type $<MOVER_TYPE:FA-LGT>$
+   end_mover
+
+   edit mover
+      engines_on true
+   end_mover
+
+   on_update
+      if(mData.Exists(Index()))
+      {
+         if(GetTotalFuelRemaining_lbs(PLATFORM) < bingoFuelQuantity_lbs)
+         {
+            DataStruct value = mData.Get(Index());
+            value.flightTime_sec = TIME_NOW;
+            value.flightRange_km = GetRangeSinceStart_km(PLATFORM);
+
+            # Run has completed, therefore remove the platform, so that the
+            # simulation will complete quicker
+            DeletePlatform();
+         }
+      }
+   end_on_update
+
+end_platform_type
+
+//Create the test platforms
+execute at_time .01 sec absolute
+   for(double alt = initialAltitude_m; alt <= finalAltitude_m; alt = alt + altitudeStep_m)
+   {
+      for(double vel = initialVelocity_mps; vel <= finalVelocity_mps; vel = vel + velocityStep_mps)
+      {
+         maxNumberOfRuns = maxNumberOfRuns + 1;
+
+         string inputStr = write_str("update_interval 0.01 sec ",
+                                     "wash_in_conditions enable ",
+                                     "route ",
+                                     "position 20.920n  158.20w altitude ", alt, " m speed ",  vel, " m/s ",
+                                     "position 20.930n  158.20w altitude ", alt, " m speed ",  vel, " m/s ",
+                                     "end_route");
+
+         WsfPlatform platform1 = WsfSimulation.CreatePlatform("TEST_PLATFORM");
+         platform1.ProcessInput(inputStr);
+         WsfPlatform platform2 = WsfSimulation.AddPlatform(platform1, "");
+         DataStruct temp = DataStruct();
+         temp.startAltitude_m = alt;
+         temp.startVelocity_mps = vel;
+         mData.Set(platform2.Index(), temp);
+
+         writeln("Creating platform ", maxNumberOfRuns, " at alt=", alt, " m at speed of ", vel, " m/sec");
+      }
+   }
+end_execute
+
+# This checks to see if aircraft cannot hold the commanded speed and/or altitudes
+execute at_time 5.0 sec absolute
+
+   writeln(" ");
+   writeln("Checking platforms at time = ", TIME_NOW);
+   writeln("There should be ", maxNumberOfRuns, " platforms. There are ", WsfSimulation.PlatformCount(), " platforms running...");
+   writeln(" ");
+
+   Array<int> platformsToRemove = Array<int>();
+
+   for(int i = 0; i < WsfSimulation.PlatformCount(); i = i + 1)
+   {
+      WsfPlatform platform = WsfSimulation.PlatformEntry(i);
+      if(platform.IsNull())
+      {
+         writeln("Platform not found.");
+      }
+      else
+      {
+         if(mData.Exists(platform.Index()))
+         {
+            DataStruct temp = mData.Get(platform.Index());
+            double startAlt = temp.startAltitude_m;
+            double startVel = temp.startVelocity_mps;
+            bool removePlatform = false;
+
+            if(platform.Altitude() < startAlt - altTolerance_m ||
+               platform.Altitude() > startAlt + altTolerance_m)
+            {
+               writeln("Platform: ", platform.Name(), " unable to hold altitude of ", startAlt, " m (", startAlt*MATH.FT_PER_M(), " ft)",
+                "with a speed of ", startVel, " m/s (", startVel*MATH.NMPH_PER_MPS(), " KTAS)");
+               removePlatform = true;
+            }
+            else if(platform.VelocityNED().X() < startVel - velTolerance_mps ||
+               platform.VelocityNED().X() > startVel + velTolerance_mps)
+            {
+               writeln("Platform: ", platform.Name(), " unable to hold velocity of ", startVel, " m/s (", startVel*MATH.NMPH_PER_MPS(), " KTAS)",
+                "at an altitude of ", startAlt, " m (", startAlt*MATH.FT_PER_M(), " ft)");
+               removePlatform = true;
+            }
+            else
+            {
+               writeln("Platform: ", platform.Name(), " is flying at an altitude of ", startAlt, " m (", startAlt*MATH.FT_PER_M(), " ft)",
+                "with a speed of ", startVel, " m/s (", startVel*MATH.NMPH_PER_MPS(), " KTAS)");
+            }
+
+            if(removePlatform)
+            {
+               platformsToRemove.PushBack(platform.Index());
+            }
+         }
+         else
+         {
+            writeln("Unable to find platform with ", platform.Index(), " index.");
+            platformsToRemove.PushBack(platform.Index());
+         }
+      }
+   }
+
+   # Remove platforms so that the simulation can run faster with less p6dof movers
+   foreach (int index in platformsToRemove)
+   {
+      WsfSimulation.DeletePlatform(index);
+   }
+   
+end_execute
+
+execute at_time 60.0 sec absolute
+   writeln(" ");
+   writeln("Checking platforms at time = ", TIME_NOW);
+   writeln("There are ", WsfSimulation.PlatformCount(), " platforms still running...");
+end_execute
+
+execute at_time 300.0 sec absolute
+   writeln(" ");
+   writeln("Checking platforms at time = ", TIME_NOW);
+   writeln("There are ", WsfSimulation.PlatformCount(), " platforms still running...");
+end_execute
+
+execute at_time 600.0 sec absolute
+   writeln(" ");
+   writeln("Checking platforms at time = ", TIME_NOW);
+   writeln("There are ", WsfSimulation.PlatformCount(), " platforms still running...");
+end_execute
+
+execute at_time 900.0 sec absolute
+   writeln(" ");
+   writeln("Checking platforms at time = ", TIME_NOW);
+   writeln("There are ", WsfSimulation.PlatformCount(), " platforms still running...");
+end_execute
+
+script void RunsCompleted()
+   DataStruct maxRange = DataStruct();
+   DataStruct maxEndurance = DataStruct();
+
+   foreach (int key : DataStruct value in mData)
+   {
+      if(value.flightTime_sec > maxEndurance.flightTime_sec)
+      {
+         maxEndurance.startAltitude_m = value.startAltitude_m;
+         maxEndurance.startVelocity_mps = value.startVelocity_mps;
+         maxEndurance.flightTime_sec = value.flightTime_sec;
+         maxEndurance.flightRange_km = value.flightRange_km;
+      }
+      if(value.flightRange_km > maxRange.flightRange_km)
+      {
+         maxRange.startAltitude_m = value.startAltitude_m;
+         maxRange.startVelocity_mps = value.startVelocity_mps;
+         maxRange.flightTime_sec = value.flightTime_sec;
+         maxRange.flightRange_km = value.flightRange_km;
+      }
+      //For information on all Flights uncomment this block
+      /*
+      writeln("***************************************");
+      writeln("   Flight Information for index ", key);
+      writeln("Max Range      : ", value.flightRange_km, " km");
+      writeln("Flight Time    : ", value.flightTime_sec, " sec");
+      writeln("Start Altitude : ", value.startAltitude_m, " m");
+      writeln("Start Speed    : ", value.startVelocity_mps, " m/s");
+      writeln("***************************************");
+      */
+   }
+
+   writeln("Total Run Count : ", maxNumberOfRuns);
+
+   if(maxNumberOfRuns > 1)
+   {
+      //If multiple runs were done, output the maxRange and maxEndurance runs only
+      writeln("***************************************");
+      writeln("   Max Range Flight Information");
+      writeln("Max Range      : ", maxRange.flightRange_km,  " km  (", 1000.0 * maxRange.flightRange_km * MATH.NM_PER_M(), " nm)");
+      writeln("Flight Time    : ", maxRange.flightTime_sec / 60.0, " minutes (", maxRange.flightTime_sec / 3600.0, "hrs)");
+      writeln("Start Altitude : ", maxRange.startAltitude_m, " meters  (", maxRange.startAltitude_m * MATH.FT_PER_M(), " ft)");
+      writeln("Start Speed    : ", maxRange.startVelocity_mps, " m/s  (", maxRange.startVelocity_mps * MATH.NM_PER_M() * 3600.0," knots)");
+      writeln("***************************************");
+      writeln("   Max Endurance Flight Information");
+      writeln("Max Range      : ", maxEndurance.flightRange_km,  " km  (", 1000.0 * maxEndurance.flightRange_km * MATH.NM_PER_M(), " nm)");
+      writeln("Flight Time    : ", maxEndurance.flightTime_sec / 60.0,   " minutes (", maxEndurance.flightTime_sec / 3600.0, "hrs)");
+      writeln("Start Altitude : ", maxEndurance.startAltitude_m, " meters  (", maxEndurance.startAltitude_m * MATH.FT_PER_M(), " ft)");
+      writeln("Start Speed    : ", maxEndurance.startVelocity_mps, " m/s  (", maxEndurance.startVelocity_mps * MATH.NM_PER_M() * 3600.0," knots)");
+      writeln("***************************************");
+   }
+   else
+   {
+      //If only 1 run was done, just output the information once
+      writeln("***************************************");
+      writeln("   Flight Information ");
+      writeln("Max Range      : ", maxRange.flightRange_km, " km  (", 1000.0 * maxRange.flightRange_km * MATH.NM_PER_M(), " nm)");
+      writeln("Flight Time    : ", maxRange.flightTime_sec / 60.0, " minutes (", maxRange.flightTime_sec / 3600.0, "hrs)");
+      writeln("Start Altitude : ", maxRange.startAltitude_m, " meters  (", maxRange.startAltitude_m * MATH.FT_PER_M(), " ft)");
+      writeln("Start Speed    : ", maxRange.startVelocity_mps, " m/s  (", maxRange.startVelocity_mps * MATH.NM_PER_M() * 3600.0," knots)");
+      writeln("***************************************");
+   }
+end_script
+
+# ------------------------------------------------------------------------------
+
+# Since we are deleted the platforms once they complete, there will no entities
+# left in the scenario when the last platform is delete, thus the
+# SimulationComplete will trigger, without much delay.
+script void SimulationComplete()
+   RunsCompleted();
+end_script
+
+observer
+   enable SIMULATION_COMPLETE SimulationComplete
+end_observer

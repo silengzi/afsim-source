@@ -1,0 +1,46 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# while the turret and tank are visually represented as a system
+# of articulations, it should be mentioned that the simulated
+# parts are independent
+platform_type red_tank_type WSF_PLATFORM
+   icon demo_tank
+   side red
+
+   visual_part turret WSF_VISUAL_PART
+   end_visual_part
+
+   visual_part gun WSF_VISUAL_PART
+   end_visual_part
+
+   processor part_updater WSF_SCRIPT_PROCESSOR
+      update_interval 1 sec
+      on_update
+         WsfPlatform blue_flyer = WsfSimulation.FindPlatform("blue_flyer");
+         // find the target platform
+         if (blue_flyer.IsValid())
+         {
+            double az = PLATFORM.RelativeAzimuthOf(blue_flyer.Location());
+            double el = PLATFORM.RelativeElevationOf(blue_flyer.Location());
+            PLATFORM.VisualPart("turret").SetYaw(az);
+            PLATFORM.VisualPart("gun").SetPitch(el);
+         }
+      end_on_update
+   end_processor
+end_platform_type
+
+platform tank1 red_tank_type
+   heading 135 deg
+   position 30.1n 90.2w altitude 0 ft msl
+end_platform
+
+platform tank2 red_tank_type
+   position 29.8n 90.1w altitude 0 ft msl
+end_platform

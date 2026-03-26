@@ -1,0 +1,594 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+   #variable pd
+   #script_variable pd 0.0
+
+   #variable detection_threshold
+   #script_variable detection_threshold 300.0
+
+   #variable required_rcs
+   #script_variable required_rcs 300.0
+
+   #variable required_jammer_power
+   #script_variable required_jammer_power -300.0
+
+   #variable radar_signature
+   #script_variable radar_signature -300.0
+   #variable optical_signature
+   #script_variable optical_signature -300.0
+   #variable infrared_signature
+   #script_variable infrared_signature -300.0
+   #variable signal_power
+
+   #script_variable signal_power -300.0
+   #variable clutter_power
+   #script_variable clutter_power -300.0
+   #variable noise_power
+   #script_variable noise_power -300.0
+
+   #variable interference_power
+   #script_variable interference_power -300.0
+   #variable interference_to_signal
+   #script_variable interference_to_signal -300.0
+   #variable interference_to_mds
+   #script_variable interference_to_mds -300.0
+
+   #variable jammer_power
+   #script_variable jammer_power -300.0
+   #variable jammer_to_signal
+   #script_variable jammer_to_signal -300.0
+   #variable jammer_to_mds
+   #script_variable jammer_to_mds -300.0
+
+   #variable noise_jammer_power
+   #script_variable noise_jammer_power -300.0
+   #variable noise_jammer_to_signal
+   #script_variable noise_jammer_to_signal -300.0
+   #variable noise_jammer_to_mds
+   #script_variable noise_jammer_to_mds -300.0
+
+   #variable pulse_jammer_power
+   #script_variable pulse_jammer_power -300.0
+   #variable pulse_jammer_to_signal
+   #script_variable pulse_jammer_to_signal -300.0
+   #variable pulse_jammer_to_mds
+   #script_variable pulse_jammer_to_mds -300.0
+
+   #variable coherent_jammer_power
+   #script_variable coherent_jammer_power -300.0
+   #variable coherent_jammer_to_noise
+   #script_variable coherent_jammer_to_noise -300.0
+   #variable coherent_jammer_to_mds
+   #script_variable coherent_jammer_to_signal -300.0
+   #variable coherent_jammer_to_mds
+   #script_variable coherent_jammer_to_mds -300.0
+
+   #variable signal_to_noise
+   #script_variable signal_to_noise -300.0
+   #variable signal_to_interference
+   #script_variable signal_to_interference -300.0
+   #variable signal_at_target
+   #script_variable signal_at_target -300.0
+
+   #variable pixel_count
+   #script_variable pixel_count 0.0
+
+   #variable background_radiant_intensity
+   #script_variable background_radiant_intensity 0.0
+   #variable contrast_radiant_intensity
+   #script_variable contrast_radiant_intensity -999999.0
+
+   #variable attenuation_factor
+   #script_variable attenuation_factor -300.0
+   #variable propagation_factor
+   #script_variable propagation_factor -300.0
+
+   #variable transmit_antenna_gain
+   #script_variable transmit_antenna_gain -300.0
+   #variable receive_antenna_gain
+   #script_variable receive_antenna_gain -300.0
+
+   #variable slant_range
+   #script_variable slant_range -999.0
+
+   #variable time
+   #script_variable time 0.0
+
+
+script_variables
+   double mRequiredRCS_DetectionReference = 3.0; // dB
+end_script_variables
+
+# pd
+script double pd(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.Succeeded() &&
+       (aResult.Pd() > aResult.RequiredPd()))
+   {
+      return MATH.Max(aCurrentValue, aResult.Pd());
+   }
+   return aCurrentValue;
+end_script
+
+# detection_threhold
+script double detection_threshold(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.DetectionThreshold() > 0.0)
+   {
+      double value = aResult.DetectionThreshold();
+      if (Math.Fabs(aCurrentValue -300.0) > 0.001)
+      {
+         return MATH.Min(aCurrentValue, value);
+      }
+      return value;
+   }
+   return aCurrentValue;
+end_script
+
+# detection_threhold
+script double required_rcs(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.SignalToNoise() > -300.0) &&
+       (aResult.RadarSignature() > 0.0))
+    {
+       double value = Math.LinearToDB(aResult.RadarSignature()) + (mRequiredRCS_DetectionReference - aResult.SignalToNoise());
+       return MATH.Min(aCurrentValue, value);
+    }
+   return aCurrentValue;
+end_script
+
+# required_jammer_power
+script double required_jammer_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   writeln("Not implemented use 'variable required_jammer_power' instead");
+   return aCurrentValue;
+end_script
+
+# radar_signature
+script double radar_signature(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   writeln(aResult.RadarSignature(),  ":", aCurrentValue);
+   if (aResult.RadarSignature() > 0.0)
+   {
+      return Math.Max(aCurrentValue, MATH.LinearToDB(aResult.RadarSignature()));
+   }
+   return aCurrentValue;
+end_script
+
+
+# optical_signature
+script double optical_signature(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.OpticalSignature() > 0.0)
+   {
+      return Math.Max(aCurrentValue, MATH.LinearToDB(aResult.OpticalSignature()));
+   }
+   return aCurrentValue;
+end_script
+
+# optical_signature
+script double infrared_signature(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.InfraredSignature() > 0.0)
+   {
+      return Math.Max(aCurrentValue, MATH.LinearToDB(aResult.InfraredSignature()));
+   }
+   return aCurrentValue;
+end_script
+
+# signal_power
+script double signal_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.RcvdPower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# clutter_power
+script double clutter_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.ClutterPower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.ClutterPower());
+   }
+   return aCurrentValue;
+end_script
+
+# noise_power
+script double noise_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.RcvrNoise() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.RcvrNoise());
+   }
+   return aCurrentValue;
+end_script
+
+# interference_power
+script double interference_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.InterferencePower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.InterferencePower());
+   }
+   return aCurrentValue;
+end_script
+
+# interference_to_signal
+script double interference_to_signal(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvdPower() > -300.0) &&
+       (aResult.InterferencePower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.InterferencePower() - aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# interference_to_mds
+script double interference_to_mds(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.DetectionThreshold() > -300.0) &&
+       (aResult.RcvdPower() > -300.0) &&
+       (aResult.InterferencePower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.InterferencePower() - (aResult.RcvdPower() + aResult.DetectionThreshold()));
+   }
+   return aCurrentValue;
+end_script
+
+# jammer_power
+script double jammer_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.NoiseJammerPower() > -300.0) ||
+       (aResult.PulseJammerPower() > -300.0))
+   {
+      double jamPower = 0.0;
+      if (aResult.NoiseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      if (aResult.PulseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      return Math.Max(aCurrentValue, Math.LinearToDB(jamPower));
+   }
+   return aCurrentValue;
+end_script
+
+# jammer_to_signal
+script double jammer_to_signal(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvdPower() > -300.0) &&
+       ((aResult.NoiseJammerPower() > -300.0) ||
+        (aResult.PulseJammerPower() > -300.0)))
+   {
+      double jamPower = 0.0;
+      if (aResult.NoiseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      if (aResult.PulseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      return Math.Max(aCurrentValue, Math.LinearToDB(jamPower) - aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# jammer_to_signal
+script double jammer_to_mds(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.DetectionThreshold() > -300.0) &&
+       (aResult.RcvdPower() > -300.0) &&
+       ((aResult.NoiseJammerPower() > -300.0) ||
+        (aResult.PulseJammerPower() > -300.0)))
+   {
+      double jamPower = 0.0;
+      if (aResult.NoiseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      if (aResult.PulseJammerPower() > -300.0)
+      {
+         jamPower = jamPower + Math.DB_ToLinear(aResult.NoiseJammerPower());
+      }
+      return Math.Max(aCurrentValue, Math.LinearToDB(jamPower) - (aResult.RcvdPower() + aResult.DetectionThreshold()));
+   }
+   return aCurrentValue;
+end_script
+
+# noise_jammer_power
+script double noise_jammer_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.NoiseJammerPower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.NoiseJammerPower());
+   }
+   return aCurrentValue;
+end_script
+
+# noise_jammer_to_signal
+script double noise_jammer_to_signal(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvdPower() > -300.0) &&
+       (aResult.NoiseJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.NoiseJammerPower() - aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# noise_jammer_to_mds
+script double noise_jammer_to_mds(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.DetectionThreshold() > -300.0) &&
+       (aResult.RcvdPower() > -300.0) &&
+       (aResult.NoiseJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.NoiseJammerPower() - (aResult.RcvdPower() + aResult.DetectionThreshold()));
+   }
+   return aCurrentValue;
+end_script
+
+# pulse_jammer_power
+script double pulse_jammer_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.PulseJammerPower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.PulseJammerPower());
+   }
+   return aCurrentValue;
+end_script
+
+# pulse_jammer_to_signal
+script double pulse_jammer_to_signal(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvdPower() > -300.0) &&
+       (aResult.PulseJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.PulseJammerPower() - aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# pulse_jammer_to_mds
+script double pulse_jammer_to_mds(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.DetectionThreshold() > -300.0) &&
+       (aResult.RcvdPower() > -300.0) &&
+       (aResult.PulseJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.PulseJammerPower() - (aResult.RcvdPower() + aResult.DetectionThreshold()));
+   }
+   return aCurrentValue;
+end_script
+
+# coherent_jammer_power
+script double coherent_jammer_power(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.CoherentJammerPower() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.CoherentJammerPower());
+   }
+   return aCurrentValue;
+end_script
+
+# coherent_jammer_to_noise
+script double coherent_jammer_to_noise(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvrNoise() > -300.0) &&
+       (aResult.CoherentJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.CoherentJammerPower() - aResult.RcvrNoise());
+   }
+   return aCurrentValue;
+end_script
+
+# coherent_jammer_to_signal
+script double coherent_jammer_to_signal(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvdPower() > -300.0) &&
+       (aResult.CoherentJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.CoherentJammerPower() - aResult.RcvdPower());
+   }
+   return aCurrentValue;
+end_script
+
+# pulse_jammer_to_mds
+script double coherent_jammer_to_mds(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.DetectionThreshold() > -300.0) &&
+       (aResult.RcvdPower() > -300.0) &&
+       (aResult.CoherentJammerPower() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.CoherentJammerPower() - (aResult.RcvdPower() + aResult.DetectionThreshold()));
+   }
+   return aCurrentValue;
+end_script
+
+# signal_to_noise
+script double signal_to_noise(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.SignalToNoise() > -300.0)
+   {
+      return Math.Max(aCurrentValue, aResult.SignalToNoise());
+   }
+   return aCurrentValue;
+end_script
+
+# signal_to_interference
+script double signal_to_interference(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.SignalToInterference() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.SignalToInterference());
+   }
+   return aCurrentValue;
+end_script
+
+# signal_at_target
+script double signal_at_target(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.PowerDensityAtTarget() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.PowerDensityAtTarget());
+   }
+   return aCurrentValue;
+end_script
+
+# pixel_count
+script double pixel_count(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   return Math.Max(aCurrentValue, aResult.PixelCount());
+end_script
+
+# background_radiant_intensity
+script double background_radiant_intensity(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.SignalToNoise() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.BackgroundRadiantIntensity());
+   }
+   return aCurrentValue;
+end_script
+
+# contrast_radiant_intensity
+script double contrast_radiant_intensity(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.SignalToNoise() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.ContrastRadiantIntensity());
+   }
+   return aCurrentValue;
+end_script
+
+# attenuation_factor
+script double attenuation_factor(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.AbsorptionFactor() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.AbsorptionFactor());
+   }
+   return aCurrentValue;
+end_script
+
+# propagation_factor
+script double propagation_factor(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.PropagationFactor() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.PropagationFactor());
+   }
+   return aCurrentValue;
+end_script
+
+# transmit_antenna_gain
+script double transmit_antenna_gain(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.XmtrBeamGain() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.XmtrBeamGain());
+   }
+   return aCurrentValue;
+end_script
+
+# receive_antenna_gain
+script double receive_antenna_gain(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if ((aResult.RcvrBeamGain() > -300.0))
+   {
+      return Math.Max(aCurrentValue, aResult.RcvrBeamGain());
+   }
+   return aCurrentValue;
+end_script
+
+#         cVAR_DOWN_RANGE
+#         cVAR_CROSS_RANGE
+#         cVAR_GROUND_RANGE
+#         cVAR_SLANT_RANGE
+
+# slant_range
+script double slant_range(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.TargetPlatform().IsNull())
+   {
+      if (aResult.RcvrToXmtrRange() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToXmtrRange());
+      }
+   }
+   else
+   {
+      if (aResult.RcvrToTargetRange() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToTargetRange());
+      }
+   }
+   return aCurrentValue;
+end_script
+
+# azimuth_angle
+script double azimuth_angle(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.TargetPlatform().IsNull())
+   {
+      if (aResult.RcvrToXmtrApparentAzimuth() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToXmtrApparentAzimuth());
+      }
+   }
+   else
+   {
+      if (aResult.RcvrToTargetApparentAzimuth() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToTargetApparentAzimuth());
+      }
+   }
+   return aCurrentValue;
+end_script
+
+# elevation_angle
+script double elevation_angle(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   if (aResult.TargetPlatform().IsNull())
+   {
+      if (aResult.RcvrToXmtrApparentElevation() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToXmtrApparentElevation());
+      }
+   }
+   else
+   {
+      if (aResult.RcvrToTargetApparentElevation() > 0.0)
+      {
+         return Math.Max(aCurrentValue, aResult.RcvrToTargetApparentAzimuth());
+      }
+   }
+   return aCurrentValue;
+end_script
+
+#         cVAR_TARGET_SENSOR_GROUND_RANGE
+#         cVAR_TARGET_SENSOR_SLANT_RANGE
+#         cVAR_TARGET_SENSOR_AZIMUTH_ANGLE
+#         cVAR_TARGET_SENSOR_ELEVATION_ANGLE
+#         cVAR_SENSOR_LATITUDE
+#         cVAR_SENSOR_LONGITUDE
+#         cVAR_SENSOR_ALTITUDE
+#         cVAR_SENSOR_SPEED
+#         cVAR_SENSOR_HEADING
+#         cVAR_SENSOR_PITCH
+#         cVAR_SENSOR_ROLL
+#         cVAR_TARGET_LATITUDE
+#         cVAR_TARGET_LONGITUDE
+#         cVAR_TARGET_ALTITUDE
+#         cVAR_TARGET_SPEED
+#         cVAR_TARGET_HEADING
+#         cVAR_TARGET_PITCH
+#         cVAR_TARGET_ROLL
+#         cVAR_ANGLE
+#         cVAR_GRAZING_ANGLE
+#         cVAR_SAR_DWELL_TIME
+#         cVAR_SAR_RESOLUTION
+#         cVAR_SAR_CLUTTER_TO_NOISE
+#         cVAR_SAR_DOPPLER_FOLDOVER
+#         cVAR_SAR_CAN_IMAGE
+
+# time
+script double time(WsfPlatform aPlatform, WsfSensor aSensor, WsfPlatform aTarget, WsfSensorInteraction aResult, double aCurrentValue)
+   return TIME_NOW;
+end_script
+
+#         cVAR_MASKING_STATUS
+#         cVAR_LAND_COVER
+#         cVAR_TERRAIN
+
+#script double jammer_to_mds(WsfPlatform aPlatform,
+# WsfSensor aSensor,
+# WsfPlatform aTarget,
+# WsfSensorInteraction aResult,
+# double aCurrentValue)
+#   if ((aResult.DetectionThreshold() > -300.0) &&
+#       (aResult.RcvrNoise() > -300.0) &&
+#       (aResult.NoiseJammerPower() > -300.0) &&
+#       (aResult.NoiseJammerPower() != 0.0))
+#   {
+#      double MDS =  aResult.DetectionThreshold() + aResult.RcvrNoise();
+#      return aResult.NoiseJammerPower() - MDS;
+#   }
+#   return -300.0;  // In dB
+#end_script
+

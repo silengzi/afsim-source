@@ -1,0 +1,112 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+# NOT FOR EXPORT (ITAR).
+
+#This is an unclassified model of a blue_adv_cruise_missile weapon
+# The LAR logic to fire the weapon is as follows:
+# 5,000 ft - 5 nmiles
+# 10,000 ft - 15 nmiles
+# 20,000 ft - 30 nmiles
+# 30,000 ft - 45 nmiles
+# 40,000 ft - 60 nmiles
+
+#The following are the internet sources and data used to create the model
+#http://www.navy.mil/navydata/fact_display.asp?cid=2100&tid=300&ct=2 (states max range as 63nm)
+#Length: 160 inches (4.1 meters).
+#Diameter: Box-shaped, 13 inches (33.02 cm) on a side.
+#Wingspan: 106 inches (2.69 meters).
+#Weight: 1,065 pounds (approximate).
+#Range: Low-altitude, 12 nautical miles; high-altitude, 63 nautical miles.
+#Guidance System: GPS/INS (Global Position/Inertial), Terminal IR Seeker 
+
+#http://en.wikipedia.org/wiki/AGM-154_Joint_Standoff_Weapon
+#http://www.deagel.com/Standoff-Weapons/AGM-154C-JSOW_a001153003.aspx
+
+radar_signature BLUE_ADV_CRUISE_MISSILE_RADAR_SIG
+  constant 1 m^2
+end_radar_signature
+
+aero BLUE_ADV_CRUISE_MISSILE_WINGS_FOLDED WSF_AERO #used for initial drop from aircraft
+  reference_area      169 in2 #13x13box
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.40
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max              3.00    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero BLUE_ADV_CRUISE_MISSILE_WINGS_EXTENDED WSF_AERO
+   reference_area      169 in2 #13x13box
+   cd_zero_subsonic    0.100
+   cd_zero_supersonic  0.40
+   mach_begin_cd_rise  0.800
+   mach_end_cd_rise    1.200
+   mach_max_supersonic 2.000
+   cl_max              15.00    # give it lift and adjusted to get 63nm at 40kft@.8m
+   aspect_ratio        50.000    # unknown
+end_aero
+
+
+weapon_effects BLUE_ADV_CRUISE_MISSILE_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 30 m 0.8
+end_weapon_effects
+
+
+platform_type BLUE_ADV_CRUISE_MISSILE WSF_PLATFORM
+   icon JSOW
+   side blue
+   radar_signature BLUE_ADV_CRUISE_MISSILE_RADAR_SIG
+   mover WSF_GUIDED_MOVER
+      update_interval 0.1 secs
+      stage 1
+         aero BLUE_ADV_CRUISE_MISSILE_WINGS_FOLDED
+         total_mass 0 lbs
+         pre_ignition_coast_time 0.1 sec
+         pre_separation_coast_time 10.0 sec #give it 10 secs to open wings
+      end_stage
+      stage 2
+         aero BLUE_ADV_CRUISE_MISSILE_WINGS_EXTENDED
+         total_mass 1065 lbs
+      end_stage
+   end_mover
+   processor guidance WSF_GUIDANCE_COMPUTER
+       #show_status
+       #show_evaluations
+       #debug
+        phase LAUNCH
+            maximum_commanded_g          1.2 g
+            next_phase GLIDE when phase_time > 10 sec
+        end_phase
+
+        phase GLIDE
+            maximum_commanded_g           3 g
+            maximum_descent_rate          5 fps
+            g_bias                         1.03
+            #next_phase TERMINAL  when los_target_angle > 25 deg
+            next_phase TERMINAL  when target_slant_range < 5 nm
+        end_phase
+
+         phase TERMINAL
+           proportional_navigation_gain  5 # 10
+           maximum_pitch_angle           80 deg
+           maximum_commanded_g           10 g
+         end_phase
+   end_processor
+   processor fuse WSF_GROUND_TARGET_FUSE end_processor
+end_platform_type
+
+
+# Define the explicit weapon from the type def...
+weapon BLUE_ADV_CRUISE_MISSILE WSF_EXPLICIT_WEAPON
+   launched_platform_type BLUE_ADV_CRUISE_MISSILE
+   weapon_effects        BLUE_ADV_CRUISE_MISSILE_EFFECT
+end_weapon

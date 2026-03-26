@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Prints and array that contains orbital elements.
+# Typically returned from WsfOrbitalLaunchComputer.
+
+script void PrintOrbitalElements(Array<double> aElements,
+                                 string        aIndent)
+  double a = aElements[0];
+  double e = aElements[1];
+  double b = a * (1 - e);
+  writeln(aIndent, "Orbital Elements");
+  writeln(aIndent, "  Semi-Major Axis      : ", aElements[0] * 0.001, " km",
+                   "  (Semi-Minor Axis: ", b * 0.001, " km)");
+  writeln(aIndent, "  Eccentricity         : ", aElements[1]);
+  writeln(aIndent, "  Inclination          : ", aElements[2]);
+  writeln(aIndent, "  Mean Anomaly         : ", aElements[3]);
+  writeln(aIndent, "  RAAN                 : ", aElements[4]);
+  writeln(aIndent, "  Argument of Periapsis: ", aElements[5]);
+end_script
+
+script void PrintLaunchComputerResults(WsfOrbitalLaunchComputer aComputer)
+
+   writeln("");
+   writeln("T=", TIME_NOW, " Launch Computer Results");
+
+   # The initial heading at which the vehicle is to go.
+   writeln("  Launch Heading           : ", aComputer.LaunchHeading(), " deg (Bearing: ", aComputer.LauncherBearing(), " deg)");
+
+   # The loft angle needed for orbit insertion (used by the guidance computer on the launch vehicle)
+   writeln("  Loft Angle               : ", aComputer.LoftAngle(), " deg");
+
+   # The inclination angle of the resulting orbit
+   writeln("  Inclination              : ", aComputer.Inclination(), " deg");
+
+   # The estimated time of flight for the vehicle to reach orbit
+   writeln("  Insertion Time Of Flight : ", aComputer.InsertionTimeOfFlight());
+
+   # The estimated location where the vehicle will reach orbit
+   writeln("  Insertion Location       : ", aComputer.InsertionLocation());
+
+   # The estimated speed of the vehicle at the insertion point in the inertial and fixed frames
+   writeln("  Insertion Speed          : ", aComputer.InsertionSpeed(), " m/s (Inertial); ",
+                                            aComputer.InsertionSpeedFixed(), " m/s (Fixed)");
+
+   # The estimated heading of the vehicle at the insertion point
+   writeln("  Insertion Heading        : ", aComputer.InsertionHeading(), " deg");
+
+   # The estimated pitch of the vehicle at the insertion point
+   writeln("  Insertion Pitch          : ", aComputer.InsertionPitch(), " deg");
+
+   # The estimated velocity that could be gain after reaching the insertion point
+   # if the engines continued running.
+   writeln("  Insertion Residual DeltaV: ", aComputer.InsertionResidualDeltaV(), " m/s");
+
+   # The estimated mass of the fuel remaining at the insertion point.
+   writeln("  Insertion Fuel Remaning  : ", aComputer.InsertionFuelRemaining(), " kg");
+
+   # The estimated time the engines *could* have run after the insertion point.
+   writeln("  Insertion Time Remaning  : ", aComputer.InsertionTimeRemaining(), " sec");
+
+   # The orbital elements...
+   Array<double> oe = aComputer.OrbitalElements();
+   PrintOrbitalElements(oe, "  ");
+end_script

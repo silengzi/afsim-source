@@ -1,0 +1,70 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# An example of a two stage tbm..
+
+platform_type TBM2 WSF_PLATFORM
+   icon Scud_Missile
+
+   // The following 3 scripts are totally optional and will be invoked by the
+   // TBM mover if they are defined. You can put pretty much whatever they want
+   // in here. The single argument to each is the stage number [1..n].
+   //
+   // For instance, you could alter the signature state of the vehicle to
+   // reflect the conditions (assuming, of course, that you define multiple
+   // signatures for your platform!).
+
+   script void on_stage_ignition(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " ignition");
+   end_script
+
+   script void on_stage_burnout(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " burnout");
+   end_script
+
+   script void on_stage_separation(int aStage)
+      writeln("T=", TIME_NOW, " ", PLATFORM.Name(), ": Stage ", aStage, " separation");
+   end_script
+
+   mover WSF_TBM_MOVER
+      # This is same as the tbm mover in tbm1.txt except that it has been split into
+      # two stages (the first stage is essentially massless except for fuel).
+
+      #update_time_tolerance     0.005 sec
+      trajectory_type           depressed
+      show_status
+      #debug
+      stage 1
+         total_mass             3000 kg
+         fuel_mass              2999.99 kg
+         ballistic_coefficient  208250.0 nt/m^2
+         thrust                 150000 nt
+         thrust_duration        50 sec
+      end_stage
+      stage 2
+         total_mass             3400 kg
+         fuel_mass              1800 kg
+         ballistic_coefficient  98000.0 nt/m^2
+         thrust                 150000 nt
+         thrust_duration        30 sec
+      end_stage
+   end_mover
+
+   # The fuse will detonate just before it hits the ground
+   processor fuse WSF_GROUND_TARGET_FUSE
+   end_processor
+end_platform_type
+
+# The weapon will damage targets within 100 meters of the impact point.
+
+weapon_effects TBM2_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 100 m 1.0
+end_weapon_effects
+
+

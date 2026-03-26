@@ -1,0 +1,284 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED #
+
+include_once platforms/gps.txt
+
+### GPS CONSTELLATION ###
+
+# Notes: Constellation status as of Apr 25, 2017. TLEs as of the same date.
+
+# Operational Satellites
+
+# Plane- SVN (PRN)
+
+#A: 65 (24), 52 (31), 64 (30), 48 (7)
+#B: 56 (16), 62 (25), 44 (28), 58 (12), 71 (26), 51 (20)
+#C: 57 (29), 66 (27), 72 (8), 53 (17), 59 (19)
+#D: 61 (2), 63 (1), 45 (21), 67 (6), 46 (11)
+#E: 69 (3), 73 (10), 50 (5), 54 (18), 47 (22)
+#F: 41 (14), 55 (15), 68 (9), 60 (23), 70 (32), 43 (13)
+
+#====================================================================================
+#              Ideal Constellation Configuration
+#====================================================================================
+
+platform GPS_A1 GPS
+edit mover
+   designator A1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 272.847 deg
+      anomaly 268.126 deg
+end_mover
+end_platform
+
+platform GPS_A2 GPS
+edit mover
+   designator A2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 272.847 deg
+      anomaly 161.786 deg
+end_mover
+end_platform
+
+platform GPS_A3 GPS
+edit mover
+   designator GPS_A3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 272.847 deg
+      anomaly 11.676 deg
+end_mover
+end_platform
+
+platform GPS_A4 GPS
+edit mover
+   designator GPS_A4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 272.847 deg
+      anomaly 41.806 deg
+end_mover
+end_platform
+
+# Plane B
+
+platform GPS_B1 GPS
+edit mover
+   designator GPS_B1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 332.847 deg
+      anomaly 80.956 deg
+end_mover
+end_platform
+
+platform GPS_B2 GPS
+edit mover
+   designator GPS_B2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 332.847 deg
+      anomaly 173.336 deg
+end_mover
+end_platform
+
+platform GPS_B3 GPS
+edit mover
+   designator GPS_B3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 332.847 deg
+      anomaly 309.976 deg
+end_mover
+end_platform
+
+platform GPS_B4 GPS
+edit mover
+   designator GPS_B4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 332.847 deg
+      anomaly 204.376 deg
+end_mover
+end_platform
+
+
+# Plane C
+
+platform GPS_C1 GPS
+edit mover
+   designator GPS_C1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 32.847 deg
+      anomaly 111.876 deg
+end_mover
+end_platform
+
+platform GPS_C2 GPS
+edit mover
+   designator GPS_C2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 32.847 deg
+      anomaly 11.796 deg
+end_mover
+end_platform
+
+platform GPS_C3 GPS
+edit mover
+   designator GPS_C3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 32.847 deg
+      anomaly 339.666 deg
+end_mover
+end_platform
+
+platform GPS_C4 GPS
+edit mover
+   designator GPS_C4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 32.847 deg
+      anomaly 241.556 deg
+end_mover
+end_platform
+
+
+# Plane D
+
+platform GPS_D1 GPS
+edit mover
+   designator GPS_D1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 92.847 deg
+      anomaly 135.226 deg
+end_mover
+end_platform
+
+platform GPS_D2 GPS
+edit mover
+   designator GPS_D2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 92.847 deg
+      anomaly 265.446 deg
+end_mover
+end_platform
+
+platform GPS_D3 GPS
+edit mover
+   designator GPS_D3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 92.847 deg
+      anomaly 35.156 deg
+end_mover
+end_platform
+
+platform GPS_D4 GPS
+edit mover
+   designator GPS_D4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 92.847 deg
+      anomaly 167.356 deg
+end_mover
+end_platform
+
+
+# Plane E
+
+platform GPS_E1 GPS
+edit mover
+   designator GPS_E1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 152.847 deg
+      anomaly 197.046 deg
+end_mover
+end_platform
+
+platform GPS_E2 GPS
+edit mover
+   designator GPS_E2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 152.847 deg
+      anomaly 302.596 deg
+end_mover
+end_platform
+
+platform GPS_E3 GPS
+edit mover
+   designator GPS_E3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 152.847 deg
+      anomaly 66.066 deg
+end_mover
+end_platform
+
+platform GPS_E4 GPS
+edit mover
+   designator GPS_E4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 152.847 deg
+      anomaly 333.686 deg
+end_mover
+end_platform
+
+
+# Plane F
+
+platform GPS_F1 GPS
+edit mover
+   designator GPS_F1
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 212.847 deg
+      anomaly 238.886 deg
+end_mover
+end_platform
+
+platform GPS_F2 GPS
+edit mover
+   designator GPS_F2
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 212.847 deg
+      anomaly 345.226 deg
+end_mover
+end_platform
+
+platform GPS_F3 GPS
+edit mover
+   designator GPS_F3
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 212.847 deg
+      anomaly 105.206 deg
+end_mover
+end_platform
+
+platform GPS_F4 GPS
+edit mover
+   designator GPS_F4
+      revs_per_day 2.005571
+      inclination 55 deg
+      raan 212.847 deg
+      anomaly 135.346 deg
+end_mover
+end_platform

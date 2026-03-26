@@ -1,0 +1,94 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# INTELSAT SATELLITE DEFINITION
+
+include ../avionics/comm/IntelsatCommDef.txt
+
+radar_signature    INTELSAT_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+
+platform_type INTELSAT WSF_PLATFORM
+   icon Satellite
+   radar_signature INTELSAT_RADAR_SIG
+
+   mover WSF_NORAD_SPACE_MOVER
+      update_interval 10 sec
+   end_mover
+
+   navigation_errors
+      gps_status 1
+   end_navigation_errors
+
+   comm INTELSAT_DOWNLINK_TX INTELSAT_DOWNLINK_TX
+      on
+   end_comm
+
+   comm INTELSAT_UPLINK_RX INTELSAT_UPLINK_RX
+      on
+   end_comm
+
+   comm INTELSAT_CL_TX INTELSAT_CL_TX
+      on
+   end_comm
+
+   comm INTELSAT_CL_RX INTELSAT_CL_RX
+      on
+   end_comm
+
+   comm INTELSAT_HANDHELD_DOWNLINK_TX INTELSAT_HANDHELD_DOWNLINK_TX
+      on
+   end_comm
+
+   comm INTELSAT_HANDHELD_UPLINK_RX INTELSAT_HANDHELD_UPLINK_RX
+      on
+   end_comm
+
+   script void SendMessage()
+      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+      {
+         WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+         if ((myPlatform != PLATFORM) && myPlatform.IsValid() && myPlatform.Comm("INTELSAT_UPLINK_RX").IsValid())   # Make sure we are not trying to talk to ourselves!
+         {
+            WsfControlMessage myMessage = WsfControlMessage();
+            myMessage.SetFunction("This is a test");
+            PLATFORM.Comm("INTELSAT_DOWNLINK_TX").SendMessage(myMessage, myPlatform.Comm("INTELSAT_UPLINK_RX").GetAddress());
+         }
+         if ((myPlatform != PLATFORM) && myPlatform.IsValid() && myPlatform.Comm("INTELSAT_CL_RX").IsValid())   # Make sure we are not trying to talk to ourselves!
+         {
+            WsfControlMessage myMessage = WsfControlMessage();
+            myMessage.SetFunction("This is a test");
+            PLATFORM.Comm("INTELSAT_CL_TX").SendMessage(myMessage, myPlatform.Comm("INTELSAT_CL_RX").GetAddress());
+         }
+         if ((myPlatform != PLATFORM) && myPlatform.IsValid() && myPlatform.Comm("GROUNDSTATION_INTELSAT_DOWNLINK_RX").IsValid())   # Make sure we are not trying to talk to ourselves!
+         {
+            WsfControlMessage myMessage = WsfControlMessage();
+            myMessage.SetFunction("This is a test");
+            PLATFORM.Comm("INTELSAT_DOWNLINK_TX").SendMessage(myMessage, myPlatform.Comm("GROUNDSTATION_INTELSAT_DOWNLINK_RX").GetAddress());
+         }
+      }
+   end_script
+
+   script void CheckComms()
+      if (PLATFORM.Comm("INTELSAT_DOWNLINK_TX").IsTurnedOn() || PLATFORM.Comm("INTELSAT_CL_TX").IsTurnedOn() || PLATFORM.Comm("INTELSAT_HANDHELD_DOWNLINK_TX").IsTurnedOn())
+      {
+         SendMessage();
+      }
+   end_script
+
+   execute at_interval_of 100 sec
+      CheckComms();
+   end_execute
+
+end_platform_type
+
+
+
+

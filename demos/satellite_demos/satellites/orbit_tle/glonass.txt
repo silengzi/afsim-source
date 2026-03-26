@@ -1,0 +1,291 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+include_once platforms/glonass.txt
+
+# GLONASS CONSTELLATION SCENARIO
+
+#======================================================================
+#        Realistic Two Line Elements
+#======================================================================
+
+# PLANE 1
+
+platform COSMOS_2456 GLONASS
+side CIS
+edit mover
+orbit
+1 36111U 09070A   17131.87691623 +.00000058 +00000-0 +00000-0 0  9996
+2 36111 064.1785 184.8179 0005519 303.3584 306.8867 02.13102881057645
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2485 GLONASS
+side CIS
+edit mover
+orbit
+1 39155U 13019A   17131.69947943 +.00000059 +00000-0 +00000-0 0  9995
+2 39155 064.6520 185.4674 0019242 240.7131 184.3262 02.13101972031465
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2476 GLONASS
+side CIS
+edit mover
+orbit
+1 37867U 11064A   17131.70261578 +.00000058 +00000-0 +00000-0 0  9995
+2 37867 064.4825 185.4458 0018992 245.6649 136.7508 02.13102000042995
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2474 GLONASS
+side CIS
+edit mover
+orbit
+1 37829U 11055A   17131.72410801 +.00000058 +00000-0 +00000-0 0  9990
+2 37829 064.5027 185.3729 0009824 252.4202 100.5509 02.13101925043630
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2458 GLONASS
+side CIS
+edit mover
+orbit
+1 36113U 09070C   17131.66964888 +.00000059 +00000-0 +10000-3 0  9996
+2 36113 064.1664 184.7547 0001958 313.8907 314.0150 02.13102101057640
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2457 GLONASS
+side CIS
+edit mover
+orbit
+1 36112U 09070B   17131.49966692 +.00000059 +00000-0 +00000-0 0  9997
+2 36112 064.1600 184.7506 0006251 185.3141 264.2455 02.13101607057641
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2477 GLONASS
+side CIS
+edit mover
+orbit
+1 37868U 11064B   17131.79813120 +.00000058 +00000-0 +00000-0 0  9991
+2 37868 064.4908 185.4869 0016790 247.2258 027.6041 02.13101801042945
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2475 GLONASS
+side CIS
+edit mover
+orbit
+1 37869U 11064C   17131.63461883 +.00000059 +00000-0 +00000-0 0  9991
+2 37869 064.4988 185.4834 0021822 271.6463 194.1116 02.13101934042958
+end_orbit
+end_mover
+end_platform
+
+# PLANE 2
+
+platform COSMOS_2501 GLONASS
+side CIS
+edit mover
+orbit
+1 40315U 14075A   17131.79832356 -.00000037 +00000-0 +00000-0 0  9997
+2 40315 064.4283 306.6148 0013863 204.4870 000.1009 02.13098497019032
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2426 GLONASS
+side CIS
+edit mover
+orbit
+1 29671U 06062B   17131.55441336 -.00000036 +00000-0 +10000-3 0  9997
+2 29671 065.4986 306.1857 0017454 157.5528 170.9969 02.13102934080755
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2516 GLONASS
+side CIS
+edit mover
+orbit
+1 41554U 16032A   17131.69721627 -.00000037 +00000-0 +00000-0 0  9995
+2 41554 064.6501 306.3723 0009919 214.5464 178.6374 02.13101503007404
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2436 GLONASS
+side CIS
+edit mover
+orbit
+1 32395U 07065C   17131.68932442 -.00000036 +00000-0 +10000-3 0  9995
+2 32395 065.1058 305.3042 0015636 008.2347 335.6338 02.13104228072903
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2434 GLONASS
+side CIS
+edit mover
+orbit
+1 32393U 07065A   17131.70526307 -.00000036 +00000-0 +00000-0 0  9991
+2 32393 065.0965 305.2574 0005987 097.5810 210.0103 02.13102845072976
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2424 GLONASS
+side CIS
+edit mover
+orbit
+1 29672U 06062C   17131.42151124 -.00000036 +00000-0 +10000-3 0  9997
+2 29672 065.4811 306.1118 0016887 156.0464 245.9276 02.13102159080758
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2425 GLONASS
+side CIS
+edit mover
+orbit
+1 29670U 06062A   17131.57950284 -.00000036 +00000-0 +10000-3 0  9995
+2 29670 065.4792 306.0961 0021464 351.7880 137.4089 02.13104841080759
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2464 GLONASS
+side CIS
+edit mover
+orbit
+1 37139U 10041C   17131.55110054 -.00000037 +00000-0 +00000-0 0  9994
+2 37139 064.7012 305.2690 0024098 017.1562 039.9082 02.13102583052064
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2465 GLONASS
+side CIS
+edit mover
+orbit
+1 37138U 10041B   17131.69114039 -.00000037 +00000-0 +00000-0 0  9995
+2 37138 064.6956 305.2636 0035315 168.8184 172.5837 02.13104094052068
+end_orbit
+end_mover
+end_platform
+
+# PLANE 3
+
+platform COSMOS_2514 GLONASS
+side CIS
+edit mover
+orbit
+1 41330U 16008A   17131.63426292 -.00000045 +00000-0 +00000-0 0  9993
+2 41330 065.0181 066.0170 0008466 230.8675 221.2247 02.13103380009795
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2492 GLONASS
+side CIS
+edit mover
+orbit
+1 39620U 14012A   17131.70096520 -.00000044 +00000-0 +10000-3 0  9993
+2 39620 065.2765 065.8614 0017204 331.4930 128.7675 02.13103381024419
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2433 GLONASS
+side CIS
+edit mover
+orbit
+1 32275U 07052A   17131.53264777 -.00000044 +00000-0 +10000-3 0  9990
+2 32275 065.4949 066.8639 0004117 295.5316 349.8625 02.13104602074265
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2432 GLONASS
+side CIS
+edit mover
+orbit
+1 32276U 07052B   17131.60134190 -.00000043 +00000-0 +10000-3 0  9993
+2 32276 065.5073 066.9317 0013683 334.6471 316.4012 02.13104028074266
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2500 GLONASS
+side CIS
+edit mover
+orbit
+1 40001U 14032A   17131.66947605 -.00000044 +00000-0 +00000-0 0  9990
+2 40001 065.2164 065.8632 0005034 229.9610 069.2456 02.13102809022622
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2459 GLONASS
+side CIS
+edit mover
+orbit
+1 36400U 10007A   17131.57673892 -.00000045 +00000-0 +10000-3 0  9995
+2 36400 065.4038 065.9718 0029620 351.5449 190.0566 02.13102280055991
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2460 GLONASS
+side CIS
+edit mover
+orbit
+1 36402U 10007C   17131.63943221 -.00000044 +00000-0 +10000-3 0  9999
+2 36402 065.3867 065.9213 0002379 335.7001 205.9487 02.13101697055991
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2461 GLONASS
+side CIS
+edit mover
+orbit
+1 36401U 10007B   17131.81030091 -.00000043 +00000-0 +10000-3 0  9999
+2 36401 065.3968 065.9434 0006575 046.4551 224.9249 02.13102297055999
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2419_SPARE GLONASS
+edit mover
+orbit
+1 28915U 05050A   17131.53457513 -.00000044 +00000-0 +00000-0 0  9990
+2 28915 065.4792 067.0871 0017501 349.4378 052.7892 02.13110247088551
+end_orbit
+end_mover
+end_platform
+
+platform COSMOS_2471_SPARE GLONASS
+edit mover
+orbit
+1 37372U 11009A   17131.53238536 -.00000045 +00000-0 +00000-0 0  9991
+2 37372 065.3854 065.8732 0008022 246.4944 348.4033 02.13107598048262
+end_orbit
+end_mover
+end_platform

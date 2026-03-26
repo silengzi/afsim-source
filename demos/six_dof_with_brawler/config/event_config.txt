@@ -1,0 +1,65 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+event_output
+
+   file output/$(CASE).evt
+
+   #enable all
+   enable COMMENT
+   #enable CRASHED_INTO_GROUND
+   #enable COMM_TURNED_OFF
+   #enable COMM_TURNED_ON
+   #enable ENTER_STATE
+   #enable EXIT_STATE
+   #enable EXECUTE_ACTION
+   #enable EXECUTE_CALLABACK
+   #enable LOCAL_TRACK_CORRELATION
+   #enable LOCAL_TRACK_DECORRELATION
+   #enable LOCAL_TRACK_DROPPED
+   #enable LOCAL_TRACK_INITIATED
+   #enable LOCAL_TRACK_UPDATED
+   #enable MESSAGE_DISCARDED
+   #enable MESSAGE_QUEUED
+   #enable MESSAGE_RECEIVED
+   #enable MESSAGE_TRANSMITTED
+   #enable MESSAGE_UPDATED
+   #enable OPERATING_LEVEL_CHANGED
+   #enable PLATFORM_ADDED
+   enable PLATFORM_DELETED
+   enable PLATFORM_BROKEN
+   #enable PROCESSOR_TURNED_OFF
+   #enable PROCESSOR_TURNED_ON
+   #enable RAN_OUT_OF_FUEL
+   #enable SENSOR_MODE_ACTIVATED
+   #enable SENSOR_MODE_DEACTIVATED
+   enable SENSOR_DETECTION_ATTEMPT
+   #enable SENSOR_REQUEST_CANCELED
+   #enable SENSOR_REQUEST_INITIATED
+   #enable SENSOR_REQUEST_UPDATED
+   #enable SENSOR_TRACK_DROPPED
+   enable SENSOR_TRACK_INITIATED
+   #enable SENSOR_TRACK_UPDATED
+   #enable SENSOR_TURNED_ON
+   #enable SENSOR_TURNED_OFF
+   #enable TASK_ASSIGNED
+   #enable TASK_CANCELED
+   #enable TASK_COMPLETED
+   #enable TEAM_NAME_DEFINITION
+   enable WEAPON_FIRED
+   enable WEAPON_HIT
+   #enable WEAPON_LAUNCHED
+   enable WEAPON_MISSED
+   #enable WEAPON_RELOAD_STARTED
+   #enable WEAPON_RELOAD_ENDED
+   enable WEAPON_TERMINATED
+   #enable WEAPON_TURNED_OFF
+   #enable WEAPON_TURNED_ON
+
+end_event_output

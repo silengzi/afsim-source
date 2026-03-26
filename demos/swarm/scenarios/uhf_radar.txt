@@ -1,0 +1,22 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+platform uhf-radar  UHF_EW_RADAR_PLATFORM
+  position 40.0n 87.7w
+  add processor rotation WSF_SCRIPT_PROCESSOR
+    update_interval 2.5 sec
+
+    on_update
+      double CurrentHeading = PLATFORM.Heading(); # -180 to 180...
+      double NewHeading = CurrentHeading + 90;
+      PLATFORM.SetHeading(NewHeading);
+    end_on_update
+  end_processor
+end_platform

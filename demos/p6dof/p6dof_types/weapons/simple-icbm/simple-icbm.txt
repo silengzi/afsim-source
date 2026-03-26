@@ -1,0 +1,1205 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include Generic_ICBM_RocketEngines.txt
+
+p6dof_object_types
+
+   p6dof_object_type  ICBM_Stage1  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10001
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    4250 lbs
+         moment_of_inertia_ixx   3000  slug*ft^2
+         moment_of_inertia_iyy   50000 slug*ft^2
+         moment_of_inertia_izz   60000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Stage1Aero.txt
+
+      propulsion_data
+         engine     Stage1Motor   ICBM_Stage1_Rocket
+            rel_pos_x             0.0 ft
+            rel_pos_y             0.0 ft
+            rel_pos_z             0.0 ft
+            rel_yaw               0.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+         end_engine
+      end_propulsion_data
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode     PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_Interstage12A  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10011
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    20 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage12Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage12B  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10012
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    20 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage12Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage12C  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10013
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    20 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage12Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage12D  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10014
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    20 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage12Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+      p6dof_object_type  ICBM_Stage2  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10002
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    1250 lbs
+         moment_of_inertia_ixx   3000  slug*ft^2
+         moment_of_inertia_iyy   50000 slug*ft^2
+         moment_of_inertia_izz   60000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Stage2Aero.txt
+
+      propulsion_data
+         engine    Stage2Motor   ICBM_Stage2_Rocket
+            rel_pos_x              0.0 ft
+            rel_pos_y              0.0 ft
+            rel_pos_z              0.0 ft
+            rel_yaw               0.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+         end_engine
+      end_propulsion_data
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_Interstage23A  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10021
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    15 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage23Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage23B  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10022
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    15 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage23Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage23C  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10023
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    15 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage23Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   p6dof_object_type  ICBM_Interstage23D  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10024
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    15 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Interstage23Aero.txt
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_Stage3  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10003
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    700 lbs
+         moment_of_inertia_ixx   3000  slug*ft^2
+         moment_of_inertia_iyy   50000 slug*ft^2
+         moment_of_inertia_izz   60000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_Stage3Aero.txt
+
+      propulsion_data
+         engine    Stage3Motor   ICBM_Stage3_Rocket
+            rel_pos_x              0.0 ft
+            rel_pos_y              0.0 ft
+            rel_pos_z              0.0 ft
+            rel_yaw               0.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+         end_engine
+
+      end_propulsion_data
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_Nosecone  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10004
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    150 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_NoseconeAero.txt
+
+      propulsion_data
+         engine    Motor1   ICBM_NoseconeMotor1
+            rel_pos_x              3.0 ft
+            rel_pos_y              0.0 ft
+            rel_pos_z              0.0 ft
+            rel_yaw               20.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+         end_engine
+         engine    Motor2   ICBM_NoseconeMotor2
+            rel_pos_x              3.0 ft
+            rel_pos_y              0.0 ft
+            rel_pos_z              0.0 ft
+            rel_yaw               -20.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+         end_engine
+      end_propulsion_data
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_PBV  P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10005
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    100 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_PBVAero.txt
+
+      propulsion_data
+         fuel_tank FeederTank
+            max_fuel_quantity      10.0 lbs
+            current_fuel_quantity       10.0 lbs
+            max_flow_rate          30.0 lbs/sec
+            max_fill_rate          30.0 lbs/sec
+            max_xfer_rate          30.0 lbs/sec
+            cg_full_x              0.0 ft
+            cg_full_y              0.0 ft
+            cg_full_z              0.0 ft
+            cg_empty_x             0.0 ft
+            cg_empty_y             0.0 ft
+            cg_empty_z             0.0 ft
+         end_fuel_tank
+         fuel_tank Tank1
+            max_fuel_quantity      10.0 lbs
+            current_fuel_quantity       10.0 lbs
+            max_flow_rate          30.0 lbs/sec
+            max_fill_rate          30.0 lbs/sec
+            max_xfer_rate          30.0 lbs/sec
+            cg_full_x              0.0 ft
+            cg_full_y              0.0 ft
+            cg_full_z              0.0 ft
+            cg_empty_x             0.0 ft
+            cg_empty_y             0.0 ft
+            cg_empty_z             0.0 ft
+         end_fuel_tank
+         fuel_tank Tank2
+            max_fuel_quantity      10.0 lbs
+            current_fuel_quantity       10.0 lbs
+            max_flow_rate          30.0 lbs/sec
+            max_fill_rate          30.0 lbs/sec
+            max_xfer_rate          30.0 lbs/sec
+            cg_full_x              0.0 ft
+            cg_full_y              0.0 ft
+            cg_full_z              0.0 ft
+            cg_empty_x             0.0 ft
+            cg_empty_y             0.0 ft
+            cg_empty_z             0.0 ft
+         end_fuel_tank
+         fuel_tank  Tank3
+            max_fuel_quantity      10.0 lbs
+            current_fuel_quantity       10.0 lbs
+            max_flow_rate          30.0 lbs/sec
+            max_fill_rate          30.0 lbs/sec
+            max_xfer_rate          30.0 lbs/sec
+            cg_full_x              0.0 ft
+            cg_full_y              0.0 ft
+            cg_full_z              0.0 ft
+            cg_empty_x             0.0 ft
+            cg_empty_y             0.0 ft
+            cg_empty_z             0.0 ft
+         end_fuel_tank
+         fuel_tank  Tank4
+            max_fuel_quantity      10.0 lbs
+            current_fuel_quantity       10.0 lbs
+            max_flow_rate          30.0 lbs/sec
+            max_fill_rate          30.0 lbs/sec
+            max_xfer_rate          30.0 lbs/sec
+            cg_full_x              0.0 ft
+            cg_full_y              0.0 ft
+            cg_full_z              0.0 ft
+            cg_empty_x             0.0 ft
+            cg_empty_y             0.0 ft
+            cg_empty_z             0.0 ft
+         end_fuel_tank
+
+         fuel_transfer    T1toFeeder
+            source_tank           Tank1
+            target_tank           FeederTank
+         end_fuel_transfer
+         fuel_transfer    T2toFeeder
+            source_tank           Tank2
+            target_tank           FeederTank
+         end_fuel_transfer
+         fuel_transfer    T3toFeeder
+            source_tank           Tank3
+            target_tank           FeederTank
+         end_fuel_transfer
+         fuel_transfer    T4toFeeder
+            source_tank           Tank4
+            target_tank           FeederTank
+         end_fuel_transfer
+
+         engine    PBVMainEngine   ICBM_PBV_MainEngine
+            rel_pos_x             0.0 ft
+            rel_pos_y             0.0 ft
+            rel_pos_z             0.0 ft
+            rel_yaw               0.0 deg
+            rel_pitch             0.0 deg
+            rel_roll              0.0 deg
+            fuel_feed             FeederTank
+         end_engine
+
+      end_propulsion_data
+
+      sequencer NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_RV   P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10006
+      use_spherical_earth           true
+
+      # Should this be one or three RVs?
+      mass_properties
+         mass                    2300 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_RVAero.txt
+
+//      propulsion_data
+//         solid_propellant_rocket    SpinMotor1   ICBM_NoseconeMotor1
+//            rel_pos_x              0.0 ft
+//            rel_pos_y              0.0 ft
+//            rel_pos_z              0.0 ft
+//            rel_yaw               0.0 deg
+//            rel_pitch             0.0 deg
+//            rel_roll              0.0 deg
+//         end_engine
+//         solid_propellant_rocket    SpinMotor2   ICBM_NoseconeMotor2
+//            rel_pos_x              0.0 ft
+//            rel_pos_y              0.0 ft
+//            rel_pos_z              0.0 ft
+//            rel_yaw               0.0 deg
+//            rel_pitch             0.0 deg
+//            rel_roll              0.0 deg
+//        end_engine
+//      end_propulsion_data
+//
+//      sequencer
+//        name                     NewAeroAtStaging
+//        event_released_from_parent
+//        action_change_aero_mode    PostStaging
+//      end_sequencer
+//
+//      sequencer
+//        name                     RVReleased
+//        event_released_from_parent
+//        Action_Null
+//        sequencer
+//          Event_Timer_sec            5.0
+//          Action_IgniteEngine    SpinMotor1
+//          Action_IgniteEngine    SpinMotor2
+//          Action_IgniteSelf
+//        end_sequencer
+//      end_sequencer
+
+   end_p6dof_object_type
+
+   # .........................................................................................
+
+   p6dof_object_type  ICBM_DecoyBalloon   P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10031
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    1 lbs
+         moment_of_inertia_ixx   3  slug*ft^2
+         moment_of_inertia_iyy   50 slug*ft^2
+         moment_of_inertia_izz   60 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_BalloonAero.txt
+
+      propulsion_data
+        # No propulsion data
+      end_propulsion_data
+
+      size_factor_min                     1.0
+      size_factor_max                     50.0
+      size_factor_radius                  0.1 m
+#     size_factor_radius_rate_m_per_sec   2.0
+      size_factor_volume_rate_m3_per_sec  10.0
+
+      sequencer  NewAeroAtStaging
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+      end_sequencer
+
+      sequencer  BalloonReleased
+        event_released_from_parent
+        action_change_aero_mode    PostStaging
+        sequencer StartInflating
+          event_timer            5.0 sec
+          action_enable_size_factor
+        end_sequencer
+      end_sequencer
+
+   end_p6dof_object_type
+
+#  --------------------------------------------------------------------------------------------
+
+   # Define the ICBM vehicle -- the primary object is the RV
+
+   p6dof_object_type  SIMPLE-ICBM   P6DOF_BASE_TYPE
+
+      object_graphical_type_num     10000
+      use_spherical_earth           true
+
+      mass_properties
+         mass                    1950 lbs
+         moment_of_inertia_ixx   300  slug*ft^2
+         moment_of_inertia_iyy   5000 slug*ft^2
+         moment_of_inertia_izz   6000 slug*ft^2
+         center_of_mass_x        0.0 ft
+         center_of_mass_y        0.0 ft
+         center_of_mass_z        0.0 ft
+      end_mass_properties
+
+      # AeroData
+      include ICBM_FullAero.txt
+
+      propulsion_data
+        # No propulsion data
+      end_propulsion_data
+
+      # Yaw, pitch, roll control
+#      simple_yaw_control_accel_max   300.0 deg/sec^2
+#      simple_pitch_control_accel_max 300.0 deg/sec^2
+#      simple_roll_control_accel_max  300.0 deg/sec^2
+
+      subobject      Stage1      ICBM_Stage1
+         parent_rel_x            -10.795 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      # Displacement = 0.254*2.0 = 0.508
+
+      subobject   Interstage12A  ICBM_Interstage12A
+         parent_rel_x            -7.747 m
+         parent_rel_y            0.0 m
+         parent_rel_z            -0.508 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           -2.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      20.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject   Interstage12B  ICBM_Interstage12B
+         parent_rel_x            -7.747 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.508 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           2.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      -20.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject   Interstage12C  ICBM_Interstage12C
+         parent_rel_x            -7.747 m
+         parent_rel_y            0.508 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           2.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      20.0 deg/sec
+      end_subobject
+
+      subobject   Interstage12D  ICBM_Interstage12D
+         parent_rel_x            -7.747 m
+         parent_rel_y            -0.508 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           -2.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      -20.0 deg/sec
+      end_subobject
+
+      subobject      Stage2      ICBM_Stage2
+         parent_rel_x            -5.715 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      # Displacement = 0.254*2.0 = 0.508
+
+      subobject   Interstage23A  ICBM_Interstage23A
+         parent_rel_x            -3.429 m
+         parent_rel_y            0.0 m
+         parent_rel_z            -0.508 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           -2.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      50.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject   Interstage23B  ICBM_Interstage23B
+         parent_rel_x            -3.429 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.508 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           2.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      -50.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject   Interstage23C  ICBM_Interstage23C
+         parent_rel_x            -3.429 m
+         parent_rel_y            0.508 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           2.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      50.0 deg/sec
+      end_subobject
+
+      subobject   Interstage23D  ICBM_Interstage23D
+         parent_rel_x            -3.429 m
+         parent_rel_y            -0.508 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           -2.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      -50.0 deg/sec
+      end_subobject
+
+      subobject      Stage3      ICBM_Stage3
+         parent_rel_x            -2.413 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           -0.5 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      Nosecone    ICBM_Nosecone
+         parent_rel_x            0.127 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      PBV         ICBM_PBV
+         parent_rel_x            -1.143 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           -0.3 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      Balloon1    ICBM_DecoyBalloon
+         parent_rel_x            -1.143 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           3.0 ft/sec
+         separation_vy           1.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      Balloon2    ICBM_DecoyBalloon
+         parent_rel_x            -1.143 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           3.0 ft/sec
+         separation_vy           -1.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      Balloon3    ICBM_DecoyBalloon
+         parent_rel_x            -1.143 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           3.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           1.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      subobject      Balloon4    ICBM_DecoyBalloon
+         parent_rel_x            -1.143 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           3.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           -1.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+
+#TYPE  VERTICAL_CLIMB_PROGRAM			endTime_sec
+#TYPE  ROLL_PROGRAM__BODY_ROLL_DELTA		commandedAngleRoll_deg      maxRollRate_dps          endTime_sec
+#TYPE  ROLL_PROGRAM__BODY_ROLL_RATE		commandedAngleRollRate_dps  maxRollRate_dps          endTime_sec
+#TYPE  ROLL_PROGRAM__LOCAL_ROLL_ANGLE		commandedAngleRoll_deg      maxRollRate_dps          endTime_sec
+#TYPE  ROLL_PROGRAM__ROLL_TO_AZIMUTH		maxRollRate_dps             endTime_sec
+#TYPE  PITCH_PROGRAM__BODY_PITCH_DELTA		commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__BODY_PITCH_RATE		commandedAnglePitchRate_dps maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__LOCAL_PITCH_ANGLE		commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__PITCH_TO_GRAVITY_TURN	commandedAnglePitch_deg     maxPitchRate_dps         maxAlpha_deg            endTime_sec
+#TYPE  PITCH_PROGRAM__PURE_GRAVITY_TURN	        maxPitchRate_dps            endTime_sec
+#TYPE  PITCH_PROGRAM__GUIDED_LOCAL_PITCH        commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  YAW_PROGRAM__BODY_YAW_DELTA		commandedAngleYaw_deg       maxYawRate_dps           endTime_sec
+#TYPE  YAW_PROGRAM__BODY_YAW_RATE		commandedAngleYaw_deg       maxYawRate_dps           endTime_sec
+#TYPE  YAW_PROGRAM__LOCAL_YAW_ANGLE		commandedAngleYaw_deg       maxYawRate_dps           endTime_sec
+#TYPE  ATTITUDE_PROGRAM__INERTIAL_ANGLES        commandedAngleYaw_deg       commandedAnglePitch_deg  commandedAngleRoll_deg
+#TYPE  ATTITUDE_PROGRAM__LOCAL_ANGLES           commandedAngleYaw_deg       commandedAnglePitch_deg  commandedAngleRoll_deg
+#TYPE  ATTITUDE_PROGRAM__ZERO_RATES		maxYawRate_dps              maxPitchRate_dps         maxRollRate_dps         endTime_sec
+#TYPE  THRUST_PROGRAM__TERMINATE_THRUST		endTime_sec
+#TYPE  ATTITUDE_PROGRAM__DRIFT_MODE		endTime_sec
+#TYPE  VERTICAL_CLIMB_PROGRAM			endTime_sec
+#TYPE  ROLL_PROGRAM__ROLL_TO_AZIMUTH		maxRollRate_dps             endTime_sec
+#TYPE  PITCH_PROGRAM__LOCAL_PITCH_ANGLE		commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__LOCAL_PITCH_ANGLE		commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__LOCAL_PITCH_ANGLE		commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  PITCH_PROGRAM__GUIDED_LOCAL_PITCH        commandedAnglePitch_deg     maxPitchRate_dps         endTime_sec
+#TYPE  ATTITUDE_PROGRAM__ZERO_RATES		maxYawRate_dps              maxPitchRate_dps         maxRollRate_dps
+
+/*
+      test_guidance
+
+#       guidance_ballistic_file   data/TestTrajectoryOutput.dat
+
+        guidance_group           Liftoff
+          body_yaw_rate          0.0
+          body_pitch_rate        0.0
+          body_roll_rate         0.0
+          switch_at_time_sec     1.0   RollProg
+        end_guidance_group
+
+        guidance_group           RollProg
+          body_roll_to_tgt_az
+          body_yaw_rate          0.0
+          body_pitch_rate        0.0
+          switch_at_time_sec     2.0   Stage1PitchProg
+        end_guidance_group
+
+        guidance_group           Stage1PitchProg
+          local_pitch_program
+            #Time         PitchAng(deg)
+            0.0           90.0
+            10.0          70.0
+            45.0          30.0
+            70.0          30.0
+          end_local_pitch_program
+          body_yaw_rate          0.0
+          body_roll_rate         0.0
+          switch_at_time_sec     100.0   Stage2PitchProg
+        end_guidance_group
+
+# 60.37 sec nominal burn time
+# 65.69 sec nominal burn time
+# 61.2 sec nominal burn time
+
+        guidance_group           Stage2PitchProg
+          local_pitch_program
+            #Time         PitchAng(deg)
+            0.0           30.0
+            40.0          17.0
+            80.0          17.0
+          end_local_pitch_program
+          body_yaw_rate          0.0
+          body_roll_rate         0.0
+          switch_at_time_sec     100.0   Stage3PitchProg
+        end_guidance_group
+
+        guidance_group           Stage3PitchProg
+
+          local_pitch_program
+            #Time         PitchAng(deg)
+            0.0           16.8
+            45.0          16.8
+            70.0          16.8
+          end_local_pitch_program
+
+    terminate_thrust_by_cmd
+
+          body_yaw_rate          0.0
+          body_roll_rate         0.0
+          switch_at_time_sec     100.0   PointDownProg
+        end_guidance_group
+
+        guidance_group           PBVPitchProg
+          local_pitch_program
+            #Time         PitchAng(deg)
+            0.0           10.0
+            10.0          -80.0
+            20.0          -80.0
+          end_local_pitch_program
+
+          body_yaw_rate          0.0
+          body_roll_rate         0.0
+          switch_at_time_sec     20.0   Coast
+        end_guidance_group
+
+        guidance_group           PointDownProg
+          local_pitch_angle        -80.0
+          local_roll_angle         0.0
+          switch_at_time_sec     6.0   Coast
+        end_guidance_group
+
+        guidance_group           Coast
+          body_yaw_rate          0.0
+          body_pitch_rate        0.0
+          body_roll_rate         0.0
+        end_guidance_group
+
+# 60.37 sec nominal burn time
+# 65.69 sec nominal burn time
+# 61.2 sec nominal burn time
+
+      end_test_guidance
+*/
+
+      # ****************** ADD ABILITY TO 'FIRE' SEQUENCER DIRECTLY FROM EXTERNAL CONTROL
+
+      sequencer Ignition
+# no longer used        event_released_from_parent
+        event_timer                  0.01 sec
+
+###        action_set_target_LLA          21.321 -157.9266 0.0
+#          action_set_target_LLA          35.696111 51.423056 0.0
+
+        action_ignite_subobject       Stage1
+
+#        sequencer
+#           name                         IgniteNosecone
+##          event_dynamic_pressure_below 10.0
+#           event_dynamic_pressure_below 5.0 psf
+#           event_above_alt              100000.0 ft
+#           all_events
+#           action_ignite_subobject      Nosecone
+#           sequencer
+#             name                       JettNosecone
+#             event_timer                0.5 sec
+#             action_jett_obj            Nosecone
+#           end_sequencer
+#        end_sequencer
+
+# 60.1 sec nominal burn time
+# 63.4 sec nominal burn time
+# 59.0 sec nominal burn time
+
+      sequencer FirstStageBurn
+        event_nx_above               1.0 g
+        action_null
+
+        sequencer IgniteStage2
+#         event_timer               33.0 sec
+          event_nx_below            0.4 g
+          action_ignite_subobject   Stage2
+          sequencer JettStage1
+            event_timer              0.1 sec
+            action_jett_obj          Stage1
+            action_change_aero_mode  Stage2BurnWithNosecone
+            sequencer JettInterstage12
+              event_timer      10.0 sec
+              action_jett_obj  Interstage12A
+              action_jett_obj  Interstage12B
+              action_jett_obj  Interstage12C
+              action_jett_obj  Interstage12D
+
+              sequencer  IgniteNosecone
+                event_dynamic_pressure_below  2.0 psf
+                action_ignite_subobject       Nosecone
+                sequencer  JettNosecone
+                  event_timer              0.5 sec
+                  action_jett_obj          Nosecone
+                  action_change_aero_mode  Stage2BurnWithoutNosecone
+
+                  sequencer IgniteStage3
+                    event_nx_below            0.4 g
+                    action_ignite_subobject   Stage3
+
+                    sequencer  JettStage2
+                      event_timer              0.1 sec
+                      action_jett_obj          Stage2
+                      action_change_aero_mode  Stage3BurnWithoutNosecone
+                      sequencer JettInterstage23
+                        event_timer       2.0 sec
+                        action_jett_obj   Interstage23A
+                        action_jett_obj   Interstage23B
+                        action_jett_obj   Interstage23C
+                        action_jett_obj   Interstage23D
+
+# 60.1 sec nominal burn time
+# 63.4 sec nominal burn time
+# 59.0 sec nominal burn time
+
+                        sequencer JettStage3a
+                          event_nx_below  0.05 g
+                          action_null
+
+                          sequencer  JettStage3b
+                            event_timer                3.0 sec
+                            action_shutdown_subobject  Stage3
+                            action_jett_obj            Stage3
+
+                            action_change_aero_mode    PBVBurn
+#                           action_ignite_subobject    PBV
+
+#                            sequencer
+#                              name                       TerminatePBVBurn
+#                              event_timer                10.0 sec
+#                              action_shutdown_subobject  PBV
+#                            end_sequencer
+
+                            sequencer  JettBalloon1
+                              event_timer      12.0 sec
+                              action_jett_obj  Balloon1
+                            end_sequencer
+                            sequencer  JettBalloon2
+                              event_timer      14.0 sec
+                              action_jett_obj  Balloon2
+                            end_sequencer
+                            sequencer JettBalloon3
+                              event_timer      16.0 sec
+                              action_jett_obj  Balloon3
+                            end_sequencer
+                            sequencer JettBalloon4
+                              event_timer      18.0 sec
+                              action_jett_obj  Balloon4
+                            end_sequencer
+
+                            sequencer JettRV
+                              event_timer              22.0 sec
+                              action_jett_obj          PBV
+                              action_change_aero_mode  RVFree
+                            end_sequencer
+
+                          end_sequencer
+                        end_sequencer
+                      end_sequencer
+                    end_sequencer
+                  end_sequencer
+                end_sequencer
+              end_sequencer
+            end_sequencer
+          end_sequencer
+        end_sequencer
+      end_sequencer
+
+      end_sequencer
+
+   end_p6dof_object_type
+
+# ------------------------------------------------------------------------------
+
+   # Define the ICBM silo
+
+   p6dof_object_type  ICBM_Silo   P6DOF_BASE_TYPE
+
+      object_graphical_type_num     1002
+      use_spherical_earth           true
+      fixed_object                  true
+
+      # No AeroData
+
+      # RV location above floor: 0.254*60.0 = 15.24
+      subobject      ICBM        SIMPLE-ICBM
+         parent_rel_x            15.24 m
+         parent_rel_y            0.0 m
+         parent_rel_z            0.0 m
+         parent_rel_yaw          0.0 deg
+         parent_rel_pitch        0.0 deg
+         parent_rel_roll         0.0 deg
+         separation_vx           0.0 ft/sec
+         separation_vy           0.0 ft/sec
+         separation_vz           0.0 ft/sec
+         separation_omega_x      0.0 deg/sec
+         separation_omega_y      0.0 deg/sec
+         separation_omega_z      0.0 deg/sec
+      end_subobject
+
+      sequencer  IgniteICBM
+        event_timer                        3.0 sec
+#       event_manual_input_button_released 10
+        action_ignite_subobject            ICBM_Stage1
+
+        sequencer  ReleaseICBM
+          event_timer      0.5 sec
+          action_jett_obj  ICBM
+        end_sequencer
+
+      end_sequencer
+
+# ------------------------------------------------------------------------------
+
+   # ***** VANDENBERG LAUNCH COORD BASED ON GOOGLE MAPS:  34.888278,-120.636874
+
+   end_p6dof_object_type
+
+   p6dof_object_type  SimpleLatLon_Target   P6DOF_BASE_TYPE
+      object_graphical_type_num     1088
+      use_spherical_earth           true
+      fixed_object                  true
+      # No AeroData
+   end_p6dof_object_type
+
+end_p6dof_object_types

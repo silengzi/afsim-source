@@ -1,0 +1,174 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+
+  script_variables
+    Map<string, double> mZonePriority = Map<string, double>();
+    Map<string, int> mZoneNumThreats = Map<string, int>();
+    Map<string, WsfGeoPoint> mZonePoint = Map<string, WsfGeoPoint>();
+    Map<string, double> mZoneBearing = Map<string, double>();
+    Map<string, bool> mZoneBearingValid = Map<string, bool>();
+    Map<string, double> mZoneTrackValue = Map<string, double>();
+  end_script_variables
+
+
+  script void aigci_update_with_zones()
+
+    extern string DetermineTrackCategory(WsfTrack);
+
+    WsfLocalTrackList localTracks;
+    localTracks = FlightTrackList();
+
+    writeln_d("~~~  localTracks.Count() = ", localTracks.Count());
+
+    mZonePoint.Clear();
+    mZoneBearing.Clear();
+    mZoneBearingValid.Clear();
+    mZonePriority.Clear();
+    mZoneTrackValue.Clear();
+    mZoneNumThreats.Clear();
+
+    writeln_d("~~~  mZonePriority.Size() = ", mZonePriority.Size());
+
+    foreach (WsfTrack track in localTracks)
+    {
+      //writeln_d("~~~ Considering: ", track.TargetName());
+      // if the track is not a foe, we'll ignore it
+      if (!(track.IsValid()) || !track.IFF_Foe())
+      {
+        //writeln("~~~ Need to remove track: ", !(track.IsValid()), "- ", !track.IFF_Foe());
+        continue;
+      }
+      
+      extern bool TestTrackCategory(WsfTrack,string);
+      if( TestTrackCategory(track,"unknown") )
+      {
+         continue;
+      }
+
+      if( track.LocationValid() )
+      {
+        writeln_d("~~~ Considering: ", track.TrackId().Name(), ".", track.TrackId().Number(), " -> ", track.TargetName());
+      }
+
+      int NumZonesInside = 0;
+      //zones can overlap, so check all zones for each track
+      foreach( string zName in mZoneNames )
+      {
+        if( track.WithinZoneOf( PLATFORM, zName ) )
+        {
+          NumZonesInside = NumZonesInside + 1;
+          if( ! mZonePriority.Exists(zName) )
+          {
+            mZonePriority.Set( zName, 1.0 );
+          }
+          //update total zone priority
+          string trgtType = DetermineTrackCategory(track);
+          double ThreatPriority = ThreatTypePriority.Get(trgtType);
+          double CurZonePriority = ThreatPriority + mZonePriority.Get(zName);
+          mZonePriority.Set( zName, CurZonePriority );
+          writeln_d("~~~  ", track.TargetName(), " of type ", trgtType, " inside of ", zName, "-> score increased: ", ThreatPriority );
+          writeln_d("~~~  mZonePriority.Size() = ", mZonePriority.Size());
+          //update number of threats in zone
+          int CurZoneNumThreats = 1;
+          if( mZoneNumThreats.Exists(zName) )
+          {
+            CurZoneNumThreats = CurZoneNumThreats + mZoneNumThreats.Get(zName);
+          }
+          mZoneNumThreats.Set( zName, CurZoneNumThreats );
+          writeln_d("~~~ Track: ", track.TargetName(), " inside GCI zone: ", zName );
+          if( !mZoneTrackValue.Exists( zName ) ||
+              mZoneTrackValue.Get( zName ) < ThreatPriority )
+          {
+            mZoneTrackValue.Set( zName, ThreatPriority );
+            WsfGeoPoint point = track.CurrentLocation();
+            if( ! track.ElevationValid() )
+            {
+              double DefaultAltitude = 10000.0;
+              point.Set( point.Latitude(), point.Longitude(), DefaultAltitude );
+            }
+            mZonePoint.Set( zName, point );
+
+            double bearing = track.Bearing();
+            if( ! track.BearingValid() )
+            {
+              //if track has no bearing, assume its headed straight for the GCI commander platform
+              bearing = MATH.NormalizeAngle0_360( PLATFORM.TrueBearingTo(track) - 180.0 );
+            }
+            mZoneBearing.Set( zName, bearing );
+            mZoneBearingValid.Set( zName, track.BearingValid() );
+          }
+        }
+      }
+      if( NumZonesInside <= 0 )
+      {
+        writeln_d("~~~ Track: ", track.TargetName(), " not inside ANY GCI zones!!!");
+      }
+    }
+
+    foreach( string zName in mZoneNames )
+    {
+      if( mZonePriority.Exists(zName) )
+      {
+        double ZoneJobPriority = mZonePriority.Get( zName );
+
+        if( mZoneJobMap.Exists( zName ) )
+        {
+          //writeln_d("~~~ aiGCI, updating job for zone: ", zName);
+
+          //job exists for zone with threats, update job priority
+          WsfRIPRJob temp = mZoneJobMap.Get( zName );
+          //job priority could have changed, set it
+          temp.SetPriority( ZoneJobPriority );
+          temp.SetData( "ZonePoint", mZonePoint.Get( zName ) );
+          temp.SetData( "ZoneBearing", mZoneBearing.Get( zName ) );
+          temp.SetData( "ZoneBearingValid", mZoneBearingValid.Get( zName ) );
+
+          //number of threats inside zone could have changed, set it
+          temp.SetData( "ZoneNumThreats", mZoneNumThreats.Get( zName ) );
+        }
+        else
+        {
+          //zone just became hot, job not created yet, create one
+
+          WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                              "zone",
+                              "zone-" + zName,
+                              ZoneJobPriority,
+                              mMaxJobWinnersForGciZone );
+          temp.SetData( "ZoneName", zName );
+          temp.SetData( "ZonePoint", mZonePoint.Get( zName ) );
+          temp.SetData( "ZoneBearing", mZoneBearing.Get( zName ) );
+          temp.SetData( "ZoneBearingValid", mZoneBearingValid.Get( zName ) );
+          temp.SetData( "ZoneNumThreats", mZoneNumThreats.Get( zName ) );
+          temp.SetData( "for_air", 1 );
+
+          AddJob(temp);
+          mZoneJobMap.Set( zName, temp );
+
+          writeln_d("+++ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+        }
+      }
+      else
+      {
+        //no threats in zone, make sure job for zone doesn't exist or is deleted
+        if( mZoneJobMap.Exists( zName ) )
+        {
+          writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", mZoneJobMap.Get(zName).Name() );
+          RemoveJob( mZoneJobMap.Get(zName) );
+          //mZoneJobMap.Erase( zName );
+          mZoneJobMap.Remove( zName );
+        }
+      }
+    }
+
+  end_script

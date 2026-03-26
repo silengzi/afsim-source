@@ -1,0 +1,88 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This scenario contains a launcher that has a script to automatically launch
+# TBM's  at three pre-briefed targets.
+# It is an example of how to add a processor to a predefined platform
+
+## Define platforms that are sitting at the target locations.
+
+platform target-1 TARGET
+   side blue
+   position 37:30n 127:00e
+end_platform
+
+platform target-2 TARGET
+   side blue
+   position 37:50n 128:00e
+end_platform
+
+platform target-3 TARGET
+   side blue
+   position 36:00n 128:10e
+end_platform
+
+platform tbm1-launcher TBM1_LAUNCHER
+   side red
+   position 36n 120e
+
+   # Declare how many missiles we have
+   weapon tbm1-missile
+      quantity 3
+   end_weapon
+
+   # Add a script processor that will launch the weapon.
+   add processor script WSF_SCRIPT_PROCESSOR
+      update_interval 30.0 sec
+      on_update
+         if (TIME_NOW > 1.0)
+         {
+            writeln("TIME_NOW ", TIME_NOW);
+            static int trackIndex = 0;
+            WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+
+            // Fire a tbm at the next track if we haven't already and
+            // we have a tbm in our inventory.
+            if ((PLATFORM.WeaponCount() > 0) &&
+                (trackIndex < trackList.TrackCount()))
+            {
+               WsfWeapon tbm = PLATFORM.Weapon("tbm1-missile");
+               if (tbm.IsValid())
+               {
+                  tbm.Fire(trackList.TrackEntry(trackIndex));
+                  trackIndex = trackIndex + 1;
+               }
+            }
+            else
+            {
+               PROCESSOR.TurnOff();
+            }
+         }
+      end_on_update
+   end_processor
+
+   # Define 'pre-brief' tracks that indicate the targets location
+   track
+      platform target-1
+      position 37:30n 127:00e
+   end_track
+
+   track
+      platform target-2
+      position 37:50n 128:00e
+   end_track
+
+   track
+      platform target-3
+      position 36:00n 128:10e
+   end_track
+
+end_platform
+
+
+

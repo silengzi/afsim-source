@@ -1,0 +1,11 @@
+2025-12-03 18:00:44 file 3rd_state_zones.txt
+2025-12-03 18:00:44 version wsf 2.9.0
+2025-12-03 18:00:44 file 3rd_state_zones.txt
+2025-12-03 18:00:44 file platforms/sat2.txt
+2025-12-03 18:00:44 file ./sensors/sat_sensor_narrow.txt
+2025-12-03 18:00:44 file scenarios/sat_con_1_autogen.txt
+2025-12-03 18:00:44 file zones/state_zones.txt
+2025-12-03 18:00:44 file coverage_grids/state_zone_lat_lon_grid_coverage.txt
+2025-12-03 18:00:44 AER output file: output/3rd_state_zone.aer
+2025-12-03 18:00:44 start 1
+2025-12-03 18:01:00 complete 4000.000 16.562 16.375

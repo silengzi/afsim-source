@@ -1,0 +1,79 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###############################################################################
+# radar_signature_demo.txt
+# Similar to optical_signature_demo, this demonstrates the usage of 
+# multiresolution_radar_signature. An air platform with a 
+# multiresolution_radar_signature is used with two signature options, a constant
+# signature and a tabular signature. Two ground-based radars track the air 
+# platform. The fidelity parameter may be adjusted to choose the signature.
+###############################################################################
+
+define_path_variable CASE radar_signature_demo
+log_file output/$(CASE).log
+
+end_time 600 sec
+
+# include platform file from signature_demos
+include_once platforms/simple_fighter.txt
+
+# include sensor from base_types
+file_path ../base_types/sensors/radar
+include_once generic_ground_radar.txt
+
+include_once signatures/radar_signatures.txt
+
+platform_type GENERIC_RADAR_SITE WSF_PLATFORM
+   icon Ground_Radar
+   processor track_mgr WSF_TRACK_PROCESSOR
+   end_processor
+   sensor radar GENERIC_GROUND_RADAR
+      on
+      internal_link track_mgr
+   end_sensor
+end_platform_type
+
+platform ground_radar_1 GENERIC_RADAR_SITE
+   side blue
+   position 40n 90w
+end_platform
+
+platform ground_radar_2 GENERIC_RADAR_SITE
+   side blue
+   position 41n 90w
+   heading 180 deg
+end_platform
+
+platform fighter_multi SIMPLE_FIGHTER
+   side red
+   add multiresolution_radar_signature MULTIRESOLUTION_RADAR_SIGNATURE
+      fidelity 0.0
+   end_multiresolution_radar_signature
+   route
+      position 40.2n 89.5w altitude 20000 ft heading 270 deg speed 500 kts
+      position 40.1n 90.0w altitude 20000 ft heading 270 deg speed 500 kts
+      position 40.2n 90.0w altitude 20000 ft heading 270 deg speed 500 kts
+      position 40.1n 90.1w altitude 20000 ft heading 270 deg speed 500 kts
+      position 40.2n 89.5w altitude 20000 ft heading 270 deg speed 500 kts
+   end_route
+end_platform
+
+event_output
+   file output/$(CASE).evt
+   enable all
+end_event_output
+
+event_pipe
+   file output/$(CASE).aer
+   use_preset full
+   enable DETECTION_ATTEMPT 
+end_event_pipe

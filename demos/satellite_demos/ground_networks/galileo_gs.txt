@@ -1,0 +1,125 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Galileo Ground Segment
+
+include_once platforms/galileo_gs.txt
+
+platform FUCINO_ITALY GALILEO_GS
+position   41.97887963n  13.60182785e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform OBERPFAFFENHOFEN_GERMANY GALILEO_GS
+position   48.08004178n  11.28638335e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform KIRUNA_SWEDEN GALILEO_GS
+position   67.85570909n  20.22862894e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform KOUROU_FRENCH_GUINEA GALILEO_GS
+position   5.17155042n  52.68572222w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform SVALBARD_NORWAY GALILEO_GS
+position   78.23058426n  15.3915203e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform BELGIUM GALILEO_GS   # approximate location
+position   50.51343209n  4.47227952e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform  JAN_MAYEN GALILEO_GS   # approximate location
+position   70.92178906n  8.71798674w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform ST_PIERRE_AND_MIQUELON GALILEO_GS   # approximate location
+position   46.79467429n  56.15902025w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform WALLIS GALILEO_GS   # approximate location
+position   14.30726541s  178.1172501w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform PAPEETE GALILEO_GS   # approximate location
+position   17.54726417s  149.56275257w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform FALKLANDS GALILEO_GS   # approximate location
+position   51.71623417s  59.63397995w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform TROLL GALILEO_GS   # approximate location
+position   72.00969545s   2.55429105e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform AZORES GALILEO_GS   # approximate location
+position   37.74544172n  25.65507329w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform ASCENSION GALILEO_GS   # approximate location
+position   7.97273875s  14.40690236w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform REUNION GALILEO_GS   # approximate location
+position   4.35232174s  55.82804129e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform KERGUELEN GALILEO_GS   # approximate location
+position   49.25850247s  69.24508257e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform NOUMEA GALILEO_GS   # approximate location
+position   22.26097143s  166.47241892e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform MASPALOMAS GALILEO_GS   # approximate location
+position   27.75645715n  15.57037225w  altitude 1.0 m agl
+commander SELF
+side green
+end_platform
+
+platform CYPRUS GALILEO_GS   # approximate location
+position   35.15514995n  33.43387759e  altitude 1.0 m agl
+commander SELF
+side green
+end_platform

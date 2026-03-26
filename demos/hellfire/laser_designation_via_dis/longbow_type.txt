@@ -1,0 +1,305 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =====================================================================================================
+
+include_once apache_type.txt
+include_once hellfire_type.txt
+
+# UTILITY - Used later to visually render the imported DTED data.
+script void PlotRange(double startLat,   double startLon,
+                      double endLat,     double endLon,
+                      double latLonIncr, WsfDraw draw)
+
+   for (double lat = startLat; lat < endLat; lat=lat+latLonIncr)
+   {
+      for (double lon = startLon; lon < endLon; lon=lon+latLonIncr)
+      {
+         WsfTerrain terrain = WsfTerrain();
+         draw.VertexLLA(lat, lon, terrain.TerrainElevInterp(lat, lon));
+         draw.VertexLLA(lat+latLonIncr, lon, terrain.TerrainElevInterp(lat+latLonIncr, lon));
+         draw.VertexLLA(lat, lon, terrain.TerrainElevInterp(lat, lon));
+         draw.VertexLLA(lat, lon+latLonIncr, terrain.TerrainElevInterp(lat, lon+latLonIncr));
+      }
+   }
+
+end_script
+
+# Set and save some variables for use during terrain drawing.
+script_variables
+   double gridLongitude = -114.95;   # Longitude variable for use in drawing terrain grid.
+   double gridHeight    = 3000.0;    # Height variable for use in drawing terrain grid.
+end_script_variables
+
+# UTILITY - Script to return true/false regarding whether terrain blocks Line-Of-Sight between points.
+script bool IsLOS_Blocked(WsfGeoPoint src, WsfGeoPoint target)
+   WsfDraw draw = WsfDraw();
+   draw.BeginLines();
+   draw.Vertex(src); draw.Vertex(target);
+   draw.End();
+   return WsfTerrain.MaskedByTerrain(src, target, 1.0);
+end_script
+
+# Script to iteratively climb vertically up from one point to another,
+# and return the lowest altitude at which we gain Line-Of-Sight to the target.
+# (Returns the height at which we should stop the pop-up manuever.)
+script double GetPopupAltitude(WsfGeoPoint src, WsfGeoPoint target)
+   double alt = src.Altitude();
+   WsfGeoPoint popupPt = WsfGeoPoint(src);
+   for (int i = 0; i < 1000; i=i+1)
+   {
+      double alt = i*100.0;
+      popupPt.SetAltitudeAGL(i*100.0);
+      if (IsLOS_Blocked(popupPt, target))
+      {
+         writeln("LOS blocked at alt = ", alt);
+      }
+      else
+      {
+          writeln("LOS UNBLOCKED AT ", alt);
+          return popupPt.Altitude() + 400; # DRB
+      }
+   }
+   writeln("LOS UNBLOCK FAILED and return -1");
+   return -1;
+end_script
+
+# Visually render the terrain as a 3-D mesh in Mystic display.
+script void draw_terrain()
+
+   WsfDraw draw = WsfDraw();
+   draw.BeginLines();
+
+   WsfGeoPoint SW = WsfGeoPoint.Construct("39:07:25.053n 106:52:07.320w");
+   WsfGeoPoint NE = WsfGeoPoint.Construct("39:12:20.866n 106:45:00.985w");
+
+   PlotRange(SW.Latitude(), SW.Longitude(), NE.Latitude(), NE.Longitude(), .001, draw);
+
+   draw.End();
+   draw.BeginLines();
+
+   for (int i = 0; i < 100; i = i + 1)
+   {
+      draw.VertexLLA(36-.05, gridLongitude, i*gridHeight/99.0);
+      draw.VertexLLA(36+.05, gridLongitude, i*gridHeight/99.0);
+   }
+
+   draw.End();
+
+end_script
+
+# One time only, render all the terrain in the Mystic display.
+execute at_time 1 s absolute
+   draw_terrain();
+end_execute
+
+# This the route we will follow on the egress away from the target area:
+route egress_along_valley_floor
+   position 39:11:00.0n 106:48:47.8w altitude 100 m agl speed 30 m/s
+   position 39:10:16.0n 106:47:41.0w altitude 100 m agl
+   position 39:08:36.6n 106:46:50.0w altitude 100 m agl
+   position 39:07:26.1n 106:45:06.1w altitude 100 m agl
+   stop
+end_route
+
+# Define the attributes of the helicopter, its sensors and mover, etc.
+platform_type LONGBOW APACHE
+
+   # Beginning location...
+   position 39:07:52.920n 106:46:05.756w altitude 10 m agl
+
+   # Laser sensor which can detect the spot after we get Line-Of-Sight to it.
+   add sensor tracker HELLFIRE_LASER_TRACKER
+      processor track-manager
+   end_sensor
+
+   add weapon hellfire_launcher HELLFIRE_LAUNCHER
+      launched_platform_type SAL_HELLFIRE # or RF_HELLFIRE
+   end_weapon
+
+   add processor track-manager WSF_TRACK_PROCESSOR
+      # Use all default attributes for this object.
+   end_processor
+
+   script_variables
+      # Flag to indicate whether we want to follow terrain or not.
+      # Begin ingress using terrain following.
+      bool followTerrain = true;
+      bool attemptedMissileFire = false;
+      bool isEgressing = false;
+      bool mobilityKilled = false;
+      bool firepowerKilled = false;
+   end_script_variables
+
+   # Terrain following involves always setting target altitude to
+   # a fixed value above the current terrain height.
+   execute at_interval_of 1 s
+
+      if (followTerrain)
+      {
+         # Very rough terrain might require higher clearances, or slower
+         # speeds, or higher allowed rates of climb to avoid terrain.
+         GoToAltitude(Location().TerrainHeight() + 100, 50, true);
+      }
+
+   end_execute
+
+   # This the route we will follow on the ingress toward the target area:
+   route # ingress_along_valley_side_wall
+      position 39:07:26.1n 106:45:52.1w altitude 100 m agl
+      position 39:08:36.6n 106:47:40.0w altitude 100 m agl
+      position 39:10:21.2n 106:48:27.1w altitude 100 m agl
+      #  DRB position 39:11:01.9n 106:48:52.6w altitude 100 m agl
+        execute BeginPopup
+   end_route
+
+   # When is our pop-up manuever complete?
+   # We are done when we detect the target with our sensor.
+   script void CheckDone()
+
+      if ((attemptedMissileFire && ! isEgressing) ||
+          ((MasterTrackList().Count() > 0) &&
+           (MasterTrackList().Entry(0).TimeSinceStarted() > 15) &&
+           (! isEgressing)))
+      {
+            # We may or may not have fired a missile, but we are exposed to the threat.
+            # After some acceptable amount of exposure to extablish a target track, give up.
+            # If we attempted a missile fire, whether successful or not, depart.
+            double currentAlt = Altitude();
+            #writeln("Target track fixed for 15 seconds.  Actual Alt = ", currentAlt);
+            writeln("*** Egressing Target Area Now. ***");
+            PLATFORM.Comment("Time to bug out.");
+            isEgressing = true;
+            attemptedMissileFire = true; # Just to prevent further attempts.
+
+            # Exit the area with more haste, as we will not be terrain following.
+            followTerrain = false;
+            PLATFORM.Mover().SetMode("CRUISE");
+
+            # Egress along the specified exit route path.
+            FollowRoute("egress_along_valley_floor");
+            return;
+      }
+      else if (MasterTrackList().Count() > 0)
+      {
+         # We have detected a target, so we do now have line of sight to it.
+
+         if (MasterTrackList().Entry(0).TimeSinceStarted() > 5  && ! attemptedMissileFire)
+         {
+            # Examine the track we have.  If it has been established
+            # for 5 seconds, we have an accurate fix on the target.
+            # If the LaunchComputer says we can hit, then fire.
+            double currentAlt = Altitude();
+            PLATFORM.Comment("Target track fixed for 5 seconds.  Attempting Fire.");
+            writeln("Target track fixed for 5 seconds. Actual Alt = ", currentAlt);
+            if (PLATFORM.Weapon("hellfire_launcher").LaunchComputer().CanIntercept(MasterTrackList().Entry(0)))
+            {
+               bool fired = PLATFORM.Weapon("hellfire_launcher").Fire(MasterTrackList().Entry(0));
+               if (fired)
+               {
+                  PLATFORM.Comment("Weapon fire successful.");
+                  writeln("Hellfire Missile Launched.");
+               }
+               else
+               {
+                  PLATFORM.Comment("Launch attempt failed for unknown reason.");
+                  writeln("Hellfire Missile Launch Attempted, but Failed.");
+               }
+
+               WsfSensor tracker = PLATFORM.Sensor("tracker");
+               if (tracker.IsValid())
+               {
+                   writeln("Laser tracker turned off after missile launch.");
+                   tracker.TurnOff();
+               }
+            }
+            else
+            {
+               writeln("Not within Hellfire Missile Launch Constraints.");
+            }
+            attemptedMissileFire = true;
+         }
+      }
+
+      # Repeat running this script at 5 second intervals.
+      ExecuteAtTime(TIME_NOW + 10, "CheckDone");
+
+   end_script
+   
+   script void TurnToTarget()
+      WsfGeoPoint expectedTgtLocation = WsfGeoPoint.Construct("39:10:35.0n 106:50:44w");
+      expectedTgtLocation.SetAltitudeAGL(1);
+      GoToSpeed(10);
+      TurnToHeading(PLATFORM.TrueBearingTo(expectedTgtLocation));
+   end_script
+
+   # Script to begin the pop-up manuever.  Do this only once, after ingress into the target area.
+   script void BeginPopup()
+
+      # We now need to control our altitude directly in this script,
+      # not by consideration of terrain heights, so turn off terrain following.
+      followTerrain = false;
+
+      # It is necessary to pre-declare the existence of an external function we wish to call:
+      extern double GetPopupAltitude(WsfGeoPoint src, WsfGeoPoint target);
+
+      # Set the speed to slow down to be more reasonable for this manuever.
+      PLATFORM.Mover().SetMode("HOVER");
+      writeln("*** In pop-up.  Set mode HOVER. ***");
+
+      # This is an expected location for a target.
+      # It does not have to be the actual location,
+      # however must be close enough to enable a detection.
+      WsfGeoPoint expectedTgtLocation = WsfGeoPoint.Construct("39:10:35.0n 106:50:44w");
+      expectedTgtLocation.SetAltitudeAGL(1);
+
+      # Turn our desired heading toward the expected target location.
+      SetHeading(230); 
+
+      # Set a location to fly to.  This is the vantage point location we wish to do the pop-up from.
+      WsfGeoPoint verticalClimbPole = WsfGeoPoint.Construct("39:11:05.0n 106:49:17.8w");
+
+      # Create a route to fly, from our current location toward the expected target.
+      WsfRoute route = WsfRoute();
+      route.Append(verticalClimbPole, 30);
+
+      # Calculate an altitude believed to be sufficient to gain line-of-sight to the expected location for the target
+      double popUpAlt = GetPopupAltitude(verticalClimbPole, expectedTgtLocation);
+      double currentAlt = Altitude();
+      writeln("Current Alt: ", currentAlt, ", Commanded Pop-Up Alt: ", popUpAlt);
+
+      # Add another point into our route that will take us vertically up to our sensor scan altitude.
+      verticalClimbPole.SetAltitudeAGL(popUpAlt - verticalClimbPole.TerrainHeight());
+      route.Append(verticalClimbPole, 0);
+      
+      WsfGeoPoint TurnPoint = {};
+      TurnPoint = verticalClimbPole;
+      TurnPoint.OffsetRBE(100, PLATFORM.TrueBearingTo(expectedTgtLocation), 0);
+      route.Append(TurnPoint,1);
+
+      # Engage.  Begin flying toward the target.
+      FollowRoute(route);
+
+      WsfSensor tracker = PLATFORM.Sensor("tracker");
+      if (tracker.IsValid())
+      {
+          writeln("Laser tracker turned on at start of pop-up.");
+          tracker.TurnOn();
+          PLATFORM.Comment("LASER Sensor On.");
+      }
+
+      # Run the CheckDone() script.  Since we have yet to get to sensor height and detect the target,
+      # one might think there is no reason to check this now.  However, as part of its processing, the
+      # script will reschedule itself periodically.  Eventually, it will discern the pop-up was successful.
+      CheckDone();
+
+   end_script
+
+end_platform_type
+

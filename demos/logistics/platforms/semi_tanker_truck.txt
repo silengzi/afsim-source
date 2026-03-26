@@ -1,0 +1,203 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once ./logistics_platform.txt
+include_once ../processors/shuttle_transport_processor.txt
+
+platform_type SEMI_TANKER_TRUCK LOGISTICS_PLATFORM
+
+   # DESCRIPTION:  A semi-tanker-truck (STT) picks up fuel at the pier fuel
+   # depot (PFD), transports it to the airport fuel tank (AFT), and returns.
+   # It will not depart the PFD until its tank is full, and it will not
+   # depart the AFT until its tank is empty.  It may have to linger at either
+   # place if a transactor is not available to service it.  Local manuevering
+   # is not modeled, so rough proximity is good enough to permit the transfer.
+
+   # PROPERTIES:
+   # Maximum Quantity = 10,000 USG X 6.84 (lb/USG) X  1/(2.2 lb/kg) = 31090 kg
+   # Maximum transfer rate is set to half the fill rate from the PFD.
+
+   icon Semi
+
+   add processor transportProcessor SHUTTLE_TRANSPORT_PROCESSOR
+   end_processor
+
+   edit processor exchanger
+
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 31000 kg
+            maximum_mass_rate        40 kg/sec
+         end_commodity
+         initial_mass_quantity 15000 kg # Half full
+      end_container
+
+      edit transactor fuel_offering_transactor
+         proximity_limit          300 m    # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      edit transactor fuel_requesting_transactor
+         proximity_limit         300 m    # If the transacting platforms are more than this distance apart,
+                                          # the transaction will not be allowed to take place.
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+   end_processor
+
+   mover WSF_SURFACE_MOVER
+      maximum_speed 45 mph
+      minimum_speed 15 mph
+      maximum_linear_acceleration 0.5 g
+      maximum_radial_acceleration 0.5 g
+      update_interval 5 sec
+   end_mover
+
+   script bool STT_Init()
+
+      fuelPossibleReceiversToAdd.PushBack("KeyWestAirportFuelTank");
+      fuelPossibleSuppliersToAdd.PushBack("KeyWestPierFuelDepot");
+
+      bool success = LP_Init();
+
+      if (success)
+      {
+         transportProcessor = PLATFORM.Processor("transportProcessor");
+         success = transportProcessor.IsValid();
+      }
+
+      if (success)
+      {
+         # These are declared as variables, rather than in-lined, simply to document syntax.
+         bool isFuelRelated = true;
+         success = (bool)transportProcessor.Execute("STP_Init",
+            { fuelOfferTransactor, fuelRequestTransactor, fuelContainer, runSilent, isFuelRelated, "KeyWestPierFuelDepot", "KeyWestAirportFuelTank" } );
+
+         if (! success)
+         {
+            Say("STT_Init() failed due to STP_Init().");
+         }
+      }
+
+      return success;
+
+   end_script
+
+   on_initialize2
+
+      doIntendToSupplyFuel  = true;
+      doIntendToReceiveFuel = true;
+
+      bool success = STT_Init();
+
+      if (success)
+      {
+         Say("SEMI_TANKER_TRUCK Initialize succeeded.");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("SEMI_TANKER_TRUCK Initialize FAILED");
+      }
+
+   end_on_initialize2
+
+
+   execute at_interval_of 203 sec
+
+      if (isInitialized && ! allPlayersResolved)
+      {
+         allPlayersResolved = ResolvePlayersToAdd();
+         if (! allPlayersResolved)
+         {
+            Say("SEMI_TANKER_TRUCK Did not ResolvePlayersToAdd() properly.");
+            return;
+         }
+
+         if (fuelPossibleSuppliers.Size() == 1)
+         {
+            SetFuelOfferingPlatform(fuelPossibleSuppliers.Get(0));
+         }
+
+         if (fuelPossibleReceivers.Size() == 1)
+         {
+            SetFuelRequestingPlatform(fuelPossibleReceivers.Get(0));
+         }
+
+         if (! FuelOfferingPlatform().IsValid())
+         {
+            Say("SEMI_TANKER_TRUCK permanent server assignment failed.  FATAL.");
+            foreach(string val in fuelPossibleSuppliersToAdd)
+            {
+               writeln("     ", val);
+            }
+            allPlayersResolved = false;
+         }
+      }
+
+      if (isInitialized && allPlayersResolved)
+      {
+         # Update a couple of critical flags:
+         if (fuelContainer.IsEmpty() && haveFuelToGive)
+         {
+            Say("SEMI_TANKER_TRUCK ran out of fuel to give.");
+            haveFuelToGive = false;
+            fuelIsReserved = false;
+         }
+         if (fuelContainer.IsFull() && ! haveFuelToGive)
+         {
+            Say("SEMI_TANKER_TRUCK now has a full load of fuel to give.");
+            haveFuelToGive = true;
+         }
+
+         # Our job is to continuously try to ask for fuel from our supplying
+         # depot, if we can get it...  Doesn't matter if possible or not.
+         bool canAskForFuel =   fuelOfferingPlatform.IsValid() &&
+                              ! fuelRequestTransactor.IsInProgress() &&
+                              ! fuelContainer.IsFull();
+
+         if (canAskForFuel && ! isRequestingFuel)
+         {
+            bool didRequest = fuelRequestTransactor.RequestFrom(
+               fuelOfferingPlatform, fuelRequestTransactor.Container().TenderNeeded());
+            if (didRequest)
+            {
+               isRequestingFuel = true;
+               Say("SEMI_TANKER_TRUCK RequestFrom succeeded.  isRequestingFuel set true.");
+            }
+            else
+            {
+               Say("SEMI_TANKER_TRUCK RequestFrom failed.");
+            }
+         }
+         else if (canAskForFuel && isRequestingFuel)
+         {
+            fuelRequestTransactor.RequestFrom(
+               fuelOfferingPlatform, fuelRequestTransactor.Container().TenderNeeded());
+         }
+
+         // Our job is also to continuously make fuel available for any requesting receivers
+         if (haveFuelToGive && ! fuelIsReserved)
+         {
+            fuelIsReserved = fuelOfferTransactor.ReserveAll();
+            if (fuelIsReserved)
+            {
+               Say("SEMI_TANKER_TRUCK Fuel Reserve was successful.");
+            }
+            else
+            {
+               Say("SEMI_TANKER_TRUCK Fuel Reserve was NOT successful.");
+            }
+         }
+      }
+
+   end_execute
+
+end_platform_type
+

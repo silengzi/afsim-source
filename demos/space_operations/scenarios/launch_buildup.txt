@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This scenarios contains a launch facility upon which a launch vehicle
+# is assembled.
+
+# Launch facility and vehicle #################################################
+platform launch_facility LAUNCH_FACILITY
+  icon wedge
+  position 32:09:20.04n 116:43:48.05e
+end_platform
+
+platform launch_vehicle LAUNCH_VEHICLE
+   icon missile
+   position 32:09:20.04n 116:43:48.05e
+end_platform
+
+# Commander ###################################################################
+platform commander COMMANDER
+  commander SELF
+  side blue
+  icon cmd_post
+  position 38:46:19.85n 90:23:22.62w
+end_platform

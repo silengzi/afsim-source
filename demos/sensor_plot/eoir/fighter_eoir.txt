@@ -1,0 +1,21 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+sensor FIGHTER_EOIR WSF_EOIR_SENSOR
+   frame_time 1 s
+   slew_mode                           azimuth_and_elevation
+   #azimuth_slew_limits                 -60 deg 60 deg
+   #elevation_slew_limits               -60 deg 60 deg
+   azimuth_field_of_view               -60 deg 60 deg
+   azimuth_slew_limits                 -6 deg 6 deg
+   elevation_slew_limits               -6 deg 6 deg
+
+   angular_resolution 0.01 deg
+   reports_location
+
+end_sensor

@@ -1,0 +1,17 @@
+2026-02-03 18:32:08 file optical_signature_demo.txt
+2026-02-03 18:32:08 version wsf 2.9.0
+2026-02-03 18:32:08 file optical_signature_demo.txt
+2026-02-03 18:32:08 file platforms/simple_fighter.txt
+2026-02-03 18:32:08 file platforms/generic_irst_site.txt
+2026-02-03 18:32:08 file ./sensors/generic_irst.txt
+2026-02-03 18:32:08 file platforms/generic_eoir_site.txt
+2026-02-03 18:32:08 file ./sensors/generic_eoir.txt
+2026-02-03 18:32:08 file platforms/sensor_laydown_fighter.txt
+2026-02-03 18:32:08 file signatures/fighter_multiresolution_signature.txt
+2026-02-03 18:32:08 file signatures\fighter_box_optical_signature.txt
+2026-02-03 18:32:08 file signatures\fighter_multi_shape_optical_signature.txt
+2026-02-03 18:32:08 file signatures\fighter_spherical_optical_signature.txt
+2026-02-03 18:32:08 AER output file: output/optical_signature_demo.aer
+2026-02-03 18:32:08 Event output file: output/optical_signature_demo.evt
+2026-02-03 18:32:08 start 1
+2026-02-03 18:32:08 complete 600.001 0.033 0.063

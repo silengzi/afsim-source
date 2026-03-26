@@ -1,0 +1,529 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# GPS SATELLITE DEFINITION
+
+include ../avionics/comm/GPSCommDef.txt
+
+# references
+# 1) http://www.sciencedirect.com/science/article/pii/S0273117715004378
+
+radar_signature    GPS_RADAR_SIG
+  constant 5 dbsm
+end_radar_signature
+
+platform_type EGNOS WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type
+
+platform_type WAAS WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type
+
+platform_type MSAS WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type
+
+platform_type QZSS WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type
+
+platform_type GAGAN WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type
+
+platform_type SDCM WSF_PLATFORM
+  icon satellite
+  radar_signature GPS_RADAR_SIG
+#  mover WSF_NORAD_SPACE_MOVER
+#  end_mover
+   mover WSF_SPACE_MOVER
+   end_mover
+
+  comm GPS_DOWNLINKL1_TX GPS_DOWNLINKL1_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL1_RX GPS_UPLINKL1_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL2_TX GPS_DOWNLINKL2_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL2_RX GPS_UPLINKL2_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL3_TX GPS_DOWNLINKL3_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_DOWNLINKL5_TX GPS_DOWNLINKL5_TX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+  
+  comm GPS_UPLINKL5_RX GPS_UPLINKL5_RX
+     location  394 0 1600 mm   # ref 1, location given for IIF Satellites
+     on
+  end_comm
+
+#=====================Uncomment this to send a test message user handhelds=========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	              if (myPlatform.Type() == "GPS_HANDHELD")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL1_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#====================================================================================================================
+
+#====================Uncomment this to send a test message to GPS ground network===================================== 
+# execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#                 if (myPlatform.Type() == "GPS_CONTROL")
+#                 {
+#                  PLATFORM.Comm("GPS_DOWNLINKL3_TX").SendUnicastMessage(myMessage, myPlatform);
+#                 }
+#              }
+#          }
+# end_execute
+#=====================================================================================================================
+ 
+end_platform_type

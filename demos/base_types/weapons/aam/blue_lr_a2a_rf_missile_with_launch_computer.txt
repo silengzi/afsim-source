@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once blue_lr_a2a_rf_missile.txt
+
+
+weapon BLUE_LR_A2A_RF_MISSILE_WITH_LAUNCH_COMPUTER  BLUE_LR_A2A_RF_MISSILE
+
+   launch_computer WSF_AIR_TO_AIR_LAUNCH_COMPUTER
+      load_table blue_lr_a2a_rf_missile_air_to_air_launch_computer_table.txt
+   end_launch_computer
+
+end_weapon
+

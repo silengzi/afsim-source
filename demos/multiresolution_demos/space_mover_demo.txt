@@ -1,0 +1,66 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+##################################################################################
+# space_mover_demo.txt
+# This example demonstrates a simple use of multiresolution_mover. Two different
+# mover models are used (WSF_SPACE_MOVER and WSF_INTEGRATING_SPACE_MOVER).
+# For comparison, a platform that uses WSF_SPACE_MOVER is included. The `fidelity`
+# parameter can be adjusted to choose the model that will be used on the platform.
+##################################################################################
+
+define_path_variable CASE space_mover_demo
+log_file output/$(CASE).log
+
+include_once movers/space_mover.txt
+
+atmosphere_model basic WSF_PIECEWISE_EXPONENTIAL_ATMOSPHERE
+end_atmosphere_model
+
+start_date sep 1 2014
+start_time 00:00:00
+
+end_time 0.2 hours
+
+event_pipe
+  file output/$(CASE).aer
+  maximum_mover_update_interval 0 sec
+end_event_pipe
+
+platform_type MR_TEST_SAT WSF_PLATFORM
+   empty_mass 100 kg
+
+   multiresolution_mover MR_MOVER
+   end_multiresolution_mover
+end_platform_type
+
+platform test_sat MR_TEST_SAT
+   icon satellite
+   side blue
+   multiresolution_mover
+      fidelity 1
+   end_multiresolution_mover
+end_platform
+
+platform test_sat2 WSF_PLATFORM
+   icon satellite
+   side red
+   empty_mass 100 kg
+   add mover WSF_SPACE_MOVER
+      update_interval 5 sec
+      eccentricity 1e-3
+      semi_major_axis 6600 km
+      raan 0 deg
+      inclination 0 deg
+      true_anomaly 0 deg
+      argument_of_periapsis 0 deg
+   end_mover
+end_platform   

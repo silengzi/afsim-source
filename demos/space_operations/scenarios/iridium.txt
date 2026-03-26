@@ -1,0 +1,1405 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Info from https://pdfs.semanticscholar.org/47f7/716a11c8cd932c1d270753c33cbde89c45c4.pdf
+# Model of iridium satellites to establish communication network
+
+# RAAN 0 ############################################################################
+platform iridium11 IRIDIUM_SATELLITE
+   edit mover
+      raan 0 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium11
+      network_link iridiumhandheld11
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld11
+      network_link iridium11
+   end_comm
+
+end_platform
+
+platform iridium12 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium12
+      network_link iridiumhandheld12
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld12
+      network_link iridium12
+   end_comm
+
+end_platform
+
+platform iridium13 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium13
+      network_link iridiumhandheld13
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld13
+      network_link iridium13
+   end_comm
+
+end_platform
+
+platform iridium14 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 98.182 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium14
+      network_link iridiumhandheld14
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld14
+      network_link iridium14
+   end_comm
+
+end_platform
+
+platform iridium15 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium15
+      network_link iridiumhandheld15
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld15
+      network_link iridium15
+   end_comm
+
+end_platform
+
+platform iridium16 IRIDIUM_SATELLITE
+
+   edit mover
+      raan 0 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium16
+      network_link iridiumhandheld16
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld16
+      network_link iridium16
+   end_comm
+
+end_platform
+
+platform iridium17 IRIDIUM_SATELLITE
+
+   edit mover
+      raan 0 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium17
+      network_link iridiumhandheld17
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld17
+      network_link iridium17
+   end_comm
+
+end_platform
+
+platform iridium18 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium18
+      network_link iridiumhandheld18
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld18
+      network_link iridium18
+   end_comm
+
+end_platform
+
+platform iridium19 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium19
+      network_link iridiumhandheld19
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld19
+      network_link iridium19
+   end_comm
+
+end_platform
+
+platform iridium110 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium110
+      network_link iridiumhandheld110
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld110
+      network_link iridium110
+   end_comm
+
+end_platform
+
+platform iridium111 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 0 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium111
+      network_link iridiumhandheld111
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld111
+      network_link iridium111
+   end_comm
+
+end_platform
+
+# RAAN 30 ############################################################################
+platform iridium21 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium21
+      network_link iridiumhandheld21
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld21
+      network_link iridium21
+   end_comm
+
+end_platform
+
+
+platform iridium22 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium22
+      network_link iridiumhandheld22
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld22
+      network_link iridium22
+   end_comm
+
+end_platform
+
+platform iridium23 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium23
+      network_link iridiumhandheld23
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld23
+      network_link iridium23
+   end_comm
+
+end_platform
+
+platform iridium24 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium24
+      network_link iridiumhandheld24
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld24
+      network_link iridium24
+   end_comm
+
+end_platform
+
+platform iridium25 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium25
+      network_link iridiumhandheld25
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld25
+      network_link iridium25
+   end_comm
+
+end_platform
+
+platform iridium26 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 179.986 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium26
+      network_link iridiumhandheld26
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld26
+      network_link iridium26
+   end_comm
+
+end_platform
+
+platform iridium27 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium27
+      network_link iridiumhandheld27
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld27
+      network_link iridium27
+   end_comm
+
+end_platform
+
+platform iridium28 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium28
+      network_link iridiumhandheld28
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld28
+      network_link iridium28
+   end_comm
+
+end_platform
+
+platform iridium29 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium29
+      network_link iridiumhandheld29
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld29
+      network_link iridium29
+   end_comm
+
+end_platform
+
+platform iridium210 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium210
+      network_link iridiumhandheld210
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld210
+      network_link iridium210
+   end_comm
+
+end_platform
+
+platform iridium211 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 30 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium211
+      network_link iridiumhandheld211
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld211
+      network_link iridium211
+   end_comm
+
+end_platform
+
+# RAAN 60 ############################################################################
+platform iridium31 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium31
+      network_link iridiumhandheld31
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld31
+      network_link iridium31
+   end_comm
+
+end_platform
+
+
+platform iridium32 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium32
+      network_link iridiumhandheld32
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld32
+      network_link iridium32
+   end_comm
+
+end_platform
+
+platform iridium33 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium33
+      network_link iridiumhandheld33
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld33
+      network_link iridium33
+   end_comm
+
+end_platform
+
+platform iridium34 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 98.182 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium34
+      network_link iridiumhandheld34
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld34
+      network_link iridium34
+   end_comm
+
+end_platform
+
+platform iridium35 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium35
+      network_link iridiumhandheld35
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld35
+      network_link iridium35
+   end_comm
+
+end_platform
+
+platform iridium36 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium36
+      network_link iridiumhandheld36
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld36
+      network_link iridium36
+   end_comm
+
+end_platform
+
+platform iridium37 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium37
+      network_link iridiumhandheld37
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld37
+      network_link iridium37
+   end_comm
+
+end_platform
+
+platform iridium38 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium38
+      network_link iridiumhandheld38
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld38
+      network_link iridium38
+   end_comm
+
+end_platform
+
+platform iridium39 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium39
+      network_link iridiumhandheld39
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld39
+      network_link iridium39
+   end_comm
+
+end_platform
+
+platform iridium310 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium310
+      network_link iridiumhandheld310
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld310
+      network_link iridium310
+   end_comm
+
+end_platform
+
+platform iridium311 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 60 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium311
+      network_link iridiumhandheld311
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld311
+      network_link iridium311
+   end_comm
+
+end_platform
+
+## RAAN 180 ############################################################################
+platform iridium41 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium41
+      network_link iridiumhandheld41
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld41
+      network_link iridium41
+   end_comm
+
+end_platform
+
+platform iridium42 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium42
+      network_link iridiumhandheld42
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld42
+      network_link iridium42
+   end_comm
+
+end_platform
+
+platform iridium43 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium43
+      network_link iridiumhandheld43
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld43
+      network_link iridium43
+   end_comm
+
+end_platform
+
+platform iridium44 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium44
+      network_link iridiumhandheld44
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld44
+      network_link iridium44
+   end_comm
+
+end_platform
+
+platform iridium45 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium45
+      network_link iridiumhandheld45
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld45
+      network_link iridium45
+   end_comm
+
+end_platform
+
+platform iridium46 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 179.986 deg
+   end_mover
+
+  edit comm iridium_crosslink
+      on
+      network_name iridium46
+      network_link iridiumhandheld46
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld46
+      network_link iridium46
+   end_comm
+
+end_platform
+
+platform iridium47 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium47
+      network_link iridiumhandheld47
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld47
+      network_link iridium47
+   end_comm
+
+end_platform
+
+platform iridium48 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium48
+      network_link iridiumhandheld48
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld48
+      network_link iridium48
+   end_comm
+
+end_platform
+
+platform iridium49 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium49
+      network_link iridiumhandheld49
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld49
+      network_link iridium49
+   end_comm
+
+end_platform
+
+platform iridium410 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium410
+      network_link iridiumhandheld410
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld410
+      network_link iridium410
+   end_comm
+
+end_platform
+
+platform iridium411 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 90 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium411
+      network_link iridiumhandheld411
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld411
+      network_link iridium411
+   end_comm
+
+end_platform
+
+# RAAN 120 ############################################################################
+platform iridium51 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 0 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium51
+      network_link iridiumhandheld51
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld51
+      network_link iridium51
+   end_comm
+
+end_platform
+
+
+platform iridium52 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 32.727 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium52
+      network_link iridiumhandheld52
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld52
+      network_link iridium52
+   end_comm
+
+end_platform
+
+platform iridium53 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 65.455 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium53
+      network_link iridiumhandheld53
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld53
+      network_link iridium53
+   end_comm
+
+end_platform
+
+platform iridium54 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 98.182 deg
+   end_mover
+
+  edit comm iridium_crosslink
+      on
+      network_name iridium54
+      network_link iridiumhandheld54
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld54
+      network_link iridium54
+   end_comm
+
+end_platform
+
+platform iridium55 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 130.909 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium55
+      network_link iridiumhandheld55
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld55
+      network_link iridium55
+   end_comm
+
+end_platform
+
+platform iridium56 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 163.636 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium56
+      network_link iridiumhandheld56
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld56
+      network_link iridium56
+   end_comm
+
+end_platform
+
+platform iridium57 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 196.364 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium57
+      network_link iridiumhandheld57
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld57
+      network_link iridium57
+   end_comm
+
+end_platform
+
+platform iridium58 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 229.091 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium58
+      network_link iridiumhandheld58
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld58
+      network_link iridium58
+   end_comm
+
+end_platform
+
+platform iridium59 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 261.818 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium59
+      network_link iridiumhandheld59
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld59
+      network_link iridium59
+   end_comm
+
+end_platform
+
+platform iridium510 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 294.545 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium510
+      network_link iridiumhandheld510
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld510
+      network_link iridium510
+   end_comm
+
+end_platform
+
+platform iridium511 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 120 deg
+      anomaly 327.273 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium511
+      network_link iridiumhandheld511
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld511
+      network_link iridium511
+   end_comm
+
+end_platform
+
+# RAAN 150 ############################################################################
+platform iridium61 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 16.37 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium61
+      network_link iridiumhandheld61
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld61
+      network_link iridium61
+   end_comm
+
+end_platform
+
+
+platform iridium62 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 49.077 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium62
+      network_link iridiumhandheld62
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld62
+      network_link iridium62
+   end_comm
+
+end_platform
+
+platform iridium63 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 81.805 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium63
+      network_link iridiumhandheld63
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld63
+      network_link iridium63
+   end_comm
+
+end_platform
+
+platform iridium64 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 114.532 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium64
+      network_link iridiumhandheld64
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld64
+      network_link iridium64
+   end_comm
+
+end_platform
+
+platform iridium65 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 147.259 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium65
+      network_link iridiumhandheld65
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld65
+      network_link iridium65
+   end_comm
+
+end_platform
+
+platform iridium66 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 179.986 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium66
+      network_link iridiumhandheld66
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld66
+      network_link iridium66
+   end_comm
+
+end_platform
+
+platform iridium67 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 212.714 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium67
+      network_link iridiumhandheld67
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld67
+      network_link iridium67
+   end_comm
+
+end_platform
+
+platform iridium68 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 245.441 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium68
+      network_link iridiumhandheld68
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld68
+      network_link iridium68
+   end_comm
+
+end_platform
+
+platform iridium69 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 279.168 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium69
+      network_link iridiumhandheldk69
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld69
+      network_link iridium69
+   end_comm
+
+end_platform
+
+platform iridium610 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 310.804 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium610
+      network_link iridiumhandheld610
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld610
+      network_link iridium610
+   end_comm
+
+end_platform
+
+platform iridium611 IRIDIUM_SATELLITE
+   edit mover
+
+      raan 150 deg
+      anomaly 343.623 deg
+   end_mover
+
+   edit comm iridium_crosslink
+      on
+      network_name iridium611
+      network_link iridiumhandheld611
+   end_comm
+
+   edit comm iridium_handheld
+      on
+      network_name iridiumhandheld611
+      network_link iridium611
+   end_comm
+
+end_platform

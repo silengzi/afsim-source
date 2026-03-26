@@ -1,0 +1,216 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once ./logistics_platform.txt
+include_once ../processors/shuttle_transport_processor.txt
+
+platform_type OCEAN_GOING_TANKER LOGISTICS_PLATFORM
+
+   # DESCRIPTION:  An ocean going tanker (OGT) picks up fuel at one pier fuel
+   # depot (PFD), transports it to another PFD elsewhere, and returns.  It will not
+   # depart the supplying PFD until its tank is full, and it will not depart the
+   # receiving PFD until its tank is empty.  It may have to linger at either place
+   # if a transactor is not available to service it.  Local manuevering is not modeled,
+   # so rough proximity is good enough to permit the transfer.  There is one and only
+   # one transactor to receive, and one and only one transactor to supply.  Scripting
+   # is adequate to make this "agent" completely autonomous, with no communications
+   # needed.
+
+   # PROPERTIES:
+   # OGTs are 10,000 DWT each, So max quantity is
+   # 10,000 (tonnes) X 1,000 (kg/tonne) = 10,000,000 kg.
+   # Also make a wild guess that it takes 10 hours to transfer contents of
+   # _one_ LOGT into the PFD, for a transfer rate of 10,000,000 / 36,000 = 277.8 kg/sec
+
+   icon Ship
+
+   add processor transportProcessor SHUTTLE_TRANSPORT_PROCESSOR
+   end_processor
+
+   edit processor exchanger
+
+      edit container fuel_container
+         commodity JP-8_FUEL
+            maximum_mass_quantity 10000000.0 kg
+            mass_rate                  277.8 kg/sec # 10 hour fill time.
+         end_commodity
+         initial_mass_quantity  5000000.0 kg # Half Full
+      end_container
+
+      edit transactor fuel_offering_transactor
+         proximity_limit          300 m    # If the transacting platforms are more than this distance apart,
+                                           # the transaction will not be allowed to take place.
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      edit transactor fuel_requesting_transactor
+         proximity_limit         300 m    # If the transacting platforms are more than this distance apart,
+                                          # the transaction will not be allowed to take place.
+         time_out_clock_interval  3.0 sec
+      end_transactor
+
+      on_update
+      end_on_update
+
+   end_processor
+
+   mover WSF_SURFACE_MOVER
+      maximum_speed 80 kts # DRB had to speed this up 30 kts
+      minimum_speed 10 kts
+      maximum_linear_acceleration 0.5 g
+      maximum_radial_acceleration 0.5 g
+      update_interval 5 sec
+   end_mover
+
+   script bool OGT_Init()
+
+      fuelPossibleReceiversToAdd.PushBack("KeyWestPierFuelDepot");
+      fuelPossibleSuppliersToAdd.PushBack("GalvestonPierFuelDepot");
+
+      bool success = LP_Init();
+
+      if (success)
+      {
+         transportProcessor = PLATFORM.Processor("transportProcessor");
+         success = transportProcessor.IsValid();
+      }
+
+      if (success)
+      {
+         # These are declared as variables, rather than in-lined, simply to document syntax.
+         bool isFuelRelated = true;
+         success = (bool)transportProcessor.Execute("STP_Init",
+            { fuelOfferTransactor, fuelRequestTransactor, fuelContainer, runSilent, isFuelRelated, "GalvestonPierFuelDepot", "KeyWestPierFuelDepot" } );
+
+         if (! success)
+         {
+            Say("OGT_Init() failed due to STP_Init().");
+         }
+      }
+
+      return success;
+
+   end_script
+
+   on_initialize2
+
+      doIntendToSupplyFuel  = true;
+      doIntendToReceiveFuel = true;
+
+      bool success = OGT_Init();
+
+      if (success)
+      {
+         Say("OCEAN_GOING_TANKER Initialize succeeded.");
+         isInitialized = true;
+      }
+      else
+      {
+         Say("OCEAN_GOING_TANKER Initialize FAILED.");
+      }
+
+   end_on_initialize2
+
+   execute at_interval_of 201 sec
+
+      if (isInitialized && ! allPlayersResolved)
+      {
+         allPlayersResolved = ResolvePlayersToAdd();
+         if (! allPlayersResolved)
+         {
+            Say("OCEAN_GOING_TANKER ResolvePlayersToAdd() not complete yet.");
+            return;
+         }
+
+         # Now, if there is only one possible supplier or receiver,
+         # then set them as our permanent provider.
+         if (fuelPossibleSuppliers.Size() == 1)
+         {
+            SetFuelOfferingPlatform(fuelPossibleSuppliers.Get(0));
+         }
+
+         if (fuelPossibleReceivers.Size() == 1)
+         {
+            SetFuelRequestingPlatform(fuelPossibleReceivers.Get(0));
+         }
+
+         if (! FuelOfferingPlatform().IsValid())
+         {
+            Say("OCEAN_GOING_TANKER permanent server assignment failed.  FATAL.");
+            foreach(string val in fuelPossibleSuppliersToAdd)
+            {
+               writeln("     ", val);
+            }
+         }
+
+         if (! FuelRequestingPlatform().IsValid())
+         {
+            Say("OCEAN_GOING_TANKER permanent receiver assignment failed.  FATAL.");
+            foreach(string val in fuelPossibleReceiversToAdd)
+            {
+               writeln("     ", val);
+            }
+         }
+      }
+
+      if (isInitialized && allPlayersResolved)
+      {
+         # Update a couple of critical flags:
+         if (fuelContainer.IsEmpty() && haveFuelToGive)
+         {
+            Say("OCEAN_GOING_TANKER ran out of fuel to give.");
+            haveFuelToGive = false;
+            fuelIsReserved = false;
+         }
+         if (fuelContainer.IsFull() && ! haveFuelToGive)
+         {
+            Say("OCEAN_GOING_TANKER now has a full load of fuel to give.");
+            haveFuelToGive = true;
+         }
+
+         # Our job is to continuously try to ask for fuel from our supplying
+         # depot, if we can get it...  Doesn't matter if possible or not.
+         bool canAskForFuel =   fuelOfferingPlatform.IsValid() &&
+                              ! fuelRequestTransactor.IsInProgress() &&
+                              ! fuelContainer.IsFull();
+         if (canAskForFuel)
+         {
+            bool ok = fuelRequestTransactor.RequestFrom(
+                         fuelOfferingPlatform, fuelRequestTransactor.Container().TenderNeeded());
+
+            if (! isRequestingFuel && ok)
+            {
+               Say("OCEAN_GOING_TANKER fuel request was successful.");
+               isRequestingFuel = true;
+            }
+            else if (! isRequestingFuel && ! ok)
+            {
+               Say("OCEAN_GOING_TANKER fuel request not successful.");
+            }
+         }
+
+         // Our job is also to continuously make fuel available for any requesting receivers
+         if (haveFuelToGive && ! fuelIsReserved)
+         {
+            fuelIsReserved = fuelOfferTransactor.ReserveAll();
+            if (fuelIsReserved)
+            {
+               Say("OCEAN_GOING_TANKER ReserveAll was successful.");
+            }
+            else
+            {
+               Say("OCEAN_GOING_TANKER ReserveAll NOT successful.");
+            }
+         }
+      }
+
+   end_execute
+
+end_platform_type
+

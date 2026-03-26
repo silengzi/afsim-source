@@ -1,0 +1,191 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This file defines the STATION_TIMER script. It is used in the aircraft_type
+# TIMED_STATION_AC, which follows a specific mission profile.
+#
+#
+# The aircraft goes to a station and flies a defined orbit. The aircraft will
+# leave the orbit for two reasons.
+#
+# First, it will temporarily leave the orbit to refuel. After refueling, it
+# returns to the same orbit.
+#
+# Second, it will permanently leave the orbit and return to home at the end of
+# its mission time.
+#
+#
+# The following four parameters are defined when the aircraft is instantiated:
+#
+# time_before_refueling  - the time after the aircraft arrives at the station
+#                          that it departs to refuel. (units - seconds)
+#                          Default value = 1000 seconds
+# total_station_time     - the time after first arriving on station that the
+#                          aircraft leaves to return home (units - seconds)
+#                          Default value = 3000 seconds
+# refuel_waypoint_label  - the waypoint label at the refueling point
+#                          Default value = "cap_refuel"
+# go_home_waypoint_label - the waypoint label at the start of the return path
+#                          towards home
+#                          Default value = "go_home"
+#
+# The user can supply values for any or all of these during the aircraft
+# definition. If no values are supplied, the default values are used.
+#
+#
+# IMPORTANT!!!!!!!
+#
+# If the user specified waypoint label does not exist in the route, the
+# aircraft will not correctly follow the route, and unexpected results
+# may occur.
+# This also applies if the default values are used, and those labels
+# do not exist in the route.
+#
+#
+# The route is assumed to have the following general structure:
+#
+# Initial waypoint
+# Optional waypoints before the first point in the orbit
+#
+# First waypoint in the orbit, with label
+# Optional intermediate waypoints in the orbit
+# Final waypoint in the orbit, with "goto" to the first waypoint in the orbit
+#
+# Refueling waypoint, with label, and a "goto" back to the orbit
+# (Additional points can be after the labeled refueling, but the last one
+# needs to have a "goto" to return to the orbit.)
+#
+# Waypoint to define the return home path, with label
+# Optional waypoints
+#
+#
+#
+# The OnStation script must be called on the first waypoint in the orbit. This
+# starts the timers for the aircraft.
+#
+#
+# This processor assumes that the aircraft only uses the default route.
+#
+#
+# The following AuxData variables are used in this aircraft definition and the
+# processor.
+#
+# TOTAL_STATION_TIME  = total time the aircraft can remain in the area before
+#                       it must return home (seconds)
+#
+# NOW_ON_CAP          = time that the aircraft first entered the CAP station;
+#                       used for the total time it will stay up
+#                     = -1.0 when the aircraft has yet to hit the CAP station.
+#
+# MAX_TIME_ON_STATION = time the aircraft can remain on station before needing
+#                       to refuel (seconds)
+#
+# ON_STATION_TIME     = time that the aircraft entered the CAP station this
+#                       time; used to determine when to refuel
+#                     = -1.0 when the aircraft is not at the CAP station
+#
+
+
+script_interface
+#   debug
+end_script_interface
+
+# This processor manages the station timing
+processor STATION_TIMER WSF_SCRIPT_PROCESSOR
+
+# These are the default values for the user variables.
+# Values assigned at instatiation overwrite these values.
+   script_variables
+      double time_before_refueling  = 1000.0;
+      double total_station_time     = 3000.0;
+      string refuel_waypoint_label  = "cap_refuel";
+      string go_home_waypoint_label = "go_home";
+   end_script_variables
+
+
+   on_initialize
+# This script assigns the AuxData variables from the user inputs, and
+# initializes necessary variables/flags.
+      PLATFORM.SetAuxData("MAX_TIME_ON_STATION", time_before_refueling);
+      PLATFORM.SetAuxData("TOTAL_STATION_TIME",  total_station_time);
+      PLATFORM.SetAuxData("ON_STATION_TIME",     -1.0);
+      PLATFORM.SetAuxData("NOW_ON_CAP",          -1.0);
+   end_on_initialize
+
+   script void OffStation()
+#  This script resets the AuxData variable ON_STATION_TIME to indicate that the
+#  aircraft is no longer on the station
+
+      PLATFORM.SetAuxData("ON_STATION_TIME", -1.0);
+
+   end_script #OffStation
+
+
+   script void GoRefuel()
+#  This script sends the aircraft to the refueling point.
+#  The label for the refueling point is defined by the user.
+      OffStation();
+      if (PLATFORM.Route().Name() == "")
+      {
+         PLATFORM.FollowRoute("DEFAULT_ROUTE", refuel_waypoint_label);
+      }
+      else
+      {
+         PLATFORM.FollowRoute(PLATFORM.Route().Name(), refuel_waypoint_label);
+      }
+   end_script # GoRefuel
+
+
+   script void GoHome()
+#  This script sends the aircraft home.
+#  The label for the beginning of the path home is defined by the user.
+      OffStation();
+      PLATFORM.SetAuxData("NOW_ON_CAP", -1.0);
+      if (PLATFORM.Route().Name() == "")
+      {
+         PLATFORM.FollowRoute("DEFAULT_ROUTE", go_home_waypoint_label);
+      }
+      else
+      {
+         PLATFORM.FollowRoute(PLATFORM.Route().Name(), go_home_waypoint_label);
+      }
+   end_script # GoHome
+
+
+#   This causes the aircraft to check its status every 5 seconds.
+   update_interval 5 sec
+   on_update
+#  This script confirms that the aircraft is on station, and then checks to
+#  determine if its time has expired.
+
+#    First, it checks to see if the on station orbit time has expired.
+
+#    The first term confirms that the aircraft is on station.
+#    The second term checks to see if the station time has expired.
+
+      if ( ( PLATFORM.AuxDataDouble("ON_STATION_TIME") > 0.0 ) &&
+           ( (TIME_NOW - PLATFORM.AuxDataDouble("ON_STATION_TIME") ) >=
+              PLATFORM.AuxDataDouble("MAX_TIME_ON_STATION") ) )
+      {
+         GoRefuel();
+      }
+
+#    Next, it checks to see if the on total time has expired.
+
+#    The first term confirms that the aircraft has been on station.
+#    The second term checks to see if the total time has expired.
+      if ( ( PLATFORM.AuxDataDouble("NOW_ON_CAP") > 0.0 ) &&
+           ( (TIME_NOW - PLATFORM.AuxDataDouble("NOW_ON_CAP") ) >= PLATFORM.AuxDataDouble("TOTAL_STATION_TIME") ) )
+      {
+         GoHome();
+      }
+
+   end_on_update
+
+end_processor # station_timer

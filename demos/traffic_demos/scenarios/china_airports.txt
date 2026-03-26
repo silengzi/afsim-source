@@ -1,0 +1,340 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This file has 49 commercial china airports listed
+# as defined in worldaerodata.com. It also includes
+# the two Hong Kong airports.
+# Intended to be used as a boilerplate
+air_traffic
+
+  aircraft_type B-737
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 30000 ft
+    mean_cruise_speed         480 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    8000 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+  aircraft_type B-747
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 30000 ft
+    mean_cruise_speed         420 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    8000 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+  aircraft_type B-757
+    minimum_cruise_altitude 20000 ft
+    maximum_cruise_altitude 30000 ft
+    mean_cruise_speed         420 kts
+    sigma_cruise_speed         40 kts
+    minimum_runway_length    8000 ft
+    maximum_operating_range  2000 nm
+  end_aircraft_type
+
+# Airport locations from WORLDAERODATA.COM
+ BAITA Airport at Hohhot #  08R/26L
+  airbase ZBHH 40:50:41.22N 111:48:15.26E
+    runway 40:50:41.22N 111:48:15.26E 40.854411N 40.854411E
+  # runway_length 3600 m
+  # runway_heading 72.7
+  end_airbase
+
+# BAIYUN INTL at Guanghouz # 02L/20R
+  airbase ZGGG 23.376822N 113.283497E
+    runway_length 3600 m
+    runway_heading 14.0
+  end_airbase
+
+# BAOAN INTL at Shenzhen 15/33
+  airbase ZGSZ 22.652961N 113.803147E
+    runway_length 3400 m
+    runway_heading 153.0
+  end_airbase
+
+# BINHAI at Tianjin 16/34
+  airbase ZBTJ 39.137353N 117.338208E
+    runway_length 3200 m
+    runway_heading 155.0
+  end_airbase
+
+# CAPITAL INTL at Beijing 18R/36L
+  airbase ZBAA 40.102111N 116.569694E
+    runway_length 3200 m
+    runway_heading 173.0
+  end_airbase
+
+# CHANGBEI INTL at Nanchang  03/21
+  airbase ZSCN 28.853372N 115.894394E
+    runway_length 2800 m
+    runway_heading 023.0
+  end_airbase
+
+# CHANGLE at Fuzhou 03/21
+  airbase ZSFZ 25.920514N 119.655175E
+    runway_length 3609 m
+    runway_heading 026.7
+  end_airbase
+
+# DASHUIPO at Weihai 02/20
+  airbase ZSWH 37.176033N 122.224261E
+    runway_length 2600 m
+    runway_heading 018.5
+  end_airbase
+
+# DIWOPU at Urumqi 07/25
+  airbase ZWWW 43.902533N 87.452725E
+    runway_length 3600 m
+    runway_heading 074.0
+  end_airbase
+
+# DONGSHAN at Hailar 09/27
+  airbase ZBLA 49.203742N 119.807264E
+    runway_length 2600 m
+    runway_heading 083.8
+  end_airbase
+
+# GAOQI at Xiamen 05/23
+  airbase ZSAM 24.534589N 118.114517E
+    runway_length 3400 m
+    runway_heading 053.0
+  end_airbase
+
+# GASA at Xishuangbanna 16/34
+  airbase ZPJH 21.983278N 100.756092E
+    runway_length 2200 m
+    runway_heading 160.0
+  end_airbase
+
+# HAILANG at Mudanjiang 04/22
+  airbase ZYMD 44.513511N 129.561806E
+    runway_length 2600 m
+    runway_heading 025.9
+  end_airbase
+
+# HONGQIAO INTL at Shanghai 18/36
+  airbase ZSSS 31.213250N 121.335444E
+    runway_length 3400 m
+    runway_heading 176.0
+  end_airbase
+
+# HOTAN ZWTN
+  airbase ZWTN 37.043503N 79.848247E
+    runway_length 3200 m
+    runway_heading 110.0
+  end_airbase
+
+# HUANGHUA at Changsha ZGHA 18/36
+  airbase  ZGHA 28.200875N 113.218933E
+    runway_length 2600 m
+    runway_heading 177.0
+  end_airbase
+
+# JIAMUSI ZYJM 06/24
+  airbase  ZYJM 46.835878N 130.453222E
+    runway_length 2200 m
+    runway_heading 048.1
+  end_airbase
+
+# JIANGBEI at Chongqing ZUCK 02/20
+  airbase  ZUCK 29.705389N 106.636864E
+    runway_length 3200 m
+    runway_heading 016.9
+  end_airbase
+
+# KASHI ZWSH 08/26
+  airbase   ZWSH 39.541894N 76.001444E
+    runway_length 3200 m
+    runway_heading 085.9
+  end_airbase
+
+# LAISHAN at Yantai ZSYT 04/22
+  airbase ZSYT 37.391014N 121.361431E
+    runway_length 2600 m
+    runway_heading 037.5
+  end_airbase
+
+# LIANGJIANG at Guilin ZGKL 01/19
+  airbase ZGKL 25.205514N 110.037992E
+    runway_length 2800 m
+    runway_heading 005.0
+  end_airbase
+
+# LISHE   ZSNB  at  Ningbo 13/31
+  airbase ZSNB 29.834594N 121.448044E
+    runway_length 3200 m
+    runway_heading 123.0
+  end_airbase
+
+# LIUTING   ZSQD at   Qingdao 17/35
+  airbase ZSQD 36.280986N 120.369700E
+    runway_length 3400 m
+    runway_heading 166.0
+  end_airbase
+
+# LONGDONGBAO ZUGY aka GUIYANG 01/19
+  airbase ZUGY 26.524228N 106.798044E
+    runway_length 3200 m
+    runway_heading 009.9
+  end_airbase
+
+# LONGJIA at Changchun ZYCC 06/24
+  airbase ZYCC 43.986814N 125.670253E
+    runway_length 3200 m
+    runway_heading 048.8
+  end_airbase
+
+# LUKOU at Nanjing ZSNJ 06/24
+  airbase ZSNJ 31.733450N 118.845906E
+    runway_length 3600 m
+    runway_heading 058.0
+  end_airbase
+
+# LUOGANG at Hefei ZSOF 14/32
+  airbase ZSOF 31.789636N 117.287569E
+    runway_length 3000 m
+    runway_heading 135.3
+  end_airbase
+
+# MEILAN at Haikou ZJHK 09/27
+  airbase ZJHK 19.934789N 110.441764E
+    runway_length 3600 m
+    runway_heading 089.8
+  end_airbase
+
+# PHOENIX INTL at Sanya aka FENGHUANG ZJSY 08/26
+  airbase  ZJSY 18.300828N 109.396392E
+    runway_length 3400 m
+    runway_heading 82.0
+  end_airbase
+
+# PUDONG at Shanghai ZSPD 16/34
+  airbase ZSPD 31.159014N 121.811669E
+    runway_length 3800 m
+    runway_heading 162.0
+  end_airbase
+
+# QINGSHAN at Xichang ZUXC 18/36
+  airbase ZUXC 28.005319N 102.183850E
+    runway_length 3600 m
+    runway_heading 178.0
+  end_airbase
+
+# SANJIAZI at Qiqihar ZYQQ 17/35
+  airbase ZYQQ 47.250408N 123.911561E
+    runway_length 2600 m
+    runway_heading 157.5
+  end_airbase
+
+# SHUANGLIU at Chengdu ZUUU 02/20
+  airbase ZUUU 30.563478N 103.940078E
+    runway_length 3600 m
+    runway_heading 157.5
+  end_airbase
+
+# TAIPING at Harbin ZYHB 05/23
+  airbase ZYHB 45.612272N 126.237306E
+    runway_length 3200 m
+    runway_heading 039.0
+  end_airbase
+
+# TAOXIAN at Shenyang ZYTX 06/24
+  airbase ZYTX 41.630367N 123.469031E
+    runway_length 3200 m
+    runway_heading 049.0
+  end_airbase
+
+# TIANHE at Wuhan ZHHH 04/22
+  airbase ZHHH 30.772281N 114.196314E
+    runway_length 3400 m
+    runway_heading 042.0
+  end_airbase
+
+# WUJIABA at Kunming ZPPP 03/21
+  airbase ZPPP 24.979392N 102.734536E
+    runway_length 3400 m
+    runway_heading 032.0
+  end_airbase
+
+# WUSU at Taiyuan ZBYN 13/31
+  airbase ZBYN 37.755594N 112.613881E
+    runway_length 3200 m
+    runway_heading 127.0
+  end_airbase
+
+# WUXU at Nanning ZGNN 05/23
+  airbase ZGNN 22.599606N 108.162597E
+    runway_length 2700 m
+    runway_heading 047.0
+  end_airbase
+
+
+# XIANYANG at Xi'an ZLXY 05/23
+  airbase ZLXY 34.438214N 108.739275E
+    runway_length 3000 m
+    runway_heading 049.0
+  end_airbase
+
+# XIAOSHAN aka HANGZHOU ZSHC 07/25
+  airbase ZSHC 30.222119N 120.417800E
+    runway_length 3600 m
+    runway_heading 062.9
+  end_airbase
+
+# XINZHENG at Zhengzhou ZHCC 12/30
+  airbase  ZHCC 34.525500N 113.823756E
+    runway_length 3400 m
+    runway_heading 112.3
+  end_airbase
+
+# YANJI   ZYYJ 09/27
+  airbase ZYYJ 42.881106N 129.435508E
+    runway_length 2600 m
+    runway_heading 081.7
+  end_airbase
+
+# YAOQIANG at Jinan ZSJN 01/19
+  airbase  ZSJN 36.840989N 117.216003E
+    runway_length 3601 m
+    runway_heading 360.0
+  end_airbase
+
+# ZHENGDING at Shijiazhuang ZBSJ 15/33
+  airbase ZBSJ 38.293592N 114.686811E
+    runway_length 3400 m
+    runway_heading 147.4
+  end_airbase
+
+# ZHONGCHUAN at Lanzhou ZLLL 18/36
+  airbase ZLLL 36.531514N 103.619758E
+    runway_length 3615 m
+    runway_heading 177.0
+  end_airbase
+
+
+# ZHOUSHUIZI at Dalian ZYTL 10/28
+  airbase ZYTL 38.967131N 121.519656E
+    runway_length 3300 m
+    runway_heading  096.0
+  end_airbase
+
+# HONG KONG INTL  at Hong Kong VHHH 07R/25L
+  airbase VHHH 22.296201N 113.897975E
+    runway 22.296201N 113.897975E 22.307431N 113.932822E
+  #  runway_length 3800 m
+  #  runway_heading  071.0
+  end_airbase
+
+# SEK KONG at Hong Kong VHSK 11/29
+  airbase VHSK 22.439689N 114.071767E
+    runway_length 1884 m
+    runway_heading 111.0
+  end_airbase
+end_air_traffic

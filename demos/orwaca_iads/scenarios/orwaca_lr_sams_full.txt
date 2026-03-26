@@ -1,0 +1,272 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+// Battalion 1
+platform lr_sam_battalion_1 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 48:24:46.69n 122:06:42.26w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_1 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_1
+   position 48:24:49.88n 122:06:47.32w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_1  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_1
+   position 48:24:45.42n 122:06:48.81w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_1-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_1
+   position 48:25:00.22n 122:07:05.14w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_1-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_1
+   position 48:24:31.57n 122:07:02.76w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_1-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_1
+   position 48:25:00.85n 122:06:24.44w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_1-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_1
+   position 48:24:32.83n 122:06:25.88w altitude 3.28 ft agl
+end_platform
+
+// Battalion 2
+platform lr_sam_battalion_2 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 45:20:33.43n 121:47:37.31w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_2 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:40.37n 121:47:50.70w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_2  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:26.11n 121:47:50.01w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_2-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:48.63n 121:48:14.08w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_2-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:18.08n 121:48:14.07w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_2-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:49.66n 121:47:27.35w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_2-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_2
+   position 45:20:17.54n 121:47:26.81w altitude 3.28 ft agl
+end_platform
+
+// Battalion 3
+platform lr_sam_battalion_3 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 42:34:22.03n 122:20:16.64w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_3 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:28.97n 122:20:30.50w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_3  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:14.71n 122:20:29.79w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_3-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:37.23n 122:20:54.71w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_3-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:06.68n 122:20:54.70w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_3-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:38.26n 122:20:06.33w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_3-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_3
+   position 42:34:06.14n 122:20:05.77w altitude 3.28 ft agl
+end_platform
+
+// Battalion 4
+platform lr_sam_battalion_4 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 39:19:59.92n 120:36:56.08w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_4 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_4
+   position 39:20:05.80n 120:37:00.18w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_4  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_4
+   position 39:19:54.83n 120:37:01.52w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_4-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_4
+   position 39:20:15.72n 120:37:13.32w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_4-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_4
+   position 39:19:45.36n 120:37:12.90w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_4-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_4
+   position 39:20:16.12n 120:36:46.16w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_4-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_4
+   position 39:19:44.50n 120:36:48.99w altitude 3.28 ft agl
+end_platform
+
+// Battalion 5
+platform lr_sam_battalion_5 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 36:42:42.99n 118:51:00.13w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_5 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:45.80n 118:51:02.07w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_5  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:41.57n 118:51:02.93w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_5-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:48.92n 118:51:06.60w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_5-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:37.15n 118:51:07.03w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_5-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:48.57n 118:50:55.11w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_5-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_5
+   position 36:42:36.36n 118:50:56.35w altitude 3.28 ft agl
+end_platform
+
+// Battalion 6
+platform lr_sam_battalion_6 LR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 34:19:10.07n 116:53:35.34w altitude 3.28 ft agl
+   #use_zone lr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform lr_sam_acq_radar_6 LR_SAM_ACQ_RADAR
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:13.38n 116:53:38.13w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_ttr_radar_6  LR_SAM_TTR_RADAR
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:09.28n 116:53:39.75w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_6-1 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:22.13n 116:53:47.99w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_6-2 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:04.55n 116:53:45.15w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_6-3 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:21.94n 116:53:28.24w altitude 3.28 ft agl
+end_platform
+
+platform lr_sam_launcher_6-4 LR_SAM_LAUNCHER
+   side red
+   commander lr_sam_battalion_6
+   position 34:19:03.06n 116:53:26.93w altitude 3.28 ft agl
+end_platform

@@ -1,0 +1,65 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior force_overshoot
+
+   script_variables
+      double   cGRAVITY_ACCEL          =          9.80665;        # 1 G
+      double   cDEFAULT_ACCEL          = (cGRAVITY_ACCEL * 7.5);  # m/s^2  ~7.5 Gs
+      double   cMAX_RADIAL_ACCEL       = 100 * cGRAVITY_ACCEL;    # larger than possible, make the aircraft limit the turn
+      double   cMAX_SPEED              = 9999999999.99;           # m/s
+
+      double   mLastProcTime           = -1.0;
+   end_script_variables
+
+
+   script bool RanLastTick()
+      if ((TIME_NOW-mLastProcTime) < 1.5*PROCESSOR.UpdateInterval())
+      {
+         return true;
+      }
+      else return false;
+   end_script
+
+
+   precondition
+      writeln("precondition force_overshoot");
+
+      //turn hard into threat
+      extern WsfTrack mBiggestThreat;
+      if (mBiggestThreat.IsValid())
+      {
+         mLastProcTime = TIME_NOW;
+         return true;
+      }
+      mLastProcTime = -1.0;
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing force_overshoot");
+      PLATFORM.Comment("force_overshoot");
+
+      //turn into the attacker as hard as possible
+      extern WsfTrack mBiggestThreat;
+
+      //any out of plan manuevers?   climb/dive ?
+      //   no: match threat
+
+      extern bool FlyTarget (WsfPlatform, WsfGeoPoint,    double);
+      FlyTarget( PLATFORM, mBiggestThreat.CurrentLocation(), cMAX_SPEED);
+
+   end_execute
+
+end_behavior
+

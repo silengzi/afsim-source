@@ -1,0 +1,112 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#creates and updates "pursue-target" jobs
+#does not bid on any jobs
+#does not perform any jobs
+
+   processor AISOC-thinker WSF_RIPR_PROCESSOR
+
+      update_interval 5.0 seconds
+      script_debug_writes on
+
+      script_variables
+          Map<WsfTrackId, int> mTrackIdJobIdMap = Map<WsfTrackId, int>();
+          Map<int, WsfTrackId> mJobIdTrackIdMap = Map<int, WsfTrackId>();
+          int mMaxJobWinners = 1;
+      end_script_variables
+
+      on_initialize
+         //SetJobAllocationMode(2);
+      end_on_initialize
+
+      #query_bid
+      #  double value = 7.654;
+      #  writeln("query_bid() called!!! Platform: ", PLATFORM.Name() ,", Job: ", JOB.GetDescription() , ", TIME: ", TIME_NOW);
+      #  return value;
+      #end_query_bid
+
+      on_update
+         Map<int, int> updatedJobs = Map<int, int>();
+         WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+         //writeln("top level cmdr ",PLATFORM.Name()," track count: ",localTracks.Count());
+
+         foreach (WsfTrack track in localTracks)
+         {
+            if (mTrackIdJobIdMap.Exists(track.TrackId()))
+            {
+               //update existing job
+               double currentPriority = 1.0;
+               int jobId = mTrackIdJobIdMap.Get(track.TrackId());
+               WsfRIPRJob job = GetJobById(jobId);
+               job.Priority( currentPriority );
+               job.SetData( "TrackId", track.TrackId() );  //redundant, this shouldn't change anything
+               if (track.WithinZoneOf(PLATFORM,"MEZ"))
+               {
+                 job.SetData( "for_air",    0 );
+                 job.SetData( "for_ground", 1 );
+               }
+               else
+               {
+                 job.SetData( "for_air",    1 );
+                 job.SetData( "for_ground", 0 );
+               }
+               updatedJobs.Set( job.GetId(), 1 );
+            }
+            else
+            {
+               //create new job
+               double initialPriority = 1.0;
+               WsfRIPRJob temp = WsfRIPRJob.Create(PROCESSOR,
+                                                   "pursue-target",
+                                                   "pursue-target" + track.TargetName(),
+                                                   initialPriority,
+                                                   mMaxJobWinners );
+               temp.SetData("targetTrackName", track.TargetName());
+
+               if (track.WithinZoneOf(PLATFORM,"MEZ"))
+               {
+                 temp.SetData( "for_air",    0 );
+                 temp.SetData( "for_ground", 1 );
+               }
+               else
+               {
+                 temp.SetData( "for_air",    1 );
+                 temp.SetData( "for_ground", 0 );
+               }
+
+               AddJob(temp);
+               mTrackIdJobIdMap.Set( track.TrackId(), temp.GetId() );
+               mJobIdTrackIdMap.Set( temp.GetId(), track.TrackId() );
+               updatedJobs.Set( temp.GetId(), 1 );
+               writeln_d("~~~ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+               double bidValue = QueryBid(temp);
+               writeln("QueryBid(job) returned: ", bidValue);
+            }
+         }
+         //remove any jobs that are for non-existent tracks
+         Array<WsfRIPRJob> jobs = GetJobs();
+         foreach (WsfRIPRJob x in jobs)
+         {
+            int jid = x.GetId();
+            if (updatedJobs[jid] != 1)
+            {
+               writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", x.GetDescription());
+               WsfTrackId tid = mJobIdTrackIdMap[jid];   //this should match the job's data: "TrackId"
+               mTrackIdJobIdMap.Erase(tid);
+               mJobIdTrackIdMap.Erase(jid);
+               RemoveJob(x);
+            }
+         }
+         //writeln("top level cmdr ",PLATFORM.Name()," job count: ",jobs.Size());
+      end_on_update
+
+   end_processor
+

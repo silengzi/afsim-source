@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+radar_signature CONSTANT_RADAR_SIGNATURE
+  constant 100 m^2
+end_radar_signature
+
+# Tabular signature, from the radar_signature documentation
+radar_signature TABULAR_RADAR_SIGNATURE
+  state default
+     inline_table dbsm 20 2
+               -90.0  90.0
+       -180.0    0.0   0.0
+       -137.5    0.0   0.0
+       -135.0   20.0  20.0
+       -132.5    0.0   0.0
+        -92.5    0.0   0.0
+        -90.0   20.0  20.0
+        -87.5    0.0   0.0
+        -47.5    0.0   0.0
+        -45.0   20.0  20.0
+        -42.5    0.0   0.0
+         42.5    0.0   0.0
+         45.0   20.0  20.0
+         47.5    0.0   0.0
+         87.5    0.0   0.0
+         90.0   20.0  20.0
+         92.5    0.0   0.0
+        132.5    0.0   0.0
+        135.0   20.0  20.0
+        137.5    0.0   0.0
+        180.0    0.0   0.0
+     end_inline_table
+end_radar_signature
+
+multiresolution_radar_signature MULTIRESOLUTION_RADAR_SIGNATURE WSF_MULTIRESOLUTION_RADAR_SIGNATURE
+   model constant_sig
+      fidelity_range 0.0 0.5
+      radar_signature CONSTANT_RADAR_SIGNATURE
+      end_radar_signature
+   end_model
+   model tabular_sig
+      fidelity_range 0.5 1.0
+      radar_signature TABULAR_RADAR_SIGNATURE
+      end_radar_signature
+   end_model
+end_multiresolution_radar_signature

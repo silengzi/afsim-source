@@ -1,0 +1,16 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+## scenarios
+include_once scenarios/routes_mrc_lrc.txt
+include_once scenarios/temp_platforms.txt
+
+end_time 10 hours
+end_time 6 hours

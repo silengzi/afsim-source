@@ -1,0 +1,151 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+
+behavior avoid_overshoot
+
+   script_variables
+      double      mLagPursuitTime  =  5.0;   #when flying lag pursuit, fly to where the target was this many seconds ago
+
+      double      mTurnRadius = -1.0;
+      WsfGeoPoint mTurnPost = WsfGeoPoint();
+      bool        mDrawPost = false;
+      bool        mDrawLag  = false;
+      WsfDraw     mDraw = WsfDraw();
+
+      double   cGRAVITY_ACCEL          =          9.80665;        # 1 G
+      double   cDEFAULT_ACCEL          = (cGRAVITY_ACCEL * 7.5);  # m/s^2  ~7.5 Gs
+   end_script_variables
+
+
+   precondition
+      writeln("precondition avoid_overshoot");
+
+      //check relative position and rates against target
+
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      WsfMover mover = PLATFORM.Mover();
+
+      if (targetTrack.IsNull() || !targetTrack.IsValid() || mover.IsNull() || !mover.IsValid())
+      {
+         writeln("target or mover not valid for executing avoid_overshoot");
+         return false;
+      }
+
+      //check if target is turning & I'm in pursuit
+      //check if I'm in danger of overshooting the target
+      //if inside the turn circle: fly lag
+      //if outside the turn circle, check closing speed and range: fly to post
+
+      WsfPlatform tPlatform   = targetTrack.Target();
+      Vec3        tAccel      = tPlatform.AccelerationWCS();
+                  mTurnRadius = tPlatform.VelocityWCS().MagnitudeSquared() / tAccel.Magnitude();   //equation of circular motion
+      Vec3        tTurnPost   = tAccel.Normal();
+                  tTurnPost   . Scale(mTurnRadius);                                                //turning post is center of turning circle
+                  tTurnPost   = Vec3.Add(tPlatform.Location().LocationWCS(), tTurnPost);           //(one radius in the direction of acceleration)
+                  mTurnPost   . Set(tTurnPost);
+
+      if (!mTurnPost.IsValid() || mTurnPost.Altitude() < 0 || mTurnPost.Altitude() != mTurnPost.Altitude())
+      {
+         writeln("mTurnPost is NOT VALID!");
+         return false;
+      }
+
+      if (PLATFORM.SlantRangeTo(mTurnPost) > mTurnRadius)
+      {
+         //we are outside the target's turning circle
+         double tCloseSpeed = PLATFORM.ClosingSpeedOf(tPlatform);
+
+
+         //don't want to swing it too wide
+
+
+      }
+      else
+      {
+         //we are inside the target's turning circle
+         return true;
+      }
+
+      return false;
+   end_precondition
+
+
+   execute
+      WsfTrack    targetTrack  = PROCESSOR.GetTarget();
+      if (targetTrack.IsNull() || !targetTrack.IsValid())
+      {
+         writeln("target track not valid for executing avoid_overshoot");
+         return;
+      }
+
+      writeln("executing avoid_overshoot");
+      PLATFORM.Comment("avoid_overshoot");
+
+      //fly lag &/or climb
+      double maxLagDist = 0.40 * PLATFORM.SlantRangeTo(targetTrack);
+      double maxLagTime = maxLagDist / targetTrack.Speed();
+      double lagTime = mLagPursuitTime;
+      if (lagTime > maxLagTime)
+      {
+         lagTime = maxLagTime;
+      }
+      WsfGeoPoint targetLagPos = targetTrack.LocationAtTime(TIME_NOW - lagTime);
+
+      //use track's old position (just extrapolated with velocity, backwards)
+
+      double tAlt = targetTrack.Altitude();
+      if (PLATFORM.Altitude() > tAlt)
+      {
+         tAlt = PLATFORM.Altitude();
+      }
+      PLATFORM.GoToAltitude(tAlt, 100);
+
+      PLATFORM.TurnToHeading(PLATFORM.TrueBearingTo(targetLagPos), cDEFAULT_ACCEL);
+
+      if (mDrawPost)
+      {
+         mDraw.SetLineSize(2);
+         mDraw.SetColor(0.2, 1.0, 0.2); //greenish
+         mDraw.SetDuration(PROCESSOR.UpdateInterval());
+         mDraw.BeginLines();
+            mDraw.Vertex(PLATFORM.Location());
+            mDraw.Vertex(mTurnPost);
+         mDraw.End();
+      }
+
+      if (mDrawLag)
+      {
+         mDraw.SetLineSize(2);
+         mDraw.SetColor(0.8, 1.0, 0.2); //yellow-ish
+         mDraw.SetDuration(PROCESSOR.UpdateInterval());
+         mDraw.BeginLines();
+            mDraw.Vertex(PLATFORM.Location());
+            mDraw.Vertex(targetLagPos);
+         mDraw.End();
+      }
+
+      double tSpeed = targetTrack.Speed();
+      //double percentSpeed = 1.0 + (PLATFORM.SlantRangeTo(mTurnPost) / (mTurnRadius * 100));   //vary speed based on distance from from post
+      double percentSpeed = 0.95; //match the targets speed for now
+
+      //writeln("tSpeed=", tSpeed, ", mTurnPost=", mTurnPost.ToString(), ", SlantRangeTo(mTurnPost)=", PLATFORM.SlantRangeTo(mTurnPost), ", mTurnRadius=", mTurnRadius, ", percentSpeed=", percentSpeed);
+
+      PLATFORM.GoToSpeed(tSpeed*percentSpeed, cDEFAULT_ACCEL, true);
+
+      //use out of plan manuevers if necessary to slow down & preserve energy (climb)
+      ###PLATFORM.GoToAltitude(mBiggestThreat.Altitude(), cDEFAULT_ACCEL, true);
+   end_execute
+
+
+end_behavior
+

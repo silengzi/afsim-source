@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+dis_interface
+
+   autostart
+
+   # Specifies the DIS Protocol Version, range 0-6.
+   protocol_version 5
+
+   site         1
+   application  1
+   exercise     1
+
+#  keyword            PLATFORM_TYPE       kind:domain:country:cat:scat:specific:extra
+   entity_type        APACHE              1:1:222:28:2:0:0    # NOT DIS COMPLIANT
+   entity_type        HELLFIRE            1:1:222:28:3:0:0    # NOT DIS COMPLIANT
+   entity_type        TARGET              1:1:222:28:4:0:0    # NOT DIS COMPLIANT
+
+   # This IP address is 10:34:209:51
+   #multicast 227.1.1.1 10.34.209 port 3031
+
+end_dis_interface

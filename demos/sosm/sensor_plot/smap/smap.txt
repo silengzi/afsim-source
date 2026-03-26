@@ -1,0 +1,39 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include ../common_types.txt
+
+# ==============================================================================
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   position 0n 0e altitude 40000 ft heading 0 deg
+   sensor irst IRST
+#     debug
+   end_sensor
+end_platform_type
+
+# ==============================================================================
+
+spherical_map
+   gnuplot_file              smap.plt
+   variable                  contrast_radiant_intensity
+   variable                  signal_power
+   variable                  background_radiant_intensity
+#   variable                  infrared_signature
+#   variable                  optical_signature
+   variable                  pd
+
+   azimuth_limits            -1 deg 1 deg
+   azimuth_step              1 deg
+   elevation_limits          -10 deg 10 deg
+   elevation_step            0.5 deg
+   range                     2 nm
+
+   target_heading            180 deg
+   target_mach               1.2
+end_spherical_map

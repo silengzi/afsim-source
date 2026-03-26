@@ -1,0 +1,45 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+define_path_variable CASE iridium
+log_file output/$(CASE).log
+
+file_path .
+
+# include dynamic routing scripts
+include_once scripts/iridium.txt
+
+# include constellation
+include_once satellites/orbit_nominal/iridium.txt
+
+# include user handhelds
+include_once user_handhelds/iridium_handheld.txt
+
+#================Uncomment this to include Iridium ground network============================================
+#           include_once ground_networks/iridium_ground.txt
+#           include_once platforms/iridium_gs.txt
+#============================================================================================================
+
+
+comm_network iridium_ground_network WSF_COMM_NETWORK
+   transfer_rate 2400 bits/sec
+end_comm_network
+
+event_output
+   enable MESSAGE_QUEUED
+   enable MESSAGE_RECEIVED
+   enable MESSAGE_TRANSMITTED
+   file output/$(CASE).evt
+end_event_output
+
+event_pipe
+   file output/$(CASE).aer
+end_event_pipe
+
+end_time 1000 sec

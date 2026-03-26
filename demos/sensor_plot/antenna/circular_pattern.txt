@@ -1,0 +1,17 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# An example circular pattern
+###############################################################################
+
+antenna_pattern CIRCULAR_PATTERN
+   circular_pattern
+      peak_gain                        35 db
+      beamwidth                        2 deg
+end_antenna_pattern

@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+
+# Detect launch from sensors in North Key Largo, FL
+platform irst_sensor_fl GENERIC_IRST_SITE
+   side blue
+   position 25.2673n 80.3234w
+   heading 340 deg
+   
+   edit sensor sensor_irst
+      maximum_range 3000 km 
+   end_sensor
+end_platform
+
+platform eoir_sensor_fl GENERIC_EOIR_SITE
+   side blue
+   position 25.2673n 80.3234w
+   heading 340 deg
+   
+   edit sensor sensor_eoir 
+      maximum_range 3000 km 
+   end_sensor
+end_platform
+
+# Detect reentry from sensors in Devil's Lake, ND
+platform irst_sensor_nd GENERIC_IRST_SITE
+   side blue
+   position 48.1128n 98.8651w
+   heading 140 deg
+   
+   edit sensor sensor_irst
+      maximum_range 3000 km 
+   end_sensor
+end_platform
+
+platform eoir_sensor_nd GENERIC_EOIR_SITE
+   side blue
+   position 48.1128n 98.8651w
+   heading 140 deg
+   
+   edit sensor sensor_eoir 
+      maximum_range 3000 km 
+   end_sensor
+end_platform

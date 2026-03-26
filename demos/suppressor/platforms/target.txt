@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+##############################################################################
+#                   Simple target platform definition
+##############################################################################
+
+radar_signature TARGET_RCS_SIG
+  constant 1 m^2
+end_radar_signature
+
+infrared_signature TARGET_IR_SIG
+  constant 475 w/sr
+end_infrared_signature
+
+optical_signature TARGET_OPT_SIG
+  constant 10 m^2
+end_optical_signature
+
+platform_type TARGET WSF_PLATFORM
+  icon C4I
+  radar_signature     TARGET_RCS_SIG
+  infrared_signature  TARGET_IR_SIG
+  optical_signature   TARGET_OPT_SIG
+
+  category ignored-by-iads-radar
+  category ignored-by-abn_cmdr-radar
+end_platform_type

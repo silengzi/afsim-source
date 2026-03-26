@@ -1,0 +1,119 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+//this behavior will be the only one in an agents tree that bids on "zone" jobs (compiler error otherwise)
+//this behavior should be the only one in an agents tree that creates "pursue-target" jobs when it runs (unexplained behavior otherwise)
+//in other words... if other behaviors also create "pursue-target" jobs, they should all be under a selector node, so only 1 runs on any update
+
+
+behavior  interpret_zone_jobs
+
+   script_debug_writes  off
+
+
+   script_variables
+      int maxJobWinnersForPursueTrack  = 1;
+      WsfRIPRJob mCurrentJob;
+   end_script_variables
+
+
+   on_init
+      //nothing here yet
+   end_on_init
+
+
+   precondition
+      writeln_d("precondition interpret_zone_jobs");
+
+      if (!PROCESSOR.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+      {
+         return Failure("behavior not attached to a RIPR processor!");
+      }
+
+      if (((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor().IsValid())
+      {
+         return true;
+      }
+      else
+      {
+         return Failure("Agent does not have a commander to get jobs from!");
+      }
+   end_precondition
+
+
+
+   execute
+      writeln_d(PLATFORM.Name(), " executing interpret_zone_jobs, T=", TIME_NOW);
+
+      // now check the board to see what we've won!
+      Map<string, int> updatedTracks = Map<string, int>();
+      WsfRIPRProcessor commander = ((WsfRIPRProcessor)PROCESSOR).GetRIPRCommanderProcessor();
+
+      if (commander.IsJobWindowOpen())
+      {
+         //we can get a new job for ourselves here
+         mCurrentJob = commander.GetJobFor(TIME_NOW, ((WsfRIPRProcessor)PROCESSOR));
+      }
+      else if (commander.IsBidWindowOpen())
+      {
+         //we dont update our own job board until here
+         if( mCurrentJob.IsValid() && mCurrentJob.Name() == "zone" )
+         {
+            Array<string> targetNames = (Array<string>)mCurrentJob.GetData("ZoneThreatNameArray");
+            writeln_d(PLATFORM.Name(), " targetNames.Size() = ", targetNames.Size());
+            foreach(string targetName in targetNames)
+            {
+               WsfPlatform target = WsfSimulation.FindPlatform(targetName);
+               if (target.IsValid())
+               {
+                  updatedTracks.Set( targetName, 1 );
+
+                  WsfRIPRJob job = ((WsfRIPRProcessor)PROCESSOR).GetJobByData("targetTrackName", targetName);
+                  if (job.IsValid())
+                  {
+                     //just update it, it already exists
+
+                  }
+                  else
+                  {
+                     extern double cPursueTargetPriority;
+                     WsfRIPRJob temp = WsfRIPRJob.Create(((WsfRIPRProcessor)PROCESSOR),
+                                                         "pursue-target",
+                                                         "pursue-target-" + targetName,
+                                                         cPursueTargetPriority,
+                                                         maxJobWinnersForPursueTrack);
+                     temp.SetData("targetTrackName", targetName);
+                     ((WsfRIPRProcessor)PROCESSOR).AddJob(temp);
+                     writeln_d("--- ", PLATFORM.Name(), " job change, ADD: ", targetName);
+                  }
+               }
+            }
+         }
+         else
+         {
+            writeln_d("---  currentJob not a valid zone job!!!!!  Removing all my aifl jobs.");
+         }
+
+         Array<WsfRIPRJob> jobs = ((WsfRIPRProcessor)PROCESSOR).GetJobs();
+         foreach (WsfRIPRJob x in jobs)
+         {
+            string name = (string)x.GetData("targetTrackName");
+            if (updatedTracks.Get(name) != 1 && x.Name() == "pursue-target")
+            {
+               writeln_d("--- ", PLATFORM.Name(), " job change, REMOVE: ", name);
+               ((WsfRIPRProcessor)PROCESSOR).RemoveJob(x);
+            }
+         }
+      }
+
+   end_execute
+
+end_behavior

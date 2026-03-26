@@ -1,0 +1,267 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+#                                UNCLASSIFIED
+#
+# This uses the data from 'www.braeuniq.us/apollo/Saturn5.htm', which is a very
+# good explanation of a simulation of the Saturn V/Apollo 11 launch, with reference
+# to actual NASA data.
+#
+# The goal of this model was to compare our trajectory against his, which compares
+# very well with the actual NASA data. He fudged some of the thrust/burn rate numbers
+# in order to get his simulation to match the NASA data and I used his numbers so
+# I could compare against his trajectory. In addition, I found an error in his
+# burn time for the first burn of the S-IVB. I again used his value rather than
+# the NASA value so I could match his trajectory file.
+#
+# This version is simplified and does not match the trajectory exactly. Instead
+# the goal was to do something simpler that still gave reasonable results.
+#==============================================================================
+
+aero SATURN_V_S-IC_AERO WSF_AERO
+   reference_area            1216 ft^2           # See 'Atmospheric Drag' section of the reference document
+   # Note: aspect_ratio and cl_max are not specified as we always thrust vectoring.
+   include saturn_v_cd_vs_mach.txt
+end_aero
+
+aero SATURN_V_S-II_AERO WSF_AERO
+   reference_area            855.2986 ft^2       # 33 ft diameter
+   include saturn_v_cd_vs_mach.txt
+end_aero
+
+platform_type SATURN_V WSF_PLATFORM
+   icon Harm
+   icon Space_Shuttle
+
+   mover WSF_GUIDED_MOVER
+      integration_timestep 0.01 sec
+      update_interval      0.01 sec
+      coordinate_frame     eci
+      check_for_ground_impact          # Don't require a fuse on the platform
+
+      ejectable S-IC/S-II_interstage
+         mass 11477 lbm
+         time 192.60 sec     # T+3:12.30 (192.90 - 0.3)
+      end_ejectable
+
+      ejectable launch_escape_tower
+         mass 8910 lbm
+         time 197.60 sec     # T+3:17.90 (197.90 - 0.3)
+      end_ejectable
+
+      ejectable S-II/S-IVB_interstage
+         mass 8076 lbm
+         # The ullage case and fuel that is actually on the S-IVB stage is added to the
+         # interstage. The ullage burn starts just before the interstage is dropped and
+         # for about 12 seconds. The masses are small (60 lbm case + 118 lbm fuel).
+         mass 8252 lbm
+         time 549.0 sec
+      end_ejectable
+
+      # S-IC
+      stage 1
+         aero SATURN_V_S-IC_AERO
+         total_mass                    5023648 lbm
+         fuel_mass                     4730675 lbm         # 3,305,786 oxidizer + 1,424,889 fuel
+         empty_mass                     292973 lbm         # 287,531 dry + 5,442 other
+
+         # As noted below, first motion does not occur until T+0.3. During the time the engines are
+         # ignited (T-6.4) and when the holdback arms are released (T+0.3) the documentation says
+         # 86,308 lbm of fuel is consumed.
+         #
+         # Adding these lines affects the mass-related lines in from 'show_status', but are needed
+         # to get the masses correct at the staging events. Prior to doing this I ensured that the
+         # 'Total Start Mass' value for stage 1 matched the document.
+
+         total_mass                    4937340 lbm
+         fuel_mass                     4644367 lbm
+
+         # For some unknown reason I did not get the initial masses in the time history to line up.
+         # I had to deduct an additional 225 kg (495 lb).
+
+         total_mass                    4936845 lbm
+         fuel_mass                     4643872 lbm
+
+         # According to the documentation, the following is the launch sequence:
+         #
+         #   T-6.4 : Ignition
+         #   T-1.6 : All engines at full thrust
+         #   T+0   : 'Range 0'
+         #   T+0.3 : Holddown arms released (first motion)
+         #   T+0.63: Liftoff (umbilical disconnect)
+
+         # These are the peak rates.
+         sea_level_thrust              7840980 lbf         # 7715150 at launch, 6251000 last part
+         vacuum_thrust                 9008530 lbf         # 8863960 at launch, 7182470 last part
+         burn_rate                     29633.32 lbm/sec    # 29157.78 at launch, 23626.56 last part
+         thrust_duration               161.33 sec
+
+         throttle
+            curve
+               independent_variable time units sec
+               #dependent_variable
+                 0.000 0.98395226 # T+0.3
+                69.700 0.98395226 # T+1:10 (70.00 - 0.3 = 69.70)      Begin ramp up to max power
+               134.900 1.00000000 # T+2:15.20 (135.20 - 0.3 = 134.90) Center engine cutoff (CECO)
+               134.901 0.79722178
+               161.330 0.79722178 # T+2:41.63 (161.63 - 0.3 = 161.33) Shutdown
+            end_curve
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           10.0
+
+         # Engine cutoff at T+2:41.63, separation at T+2:42.20
+         pre_separation_coast_time     0.57 sec
+      end_stage
+
+      # S-II
+      stage 2
+         aero SATURN_V_S-II_AERO
+         #total_mass                    1058140 lbm
+         fuel_mass                      977166 lbm         # 819,050 oxidizer + 158,116 fuel
+         empty_mass                      80974 lbm         # 79,714 dry + 1,260 other
+
+         # This is a vacuum only engine... use unqualified thrust and burn rate.
+         thrust                         1147500 lbf
+         burn_rate                      2701.65 lbm/sec
+
+         throttle
+            curve
+               independent_variable time units sec
+               #dependent_variable
+                 0.000 1.00000000  # T+2:44.00 (164.00)
+               296.621 1.00000000  # T+7:40.62 (460.62 - 164.00 = 296.62) Center engine cutoff (CECO)
+               296.622 0.79672331
+               334.001 0.79672331  # T+8:18.00 (498.00 - 164.00 = 334.00) EMR shift
+               334.002 0.59765577
+               384.220 0.59765577  # T+9:08.22 (548.22 - 164.00 = 384.22) Shutdown
+            end_curve
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           10.0
+
+         # Separation of previous stage was at T+2:42.20 (162.20)
+         # Ignition of this stage is T+2:44.00 (164.00)
+         pre_ignition_coast_time       1.8 sec            # 164.00 - 162.20
+
+         # Cutoff is T+9:08.22 (548.22)
+         # Separation is at T+9:09.00 (549.00)
+         pre_separation_coast_time     0.78 sec           # 549.00 - 548.22
+      end_stage
+
+      # S-IVB, 1st burn only
+      stage 3
+         aero none
+         #total_mass                    262613 lbm
+         fuel_mass                     236105 lbm          # 192,497 oxidizer + 43,608 fuel
+         empty_mass                     26508 lbm          # 24,852 dry + 1,656 other
+
+         # Removed 178 lbm for ullage fuel and motors that are handled as ejectables...
+         total_mass                    262435 lbm
+         empty_mass                     26330 lbm
+
+         thrust                        202603 lbf
+         thrust_duration               147.13 sec          # From T+9:12.20 (552.20) to T+11:39.33 (699.33)
+         # The time history file from the website at the first burn ending at 706.85 seconds (T+11:46.85).
+         # I'm increasing the duration to correspond to the time history file.
+         thrust_duration               154.65 sec          # From T+9:12.20 (552.20) to T+11:46.85 (706.85)
+
+         burn_rate                     470.50 lbm/sec
+
+         # Lateral commands are accomplished by thrusters and not thrust vectoring. But we don't do
+         # thrusters so we use thrust vectoring but make it very efficient so it doesn't steal axial thrust.
+
+         thrust_vectoring_angle_limit  10 deg
+         lateral_thrust_gain           100.0
+
+         # Separation of previous stage was at T+9:09.00 (549.00)
+         # Ignition at T+9:12.20 (552.20)
+         pre_ignition_coast_time       3.20 sec
+      end_stage
+
+      # Instrument unit
+      stage 4
+         aero none
+         total_mass                    4275 lbm
+      end_stage
+
+      # Command and Service Module (63,507), Lunar Module (33,278), Adapter (3,951)
+      # Launch escape system handled as an ejectable
+      stage 5
+         aero none
+         total_mass                    100736 lbm
+      end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+
+     # During the initial launch phase no guidance is  performed.
+     # The phase is exited when the vertical speed is enough to start pitch over.
+      phase LAUNCH
+         program NULL_PROGRAM end_program        # No guidance
+         next_phase PITCH_OVER when vertical_speed > 40 m/s
+      end_phase
+
+      # For the Apollo 11 mission we were given the trajectory, but in this case we want to
+      # show an example of tuning the values.
+      #
+      # The ultimate idea is to reach apogee at the orbit altitude and then apply all thrust
+      # to reach the speed necessary for orbit. Unfortunately this is something of a messy
+      # process because of the 3-stage arrangement of the Saturn V.
+
+      phase PITCH_OVER
+         program FLIGHT_PATH_ANGLE_PROGRAM
+            flight_path_angle 86.11 deg
+            pitch_rate 0.160 deg/sec
+         end_program
+         next_phase ASCENT_1 when program FLIGHT_PATH_ANGLE_PROGRAM complete
+      end_phase
+
+      # A simple ascent cannot be used. The first phase of ascent ends after the first stage
+      # burns out. The second ascent phase has some g bias because it can't achieve orbital altitude.
+      phase ASCENT_1
+         program NULL_PROGRAM end_program
+         next_phase ASCENT_2 when flight_time > 165 sec
+      end_phase
+
+      phase ASCENT_2
+         program GRAVITY_BIAS_PROGRAM
+            g_bias 0.3
+         end_program
+         next_phase ORBIT_INSERTION when flight_time > 570 sec
+      end_phase
+
+      # The ORBIT_INSERTION_PROGRAM will fly a gravity turn until it becomes
+      # close to orbit insertion. It will stop the engines when the flight path
+      # angle is near zero and the speed is enough to maintain circular orbit.
+      # (Turning off the engines signals boost completion.)
+
+      phase ORBIT_INSERTION
+         program ORBIT_INSERTION_PROGRAM
+         end_program
+         next_phase IN_ORBIT when program ORBIT_INSERTION_PROGRAM complete
+      end_phase
+
+      phase IN_ORBIT
+         on_entry
+            writeln("***** IN ORBIT, Alt=", PLATFORM.Altitude());
+         end_on_entry
+         program NULL_PROGRAM end_program        # No guidance
+      end_phase
+
+   end_processor
+
+end_platform_type
+
+weapon SATURN_V WSF_EXPLICIT_WEAPON
+   tilt                      90 deg
+   launch_delta_v            0.0 0.0 0.0 m/s
+   launched_platform_type    SATURN_V
+   quantity                  1
+end_weapon

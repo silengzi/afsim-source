@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+platform_type FLIGHT_LEAD_BASE WSF_PLATFORM
+
+
+//these definitions go in scenario specific platform type derivatives
+//   comm cmdr_net DATALINK_TYPE
+//      network_name <local:slave>
+//      internal_link data_mgr
+//   end_comm
+//   comm sub_net DATALINK_TYPE
+//      network_name <local:master>
+//      internal_link data_mgr
+//   end_comm
+
+   processor track_manager WSF_TRACK_PROCESSOR
+      //debug
+      purge_interval 60 seconds
+
+      #report_to commander via cmdr_net
+      report_to subordinates via sub_net
+
+      //Only report fused tracks to entities that won't transmit tracks back.
+      //report_interval      20 sec
+      report_interval      4 sec
+      fused_track_reporting off
+      raw_track_reporting on
+
+   end_processor
+
+
+end_platform_type
+

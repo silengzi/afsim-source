@@ -1,0 +1,44 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once ../../patterns/uniformPattern.txt
+
+comm GROUNDSTATION_NOAA_UPLINK_TX WSF_RADIO_XMTR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90 deg   90 deg     # ref 2
+
+
+   transmitter
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      attenuation                         none
+      frequency                           1702.5 MHz      # ref 1;  average between 1698 and 1707
+#      wavelength                          12.04 cm        #
+      bandwidth                           16.5 MHz        #
+      propagation_model                   none
+      power                               38.03 dBw       # ref 3
+#      pulse_width                         15.0 usec
+#      pulse_repetition_interval           150.0 usec
+   end_transmitter
+
+end_comm
+
+comm GROUNDSTATION_NOAA_DOWNLINK_RX WSF_RADIO_RCVR
+
+   azimuth_field_of_view                  -180.0 deg 180.0 deg
+   elevation_field_of_view                 -90 deg   90.0 deg
+
+   receiver
+      antenna_pattern                     UNIFORM_0DBI_PATTERN
+      frequency                           137.5 MHz
+      bandwidth                           401.65 MHz  # ref 2
+      noise_power                         -169.0 dbm
+      detection_threshold                 3.0 dB
+   end_receiver
+
+end_comm

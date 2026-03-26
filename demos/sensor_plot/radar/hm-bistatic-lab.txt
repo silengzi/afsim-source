@@ -1,0 +1,198 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+radar_signature TARGET_RADAR_SIGNATURE
+  use_bisector_for_bistatic true
+  constant 5 m^2
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature TARGET_RADAR_SIGNATURE
+end_platform_type
+
+antenna_pattern BISTATIC_TX_ANTENNA
+  constant 0 db
+end_antenna_pattern
+
+antenna_pattern BISTATIC_RX_ANTENNA
+  constant 12 dB
+end_antenna_pattern
+
+sensor BISTATIC_SENSOR_RCVR WSF_RADAR_SENSOR
+   #debug
+
+   receive_only
+
+   frame_time            1.0 sec
+
+   receiver
+      antenna_pattern    BISTATIC_RX_ANTENNA
+      antenna_height     9 m
+      frequency          100 mhz
+      bandwidth          200 khz
+      noise_figure         7 db
+      #check_terrain_masking false
+      check_transmitter_masking false
+   end_receiver
+
+   detection_threshold    15 db
+   integration_gain 1e5 absolute // Signal Processing Gain, Gsp = Tsp * Br = 0.5 sec * 200e3 1/sec
+   #probability_of_false_alarm  1.0e-6
+   #required_pd                    0.9
+   #swerling_case                  1
+
+   reports_range
+   reports_bearing
+end_sensor
+
+sensor BISTATIC_SENSOR_XMTR WSF_RADAR_SENSOR
+
+   transmit_only
+
+   frame_time                10.0 sec
+
+   transmitter
+      antenna_pattern       BISTATIC_TX_ANTENNA
+      antenna_height           90 m
+      power                    50 kw
+      frequency               100 mhz
+      bandwidth               200 khz
+      pulse_width 5 usec
+      pulse_repetition_interval 100 usec
+      #pulse_compression_ratio 1e5 absolute // Signal Processing Gain, Gsp = Tsp * Br = 0.5 sec * 200e3 1/sec
+      internal_loss        8 db
+      #check_terrain_masking false
+   end_transmitter
+end_sensor
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   position 0:0:0.0s 0:0:0.0e altitude 0 m agl
+   sensor sns_rcvr BISTATIC_SENSOR_RCVR
+      on
+   end_sensor
+end_platform_type
+
+platform bistatic_rcvr SENSOR_PLATFORM_TYPE
+end_platform
+
+#define_path_variable CASE 100km
+#define_path_variable CASE 200km
+define_path_variable CASE 300km
+#define_path_variable CASE 400km
+
+platform bistatic_xmtr WSF_PLATFORM
+   #position 00:54:0.0n 0:0:0.0e altitude 0 m agl # 100 km
+   #position 01:38:0.0n 0:0:0.0e altitude 0 m agl # 200 km
+   position 02:42:0.0n 0:0:0.0e altitude 0 m agl # 300 km
+   #position 03:36:0.0n 0:0:0.0e altitude 0 m agl # 400 km
+   add sensor bistatic_xmtr BISTATIC_SENSOR_XMTR
+      on
+   end_sensor
+end_platform
+
+horizontal_map
+   pd_map_file hm-bistatic-lab-$(CASE).pd
+   gnuplot_file hm-bistatic-lab-$(CASE).plt
+   gnuplot_player_file players-bistatic-lab.plt
+   output_column_limit 100
+
+   exclude sensor_type BISTATIC_SENSOR_XMTR
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   variable pd
+   header_line_1 "Horizontal pd map"
+   defended_area_report_file bistatic-lab.log # valid only if variable is pd
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   #variable signal_power
+   #header_line_1 "signal power in watts"
+
+   variable signal_to_noise
+   header_line_1 "S/N Ratio in dB"
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB"
+
+   #variable detection_threshold
+   #header_line_1 "DT"
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable azimuth_angle
+   #variable angle
+   #variable grazing_angle
+
+   target_region
+      down_range_limits   -500 km 500 km
+      down_range_step     1 km
+      cross_range_limits  -300 km 300 km
+      cross_range_step    1 km
+   end_target_region
+
+   #target_region
+   #   latitude_limits  3s 3n
+   #   latitude_step     0.01
+   #   longitude_limits  2w 2e
+   #   longitude_step    0.01
+   #end_target_region
+
+   target_heading  180 deg
+   target_altitude 2500 m
+   target_speed    450 kts
+   target_pitch    0 deg
+   target_roll     0 deg
+
+end_horizontal_map
+/*
+horizontal_coverage
+
+   required_pd 0.5
+
+   target_speed   450 kts
+   target_heading   0 deg
+   target_pitch     0 deg
+   target_roll      0 deg
+
+   azimuth_limits 0.0 deg 360.0 deg
+   #azimuth_limits -180.0 deg 180.0 deg
+   azimuth_step 1.0 deg
+
+   #maximum_range 100 km # comment out for auto range finding
+   large_range_step 500 m
+   small_range_step  10 m
+
+   output_file hcd-bistatic-lab-$(CASE).hcd
+   altitude_units m
+   range_units    km
+   x_units        km
+   y_units        km
+
+   altitude 2500 m
+
+   output_min_range
+   output_max_range
+end_horizontal_coverage
+*/

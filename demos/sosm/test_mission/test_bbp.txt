@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Generate a gnuplot plot file of the blackbody curves from Hudson's book.
+#
+# The resulting plot file is 'blackbody.plt'
+# ==============================================================================
+
+test_feature sosm            # Ensure SOSM is available
+
+sosm_interface
+   test blackbody_plot
+end_sosm_interface
+

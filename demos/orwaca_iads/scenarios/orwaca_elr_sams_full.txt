@@ -1,0 +1,140 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+// Battalion 1
+platform elr_sam_battalion_1 ELR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 46:24:14.84n 122:09:11.23w altitude 3.28 ft agl
+   #use_zone elr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform elr_sam_acq_radar_1 ELR_SAM_ACQ_RADAR
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:14.53n 122:09:14.51w altitude 3.28 ft agl
+end_platform
+
+platform elr_sam_ttr_radar_1  ELR_SAM_TTR_RADAR
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:16.44n 122:09:13.75w altitude 3.28 ft agl
+end_platform
+
+platform elr_sam_launcher_1-1 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:18.367n 122:09:18.096w altitude 1.0 m agl
+end_platform
+
+platform elr_sam_launcher_1-2 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:11.65n 122:09:18.32w altitude 3.28 ft agl
+end_platform
+
+platform elr_sam_launcher_1-3 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:10.664n 122:09:09.195w altitude 1 m agl
+end_platform
+
+platform elr_sam_launcher_1-4 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_1
+   position 46:24:17.742n 122:09:08.861w altitude 1 m agl
+end_platform
+
+// Batallion 2
+platform elr_sam_battalion_2 ELR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 40:36:17.70n 120:39:30.54w altitude 4.12 ft agl
+   #use_zone elr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform elr_sam_acq_radar_2 ELR_SAM_ACQ_RADAR
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:20.24n 120:39:30.78w altitude 3.43 ft agl
+end_platform
+
+platform elr_sam_ttr_radar_2  ELR_SAM_TTR_RADAR
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:19.21n 120:39:31.69w altitude 3.92 ft agl
+end_platform
+
+platform elr_sam_launcher_2-1 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:22.19n 120:39:34.17w altitude 1.90 ft agl
+end_platform
+
+platform elr_sam_launcher_2-2 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:16.02n 120:39:34.00w altitude 5.49 ft agl
+end_platform
+
+platform elr_sam_launcher_2-3 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:15.84n 120:39:27.46w altitude 4.30 ft agl
+end_platform
+
+platform elr_sam_launcher_2-4 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_2
+   position 40:36:21.95n 120:39:26.64w altitude 0.63 ft agl
+end_platform
+
+// Batallion 3
+platform elr_sam_battalion_3 ELR_SAM_BATTALION
+   side red
+   commander 10_iads_cmdr
+   position 34:45:53.81n 117:49:06.09w altitude 3 ft agl
+   #use_zone elr_sam_battalion_sector as battalion_sector
+end_platform
+
+platform elr_sam_acq_radar_3 ELR_SAM_ACQ_RADAR
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:55.27n 117:49:07.81w altitude 3 ft agl
+end_platform
+
+platform elr_sam_ttr_radar_3  ELR_SAM_TTR_RADAR
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:52.15n 117:49:08.45w altitude 3 ft agl
+end_platform
+
+platform elr_sam_launcher_3-1 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:56.74n 117:49:10.12w altitude 3 ft agl
+end_platform
+
+platform elr_sam_launcher_3-2 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:51.22n 117:49:11.68w altitude 3 ft agl
+end_platform
+
+platform elr_sam_launcher_3-3 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:47.26n 117:49:02.41w altitude 3 ft agl
+end_platform
+
+platform elr_sam_launcher_3-4 ELR_SAM_LAUNCHER
+   side red
+   commander elr_sam_battalion_3
+   position 34:45:54.01n 117:49:02.88w altitude 3 ft agl
+end_platform

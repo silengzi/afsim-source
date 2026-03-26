@@ -1,0 +1,21 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# An example cosecant squared pattern
+###############################################################################
+
+antenna_pattern COSECANT_PATTERN
+   cosecant_squared_pattern
+      peak_gain                        35 db
+      azimuth_beamwidth                10 deg
+      elevation_beamwidth              15 deg
+      minimum_elevation_for_peak_gain  5 deg
+      elevation_of_peak/csc2_boundary  10 deg
+      maximum_elevation_for_csc2       15 deg
+end_antenna_pattern

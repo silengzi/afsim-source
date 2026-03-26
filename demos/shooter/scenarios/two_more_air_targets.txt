@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform target2 AIR_TARGET
+   icon F-18
+   side red
+#   indestructible
+   route
+      position 37:56:24n 137:07:36e altitude 25000 ft agl
+        speed 280 kts
+      position 39:30:24n 137:11:24e altitude 25000 ft agl
+        speed 280 kts
+   end_route
+end_platform
+
+platform target3 AIR_TARGET
+   icon F-18
+   side red
+#   indestructible
+   route
+      position 37:52:24n 137:14:24e altitude 19000 ft agl
+        speed 280 kts
+      position 39:31:24n 137:19:24e altitude 21000 ft agl
+        speed 280 kts
+   end_route
+end_platform

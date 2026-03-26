@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to tune a launch computer.
+#==============================================================================
+
+#atmosphere_table
+#   include atmosphere.txt
+#end_atmosphere_table
+#include saturn_v_complex.txt
+
+include saturn_v_simple.txt
+
+platform_type SATURN_V_MOD SATURN_V
+   edit mover
+      #show_status
+   end_mover
+   edit processor guidance
+      #show_status
+      #show_diagnostics
+   end_processor
+end_platform_type
+
+platform_type LAUNCHER WSF_PLATFORM
+   add weapon rocket SATURN_V
+      launched_platform_type SATURN_V_MOD
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file tune_output.tmp
+
+   launch_platform_type LAUNCHER
+
+   # Altitude is the midpoint of the rocket. This is what the time history files have.
+   position 28.608422n 80.604133w altitude 59 m
+   launch_heading 72.058 deg
+
+   pitch_rates from 0.1 deg/sec to 0.2 deg/sec by 0.005 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   pitch_rates from 0.150 deg/sec to 0.170 deg/sec by 0.0001 deg/sec
+   loft_angles from 83 deg to 89 deg by 0.2 deg
+
+   # Pretty much any would work for our purpose
+   pitch_rate 0.160 deg/sec
+   loft_angles from 83 deg to 88 deg by 0.05 deg
+   tool_debug
+end_tool

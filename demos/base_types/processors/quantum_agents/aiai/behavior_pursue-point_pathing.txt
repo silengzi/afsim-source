@@ -1,0 +1,81 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+
+behavior pursue-point_pathing
+
+   script_variables
+      bool tempVariable;
+      WsfGeoPoint mCurrentPointIntercept;
+      double                 cSLOW_UPDATE_RATE         = 3.0;
+      double                 cINTERCEPT_SPEED          = 1000;    # m/s
+   end_script_variables
+
+
+
+   precondition
+      writeln("precondition pursue-point_pathing");
+      if (!PLATFORM.GetPathFinder().IsValid())
+      {
+         writeln("no path-finder available");
+         return false;
+      }
+      if (PROCESSOR.GetRIPRCommanderProcessor().IsValid())
+      {
+         WsfRIPRJob currentJob = PROCESSOR.GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, PROCESSOR);
+         if (currentJob.IsValid())
+         {
+            // If we're supposed to fly towards a point, go for it!
+            if (currentJob.Name() == "pursue-point")
+            {
+               mCurrentPointIntercept = (WsfGeoPoint)currentJob.GetData("targetPoint");
+               if (mCurrentPointIntercept.IsValid())
+               {
+                  return true;
+               }
+            }
+         }
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing pursue-point_pathing.");
+      PROCESSOR.SetUpdateInterval(cSLOW_UPDATE_RATE);
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+      extern double cDEFAULT_ALTITUDE;
+      PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE, 200);
+
+      double interceptAltitude = mCurrentPointIntercept.Altitude();
+      double interceptHeading  = PLATFORM.TrueBearingTo(mCurrentPointIntercept);
+      double interceptRange    = PLATFORM.SlantRangeTo(mCurrentPointIntercept);
+
+      writeln_d("    T=", TIME_NOW, ", range: ", interceptRange, " true-bearing: ", interceptHeading);
+
+      WsfGeoPoint startGeoPoint = PLATFORM.Location();
+
+      if (!PLATFORM.FindAndSetPath(startGeoPoint, mCurrentPointIntercept))
+      {
+         PLATFORM.FollowRoute("DEFAULT_ROUTE","CLOSEST_POINT");
+      }
+
+     #if ( (interceptAltitude - PLATFORM.Altitude()) > 5)
+      if ( (interceptAltitude - PLATFORM.Altitude()) > 10000*MATH.M_PER_FT())
+      {
+         writeln_d("GoToAltitude: ",interceptAltitude);
+         #PLATFORM.GoToAltitude(interceptAltitude);
+      }
+
+   end_execute
+
+end_behavior
+

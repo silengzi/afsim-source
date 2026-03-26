@@ -1,0 +1,29 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This brawler enabled platform has the following defined:
+# 1. A WSF_BRAWLER_PROCESSOR    (typically named task_mgr or thinker)
+# 2. A WSF_BRAWLER_MOVER        (possibly could use WSF_P6DOF_MOVER in future)
+# 3. A WSF_PERCEPTION_PROCESSOR (typically named perception)
+# 4. A WSF_THREAT_PROCESSOR     (typically named incoming_threats)
+# 5. A WSF_BRAWLER_FUEL         (optional: the brawler mover implicitly models brawler fuel provided by the 'aero_file')
+
+platform_type  BRAWLER_TEST  WSF_PLATFORM
+   icon f15c
+   category AIRCRAFT
+   category aircraft
+   category brawler
+   category EZJA
+end_platform_type
+
+platform_type  BRAWLER_TEST_AIRMOVER  WSF_PLATFORM
+   icon f15c
+   category AIRCRAFT
+   category EZJA
+end_platform_type

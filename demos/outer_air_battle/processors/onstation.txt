@@ -1,0 +1,33 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# New file created by Wizard
+
+
+#  This script is defined here, instead of in the processor, because it is
+#  "called" by the aircraft, as part of the route.
+
+   script void OnStation()
+#  This script sets the ON_STATION_TIME variables
+#  The two variables are checked each time because this script might be called
+#  each time the aircraft goes around the orbit. The check prevents the
+#  variables from being reset every time.
+
+#   If this is the first time that the aircraft has hit this CAP station,
+#   then set the flag for "on CAP".
+      if ( PLATFORM.AuxDataDouble("NOW_ON_CAP") < 0.0 )
+      {
+         PLATFORM.SetAuxData("NOW_ON_CAP", TIME_NOW);
+      }
+
+#   If the aircraft is just arriving at this CAP station, then set the flag.
+      if ( PLATFORM.AuxDataDouble("ON_STATION_TIME") < 0.0 )
+      {
+         PLATFORM.SetAuxData("ON_STATION_TIME", TIME_NOW);
+      }
+   end_script # OnStation

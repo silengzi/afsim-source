@@ -1,0 +1,127 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Demostration of using the orbital launch computer to launch a satellite to a
+# dynamically determined parking orbit using a Delta IV Medium launch vehicle.
+# ==============================================================================
+
+include launch_vehicles/delta_iv_m/delta_iv_m.txt
+
+include_once scripts/attempt_orbital_launch.txt
+include_once scripts/print_orbital_elements.txt
+
+# ==============================================================================
+# Observer to capture and display information for specific events. Could have
+# used 'event_output', but this makes for a little better output.
+
+script void MoverBurnedOut(WsfPlatform aPlatform,
+                           WsfMover    aMover)
+   # Only show the launch vehicle
+   if (!aPlatform.IsA_TypeOf("DELTA_IV_M")) return;
+
+   # The information displayed here should be reasonable close to the launch computer prediction.
+
+   writeln("T=", TIME_NOW, " ", aPlatform.Name(), ": Boost complete, entering orbit");
+   writeln("  Time of Flight: ", TIME_NOW - aPlatform.CreationTime());
+   writeln("  Location      : ", aPlatform.Location());
+   writeln("  Speed         : ", aPlatform.Speed(), " m/s");
+   writeln("  Heading       : ", aPlatform.Heading());
+   writeln("  Pitch         : ", aPlatform.Pitch());
+   Array<double> oe = WsfOrbitalLaunchComputer.ComputeOrbitalElements(aPlatform.LocationECI(),
+                                                                      aPlatform.VelocityECI(),
+                                                                      TIME_NOW);
+   PrintOrbitalElements(oe, "  ");
+end_script
+
+observer
+   enable MOVER_BURNED_OUT MoverBurnedOut
+end_observer
+
+# =============================================================================
+# Modify the launch vehicle so it will launch off a new satellite body on orbit insertion.
+
+# Create a platform for the satellite.
+
+platform_type SATELLITE WSF_PLATFORM
+   icon Satellite
+   mover WSF_SPACE_MOVER end_mover
+end_platform_type
+
+# Create a modified launch vehicle that launches the satellite at the proper time.
+
+platform_type DELTA_IV_M_MOD DELTA_IV_M
+   script_variables  # Identify the satellite stage number and platform_type to 'launch_payload.txt'
+      int mPayloadStage = 4;
+      string mPayloadType = "SATELLITE";
+   end_script_variables
+
+   include scripts/launch_payload.txt
+end_platform_type
+
+# =============================================================================
+#             THIS IS WHERE EVERYTHING REALLY HAPPENS....
+# =============================================================================
+
+platform LAUNCHER WSF_PLATFORM
+   icon Wedge
+   side blue
+
+   # Cape Canaveral Air Force Station, SLC-37, inclinations 28-57
+   position 28.531986n 80.566821w altitude 1 m agl heading 0 deg
+
+   add weapon launcher DELTA_IV_M
+      launch_computer WSF_ORBITAL_LAUNCH_COMPUTER
+         leo_data launch_vehicles/delta_iv_m/delta_iv_m_ccafs_leo.txt
+      end_launch_computer
+      launched_platform_type DELTA_IV_M_MOD
+   end_weapon
+
+   execute at_time 1.0 sec absolute
+      int case = 1;           # Select the desired case from below
+      if (case == 1)
+      {
+         # This point is right on the point with the 90 degree launch heading and 88.0 degree loft angle.
+         AttemptOrbitalLaunch(PLATFORM, "launcher", 396960.0, 28.43);
+      }
+      else if (case == 2)
+      {
+         # This point is along one launch heading but between two loft angles.
+         # The launch heading will be 80 and the loft angle between 88.0 and 88.2
+         AttemptOrbitalLaunch(PLATFORM, "launcher", 410000.0, 28.685);
+      }
+      else if (case == 3)
+      {
+         # This point is pretty much mid-way between launch headings and loft angles in the launch computer table.
+         # The resulting launch heading should be between 80 and 90 and the loft angle between 88 and 88.2
+         # It appears that interpolating across launch headings doesn't work as well.
+         AttemptOrbitalLaunch(PLATFORM, "launcher", 402000.0, 29.06);
+      }
+      else if (case == 4)
+      {
+         # Higher inclination angle.
+         AttemptOrbitalLaunch(PLATFORM, "launcher", 400000.0, 40.0);
+      }
+   end_execute
+end_platform
+
+# =============================================================================
+
+event_pipe
+   file ./output/demo_delta_iv.aer
+end_event_pipe
+
+event_output
+   file ./output/demo_delta_iv.evt
+   enable MOVER_BURNED_OUT
+   enable MOVER_STAGED
+   enable PLATFORM_ADDED
+   enable PLATFORM_DELETED
+end_event_output
+
+end_time 6 hrs

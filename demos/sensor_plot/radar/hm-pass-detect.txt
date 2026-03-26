@@ -1,0 +1,167 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ..
+file_path ../../aea_iads
+file_path ../../iads
+
+include weapons/jammer/false_target.txt
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+include sensors/radar/acq_radar.txt
+include platforms/soj.txt
+
+ignore_block route
+ignore_block mover
+
+antenna_pattern  constAntenna
+  constant 0 db
+end_antenna_pattern
+
+sensor PASSIVE_SNSR WSF_ESM_SENSOR
+  frame_time    0.5 sec
+  azimuth_field_of_view     -180 deg 180 deg
+  elevation_field_of_view   -90 deg 90 deg
+  frequency_band   1.0 ghz  100.0 ghz
+
+  #continuous_detection_threshold 15 dB
+  #pulsed_detection_threshold     15 dB
+
+  #continuous_detection_sensitivity -80 dBm
+  #pulsed_detection_sensitivity     -80 dBm
+
+  #detection_threshold_table
+  #   signal_type pulsed
+  #      frequency 1.0 Hz  5 dB
+  #      frequency 3.0 GHz 9 dB
+  #   signal_type continuous
+  #      frequency 1.0 Hz 3 dB
+  #      frequency 3.0 GHz 6 dB
+  #end_detection_threshold_table
+
+  detection_sensitivities
+       signal_type pulsed
+          frequency 1.0 Hz  -70 dBm
+          frequency 3.0 GHz -80 dBm
+       signal_type continuous
+          frequency 1.0 Hz  -75 dBm
+          frequency 3.0 GHz -85 dBm
+  end_detection_sensitivities
+
+  receiver
+    antenna_pattern constAntenna
+    instantaneous_bandwidth 500 MHz # -87 dBm noise power
+    //noise_power   -80 dbm
+  end_receiver
+end_sensor
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+   optical_signature UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+   sensor passive PASSIVE_SNSR
+      on
+      reports_location
+   end_sensor
+end_platform_type
+
+platform jammer-1 WSF_PLATFORM
+   position 0.0n 0.0e altitude 30000 ft
+   heading 90 deg
+  add weapon jammer SOJ_SBAND_JAMMER
+     off
+     slew_mode fixed // since there isn't any radar to jam, i.e. point at to get listener interface to work on ESM
+     yaw 0.0 deg
+     power 10 w   // if the power should need adjusting
+  end_weapon
+  execute at_time 0.001 minutes absolute
+     WsfWeapon jammer = PLATFORM.Weapon("jammer");
+     // Any of the jamming routines can be used at this point
+     jammer.StartJamming(3000000000., 20000000.);
+  end_execute
+end_platform
+
+horizontal_map
+
+   platform_to_detect_name jammer-1
+   jamming_platform_name jammer-1
+
+   #pd_map_file hm-pass-detect.pd
+   gnuplot_file hm-pass-detect.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   #variable pd
+   #header_line_1 "Horizontal pd map"
+   #defended_area_report_file ucav_vs_acq-soj.log # valid only if variable is pd
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   #variable signal_power
+   #header_line_1 "Received signal power"
+
+   #variable clutter_power
+   #header_line_1 "Clutter power"
+
+   #variable jammer_power
+   #header_line_1 "Received jammer power"
+
+   #variable jammer_to_signal
+   #header_line_1 "J/S in dB"
+
+   variable signal_to_noise
+   header_line_1 "S/N Ratio in dB"
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB"
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable contrast_radiant_intensity
+   #header_line_1 "Contrast Radiant Intensity."
+
+   #variable attenuation_factor
+   #header_line_1 "Attenuation factor."
+
+   #variable propagation_factor
+   #header_line_1 "Propagation factor."
+
+   target_region
+      down_range_limits  -200 nm 200 nm
+      down_range_step     1 nm
+      cross_range_limits  -200 nm 200 nm
+      cross_range_step    1 nm
+   end_target_region
+
+   target_heading  270 deg
+   target_altitude 0 ft
+   target_speed    0 kts
+   target_pitch 0 deg
+   target_roll 0 deg
+end_horizontal_map

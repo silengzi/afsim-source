@@ -1,0 +1,122 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+behavior snap_shot
+
+   script_variables
+      double   cDIVE_ALTITUDE          =        304.8;            # 1000 feet
+      double   cDEFAULT_SPEED          =        200.0;            # m/s
+      double   cMIN_SPEED              =          0.0;            # m/s
+      double   cGRAVITY_ACCEL          =          9.80665;        # 1 G
+      double   cDEFAULT_ACCEL          = (cGRAVITY_ACCEL * 7.5);  # m/s^2  ~7.5 Gs
+      double cMAX_RADIAL_ACCEL = 100 * cGRAVITY_ACCEL;         //larger than possible, make the aircraft limit the turn
+   end_script_variables
+
+
+   precondition
+      writeln("precondition snap_shot");
+
+      //this behavior applies when a snap shot is required and won't be suicide
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+      WsfMover mover = PLATFORM.Mover();
+
+      if (targetTrack.IsNull() || !targetTrack.IsValid() || mover.IsNull() || !mover.IsValid())
+      {
+         writeln("target or mover not valid for executing snap_shot");
+         return false;
+      }
+      else
+      {
+         //distance versus turn radius
+         #double turnRadius = mover.TurnRadius();
+         #double range      = PLATFORM.SlantRangeTo(targetTrack);
+         #writeln("turn radius = ", turnRadius, ", my range = ", range);
+         #double maxVelocityAllowed = mover.CornerVelocity(targetTrack.CurrentLocation());
+         #double mySpeed = PLATFORM.Speed();
+         #writeln("max corner speed = ", maxVelocityAllowed, ", my speed = ", mySpeed);
+
+         //check if I've already fired at the target
+         if (PROCESSOR.WeaponsActive(targetTrack) > 0)
+         {
+            return false;
+         }
+
+         //check the relative angles and speeds between agent and the target
+         double relMe  = MATH.Fabs( PLATFORM.RelativeBearingTo(targetTrack) );
+         double relHim = MATH.Fabs( targetTrack.RelativeBearingTo(PLATFORM) );
+         //lets try multiplying relative angles by speed
+         //lower relative angle and lower speed is better for snap shotting
+         if ((relMe * PLATFORM.Speed()) > (relHim*targetTrack.Speed()))
+         {
+            return false;
+         }
+
+
+         //check if I'm already pointed at the target
+         if (relMe < 5.0)  //within five degrees
+         {
+            return false;
+         }
+
+         //check if any threats are within visual range ~20 nm
+         //check for side
+        #extern double mVisualRange;
+         int totalThreatsWVR = 0;
+         foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+         {
+            if (!t.SideValid() || t.Side() != PLATFORM.Side())
+            {
+               if (PLATFORM.SlantRangeTo(t) < mVisualRange)
+               {
+                  totalThreatsWVR = totalThreatsWVR + 1;
+               }
+            }
+         }
+         if (totalThreatsWVR > 1)   //don't slow down if other threats are nearby
+         {
+            return false;
+         }
+
+         /*
+         //check if a snapshot would help me actually fire at my target (create a fake track that has relative bearing = 0)
+         WsfTrack projectedTarget = WsfTrack();
+         projectedTarget.SetBearing(0);
+         projectedTarget.SetRange(PLATFORM.SlantRangeTo(targetTrack));
+         projectedTarget.SetElevation(PLATFORM.RelativeElevationOf(targetTrack.CurrentLocation()));
+         projectedTarget.SetAirDomain();
+         Vec3 v = targetTrack.VelocityWCS();
+         projectedTarget.SetVelocityWCS(v.X(), v.Y(), v.Z());
+        #extern string GetWeaponForThreat(WsfPlatform, WsfTrack);
+         string wStr = GetWeaponForThreat(PLATFORM, projectedTarget);    #checks domain & kinematic capability, & valid quantity remaining
+         if (wStr == "")
+         {
+            writeln("checking snap_shot, projected target could NOT be fired upon");
+            return false;
+         }
+         */
+
+         return true;
+      }
+   end_precondition
+
+
+   execute
+      writeln("executing snap_shot.");
+      PLATFORM.Comment("snap_shot");
+
+      WsfTrack targetTrack = PROCESSOR.GetTarget();
+
+     #extern bool FlyTarget( WsfPlatform, WsfGeoPoint, double);
+      FlyTarget( PLATFORM, targetTrack.CurrentLocation(), cMIN_SPEED);
+
+   end_execute
+
+end_behavior

@@ -1,0 +1,91 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+// Example horizontal map configurations
+// PdMap can be used to view output
+
+file_path .
+file_path ..
+file_path ../../aea_iads
+file_path ../../iads
+
+include signatures/ucav_radar_sig.txt
+include signatures/ucav_infrared_sig.txt
+include signatures/ucav_optical_sig.txt
+include sensors/radar/acq_radar.txt
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+   radar_signature UCAV_RADAR_SIG
+   optical_signature UCAV_OPTICAL_SIG
+   infrared_signature UCAV_INFRARED_SIG
+end_platform_type
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   position 0n 0e heading 90 deg
+   sensor radar ACQ_RADAR
+   end_sensor
+end_platform_type
+
+vertical_map
+   pd_map_file vm-ucav_vs_acq-dry.pd
+   gnuplot_file vm-ucav_vs_acq-dry.plt
+   output_column_limit 100
+
+   // One of the below sections can be used to choose the
+   // variable of interest to plot
+   variable pd
+   header_line_1 "Horizontal pd map"
+
+   #variable required_rcs
+   #detection_reference 12.8 dB
+   #header_line_1 "Required RCS map"
+
+   #variable radar_signature
+   #header_line_1 "Radar Signature viewed by sensor"
+
+   #variable optical_signature
+   #header_line_1 "Optical Signature viewed by sensor"
+
+   #variable infrared_signature
+   #header_line_1 "Infrared Signature viewed by sensor"
+
+   #variable signal_power
+   #header_line_1 "Received signal power"
+
+   #variable clutter_power
+   #header_line_1 "Clutter power"
+
+   #variable signal_to_noise
+   #header_line_1 "S/N Ratio in dB
+
+   #variable signal_to_interference
+   #header_line_1 "S/I Ratio in dB
+
+   #variable signal_at_target
+   #header_line_1 "Signal at target."
+
+   #variable background_radiant_intensity
+   #header_line_1 "Background Radiant Intensity"
+
+   #variable contrast_radiant_intensity
+   #header_line_1 "Contrast Radiant Intensity."
+
+   #variable attenuation_factor
+   #header_line_1 "Attenuation factor."
+
+   #variable propagation_factor
+   #header_line_1 "Propagation factor."
+
+   ground_range_limits     0 nm 120 nm
+   ground_range_step       0.5 nm
+   altitude_limits         0 kft 250 kft
+   altitude_step           500 ft
+
+   target_speed    450 kts
+
+end_vertical_map

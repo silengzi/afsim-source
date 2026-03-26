@@ -1,0 +1,39 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include_once platforms/gps_control.txt
+
+platform CAPE_CANAVERAL GPS_CONTROL
+  position  28.39817646n   80.63871667w altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform COLORADO_SPRINGS GPS_CONTROL  # Master Conrol at Falcon AFB
+  position  38.79908992n   104.5260636w altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform ASCENSION_ISLAND GPS_CONTROL
+  position  7.97239748s   14.40029029w altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform DIEGO_GARCIA GPS_CONTROL
+  position  7.26644998s   72.36332088e altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform
+
+platform KWAJALEIN GPS_CONTROL
+  position  8.72668993n   167.73692562e altitude 1.0 m agl
+  commander SELF
+  side indigo
+end_platform

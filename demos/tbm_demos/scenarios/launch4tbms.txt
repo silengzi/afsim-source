@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This scenario launches 4 tbm's at no targets.
+# Launch trajectories are based on weapon characteristics as
+# defined in the weapon type.
+
+platform tbm3-launcher TBM3_LAUNCHER
+   side red
+   position 38:45n 90:25w heading 90 deg
+
+   weapon tbm3-missile
+      quantity 4
+   end_weapon
+
+   add processor script WSF_SCRIPT_PROCESSOR
+      update_interval 30.0 sec
+      on_update 
+         if (TIME_NOW > 1.0)
+         {
+            writeln("TIME_NOW ", TIME_NOW);
+            WsfWeapon tbm = PLATFORM.Weapon("tbm3-missile");
+            tbm.SetPitch(55.0);
+            tbm.Fire();
+            tbm.SetPitch(65.0);
+            tbm.Fire();
+            tbm.SetPitch(75.0);
+            tbm.Fire();
+            tbm.SetPitch(85.0);
+            tbm.Fire();
+            PROCESSOR.TurnOff();
+         }
+      end_on_update
+   end_processor
+
+end_platform
+

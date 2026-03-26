@@ -1,0 +1,258 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#creates and updates "zone" jobs
+#does not bid on any jobs
+#does not perform any jobs
+
+
+   processor AISOC-thinker WSF_RIPR_PROCESSOR
+
+      #debug
+      #script_debug_writes on
+      script_debug_writes off
+
+      update_interval 5.0 seconds
+
+      script_variables
+        WsfClusterManager cManager;
+        int               mMaxJobWinners       = 2;
+        int               mLastNumClusters     = 0;
+        bool              mDrawClusters        = true;
+        WsfDraw           mDraw                = WsfDraw();
+        Map<string, int>  mClusterNameJobIdMap = Map<string, int>();
+      end_script_variables
+
+      on_initialize
+        SetJobAllocationMode(2);
+
+        cManager = WsfClusterManager.Create();               //creates a cluster manager owned by this script
+        cManager.SetClusterMethod("H_TREE_MAX");             //default is: "H_TREE_MAX"
+        cManager.SetDistanceFunction("POSITION_VELOCITY");   //default is: "POSITION_ONLY"
+        //cManager.SetDistanceLimit(92600);                  //default is: 100 meters, set to ~50 nautical miles
+        cManager.SetDistanceLimit(40000);                    //default is: 100 meters, set to ~25 nautical miles
+
+        mDraw.SetLineStyle("solid");
+        mDraw.SetLineSize(5);
+        mDraw.SetDuration(5);
+      end_on_initialize
+
+
+      script void draw_cluster_hull(WsfCluster cluster)
+        Array<WsfGeoPoint> pts = cluster.ConvexHull();
+        //writeln_d("   ~~~ SOC cluster convex hull pts: ", pts.Size());
+        if (pts.Size() <= 0)
+        {
+           return;
+        }
+        WsfGeoPoint first = pts.Get(0);
+        mDraw.SetColor(1.0,0.5,0.0);
+        mDraw.BeginPolyline();
+          for (int j = 0; j < pts.Size(); j = j + 1 )
+          {
+             WsfGeoPoint pt = pts.Get(j);
+             mDraw.Vertex(pt);
+             //writeln_d("   ~~~ SOC cluster convex hull pt ", j+1, ": ", pt.Latitude(), ", ", pt.Longitude());
+          }
+          mDraw.Vertex(first);
+        mDraw.End();
+      end_script
+
+
+      on_update
+         writeln_d( "AISOC on_update" );
+
+        WsfLocalTrackList localTracks = PLATFORM.MasterTrackList();
+        writeln_d("   ~~~ SOC tracklist count:       ", localTracks.Count());
+        cManager.UpdateClusters(TIME_NOW,localTracks);
+        int NumClusters = cManager.Count();
+
+        for (int i = 0; i < NumClusters; i = i + 1 )
+        {
+          WsfCluster cluster = cManager.Entry(i);
+          string ClusterName = PLATFORM.Name() + "_" + (string)i;
+
+          //create a zone that bounds this cluster, with some padding
+          //anybody can call up this zone by name to check if a threat is inside it
+
+          //no need to have a zone on the platform: deprecated!
+          //cluster.UpdatePlatformZone(PLATFORM,ClusterName,(5.0/60.0));   //5 minutes (1/12th of a degree)
+
+          if (mDrawClusters == true)
+          {
+            draw_cluster_hull(cluster);
+          }
+
+          WsfGeoPoint clusterPoint = cluster.MeanLocation();
+          double clusterBearing = cluster.Bearing();
+          bool clusterBearingValid = cluster.BearingValid();
+
+          writeln_d("   ~~~ SOC - cluster ", ClusterName, ", BEARING ", clusterBearing, " bearing valid: ", clusterBearingValid );
+
+          int numThreats = cluster.Count();
+          double ClusterPriority = (double)numThreats;
+
+          if( numThreats > 0 )
+          {
+            if( mClusterNameJobIdMap.Exists( ClusterName ) )
+            {
+              writeln_d("   ~~~ SOC, updating job for cluster: ", ClusterName);
+
+              //job exists for zone with threats, update job priority
+              int jobId = mClusterNameJobIdMap.Get( ClusterName );
+              WsfRIPRJob temp = GetJobById( jobId );
+
+              //job priority could have changed, set it
+              temp.Priority( ClusterPriority );
+              temp.SetData( "ZonePoint", clusterPoint );
+              temp.SetData( "ZoneBearing", clusterBearing );
+              temp.SetData( "ZoneBearingValid", clusterBearingValid );
+              //number of threats inside zone could have changed, set it
+              temp.SetData( "ZoneNumThreats", numThreats );
+
+              bool anyInsideMEZ = false;
+              bool anyInsideFEZ = false;
+              Array<string> arr = Array<string>();
+              for (int i = 0; i < numThreats; i = i + 1 )
+              {
+                WsfTrack threat = cluster.Entry(i);
+                arr.PushBack(threat.TargetName());
+                if ( threat.WithinZoneOf(PLATFORM,"MEZ") ||
+                     threat.WithinZoneOf(PLATFORM,"mez") )
+                {
+                  anyInsideMEZ = true;
+                }
+                else if (  threat.WithinZoneOf(PLATFORM,"FEZ") ||
+                           threat.WithinZoneOf(PLATFORM,"fez") )
+                {
+                  anyInsideFEZ = true;
+                }
+              }
+              temp.SetData( "ZoneThreatNameArray", arr );
+
+              if (anyInsideMEZ)
+              {
+                temp.SetData( "for_air",    0 );
+                temp.SetData( "for_ground", 1 );
+              }
+              else if (anyInsideFEZ)
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 0 );
+              }
+              else
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 1 );
+              }
+            }
+            else
+            {
+              //zone just became hot, job not created yet, create one
+              WsfRIPRJob temp = WsfRIPRJob.Create( PROCESSOR,
+                                                   "zone",
+                                                   "zone-" + ClusterName,
+                                                   ClusterPriority,
+                                                   mMaxJobWinners );
+              temp.SetData( "ZoneName", ClusterName );
+              temp.SetData( "ZonePoint", clusterPoint );
+              temp.SetData( "ZoneBearing", clusterBearing );
+              temp.SetData( "ZoneBearingValid", clusterBearingValid );
+              temp.SetData( "ZoneNumThreats", numThreats );
+
+              bool anyInsideMEZ = false;
+              bool anyInsideFEZ = false;
+              Array<string> arr = Array<string>();
+              for (int i = 0; i < numThreats; i = i + 1 )
+              {
+                WsfTrack threat = cluster.Entry(i);
+                arr.PushBack(threat.TargetName());
+                if ( threat.WithinZoneOf(PLATFORM,"MEZ") ||
+                     threat.WithinZoneOf(PLATFORM,"mez") )
+                {
+                  anyInsideMEZ = true;
+                }
+                else if (  threat.WithinZoneOf(PLATFORM,"FEZ") ||
+                           threat.WithinZoneOf(PLATFORM,"fez") )
+                {
+                  anyInsideFEZ = true;
+                }
+              }
+              temp.SetData( "ZoneThreatNameArray", arr );
+
+              if (anyInsideMEZ)
+              {
+                temp.SetData( "for_air",    0 );
+                temp.SetData( "for_ground", 1 );
+              }
+              else if (anyInsideFEZ)
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 0 );
+              }
+              else
+              {
+                temp.SetData( "for_air",    1 );
+                temp.SetData( "for_ground", 1 );
+              }
+
+              AddJob(temp);
+              mClusterNameJobIdMap.Set( ClusterName, temp.GetId() );
+
+              writeln_d("   ~~~ SOC, creating job for cluster: ", ClusterName);
+              //writeln_d("   ~~~ ", PLATFORM.Name(), " job change, ADD: ", temp.Name() );
+
+              string NewComment = "SOC - " + PLATFORM.Name() + " job change, ADD: " + (temp.Name());
+              PLATFORM.Comment(NewComment);
+            }
+          }
+          else
+          {
+            //no threats in cluster, make sure job for cluster doesn't exist or is deleted
+            if( mClusterNameJobIdMap.Exists( ClusterName ) )
+            {
+              writeln_d("   ~~~ SOC, removing job for empty cluster: ", ClusterName);
+              int jobId = mClusterNameJobIdMap.Get(ClusterName);
+              //writeln_d("~~~ ", PLATFORM.Name(), " job change, REMOVE: ", GetJobById(jobId).Name() );
+
+              string NewComment = "SOC - " + PLATFORM.Name() + " job change, REMOVE: " + (GetJobById(jobId).Name());
+              PLATFORM.Comment(NewComment);
+
+              RemoveJob( GetJobById(jobId) );
+              //mClusterNameJobIdMap.Erase( ClusterName );
+              mClusterNameJobIdMap.Remove( ClusterName );
+            }
+          }
+        }
+
+        //remove any additional clusters
+        for( int j = NumClusters; j < mLastNumClusters; j = j+1 )
+        {
+          string ClusterName = PLATFORM.Name() + "_" + (string)j;
+          if( mClusterNameJobIdMap.Exists( ClusterName ) )
+          {
+            writeln_d("~~~ SOC, removing job for empty cluster: ", ClusterName);
+            int jobId = mClusterNameJobIdMap.Get(ClusterName);
+            //writeln_d("~~~ ", PLATFORM.Name(), " job change, REMOVE: ", GetJobById(jobId).Name() );
+
+            string NewComment = "SOC - " + PLATFORM.Name() + " job change, REMOVE: " + (GetJobById(jobId).Name());
+            PLATFORM.Comment(NewComment);
+
+            RemoveJob( GetJobById(jobId) );
+            //mClusterNameJobIdMap.Erase( ClusterName );
+            mClusterNameJobIdMap.Remove( ClusterName );
+          }
+        }
+
+        mLastNumClusters = NumClusters;
+
+      end_on_update
+
+   end_processor

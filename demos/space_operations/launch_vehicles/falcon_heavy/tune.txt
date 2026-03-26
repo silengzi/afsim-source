@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to help tune the launch computer.
+#==============================================================================
+
+include falcon_heavy.txt
+
+platform_type LAUNCHER WSF_PLATFORM
+   add weapon rocket FALCON_HEAVY
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file output_tune.tmp
+
+   launch_platform_type LAUNCHER
+
+   # Cape Canaveral Air Force Station, SLC-37
+   position 28.531986n 80.566821w altitude 1 m
+
+   launch_heading 90 deg
+
+   # Initial guess
+   pitch_rates from 0.10 deg/sec to 0.40 deg/sec by 0.05 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # Need to change the range a little...
+   pitch_rates from 0.3 deg/sec to 0.8 deg/sec by 0.05 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # Zoom in a bit.
+   pitch_rates from 0.35 deg/sec to 0.50 deg/sec by 0.01 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+   
+   # A lot were good, and depending on your object one may be better than the other.
+   # 0.40 covers ~ 205km-332km with lower pitch angles required. You can get higher
+   # but you have to sacrifice the low end...
+   pitch_rate 0.40 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+end_tool

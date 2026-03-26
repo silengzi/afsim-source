@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+#----------------------------------------------------------------------
+# This file should be included first in each of the scenario main input files.
+# It includes all of the 'type' definitions, and other setup data needed.
+#----------------------------------------------------------------------
+
+file_path .
+
+include_once statics_and_globals/scripts.txt
+include_once statics_and_globals/routes.txt
+
+include dis/dis_setup.txt
+
+event_output
+   file output/log_ops_events.evt
+   #enable EXCHANGE_QUERIED         # This is a LOT of data!
+   #enable EXCHANGE_NEGOTIATED
+   enable EXCHANGE_COMPLETED
+   #enable EXCHANGE_REQUEST_FAILED
+   enable PLATFORM_CAPABILITY_CHANGED
+end_event_output
+
+observer
+   enable SIMULATION_STARTING gInitialize
+end_observer
+
+# If it were necessary for the scenario (here it is not), we would pull
+# in some DTED data:
+#include dted/terrain.txt
+
+# Now bring in the platform types which will be used:
+include platforms/logistics_platform.txt
+include platforms/mechanic.txt
+include platforms/ocean_going_tanker.txt
+include platforms/stationary_storage_depot.txt
+include platforms/semi_tanker_truck.txt
+include platforms/fueling_truck.txt
+include platforms/strike_platform.txt
+

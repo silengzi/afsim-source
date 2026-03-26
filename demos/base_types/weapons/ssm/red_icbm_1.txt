@@ -1,0 +1,294 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+# This missile model created from internet sources as listed.
+# Although sources have range listed from 8,000km to 14,000km,
+# this model achieves 1,140 km max range with a 1,050kg RV (payload).
+# In the "Annual Report to Congress Military Power of the People's Republic
+# of China Military Report 2008", it lists the range as 11,200km.
+# http://www.sinodefence.com/strategic/missile/df31.asp
+#Contractor: CASIC 4th Academy
+#Service status: In service
+#Configuration: Three-stage, solid propellant
+#Deployment: Road mobile, 8X8 tractor truck + 8-wheel trailer; or silo
+#Length: 13m
+#Body diameter: 2.25m
+#Launch weight: 42,000kg
+#Range: 10,700~11,200km
+#Re-entry vehicle mass: 700kg (or 1,050~1,750kg)
+#Warhead: One single 1,000kT yield
+#Guidance: Inertial + stellar update
+#Accuracy: 100~300m CEP
+#Launch preparation time: 15~30 min
+#
+#http://www.janes.com (subscription required)
+#Length:         13.0 m (31), 18.7 m (31A)
+#Body diameter:  2.0 m (1st and 2nd stages) and 1.5 m (3rd stage)
+#Launch weight:  42,000 kg (31), 63,000 kg (31A)
+#Payload:        Single warhead or 3-5 MIRV, 1,050-1,750 kg
+#Warhead:        Nuclear 1 MT or 3-5 MIRV with selectable 20, 90 or 150 kT each
+#Guidance:       Inertial with stellar updates
+#Propulsion:     3-stage solid propellant
+#Range:  8,000 km (31), or 10,000 and 14,000 km (31A)
+#Accuracy:       300 m CEP
+
+#http://www.astronautix.com/lvs/df31.htm
+#* Stage1: 1 x JL-2-1. Motor: 1 x red_icbm_1-1. Length: 8.00 m (26.20 ft). Diameter:
+#* 2.00 m (6.50 ft). Propellants:
+#Solid.
+#* Stage2: 1 x KT-1-2. Motor: 1 x red_icbm_1-2. Length: 4.00 m (13.10 ft). Diameter:
+#* 2.00 m (6.50 ft). Propellants:
+#Solid.
+#* Stage3: 1 x JL-2-3. Motor: 1 x red_icbm_1-3. Length: 2.00 m (6.50 ft). Diameter:
+#* 2.00 m (6.50 ft). Propellants: S
+#Solid.
+
+
+infrared_signature RED_ICBM_1_INFRARED_SIG
+   constant 1 watts/steradian
+end_infrared_signature
+
+optical_signature  RED_ICBM_1_OPTICAL_SIG
+   constant 1 m^2
+end_optical_signature
+
+radar_signature    RED_ICBM_1_RADAR_SIG
+   constant 1 m^2
+end_radar_signature
+
+# Nominal lethality data.
+
+weapon_effects RED_ICBM_1_EFFECT WSF_GRADUATED_LETHALITY
+   radius_and_pk 1000.0 m 1.0
+end_weapon_effects
+
+###############################################################################
+
+aero RED_ICBM_1_STAGE_1_AERO WSF_AERO
+   reference_area            3.141 m^2           # 2.0 m diameter
+   aspect_ratio              4.0                 # 8 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+aero RED_ICBM_1_STAGE_2_AERO WSF_AERO
+   reference_area            3.141 m^2           # 2.0 m diameter
+   aspect_ratio              2.0                 # 4 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+
+aero RED_ICBM_1_STAGE_3_AERO WSF_AERO
+# According to pictures, about 65% of diameter
+   reference_area            1.767 m^2           # 1.5 m diameter
+   aspect_ratio              1.0                 # 2 meters length
+   cl_max                    4.5
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.20
+   mach_max_supersonic       6.00
+end_aero
+aero RED_ICBM_1_RV_AERO WSF_AERO
+   reference_area            1.767 m^2           # 1.5 m diameter
+   aspect_ratio              2.0
+   cl_max                    4.5
+
+   # Values estimated from Hoerner's Drag book
+   cd_zero_subsonic          0.10
+   cd_zero_supersonic        0.25
+   mach_begin_cd_rise        0.95
+   mach_end_cd_rise          1.30
+   mach_max_supersonic       6.00
+end_aero
+
+mover RED_ICBM_1_MOVER WSF_GUIDED_MOVER
+   integration_timestep      0.01 secs
+   update_interval           0.01 secs
+   # Length: 	18.7 m (31A)
+   #Body diameter: 	2.0 m (1st and 2nd stages) and 1.5 m (3rd stage)
+   #Launch weight: 	 63,000 kg (31A)
+   #Payload: 	Single warhead or 3-5 MIRV, 1,050-1,750 kg
+   #Warhead: 	Nuclear 1 MT or 3-5 MIRV with selectable 20, 90 or 150 kT each
+   #Guidance: 	Inertial with stellar updates
+   #Propulsion: 	3-stage solid propellant
+   #Range:       14,000 km (31A) / 11,200 km wiki
+   #Stage1:Motor: 1 x red_icbm_1-1. Length: 8.00 m (26.20 ft). Diameter: 2.00 m (6.50 ft). Propellants: Solid.
+   #Stage2:Motor: 1 x red_icbm_1-2. Length: 4.00 m (13.10 ft). Diameter: 2.00 m (6.50 ft). Propellants: Solid.
+   #Stage3:Motor: 1 x red_icbm_1-3. Length: 2.00 m (6.50 ft).  Diameter: 2.00 m (6.50 ft). Propellants: Solid.
+   #Appr:Taking 63,000 kg - 1,050kg for RV
+   #Appr:61,950 kg total x 22% for empty weight leaves
+   #Appr:13,629 kg structure weight and 48321 fuel weight
+   #Appr:Motor Total weight (lbs) is function of diameter and length:
+   #Appr:Rule of thumb: W = length(in) x diam^2(in) x 0.04
+   #Appr:First stage total mass  314.4 x 6084 x 0.04 = 76512.384 lbs = 34705 kg
+   #Appr:Second stage total mass 157.2 x 6084 x 0.04 = 38256.192 lbs = 17352 kg
+   #Appr:Third stage total mass   78.0 x 6084 x 0.04 = 18982.080 lbs =  8610 kg
+   #Appr:Total Weight of stages = 60667 kg - close to published weight
+   #Appr:Use 90% of total weight for fuel.  Rule of thumb is 75-90%.
+   #Appr:Burn time = (total impulse)/(average thrust)
+   #Appr:Burn time = (motor impulse in newton seconds / (motor thrust in Newtons )
+   #Appr:Burn time = (Fuel Mass) / (Mass Flow Rate)
+      stage 1
+         aero                   RED_ICBM_1_STAGE_1_AERO
+         total_mass             34750 kg       # rounded
+         fuel_mass              31275 kg       # 90% of stage weight
+         specific_impulse       270 sec        # typical
+         thrust_duration        70 sec         # adjust for max g's
+    # COMPUTED FROM WSF RUN
+    #Empty Mass      : 3475 kg; 7661.06 lbm
+    #Fuel Mass       : 31275 kg; 68949.6 lbm
+    #Total Mass      : 34750 kg; 76610.6 lbm
+    #Thrust          : 1.183e+06 N; 265948 lbf; 120632 kgf
+    #Specific Impulse: 270 sec
+    #Burn Rate       : 446.786 kg/sec; 984.994 lbm/sec
+    #Thrust Duration : 70 sec
+    #Fuel Used       : 31275 kg; 68949.6 lbm
+    #Total Starting Mass: 61800 kg; 136246 lbm
+    #Total Ending   Mass: 30525 kg; 67296.1 lbm
+    #Acceleration at stage 1 separation: 3.26g
+      end_stage
+      stage 2
+         aero                   RED_ICBM_1_STAGE_2_AERO
+         total_mass             17400 kg       # rounded
+         fuel_mass              15660 kg       # 90% of stage weight
+         specific_impulse       270 sec        # typical
+         thrust_duration        80 sec         # adjust for max g's
+    #Empty Mass      : 1740 kg; 3836.04 lbm
+    #Fuel Mass       : 15660 kg; 34524.4 lbm
+    #Total Mass      : 17400 kg; 38360.4 lbm
+    #Thrust          : 518306 N; 116520 lbf; 52852.5 kgf
+    #Specific Impulse: 270 sec
+    #Burn Rate       : 195.75 kg/sec; 431.555 lbm/sec
+    #Thrust Duration : 80 sec
+    #Fuel Used       : 15660 kg; 34524.4 lbm
+    #Total Starting Mass: 27050 kg; 59635 lbm
+    #Total Ending   Mass: 11390 kg; 25110.7 lbm
+    #Acceleration at stage 2 separation: 4.30g
+      end_stage
+      stage 3
+         aero                   RED_ICBM_1_STAGE_3_AERO
+         total_mass             8600 kg         # rounded
+         fuel_mass              7740 kg         # 90% of stage weight
+         specific_impulse       270 sec         # typical
+         thrust_duration        100 sec          # adjust for max g's
+    #Empty Mass      : 860 kg; 1895.98 lbm
+    #Fuel Mass       : 7740 kg; 17063.8 lbm
+    #Total Mass      : 8600 kg; 18959.8 lbm
+    #Thrust          : 204939 N; 46072.2 lbf; 20898 kgf
+    #Specific Impulse: 270 sec
+    #Burn Rate       : 77.4 kg/sec; 170.638 lbm/sec
+    #Thrust Duration : 100 sec
+    #Fuel Used       : 7740 kg; 17063.8 lbm
+    #Total Starting Mass: 9650 kg; 21274.6 lbm
+    #Total Ending   Mass: 1910 kg; 4210.83 lbm
+    #Acceleration at stage 3 separation: 9.9g (a little high)
+      end_stage
+      stage 4
+         aero                   RED_ICBM_1_RV_AERO
+         total_mass             1050 kg
+      end_stage
+end_mover
+
+
+processor RED_ICBM_1_GUIDANCE WSF_GUIDANCE_COMPUTER
+   # Go vertical for a short time.
+   phase LIFTOFF
+      guidance_delay                   5.0 sec
+      commanded_flight_path_angle      89.9 deg
+      next_phase PITCH_OVER when phase_time >= 5.0 sec
+   end_phase
+
+   # Pitch over to the desired flight path angle from the launch computer.
+
+   phase PITCH_OVER
+      #commanded_flight_path_angle      89 deg
+      commanded_flight_path_angle      from_launch_computer
+      proportional_navigation_gain     0.0
+      velocity_pursuit_gain            0.0
+      maximum_commanded_g              1.0 g
+      next_phase BALLISTIC when on_commanded_flight_path_angle
+   end_phase
+
+   # Continue flight without guidance (gravity turn).
+
+   phase BALLISTIC
+      guidance_delay                   5000.0 sec
+   end_phase
+
+end_processor
+
+###############################################################################
+
+platform_type RED_ICBM_1 WSF_PLATFORM
+   icon Scud_Missile
+
+   infrared_signature RED_ICBM_1_INFRARED_SIG
+   optical_signature  RED_ICBM_1_OPTICAL_SIG
+   radar_signature    RED_ICBM_1_RADAR_SIG
+
+   weapon_effects     RED_ICBM_1_EFFECT
+
+   mover RED_ICBM_1_MOVER
+      show_status
+      #debug
+   end_mover
+
+   processor guidance RED_ICBM_1_GUIDANCE
+      #show_status
+      #show_graphics
+   end_processor
+
+   processor fuse WSF_GROUND_TARGET_FUSE
+      # If the target is killed by another weapon we want to still keep going.
+      coast_time_on_loss_of_target     10000.0 secs
+   end_processor
+
+end_platform_type
+
+###############################################################################
+
+launch_computer RED_ICBM_1_LAUNCH_COMPUTER WSF_BALLISTIC_MISSILE_LAUNCH_COMPUTER
+   surface_to_surface_table red_icbm_1_launch_data.txt
+end_launch_computer
+
+###############################################################################
+
+weapon RED_ICBM_1 WSF_EXPLICIT_WEAPON
+
+   # The location offset puts the weapon center at half the length - 1 m.
+   # This assumes the scenario creator puts the launching platform at 1 m agl.
+
+   location 0.0 0.0 -9.0 m     # 1/2 distance of length of missile
+
+   launched_platform_type RED_ICBM_1
+
+   launch_computer RED_ICBM_1_LAUNCH_COMPUTER
+   end_launch_computer
+
+   tilt  89.9 degrees
+
+   cue_to_predicted_intercept true
+   slew_mode azimuth
+   azimuth_slew_limits -180 deg 180 deg
+
+   # Default to a single weapon on the vehicle
+   quantity 1
+end_weapon

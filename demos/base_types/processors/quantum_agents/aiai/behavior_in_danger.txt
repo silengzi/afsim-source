@@ -1,0 +1,127 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+#this is a parent behavior of any defensive manuevers
+#  first determine if we are in danger, then defend in the child behaviors
+
+include_once behavior_unload.txt
+include_once behavior_force_overshoot.txt
+
+
+
+behavior in_danger
+
+   script_variables
+      double    cANGLE_TOLERANCE =  45.0; # degrees
+      WsfTrack  mBiggestThreat;
+   end_script_variables
+
+
+   script bool NotWeapon(WsfTrack aTrack)
+      if (aTrack.Target().IsValid() && aTrack.Target().WeaponEngagement().IsValid())
+      {
+         return false;  //it is a weapon
+      }
+      return true;
+   end_script
+
+
+   script bool IsFlyer(WsfPlatform aPlat)
+      if (!aPlat.IsValid())
+      {
+         return false;
+      }
+      if (aPlat.Mover().IsA_TypeOf("WSF_AIR_MOVER" ) ||
+          aPlat.Mover().IsA_TypeOf("WSF_6DOF_MOVER")    )
+      {
+         return true;
+      }
+      else if (aPlat.MakeTrack().AirDomain())
+      {
+         return true;
+      }
+      else if((aPlat.Altitude() > 152.4) && (aPlat.Speed() > 51.44) ) // ~500 feet alt, ~100 knots speed
+      {
+         return true;
+      }
+      return false;
+   end_script
+
+
+   precondition
+      writeln("precondition in_danger");
+
+      //check track list for any threats
+      extern double mVisualRange;
+      extern string CalculatePositioning( WsfPlatform, WsfTrack, double );
+
+      //see if anybody is threatening me
+      mBiggestThreat = null;
+
+      foreach (WsfLocalTrack t in PLATFORM.MasterTrackList())
+      {
+         if (!t.SideValid() || t.Side() != PLATFORM.Side())
+         {
+            double range = PLATFORM.SlantRangeTo(t);
+            if ((range < mVisualRange) && NotWeapon(t) && IsFlyer(t.Target()))
+            {
+               string pos = CalculatePositioning(PLATFORM, t, cANGLE_TOLERANCE );
+               if (pos=="tail-to-head" || pos=="target-facing-me")
+               {
+                  if (!mBiggestThreat.IsValid() || (range < PLATFORM.SlantRangeTo(mBiggestThreat)))
+                  {
+                     #mBiggestThreat = (WsfTrack)t;
+                     mBiggestThreat = t;
+                  }
+               }
+            }
+         }
+      }
+
+      if (mBiggestThreat.IsValid())
+      {
+         //if we are closer to our target, stay in the fight
+         WsfTrack targetTrack = PROCESSOR.GetTarget();
+         if (!targetTrack.IsNull() && targetTrack.IsValid())
+         {
+            extern double mEngagementAggressiveness;
+            double threatRange = PLATFORM.SlantRangeTo(mBiggestThreat);
+            double requiredAggressiveness = threatRange / (threatRange + PLATFORM.SlantRangeTo(targetTrack));
+            if (mEngagementAggressiveness >= requiredAggressiveness)
+            {
+               string myPos = CalculatePositioning(PLATFORM, targetTrack, cANGLE_TOLERANCE );
+               if (myPos=="head-to-tail" || myPos="me-facing-target")
+               {
+                  writeln("   not in enough danger, I am chasing target: ", targetTrack.TargetName());
+                  return false;  #do not defend, I am aggressive enough to stay after my target, and I am facing my target
+               }
+            }
+         }
+         return true;
+      }
+      return false;
+   end_precondition
+
+
+   execute
+      writeln("executing in_danger");
+      PLATFORM.Comment("in_danger");
+   end_execute
+
+
+   selector
+      behavior    unload            end_behavior
+      behavior    force_overshoot   end_behavior
+   end_selector
+
+
+end_behavior
+

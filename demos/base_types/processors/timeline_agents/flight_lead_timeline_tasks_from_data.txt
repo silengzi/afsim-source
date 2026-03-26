@@ -1,0 +1,122 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+processor FLIGHT_LEAD_DATA WSF_QUANTUM_TASKER_PROCESSOR
+
+   script_variables
+      #########################################################################
+      ## for evaluating weapon tasks
+      Map<string,int> mKnownTargetTypes = Map<string,int>();
+      mKnownTargetTypes["STRIKER"]      = 1;
+      mKnownTargetTypes["BLUE_STRIKER"] = 1;
+      mKnownTargetTypes["RED_STRIKER"]  = 1;
+      #########################################################################
+      double FSR  = 30 * MATH.M_PER_NM();
+      double DOR  = 20 * MATH.M_PER_NM();
+      double MAR  = 10 * MATH.M_PER_NM();
+      string RISK = "LOW";
+      bool mStaticRiskLevel = true;
+   end_script_variables
+
+   #on_initialize
+   #end_on_initialize
+
+   script Array<WsfQuantumTask> FlightLeadTaskGeneration (Array<WsfLocalTrack> TRACKS, Array<WsfAssetPerception> ASSETS )
+      Array<WsfQuantumTask> tasks = Array<WsfQuantumTask>();
+
+      extern Map<int, int> mGrinderPairings;
+      mGrinderPairings.Clear();
+
+      #if its us, then create weapon tasks for enemy tracks
+      for (int i=0; i<TRACKS.Size(); i=i+1)
+      {
+         WsfLocalTrack lt = TRACKS.Get(i);
+         if (lt.IsValid() && (!lt.SideValid() || lt.Side() != PLATFORM.Side()))
+         {
+            if (mKnownTargetTypes.Size() <= 0 || mKnownTargetTypes.Exists(lt.TargetType()))
+            {
+
+               #WsfQuantumTask task = WsfQuantumTask.Construct(1.0, "TIMELINE");
+               #task.SetUniqueId(lt.TargetIndex());   #use this for now, use cluster Id later
+               #WsfQuantumTask task = WsfQuantumTask.Construct(1.0, "TIMELINE", lt);
+               Array<WsfTrack> targets = Array<WsfTrack>();
+               targets.PushBack(WsfTrack(lt));
+
+               WsfQuantumTask task = WsfQuantumTask.Construct(1.0, "TIMELINE");
+               task.UniqueId(lt.TargetIndex());   #use this for now, use cluster Id later
+               task.SetAuxData("targets",targets);
+               task.SetAuxData("FSR",FSR);
+               task.SetAuxData("DOR",DOR);
+               task.SetAuxData("MAR",MAR);
+               task.SetAuxData("RISK",RISK);
+
+               tasks.PushBack(task);
+               writeln_d("timeline task generated for: ", lt.TargetName(), ", updated time: ", lt.UpdateTime());
+
+               # Generate a second timeline task for support
+               WsfQuantumTask taskSup = WsfQuantumTask.Construct(1.0, "TIMELINE");
+               taskSup.UniqueId(lt.TargetIndex() + 123456);   //use this for now, use cluster Id later
+               taskSup.SetAuxData("targets",targets);
+               taskSup.SetAuxData("FSR",FSR);
+               taskSup.SetAuxData("DOR",DOR);
+               taskSup.SetAuxData("MAR",MAR);
+               taskSup.SetAuxData("RISK",RISK);
+
+               tasks.PushBack(taskSup);
+               writeln_d("timeline support task generated for: ", lt.TargetName(), ", updated time: ", lt.UpdateTime());
+
+               # Map task IDs to platforms doing grinder can look each other up
+               mGrinderPairings.Set(lt.TargetIndex(), lt.TargetIndex() + 123456);
+               mGrinderPairings.Set(lt.TargetIndex() + 123456, lt.TargetIndex());
+            }
+         }
+      }
+      return tasks;
+   end_script
+
+
+   script double FlightLeadEvaluation ( WsfQuantumTask TASK, WsfAssetPerception ASSET)
+      writeln_d(PLATFORM.Name(), " evaluating task type ", TASK.TaskType());
+      #TODO - include weapon capability in evaluation
+      #       for now: just base value on range
+      if (TASK.TaskType() == "TIMELINE")
+      {
+         Array<WsfTrack> targets = (Array<WsfTrack>)TASK.AuxDataObject("targets");
+         if (targets.Size() > 0)
+         {
+            WsfTrack target = targets.Get(0);
+            writeln_d("evaluating timeline task on: ", target.TargetName(), ", updated time: ", target.UpdateTime());
+            double value = 1.0 / target.GroundRangeTo(ASSET.Location());
+            return value;
+         }
+      }
+      return 0;
+   end_script
+
+  #show_task_messages
+   script_debug_writes    off
+   update_interval        10.0 sec
+   asset_representation   platform
+  #reallocation_strategy  event
+   reallocation_strategy  dynamic
+   generator              custom          FlightLeadTaskGeneration
+   evaluator              custom          FlightLeadEvaluation
+
+#  #allocator              greedy_isolated type   TIMELINE
+#  #allocator              greedy_isolated
+#  #allocator_extra_tasks  optimal_profit
+#   allocator              optimal_profit  type   TIMELINE
+#   allocator_extra_assets optimal_profit  type   TIMELINE
+#   allocator              greedy_isolated
+   allocator              optimal_profit
+   allocator_extra_assets optimal_profit
+
+
+end_processor
+

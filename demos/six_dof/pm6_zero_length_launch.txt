@@ -1,0 +1,129 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# In this scenario, an FA-LGT aircraft is launched using a Zero Length Launch
+# (ZELL) technique. ZELL was developed during the 1950's to allow aircraft to
+# takeoff without the use of a runway. ZELL involves attaching a large solid-
+# propellant rocket to the bottom of a fighter. The rocket is ignited and
+# provides thrust to accelerate the fighter to flying speed before the rocket
+# is jettisoned.
+#
+# This demo shows how a SixDOF sub-object can command itself to be launched
+# from a parent object. The zell launch platform has a sub-object fighter of
+# type FA-LGT-ZLL. A sequencer on the fighter is activated 5 seconds after
+# the FA-LGT-ZLL platform is instantiated. This sequencer ignites the attached
+# rocket engine and separates the fighter from the launcher. Three seconds
+# later, after the rocket burns out, the rocket is jettisoned from the fighter.
+#
+# ******************************************************************************
+
+define_path_variable CASE pm_zero_length_launch
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 90 sec
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once platforms/zell-launcher.txt
+
+platform zell_launch_platform ZELL-LAUNCHER_PM6
+   update_interval              0.01 sec
+   side                         blue
+
+   six_dof_position             21.301 -158.074
+
+   six_dof_alt                  30.0 ft
+   six_dof_set_velocity_ned_fps 0.0 0.0 0.0
+   six_dof_ned_heading          200.0 deg
+   six_dof_ned_pitch            0.0 deg
+   six_dof_ned_roll             0.0 deg
+end_platform
+
+route SimpleRoute
+   label start
+   position   21.330n  158.130w  altitude 5000.0 ft speed 500.0 kts
+   position   21.420n  158.130w  altitude 5000.0 ft speed 500.0 kts
+   position   21.420n  158.040w  altitude 5000.0 ft speed 500.0 kts
+   position   21.320n  158.040w  altitude 5000.0 ft speed 500.0 kts
+   goto start
+end_route
+
+script void PlatformInitialized(WsfPlatform aPlatform)
+
+   writeln("PlatformInitialized at ", TIME_NOW, "sec ... ", aPlatform.Name());
+
+   if(aPlatform.Name() == "zell_launch_platform_Fighter")
+   {
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+      if(!mover.IsNull())
+      {
+         mover.EnableControls(false);
+         mover.EnableAutopilot(false);
+      }
+
+      writeln("  Goto 1,000 ft, 200 kts, and head north...  ");
+
+     WsfSimulation.ExecuteAtTime(TIME_NOW + 2.0, "PullBackOnStick", {aPlatform});
+     WsfSimulation.ExecuteAtTime(TIME_NOW + 5.0, "HeadEast", {aPlatform});
+   }
+end_script
+
+script void PullBackOnStick(WsfPlatform aPlatform)
+   writeln("PullBackOnStick at ", TIME_NOW, " sec ...");
+
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      writeln("Enable controls but keep AP disabled...");
+      mover.EnableControls(true);
+      mover.EnableAutopilot(false);
+      mover.TakeDirectControlInput();
+      mover.SetDirectControlInputs(0.0,0.0,0.0,2.0); // Right,Back,Rudder,Throttle
+   }
+end_script
+
+script void HeadEast(WsfPlatform aPlatform)
+   writeln("HeadEast at ", TIME_NOW, " sec ...");
+
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      writeln("Enable the AP...");
+      mover.ReleaseDirectControlInput();
+      mover.EnableControls(true);
+      mover.EnableAutopilot(true);
+   }
+
+   aPlatform.GoToAltitude(2500*MATH.M_PER_FT());
+   aPlatform.GoToSpeed(450*MATH.MPS_PER_NMPH());
+   aPlatform.TurnToHeading(10);
+
+end_script
+
+script void FollowNewRoute(WsfPlatform aPlatform)
+   writeln("FollowNewRoute at ", TIME_NOW, " sec ...");
+
+   WsfSixDOF_Mover mover = (WsfSixDOF_Mover)aPlatform.Mover();
+   if(!mover.IsNull())
+   {
+      writeln("Enable controls but keep AP disabled...");
+      mover.EnableControls(true);
+      mover.EnableAutopilot(true);
+      mover.TakeDirectControlInput();
+      mover.SetDirectControlInputs(0.0,0.0,0.0,2.0); // Right,Back,Rudder,Throttle
+   }
+
+end_script
+
+observer
+   enable PLATFORM_INITIALIZED PlatformInitialized
+end_observer

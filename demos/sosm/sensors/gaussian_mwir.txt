@@ -1,0 +1,52 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                                UNCLASSIFIED
+#
+#       A simple MWIR sensor with Guassian response in the 3-5 um band.
+###############################################################################
+
+sensor_model default
+
+   #show_response
+
+   # The band over which the sensor can detect objects.
+   response_limits                3 um 5 um
+
+   # The responsiveness of the sensor as a function of wavelength.
+   response_curve
+      wavelength 3.0 um  0.13534
+      wavelength 3.1 um  0.19790
+      wavelength 3.2 um  0.27804
+      wavelength 3.3 um  0.37531
+      wavelength 3.4 um  0.48675
+      wavelength 3.5 um  0.60653
+      wavelength 3.6 um  0.72615
+      wavelength 3.7 um  0.83527
+      wavelength 3.8 um  0.92312
+      wavelength 3.9 um  0.98020
+      wavelength 4.0 um  1.00000
+      wavelength 4.1 um  0.98020
+      wavelength 4.2 um  0.92312
+      wavelength 4.3 um  0.83527
+      wavelength 4.4 um  0.72615
+      wavelength 4.5 um  0.60653
+      wavelength 4.6 um  0.48675
+      wavelength 4.7 um  0.37531
+      wavelength 4.8 um  0.27804
+      wavelength 4.9 um  0.19790
+      wavelength 5.0 um  0.13534
+   end_response_curve
+
+   noise_equivalent_irradiance    2.0e-13 w/cm^2
+
+   # The signal-to-noise ratio required for detection.
+   detection_threshold            10.0 absolute
+end_sensor_model
+

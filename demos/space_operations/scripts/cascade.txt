@@ -1,0 +1,104 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+include_once platforms/tapsatellite.txt
+
+# A set of routines to create a cascade of orbiting objects with similar but distinct
+# orbits from a central spacecraft. The model is of an object successively breaking
+# into two pieces, which can then break into further pieces. The overall process
+# conserves momentum.
+
+script_variables
+   double minMassToBreak = 1.0;   # Masses smaller than this will not break.
+   double minMassOfBreak = 0.05;  # The smallest chunk possible in a break (relative).
+   double momMin = 0.1;           # Mimimum momentum value (in units of momScale).
+   double momMax = 1.0;           # Maximum momentum value (in units of momScale).
+   double momScale = 50.0;        # Size of momentum changes (in MassUnit m / s).
+end_script_variables
+
+# Pick a random direction on S2 in which to apply the change in momentum to the fragment.
+script Vec3 PickUnitVector()
+   double ctheta = RANDOM.Uniform(-1.0, 1.0);
+   double stheta = MATH.Sqrt(1.0 - ctheta * ctheta);
+   double phi = RANDOM.Uniform(0.0, 2.0 * MATH.PI());
+   return Vec3.Construct(stheta * MATH.Cos(phi), stheta * MATH.Sin(phi), ctheta);
+end_script
+
+# Pick a value of the change in momentum for the objects.
+script double PickMomentumChange()
+   return momScale * RANDOM.Uniform(momMin, momMax);
+end_script
+
+# Pick a value to split a mass in two.
+script double PickBreakupMass(double aMass)
+   return aMass * RANDOM.Uniform(minMassOfBreak, 1.0 - minMassOfBreak);
+end_script
+
+# Create a cascade of junk. This models simply a series of momentum conserving collisions
+# (explosions) that produce two objects each time. If the object has a mass larger than some
+# threshold, it will be broken into two pieces and each given a random change in momentum.
+script Array<Vec3> CreateCascade(double aMass, Vec3 aVelo)
+   if (aMass < minMassToBreak)
+   {
+      Array<Vec3> retval = Array<Vec3>();
+      retval.PushBack(aVelo);
+      return retval;
+   }
+
+   // otherwise, break it up and recurse
+   Vec3 aHat     = PickUnitVector();
+   Vec3 bHat     = Vec3(aHat);
+   double deltaP = PickMomentumChange();
+   double massA  = PickBreakupMass(aMass);
+   double massB  = aMass - massA;
+
+   // Conserve momentum
+   double vA =  deltaP / massA;
+   double vB = -deltaP / massB;
+
+   aHat.Scale(vA);
+   Vec3 veloA = Vec3.Add(aHat, aVelo);
+   bHat.Scale(vB);
+   Vec3 veloB = Vec3.Add(bHat, aVelo);
+
+   Array<Vec3> fragsA = CreateCascade(massA, veloA);
+   Array<Vec3> fragsB = CreateCascade(massB, veloB);
+   for (int i = 0; i < fragsB.Size(); i += 1)
+   {
+      fragsA.PushBack(fragsB[i]);
+   }
+
+   return fragsA;
+end_script
+
+# overall driver to create the junk with random delta v's relative to the central satellite
+script Array<string> CreateJunk(Vec3 aLoc, Vec3 aVel, string aBaseName, double aMass)
+   Array<string> retval = {};
+   Array<Vec3> deltas = CreateCascade(aMass, Vec3.Construct(0.0, 0.0, 0.0));
+
+   for (int i = 0; i < deltas.Size(); i = i + 1)
+   {
+      // Add the platform to the scenario
+      WsfPlatform proto = WsfSimulation.CreatePlatform("TAPSATELLITE");
+      WsfSpaceMover mover = (WsfSpaceMover)proto.Mover();
+      mover.SetOrbit(aLoc, aVel);
+      string name = aBaseName + (string)i;
+      WsfPlatform junk = WsfSimulation.AddPlatform(proto, name);
+      retval.PushBack(name);
+      
+      // Give the platform its correct relative velocity
+      mover = (WsfSpaceMover)junk.Mover();
+      WsfDeltaV_Maneuver mvr = WsfDeltaV_Maneuver.Construct(WsfOrbitalEventCondition.NONE(),
+                                                            deltas[i],
+                                                            WsfOrbitalReferenceFrame.INERTIAL());
+      mover.ExecuteManeuver(mvr);
+   }
+
+   return retval;
+end_script

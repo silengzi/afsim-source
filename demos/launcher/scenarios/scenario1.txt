@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+platform target1 AIRPLANE
+   side Blue
+   icon C-130
+   indestructible
+   route
+    position 34:42:32n 76:52:56w altitude 4000 ft msl
+      linear_acceleration 0.20 g
+    position 36:03:28n 75:47:28w altitude 5000 ft msl
+      speed 175 kts
+   end_route
+  commander SELF
+end_platform
+
+platform sam_site SAM_LAUNCHER
+side Red
+   icon SA-11_Launcher
+   position 35:32n 76:13w altitude 0 ft msl
+   heading 0 deg
+   commander SELF
+end_platform

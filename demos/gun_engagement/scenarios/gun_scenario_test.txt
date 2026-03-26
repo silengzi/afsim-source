@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform air_target1 AIR_TARGET
+   side red
+   position 29:13:58.94n 80:57:43.76w
+   altitude 3280.84 ft msl
+   route
+      position 29:13:58.94n 80:57:43.76w altitude 1000 m msl speed 200 m/s
+      position 29:13:57.900n 81:55:34.073w
+   end_route
+   heading 5 deg
+
+end_platform
+
+platform gun_battery GUN_BATTERY
+   side blue
+   position 29:13:44.543n 81:00:58.377w
+end_platform

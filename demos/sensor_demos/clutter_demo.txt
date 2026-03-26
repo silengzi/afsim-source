@@ -1,0 +1,138 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# =============================================================================
+# A simple demonstration of using clutter_model.
+# =============================================================================
+
+# =============================================================================
+
+global_environment
+   land_cover general
+   land_formation rolling
+   sea_state 2
+end_global_environment
+
+# =============================================================================
+
+radar_signature TARGET_RADAR_SIG
+   constant 100 m^2
+end_radar_signature
+
+platform_type TARGET WSF_PLATFORM
+   icon B-747
+   radar_signature TARGET_RADAR_SIG
+   mover WSF_AIR_MOVER
+   end_mover
+end_platform_type
+
+# =============================================================================
+
+antenna_pattern EW_RADAR_ANTENNA
+   circular_pattern
+      beamwidth     5 deg
+      peak_gain     30 db
+end_antenna_pattern
+
+clutter_model EW_RADAR_CLUTTER surface_clutter
+#clutter_model EW_RADAR_CLUTTER alarm
+end_clutter_model
+
+sensor EW_RADAR WSF_RADAR_SENSOR
+   debug
+   frame_time                         10 sec
+
+   antenna_height                     10 m
+   antenna_tilt                       1 deg
+
+   scan_mode                          azimuth
+   azimuth_scan_limits                -180 deg 180 deg
+
+   transmitter
+      antenna_pattern                 EW_RADAR_ANTENNA
+      power                           100 kw
+      frequency                       1.2 ghz
+      polarization                    vertical
+
+      # =======================================================================
+      # NOTE: The pulse_width and pulse_repetition_frequency must be specified
+      #       when using any of the algorithmic clutter models.
+      # =======================================================================
+
+      pulse_width                     1 us
+      pulse_repetition_frequency      1.5 khz
+      attenuation_model               blake
+   end_transmitter
+
+   receiver
+
+   end_receiver
+
+   clutter_model                       EW_RADAR_CLUTTER
+
+   # knock 10db off the clutter
+   clutter_attenuation_factor          -10 db
+
+   detection_threshold                 12.8 db
+
+   hits_to_establish_track             2 3
+   hits_to_maintain_track              1 3
+
+   reports_range
+   reports_bearing
+   reports_elevation
+end_sensor
+
+# =============================================================================
+
+platform target TARGET
+   side blue
+   route
+      position 39n 89.86w altitude 1000 ft heading 270 deg speed 450 kts
+   end_route
+end_platform
+
+platform ship_ew WSF_PLATFORM
+   icon Cruiser
+   side green
+   position 39n 90w
+
+   # The clutter model for this platform will use the sea-based parameters
+   # because this platforms 'spatial domain' is 'surface'. It can be explicitly
+   # defined as such using the 'spatial_domain surface' command OR it will be
+   # implicitly define as such by having a mover derived from WSF_SURFACE_MOVER.
+
+   spatial_domain surface
+   #add mover WSF_SURFACE_MOVER
+   #end_mover
+
+   add sensor ew_radar EW_RADAR
+      on
+      ignore_same_side
+   end_sensor
+end_platform
+
+platform ground_ew WSF_PLATFORM
+   icon Ground_Radar
+   side green
+   position 39n 90w
+
+   # The clutter model for this platform will use the land-based parameters
+   # because the default is 'spatial_domain land' (which will also be implicitly
+   # selected if the mover is a ground based mover).
+
+   add sensor ew_radar EW_RADAR
+      on
+      ignore_same_side
+   end_sensor
+end_platform
+
+
+end_time 9 secs
+

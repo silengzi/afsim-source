@@ -1,0 +1,295 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+platform sr_sam_telar-1 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:47:12.46n 121:49:07.01w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-2 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:45:50.75n 121:49:25.72w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-3 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:26:21.71n 122:07:23.17w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-4 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 48:23:07.97n 122:05:47.79w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-5 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 47:15:32.05n 122:53:49.83w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-6 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 47:06:57.24n 122:54:44.57w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-7 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:25:20.28n 122:10:47.64w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-8 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:26:53.13n 122:08:52.49w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-9 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:14:05.03n 122:14:56.40w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-10 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 46:19:06.36n 122:19:18.92w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-11 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:30:12.40n 121:58:11.58w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-12 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:30:12.40n 121:58:11.58w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-13 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:14:54.41n 122:02:38.97w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-14 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 45:13:16.07n 121:54:25.52w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-15 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 43:22:14.46n 121:57:15.52w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-16 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 43:21:02.46n 121:57:47.44w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-17 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 42:24:34.94n 122:03:30.51w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-18 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 42:23:27.52n 122:03:30.51w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-19 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+    position 41:54:50.772n 122:02:29.10w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-20 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 41:52:39.65n 122:02:42.69w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-21 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 40:34:32.21n 120:38:42.73w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-22 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 40:34:26.14n 120:38:43.16w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-23 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 40:11:26.14n 120:59:08.92w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-24 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 40:08:34.16n 120:59:59.29w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-25 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 39:15:40.60n 121:25:21.81w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-26 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 39:12:06.20n 121:25:24.02w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-27 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 38:42:34.55n 121:32:23.67w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-28 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 38:42:34.55n 121:32:23.67w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-29 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 38:34:12.68n 121:34:22.04w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-30 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 37:06:15.16n 120:11:30.07w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-31 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 36:55:40.51n 120:14:02.91w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-32 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 36:47:43.01n 119:21:02.73w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-33 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 36:27:00.22n 119:25:14.60w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-34 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 35:45:40.14n 118:56:03.19w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-35 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 35:38:46.00n 119:03:42.86w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-36 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 34:48:22.61n 117:44:29.81w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-37 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 34:44:48.61n 117:40:20.06w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-38 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 34:37:43.70n 116:36:25.85w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-39 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 34:33:23.14n 116:25:13.84w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-40 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 34:02:55.00n 116:28:07.40w altitude 1 m agl
+end_platform
+
+platform sr_sam_telar-41 SR_SAM_TELAR
+    side red
+    #commander  10_iads_cmdr
+    commander  SELF
+	position 33:54:12.07n 116:34:32.52w altitude 1 m agl
+end_platform

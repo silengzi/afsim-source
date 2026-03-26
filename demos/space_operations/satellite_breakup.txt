@@ -1,0 +1,128 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# This scenario demonstrates breakup modeling and debris generation for
+# a pair of satellites suffering a conjunction.
+
+start_date feb 10 2009
+start_time 16:40:00.000
+end_time 2 hours
+
+event_pipe file output/satellite_breakup.aer end_event_pipe
+
+# The smaller of the two colliding satellites.
+platform comm_sat WSF_PLATFORM
+   icon satellite
+   side blue
+   
+   add mover WSF_SPACE_MOVER
+      inclination 86.4 deg
+      revs_per_day 14.3
+      raan 120 deg
+      true_anomaly 50 deg
+      
+      oblate_earth enable
+   end_mover
+end_platform
+
+# The larger of the two colliding satellites.
+platform inoperative WSF_PLATFORM
+   icon satellite
+   side red
+   
+   add mover WSF_SPACE_MOVER
+      inclination 74 deg
+      revs_per_day 14.3
+      raan 12 deg
+      true_anomaly 76.5144 deg
+      
+      oblate_earth enable
+   end_mover
+end_platform
+
+# The DEBRIS platform type will be used for the generated
+# debris from the collision. Instances of this platform type
+# will periodically check their altitude, and if the altitude
+# is less than 100 km, will remove itself from the simulation.
+platform_type DEBRIS WSF_PLATFORM
+   icon wedge
+   side green
+   
+   mover WSF_SPACE_MOVER
+      oblate_earth enable
+   end_mover
+   
+   update_interval 5 min
+   on_update
+      if (PLATFORM.Altitude() < 100000.0)
+      {
+         writeln(TIME_NOW, " debris fragment ", PLATFORM.Name(), " entered the atmosphere and is being removed.");
+         WsfSimulation.DeletePlatform(PLATFORM.Name());
+      }
+   end_on_update
+end_platform_type
+
+# Produce a simple summary of the results of debris generation.
+script void SimpleBreakupReport(WsfNASA_BreakupModel aModel)
+   writeln("Collisional Breakup occurred at ", TIME_NOW, " s with progenitors:");
+   writeln("   '", aModel.GetCollisionProgenitorOne(), "' having mass ", 
+           aModel.GetCollisionProgenitorOneMass(), " kg, and");
+   writeln("   '", aModel.GetCollisionProgenitorTwo(), "' having mass ",
+           aModel.GetCollisionProgenitorTwoMass(), " kg.");
+   writeln("The collision produced ", aModel.GetFragmentCount(),
+           " pieces of debris with a total mass of ", aModel.GetCollisionMass(), " kg.");
+end_script
+
+# Produce a detailed report of the details of the modeled debris fragments.
+script void FragmentReport(WsfNASA_BreakupModel aModel)
+   FileIO outfile = FileIO();
+   outfile.Open("./output/fragment_details.csv", "out");
+   int count = aModel.GetFragmentCount();
+   outfile.Writeln("Index, Length [m], A/M [kg/m^2], M [kg], A [m^2], Delta V [m/s], Name");
+   for (int i = 0; i < count; i += 1)
+   {
+      WsfSatelliteBreakupFragment fragment = aModel.GetFragment(i);
+      outfile.Write((string)i + ", ");
+      outfile.Write((string)fragment.GetLength() + ", ");
+      outfile.Write((string)fragment.GetAoverM() + ", ");
+      outfile.Write((string)fragment.GetMass() + ", ");
+      outfile.Write((string)fragment.GetArea() + ", ");
+      outfile.Write((string)fragment.GetDeltaV().Magnitude() + ", ");
+      outfile.Write(fragment.GetName() + "\n");
+   }
+   outfile.Close();
+end_script
+
+# Script to execute at the collision time.
+execute at_time 372.831 sec absolute
+   // Create an instance of a breakup model.
+   WsfNASA_BreakupModel model = WsfNASA_BreakupModel();
+   
+   // Set the smallest fragment size produced by the model.
+   model.SetMinFragmentSize(0.1);
+   
+   // The NASA model provides Area/Mass distributions for both spacecraft and
+   // rocket bodies.
+   model.SetModeledAsSpacecraft(true);
+   
+   // Typical collisions deposit a good deal of mass into large mass 
+   // fragments.
+   model.SetLargeFragmentFraction(0.6);
+   
+   // Produced debris will have the names 'debris_1', 'debris_2' and so on.
+   model.SetDebrisName("debris_");
+   
+   // The produced debris platforms will be instances of the DEBRIS type.
+   model.SetFragmentPlatformType("DEBRIS");
+   
+   // Model the collision.
+   model.ModelCollision("comm_sat", 700.0, 2.0, "inoperative", 900.0, 2.0);
+   
+   SimpleBreakupReport(model);
+   FragmentReport(model);
+end_execute

@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Launch an orbital launch vehicle with the target orbit inclination and altitude.
+# A common script to launch an orbital launch platform for the desired orbit conditions.
+
+include_once print_orbital_elements.txt
+
+script bool AttemptOrbitalLaunch(WsfPlatform aPlatform,    # The platform with the launcher system
+                                 string      aLauncher,    # name of the launcher system
+                                 double      aAltitude,    # orbit altitude in meters
+                                 double      aInclination) # orbit inclination in degrees
+   WsfWeapon w = aPlatform.Weapon(aLauncher);
+   if (!w.IsValid())
+   {
+      writeln("***** ERROR: AttemptOrbitalLaunch - weapon '", aLauncher, "' does not not exist on the platform");
+      return false;
+   }
+   WsfOrbitalLaunchComputer lc = (WsfOrbitalLaunchComputer) w.LaunchComputer();
+   if (!lc.IsValid())
+   {
+      writeln("***** ERROR: AttemptOrbitalLaunch - the launch computer for '", aLauncher, "' is not of type WSF_ORBITAL_LAUNCH_COMPUTER");
+      return false;
+   }
+
+   writeln("T=", TIME_NOW, " Computing LEO Insertion for altitude ", aAltitude * 0.001, " km",
+           ", inclinition ", aInclination, " deg");
+   bool ok = lc.ComputeLEO_Insertion(aAltitude, aInclination);
+   if (ok)
+   {
+     # Write out a little data about the launch.
+     PrintLaunchComputerResults(lc);
+
+     writeln("");
+     writeln("T=", TIME_NOW, " Launching the vehicle");
+     writeln("");
+
+     # Yaw the launcher to the requested launch bearing.
+     #
+     # NOTE: LauncherBearing is RELATIVE to the heading of the PLATFORM, so
+     # if the platform heading is 0, the heading and bearing are the same.
+     # The method LaunchHeading returns the required launch heading (from North)
+     # while LauncherBearing returns the bearing the launcher needs to put at
+     # to get the desired heading.
+
+     w.SetYaw(lc.LauncherBearing());
+     w.Fire();
+   }
+   else
+   {
+      writeln("***** ERROR: No launch solution");
+   }
+   return ok;
+end_script

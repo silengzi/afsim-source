@@ -1,0 +1,47 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# GPS HANDHELD
+
+include_once ../avionics/comm/GPSCommDef_HH.txt
+
+platform_type GPS_HANDHELD WSF_PLATFORM
+   icon C4I
+
+comm HANDHELD_GPS_UPLINK_TX HANDHELD_GPS_UPLINK_TX
+   on
+  end_comm
+
+  comm HANDHELD_GPS_DOWNLINK_RX HANDHELD_GPS_DOWNLINK_RX
+   on
+  end_comm
+
+#==========================Uncomment this to send a test message to Satellites========================================
+#execute at_interval_of 1 s
+#      // Loop through all the platforms in the simulation
+#      for (int i = 1; i <= WsfSimulation.PlatformCount(); i = i + 1)
+#          {
+#          WsfPlatform myPlatform = WsfSimulation.FindPlatform(i);
+#          if ((myPlatform != PLATFORM) && myPlatform.IsValid())   # Make sure we are not trying to talk to ourselves!
+#              {
+#              WsfControlMessage myMessage = WsfControlMessage();
+#              myMessage.SetFunction("This is a test");
+#
+#	      if (myPlatform.Type() == "GPS")
+#                  {
+#                  PLATFORM.Comm("HANDHELD_GPS_UPLINK_TX").SendUnicastMessage(myMessage, myPlatform);
+#                  }
+#              }
+#          }
+# end_execute
+#=======================================================================================================================
+
+end_platform_type
+
+
+

@@ -1,0 +1,95 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###################################################################################
+# comm_demo.txt
+# This example demonstrates a simple use of multiresolution_comm. Two different
+# comm models can be used (WSF_COMM_TRANSCEIVER or WSF_RADIO_TRANSCEIVER).
+# For comparison, platforms with standard comm models are included as well. 
+# In this example the two platforms directly send messages via scripting.
+###################################################################################
+
+define_path_variable CASE comm_demo
+log_file output/$(CASE).log
+
+include_once comms/comm_include.txt
+
+end_time 1 min
+
+event_output
+   file output/$(CASE).evt
+   enable MESSAGE_TRANSMITTED
+   enable MESSAGE_RECEIVED
+end_event_output
+
+##### Multiresolution
+platform_type MR_SENDER_BASE WSF_PLATFORM
+   add processor message_sender WSF_SCRIPT_PROCESSOR
+      update_interval 5.0 s
+      on_initialize
+         commName = "blue_comm";
+      end_on_initialize
+      on_update
+         WsfMessage message = WsfMessage();
+         message.SetDataTag(42.0);
+         PLATFORM.Comm("mr_cmdr_comm").SendMessage(message, "mr_receiver", commName);
+      end_on_update
+   end_processor
+end_platform_type
+
+platform mr_sender MR_SENDER_BASE
+   add multiresolution_comm mr_cmdr_comm MR_COMM
+      fidelity 0
+   end_multiresolution_comm
+end_platform
+
+platform mr_receiver WSF_PLATFORM
+   add processor message_receiver MESSAGE_RECEIVER end_processor
+   add multiresolution_comm blue_comm MR_COMM
+      fidelity 0
+      common
+         internal_link message_receiver
+      end_common
+   end_multiresolution_comm
+end_platform
+
+##### Non-multiresolution
+platform_type SENDER_BASE WSF_PLATFORM
+   add processor message_sender WSF_SCRIPT_PROCESSOR
+      update_interval 5.0 s
+      on_initialize
+         commName = "blue_comm";
+      end_on_initialize
+      on_update
+         WsfMessage message = WsfMessage();
+         message.SetDataTag(42.0);
+         PLATFORM.Comm("cmdr_comm").SendMessage(message, "receiver", commName);
+      end_on_update
+   end_processor
+end_platform_type
+
+platform_type SENDER SENDER_BASE
+   comm cmdr_comm TEAM_DATALINK
+   end_comm
+end_platform_type
+
+platform_type RECEIVER WSF_PLATFORM
+  add processor message_receiver MESSAGE_RECEIVER end_processor
+  comm blue_comm TEAM_DATALINK
+    internal_link message_receiver
+  end_comm
+end_platform_type
+
+platform sender SENDER
+end_platform
+
+platform receiver RECEIVER
+end_platform

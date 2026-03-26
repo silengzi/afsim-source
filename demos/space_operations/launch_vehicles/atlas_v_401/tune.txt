@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to help tune the launch computer.
+#==============================================================================
+
+include atlas_v_401.txt
+
+platform_type LAUNCHER WSF_PLATFORM
+   add weapon rocket ATLAS_V_401
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file output_tune.tmp
+
+   launch_platform_type LAUNCHER
+
+   # Cape Canaveral Air Force Station, SLC-37
+   position 28.531986n 80.566821w altitude 1 m
+
+   launch_heading 90 deg
+
+   # Initial guess
+   pitch_rates from 0.1 deg/sec to 0.3 deg/sec by 0.01 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # 0.12-0.13 gives a good range of altitudes...
+   pitch_rates from 0.12 deg/sec to 0.13 deg/sec by 0.001 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   # 0.125 gives a good range of altitudes...
+   pitch_rate 0.125 deg/sec
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+end_tool

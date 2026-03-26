@@ -1,0 +1,36 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#==============================================================================
+# weapon_tools input to generate the orbital launch computer for launch from
+# Cape Canaveral Air Force Station (CCAFS)
+#==============================================================================
+
+include atlas_v_401.txt
+
+platform_type LAUNCHER WSF_PLATFORM
+   add weapon rocket ATLAS_V_401
+   end_weapon
+end_platform_type
+
+tool ORBITAL_LAUNCH_COMPUTER_GENERATOR
+   leo_data_file atlas_v_401_ccafs_leo.txt
+
+   launch_platform_type LAUNCHER
+
+   # CCAFS SLC-40, inclinations 28.5 - 51.6
+   position 28.5620n 80.5772w altitude 1 m
+
+   # The documentation says they handle inclinations of about 28-57.
+   launch_headings from 40 deg to 90 deg by 10 deg     # gives inc ~57.5-27.8
+
+   #launch_heading 90 deg
+   loft_angles from 80 deg to 89 deg by 0.2 deg
+
+   tool_debug
+end_tool

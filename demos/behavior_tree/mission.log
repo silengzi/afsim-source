@@ -1,0 +1,11 @@
+2026-01-05 14:53:36 file weighted_random.txt
+2026-01-05 14:53:36 file platforms/common.txt
+2026-01-05 14:53:36 file platforms/weighted_random_striker.txt
+2026-01-05 14:53:36 file ./processors/quantum_agents/aiai/weighted_random_checkpoint_1.txt
+2026-01-05 14:53:36 file processors\quantum_agents\aiai\../common/common_platform_script.txt
+2026-01-05 14:53:36 file ./processors/quantum_agents/aiai/weighted_random_checkpoint_2.txt
+2026-01-05 14:53:36 file ./processors/quantum_agents/aiai/weighted_random_checkpoint_3.txt
+2026-01-05 14:53:36 file ./processors/quantum_agents/aiai/weighted_random_checkpoint_4.txt
+2026-01-05 14:53:36 AER output file: output/weighted_random.aer
+2026-01-05 14:53:36 start 1
+2026-01-05 14:53:36 complete 3600.001 0.070 0.156

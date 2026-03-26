@@ -1,0 +1,37 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# This runs all of the tbm scenarios and all of the weapons just
+# by including all three scenarios at once
+
+define_path_variable CASE 4th_tbm_demo
+# Define this first so the log file shows all the files being read in
+log_file output/$(CASE).log
+
+# setup.txt should include all of the platform types we will
+# use in our scenario file(s)
+include setup.txt
+
+#include the scenario we want
+include scenarios/launch3tbms.txt
+include scenarios/launch1multi_stage_tbm.txt
+include scenarios/launch4tbms.txt
+
+#The event and replay file are stated last just in
+#case a previous file setup default files.
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+# how long should the sim run
+end_time 2500 sec
+
+
+
+
+

@@ -1,0 +1,319 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# UNCLASSIFIED
+
+# GLOBALSTAR CONSTELLATION GROUND SITES
+
+include_once platforms/globalstar_gs.txt
+
+# references:
+# 1) https://www.qualcomm.com/news/releases/1997/05/07/qualcomm-awarded-275-million-contract-globalstar-gateway-manufacturer
+# 2) https://www.globalstar.com/en/ir/docs/GlobalstarOverviewPresentation.pdf
+
+
+# Owned Ground Station Locations
+
+# Aussaguel, France            # ref 1
+# Clifton, TX                  # ref 1
+# Wasilla, Alaska              # ref 2
+# High River, Canada           # ref 2
+# Smith Falls, Canada          # ref 2
+# Sebring, Florida             # ref 2
+# Las Palmas, Puerto Rico      # ref 2
+# Los Velazquez, Venezuela     # ref 2
+# Manaus, Brazil               # ref 2
+# Petrolina, Brazil            # ref 2
+# Presidente Prudente, Brazil  # ref 2
+# Gaborone, Botswana           # ref 2
+# Singapore                    # ref 2
+
+
+# Independent Ground Station Locations
+
+# San Martin, Mexico           # ref 2
+# Lurin, Peru                  # ref 2
+# Bosque Alegre, Argentina     # ref 2
+# Moscow, Russia               # ref 2
+# Ogulbey, Turkey              # ref 2
+# Novosibirsk, Russia          # ref 2
+# Khabarovsk, Russia           # ref 2
+# Yeoju, South Korea           # ref 1
+# Mount Isa, Australia         # ref 2
+# Meekatharra, Australia       # ref 2
+# Dubbo, Australia             # ref 2
+
+
+# Independent Ground Stations in Place but Inactive
+
+# Beijing, China               # ref 2
+# Riyadh, Saudi Arabia         # ref 2
+# Kaduna, Nigeria              # ref 2
+
+
+# Office Locations
+
+# Mississauga, Canada          # ref 2
+# Milpitas, California         # ref 2
+# Covington, Lousiana          # ref 2
+# Panama City, Panama          # ref 2
+# Rio de Janeiro, Brazil       # ref 2
+# Dublin, Ireland              # ref 2
+# Toulouse, France             # ref 2
+
+
+#owned Gateways
+
+platform AUSSAGUEL GLOBALSTAR_GS               # approximate location; T & C Site
+  side blue
+  position 43.42916667n 1.49777778e altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform CLIFTON GLOBALSTAR_GS  # approximate location; T & C Site
+  side blue
+  position    31.77444444n  97.60166667w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform WASILLA GLOBALSTAR_GS  # approximate location
+  side blue
+  position     61.58361111n   149.42833333w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform HIGH_RIVER GLOBALSTAR_GS  # approximate location
+  side blue
+  position   50.58194444n  113.86972222w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SMITH_FALLS GLOBALSTAR_GS     # approximate location
+  side blue
+  position  44.91644629n 76.01621935w altitude 0.01 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SEBRING GLOBALSTAR_GS     # approximate location  T & C Site
+  side blue
+  position  27.48258202n 81.45667177w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform LAS_PALMAS GLOBALSTAR_GS     # approximate location
+  side blue
+  position  18.46761039n  66.11403915w altitude 0.23 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform LOS_VELAZQUEZ GLOBALSTAR_GS    # approximate location
+  side blue
+  position  10.9605624n 63.85192906w altitude 0.76 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MANAUS GLOBALSTAR_GS     # approximate location
+  side blue
+  position  3.11349413s 60.01941217w altitude 0.18 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform PETROLINA GLOBALSTAR_GS    # approximate location
+  side blue
+  position  9.38983843s 40.50475339w altitude 0.03 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform PRESIDENTE_PRUDENTE GLOBALSTAR_GS    # approximate location
+  side blue
+  position  22.12245112s 51.39097442w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform GABORONE GLOBALSTAR_GS    # approximate location; T & C Site; Simplex only
+  side blue
+  position  24.62783496s  25.92357254e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform SINGAPORE GLOBALSTAR_GS    # approximate location
+  side blue
+  position  1.35404373n 103.82200203e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+
+# Independent Ground Stations
+
+platform SAN_MARTIN GLOBALSTAR_GS     # approximate location
+  side pink
+  position  19.70494686n  98.83247534w altitude 0.23 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform LURIN GLOBALSTAR_GS    # approximate location
+  side pink
+  position  12.25077662s 76.88229865w altitude 0.76 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform BOSQUE_ALEGRE GLOBALSTAR_GS     # approximate location; T & C Site
+  side pink
+  position  31.48019999s 64.20408472w altitude 0.18 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MOSCOW1 GLOBALSTAR_GS    # approximate location
+  side pink
+  position  55.749792n 37.632495e altitude 0.03 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform OGULBEY GLOBALSTAR_GS    # approximate location
+  side pink
+  position  39.6861465n 32.8242634e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform NOVOSIBIRSK GLOBALSTAR_GS    # approximate location;
+  side pink
+  position  55.01779754n  82.94119816e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform KHABAROVSK GLOBALSTAR_GS    # approximate location
+  side pink
+  position  48.50373837n 135.07392391e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform YEOJU GLOBALSTAR_GS                # approximate location; T & C Site
+  side pink
+  position   37.295n 127.64055556e altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MOUNT_ISA GLOBALSTAR_GS    # approximate location
+  side pink
+  position  20.72177163s 139.45174824e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MEEKATHARRA GLOBALSTAR_GS                # approximate location;
+  side pink
+  position   26.594492s 118.49546965e altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform DUBBO GLOBALSTAR_GS    # approximate location; T & C Site
+  side pink
+  position  32.24530152s 148.62568703e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+
+
+# Independent Ground Stations in Place but Inactive
+
+platform BEIJING1 GLOBALSTAR_GS    # approximate location
+  side green
+  position  39.90975791n 116.39654006e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform RIYADH GLOBALSTAR_GS                # approximate location;
+  side green
+  position   24.70920119n 46.67707135e altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform KADUNA GLOBALSTAR_GS    # approximate location
+  side green
+  position  10.51302159n 7.41675973e altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+
+
+# Office Locations
+
+platform MISSISSAUGA GLOBALSTAR_GS               # approximate location;
+  side yellow
+  position 43.59112219n 79.65228185w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform MILPITAS GLOBALSTAR_GS  # approximate location;
+  side yellow
+  position    37.42885839n  121.89807986w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform COVINGTON GLOBALSTAR_GS  # approximate location; HEADQUARTERS
+  side yellow
+  position     30.47506391n   90.1011525w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform PANAMA_CITY GLOBALSTAR_GS  # approximate location
+  side yellow
+  position   8.98233716n  79.523514w altitude 1.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform RIO_DE_JANEIRO1 GLOBALSTAR_GS     # approximate location
+  side yellow
+  position  22.91145987s 43.19893845w altitude 0.01 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform DUBLIN GLOBALSTAR_GS     # approximate location  T & C Site
+  side yellow
+  position  53.34691842n 6.2602298w altitude 0.0 m agl
+  commander SELF
+  category ground_station
+end_platform
+
+platform TOULOUSE GLOBALSTAR_GS     # approximate location
+  side yellow
+  position  43.60069995n  1.432841e altitude 0.23 m agl
+  commander SELF
+  category ground_station
+end_platform

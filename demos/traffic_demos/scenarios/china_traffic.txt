@@ -1,0 +1,55 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Define the road traffic block.
+# Note: If you have multiple roadnetworks, you need to define multiple
+#       road_traffic blocks.
+platform_type TESTVEHICLE WSF_PLATFORM
+end_platform_type
+
+road_traffic
+   network china_expressways
+
+      vehicle_count               800
+      maximum_speed               100.0 mi/h
+      minimum_distance_off_road     0.1 nm
+      maximum_distance_off_road     0.2 nm
+      pause_time_off_road           0.01 min
+      mean_travel_time              3 hr
+      sigma_travel_time             3 hr
+/*
+      weighted_region
+         latitude     37:32:00n
+         longitude   126:56:00e
+         inner_radius  0 nm
+         outer_radius  12 nm
+         inner_weight  12.0
+         outer_weight  6.0
+      end_weighted_region
+*/
+
+      vehicle CAR
+         fraction      0.75
+         mean_speed   60 mi/h
+         sigma_speed   5 mi/h
+      end_vehicle
+
+      vehicle PICKUP_TRUCK
+         fraction      0.20
+         mean_speed   55 mi/h
+         sigma_speed  10 mi/h
+      end_vehicle
+
+      vehicle SCHOOL_BUS
+         fraction      0.05
+         mean_speed   50 mi/h
+         sigma_speed   5 mi/h
+      end_vehicle
+
+  end_network
+end_road_traffic

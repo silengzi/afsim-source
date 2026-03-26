@@ -1,0 +1,85 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+#                           simple AWACS Platform (Airborne CAOC)
+###############################################################################
+
+optical_signature awacs_optical_signature
+   constant 1000 m^2
+end_optical_signature
+
+radar_signature awacs_radar_signature
+   constant 1000 m^2
+end_radar_signature
+
+
+platform_type AWACS WSF_PLATFORM
+
+   icon KC-10
+   side blue
+
+   mover WSF_AIR_MOVER
+      default_linear_acceleration   1.0 g
+      default_radial_acceleration   1.0 g
+   end_mover
+
+   optical_signature awacs_optical_signature
+   radar_signature   awacs_radar_signature
+
+#   command_chain sat-ops self       // satellites
+#   command_chain uavs    self       // UAVs
+#   command_chain strike  self       // Strike assets
+
+   // --- * --- * ---
+   //      Comm
+   // --- * --- * ---
+#   comm constellation-xmtr WSF_RADIO_XMTR
+#      frequency     900.0 mhz
+#   end_comm
+
+#   comm constellation-rcvr WSF_RADIO_RCVR
+#      frequency     1000.0 mhz
+#      internal_link track-proc
+#   end_comm
+
+
+   // --- * --- * ---
+   //     Sensors
+   // --- * --- * ---
+   // N/A
+   sensor geo_sensor WSF_GEOMETRIC_SENSOR
+      azimuth_field_of_view -180.0 degrees 180.0 degrees
+      elevation_field_of_view -90.0 degrees 90.0 degrees
+      minimum_range 0 m
+      # 300 nm
+      maximum_range 555600 m
+      on
+      frame_time              0.5 sec
+      reports_location
+      reports_velocity
+      reports_iff
+      reports_bearing
+      #do not report weapons quality tracks
+      track_quality 0.75
+      ignore_same_side
+      internal_link track-proc
+   end_sensor
+
+
+   // --- * --- * ---
+   //   Processors
+   // --- * --- * ---
+   processor track-proc WSF_TRACK_PROCESSOR
+#      purge_interval  5 min
+      purge_interval  120.0 sec
+      update_interval  10.0 sec
+   end_processor
+
+
+end_platform_type

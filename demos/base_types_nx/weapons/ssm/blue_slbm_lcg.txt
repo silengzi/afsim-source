@@ -1,0 +1,32 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# Script to create the launch computer for a submarine launched ballistic missile
+
+include blue_slbm.txt
+
+platform_type LAUNCH_PLATFORM_TYPE WSF_PLATFORM
+   side blue
+   weapon blue_slbm BLUE_SLBM
+   end_weapon
+end_platform_type
+
+tool BALLISTIC_MISSILE_LAUNCH_COMPUTER_GENERATOR
+   tool_debug
+   position 0n 0e altitude 1 m
+   heading 90 deg
+   surface_target_file blue_slbm_launch_data.txt
+   #loft_angles from 68 deg to 71 deg by .5 deg
+   loft_angle 69 deg
+   burn_times from 140 sec to 172 sec by .5 sec #
+   #pass_2_loft_angle_step 0.01 deg
+end_tool
+
+event_pipe
+   file replay.aer
+end_event_pipe

@@ -1,0 +1,113 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# Processor that maintains a list of potenentially linkable targets in aux data.
+include_once scripts/within_field_of_regard.txt
+
+group LINKABLE_TARGETS WSF_GROUP 
+end_group
+
+script_variables
+   bool sDrawLinks = true;
+end_script_variables
+
+processor LINKABLE_TARGETS_PROCESSOR WSF_SCRIPT_PROCESSOR
+   
+   script_variables
+      string mTrackProcessorName = "track-proc";
+   end_script_variables
+   
+   on_initialize2
+      for (int commNum; commNum < PLATFORM.CommCount(); commNum = commNum + 1)
+      {
+        WsfComm comm = PLATFORM.CommEntry(commNum);
+        if (comm.GroupMemberOf("DEDICATED_COMM"))
+        {
+           CommLink link = CommLink_Link(comm);
+           link.SetDedicated(true);
+        }
+      }
+   end_on_initialize2
+   
+   script
+      bool CanLink(WsfComm aComm, WsfPlatform aTarget)
+         bool canLink = false;
+         
+            if (aComm.CategoryMemberOf("linkable") && 
+               !aComm.GroupMemberOf("DEDICATED_COMM") && 
+                WithinFieldOfRegard(Comm_Orientation(aComm), aTarget))                  
+            {
+               if ((aComm.GroupMemberOf("DOWNLINK") && (aTarget.GroupMemberOf("UPLINK"))) ||
+                   (aComm.GroupMemberOf("UPLINK") && (aTarget.GroupMemberOf("DOWNLINK"))) ||
+                   (aComm.GroupMemberOf("CROSSLINK") && (aTarget.GroupMemberOf("CROSSLINK"))))
+               {
+                  canLink = true;
+               }
+            }
+                  
+         return canLink;
+   end_script
+   
+   on_message
+      type WSF_TRACK_MESSAGE
+         script
+            WsfTrackMessage trackMsg = (WsfTrackMessage)MESSAGE;
+            WsfPlatform target = trackMsg.Track().Target();
+            if (target.IsValid() && (target.GroupMemberOf("LINKABLE_TARGETS")))
+            {               
+               for (int commNum; commNum < PLATFORM.CommCount(); commNum = commNum + 1)
+               {
+                  WsfComm comm = PLATFORM.CommEntry(commNum);
+                  if (CanLink(comm, target))
+                  {
+                     WsfTrack track = WsfTrack(trackMsg.Track()); // THIS TRACK WILL BE PURGED
+                     #WsfTrack track = target.MakeTrack();   // THIS TRACK WILL NOT BE PURGED (MUST BE DELETED)
+                     CommLink_LinkableTargets(comm).Set(target.Name(), track);
+                     #PLATFORM.Comment(PLATFORM.Name()+ ":"+ comm.Name()+ " can link with "+ target.Name());             
+                  }
+               }
+            }
+         end_script
+      type WSF_TRACK_DROP_MESSAGE
+         script
+         WsfTrackDropMessage trackMsg = (WsfTrackDropMessage)MESSAGE;
+            WsfPlatform target = WsfSimulation.FindPlatform(trackMsg.TargetIndex());
+            if (target.IsValid() && (target.GroupMemberOf("LINKABLE_TARGETS")))
+            {
+               string targetName = target.Name();
+               for (int commNum; commNum < PLATFORM.CommCount(); commNum = commNum + 1)
+               {
+                  WsfComm comm = PLATFORM.CommEntry(commNum);
+                  CommLink link = CommLink_Link(comm);
+                  if (link.Linking() && link.RemotePlatformName() == target.Name())
+                  {
+                      WsfComm linkComm = link.RemoteComm();
+                      string linkCommName = linkComm.Name();
+                      
+                      CommLink remoteLink = CommLink_Link(linkComm);
+                      
+                      link.Free();
+                      WsfTrackProcessor trackProc = (WsfTrackProcessor)(PLATFORM.Processor(mTrackProcessorName));
+                      trackProc.TrackManager().DropTrack(trackMsg.TrackId());                      
+                  }
+
+                  CommLink_LinkableTargets(comm).Erase(target.Name());                  
+               }               
+            }
+            
+            if (sDrawLinks)
+            {
+               WsfDraw draw = {};
+               draw.Erase(PLATFORM.Index() * 10000000 + trackMsg.TargetIndex());  
+               draw.Erase(trackMsg.TargetIndex() * 10000000 + PLATFORM.Index());  
+            }
+            
+      end_script
+   end_on_message
+end_processor

@@ -1,0 +1,132 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+aero INITIAL_PARACHUTE_AERO WSF_AERO
+  reference_area    2.0 ft2
+  cd_zero_subsonic    0.100
+  cd_zero_supersonic  0.20
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max              .500    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+aero PARACHUTE_AERO WSF_AERO
+  reference_area   190.0 ft2 # 67 m2 # 150.0 ft2
+  cd_zero_subsonic    1.1 # 1.100
+  cd_zero_supersonic  1.38
+  mach_begin_cd_rise  0.800
+  mach_end_cd_rise    1.200
+  mach_max_supersonic 2.000
+  cl_max            .1 # .5  # 1.2 # .500    # unknown
+  aspect_ratio        4.000    # unknown
+end_aero
+
+platform_type PARACHUTE WSF_PLATFORM
+   icon parachute
+   mover WSF_GUIDED_MOVER
+     update_interval .01 sec
+     stage 1 # intial jump; parachute not open
+        total_mass 0.01 lbs
+        pre_separation_coast_time   10 sec
+        aero INITIAL_PARACHUTE_AERO
+     end_stage
+     stage 2 # parachute open
+        total_mass 20 lbs
+        aero PARACHUTE_AERO
+     end_stage
+   end_mover
+
+   processor guidance WSF_GUIDANCE_COMPUTER
+      #show_status
+      #show_evaluations
+      #debug
+      phase LAUNCH
+         guidance_delay  10 sec
+         #maximum_descent_rate   5 ft/s
+         next_phase OPEN when phase_time > 10 sec
+      end_phase
+      phase OPEN
+         guidance_delay  50000 sec
+         #maximum_descent_rate   5 ft/s
+      end_phase
+   end_processor
+end_platform_type
+
+weapon_effects PARACHUTE_EFFECT WSF_SPHERICAL_LETHALITY
+  allow_incidental_damage
+  minimum_radius   .10 m
+  maximum_radius   .15 m
+  maximum_damage   0.1
+  minimum_damage   0.0
+end_weapon_effects
+
+weapon PARACHUTE WSF_EXPLICIT_WEAPON
+   launched_platform_type PARACHUTE
+   weapon_effects PARACHUTE_EFFECT
+   quantity 1
+   firing_delay 0.0 sec
+   salvo_interval 2.0 sec
+   tilt -89.9 deg
+end_weapon
+
+platform_type BLUE_AIRLIFTER_JET WSF_PLATFORM
+   icon C-17
+   mover WSF_AIR_MOVER end_mover
+   weapon parachute PARACHUTE end_weapon
+end_platform_type
+
+##############################################################
+
+platform blue_airlifter_jet BLUE_AIRLIFTER_JET
+   side blue
+   position 39:31:42.42n 91:38:35.111w
+   route
+      position 39:31:42n 91:38:35w altitude 30000 ft speed 300 kts
+      position 39:31:40n 91:30:00w altitude 30000 ft speed 300 kts
+   end_route
+
+   add processor script WSF_SCRIPT_PROCESSOR
+      update_interval 1.0 sec
+      on_update 
+         if (TIME_NOW > 1.0)
+         {
+            #writeln("TIME_NOW ", TIME_NOW);
+            WsfWeapon weapon = PLATFORM.Weapon("parachute");
+            weapon.Fire();
+            PROCESSOR.TurnOff();
+          }
+      end_on_update
+    end_processor
+end_platform
+
+event_pipe
+   file output/parachute_example.aer
+end_event_pipe
+
+event_output
+   file output/parachute_example.evt
+   disable all
+   //enable  PLATFORM_ADDED
+   //enable  PLATFORM_DELETED
+   //enable  TASK_ASSIGNED
+   //enable  TASK_CANCELED
+   //enable  TASK_COMPLETED
+   enable  WEAPON_FIRE_ABORTED
+   enable  WEAPON_FIRE_REQUESTED
+   enable  WEAPON_FIRED
+   enable  WEAPON_HIT
+   enable  WEAPON_MISSED
+   enable  WEAPON_TERMINATED
+   enable  WEAPON_RELOAD_STARTED
+   enable  WEAPON_RELOAD_ENDED
+end_event_output
+
+end_time 6000 sec

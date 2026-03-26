@@ -1,0 +1,41 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ==============================================================================
+# Vertical map driver (included by vmapf.txt and vmaps.txt)
+# ==============================================================================
+
+include_once ../common_types.txt
+
+# ==============================================================================
+
+platform_type SENSOR_PLATFORM_TYPE WSF_PLATFORM
+   position 0n 0e altitude 40000 ft heading 0 deg
+   sensor irst IRST
+#     debug
+   end_sensor
+end_platform_type
+
+# ==============================================================================
+
+vertical_map
+   gnuplot_file              $(GNUPLOT_FILE)
+   variable                  contrast_radiant_intensity
+   variable                  background_radiant_intensity
+   variable                  infrared_signature
+   variable                  optical_signature
+   variable                  pd
+
+   ground_range_limits       -200 nm 200 nm
+   ground_range_step         1 nm
+   altitude_limits           0 ft 60000 ft
+   altitude_step             200 ft
+
+   target_heading            180 deg
+   target_mach               1.2
+end_vertical_map

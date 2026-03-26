@@ -1,0 +1,31 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+###############################################################################
+# Generate 2-D plots for the circular antenna pattern
+###############################################################################
+
+include cosecant_pattern.txt
+
+antenna_plot
+   pattern_name                        COSECANT_PATTERN
+
+   axes                                horizontal
+   azimuth_range                       -180 deg 180 deg
+   azimuth_step                        1 deg
+   output_file                         cosecant_az.plt
+end_antenna_plot
+
+antenna_plot
+   pattern_name                        COSECANT_PATTERN
+
+   axes                                vertical
+   elevation_range                       -90 deg 90 deg
+   elevation_step                        1 deg
+   output_file                         cosecant_el.plt
+end_antenna_plot

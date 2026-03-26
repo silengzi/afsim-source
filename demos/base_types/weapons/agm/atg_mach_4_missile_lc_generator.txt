@@ -1,0 +1,86 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+include mach_4_missile.txt
+
+weapon_effects WEAPON_TOOL_LETHALITY WSF_GRADUATED_LETHALITY
+   radius_and_pk 15.0 ft 1.00 # All Platforms
+end_weapon_effects
+
+platform_type LAUNCH_PLATFORM_TYPE WSF_PLATFORM
+  icon F-18E
+  weapon launching_weapon MACH_4_MISSILE
+  end_weapon
+end_platform_type
+
+radar_signature TARGET_RADAR_SIG
+   constant 0 dbsm
+end_radar_signature
+
+platform_type TARGET_PLATFORM_TYPE WSF_PLATFORM
+  icon Ground_Radar
+  radar_signature TARGET_RADAR_SIG
+end_platform_type
+
+tool ATG_LAR_AND_LC_GENERATOR
+  position     00:00n 00:00w
+  output_object_name mach_4_missile_atg_launch_computer    # *** TEMPORARY NON_DEFAULT OVERRIDE
+  output_file_name mach_4_missile_atg_launch_computer.txt  # *** TEMPORARY NON_DEFAULT OVERRIDE
+#  altitude_and_mach 40000 ft  0.8    target_ranges 40 miles 5.0 miles  26
+#  altitude_and_mach 40000 ft  1.2    target_ranges 50 miles 5.0 miles  27
+#  altitude_and_mach 40000 ft  1.4    target_ranges 60 miles 5.0 miles  28
+#  altitude_and_mach 35000 ft  0.8    target_ranges 40 miles 5.0 miles  23
+#  altitude_and_mach 35000 ft  1.2    target_ranges 40 miles 5.0 miles  27
+#  altitude_and_mach 35000 ft  1.4    target_ranges 55 miles 5.0 miles  28
+#  altitude_and_mach 25000 ft  0.8    target_ranges 40 miles 5.0 miles  20
+#  altitude_and_mach 25000 ft  1.2    target_ranges 50 miles 5.0 miles  23
+#  altitude_and_mach 25000 ft  1.4    target_ranges 50 miles 5.0 miles  24
+  altitude_and_mach 20000 ft  0.8    target_ranges 10 miles 25.0 miles  24
+#  altitude_and_mach 20000 ft 1.2     target_ranges 40 miles 5.0 miles  22
+#  altitude_and_mach 20000 ft 1.4     target_ranges 45 miles 5.0 miles  23
+#  altitude_and_mach 15000 ft 0.8     target_ranges 30 miles 5.0 miles 17
+#  altitude_and_mach 15000 ft 1.2     target_ranges 35 miles 5.0 miles 19
+#  altitude_and_mach 15000 ft 1.4     target_ranges 40 miles 5.0 miles 20
+#  altitude_and_mach 10000 ft  0.8    target_ranges 25 miles 5.0 miles 15
+#  altitude_and_mach 10000 ft  1.2    target_ranges 35 miles 5.0 miles 16
+#  altitude_and_mach 10000 ft  1.4    target_ranges 40 miles 5.0 miles 17
+#  altitude_and_mach 5000 ft  0.8     target_ranges 25 miles 5.0 miles 13
+#  altitude_and_mach  1000 ft  0.8    target_ranges 25 miles 5.0 miles 10
+
+#  target_ranges     40 miles 5.0 miles 21 # min, delta, number of target offsets forward of the launcher
+#  target_ranges     40 miles 2.5 miles 50 # min, delta, number of target offsets forward of the launcher
+#  target_offsets    10.0 miles 4 # delta, number of target offsets lateral to the launcher
+ target_offsets    25.0 miles 30 # delta, number of target offsets lateral to the launcher
+#  target_offsets    .1 meter 2 # delta, number of target offsets lateral to the launcher
+ #shrink_factor         0.8
+end_tool
+
+event_pipe
+  file lc_generation.aer
+end_event_pipe
+
+#event_output
+#   file myweapon.evt
+#   enable WEAPON_HIT
+#   enable WEAPON_MISSED
+#   enable WEAPON_TERMINATED
+#end_event_output
+
+script void WeaponHit(WsfWeaponEngagement aWeaponEngagement, WsfPlatform aTargetPlatform)
+    WsfPlatform weapon = aWeaponEngagement.WeaponPlatform();
+    WsfGeoPoint launchpoint = aWeaponEngagement.WeaponLocationAtLaunch();
+    WsfGeoPoint weaponpoint = aWeaponEngagement.WeaponLocation();
+    double groundrange = launchpoint.GroundRangeTo(weaponpoint);
+    double timeofflight = aWeaponEngagement.TimeSinceStarted();
+    writeln(weapon.MachNumber(), " ", weapon.Speed(), " ", weapon.Pitch(), " ", groundrange, " ",timeofflight);
+end_script
+
+observer
+   enable WEAPON_HIT
+end_observer
+

@@ -1,0 +1,201 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+//compile_debug true
+
+script_variables
+   // TEMPORARY eventually get this from a waypoint or a battle manager
+
+   string           mManeuverName = "la";
+   string           mFlightName = "four";
+   int              mFlightIndex = -1;
+   bool             mFirstPass = true;
+
+   WsfAIFLProcessor mFlightLeadAgent;
+end_script_variables
+
+include_once aiai_scripts.txt
+include_once formation.script
+include_once la_methods.script
+
+on_initialize
+   // check in to the FlightLead agent
+   mFlightLeadAgent = (WsfAIFLProcessor)(PROCESSOR.GetCommander());
+   writeln_d("   mFlightLeadAgent.IsValid() == ", mFlightLeadAgent.IsValid());
+//   mFlightLeadAgent.CheckIn(PLATFORM, false);
+
+   // tweak the formation flying for fueling
+   formation_initialize(0.2 * MATH.M_PER_NM(),   // waypoint proximity
+                        5.0 * MATH.M_PER_NM(),   // far from waypoint
+                        0.4,   // min mach
+                        1.5,   // max mach
+                        2.0 * MATH.M_PER_NM());  // out of formation
+
+   aiai_initialize();
+end_on_initialize
+
+script void lead_wait_logic()
+   // get the tracks from my flight
+   WsfLocalTrackList flightTracks = mFlightLeadAgent.FlightTrackList(); 
+
+   // assume targets are in-bound to my flight and find the smallest range
+   // target selection should be done A LOT better
+   double minRange = 9999999.9;
+   WsfTrack closestTrack = NULL;
+   foreach (WsfTrack track in flightTracks)
+   {
+      if (DetermineTargetType(track) == "unknown")
+      {
+         continue;
+      }
+
+      double thisRange = PLATFORM.SlantRangeTo(track);
+      writeln_d("    considering: ", track.TargetName(), " at ", thisRange);
+      if (thisRange < minRange)
+      {
+         minRange = thisRange;
+         closestTrack = track;
+      }
+   }
+
+   // if I'm within range of to start the formation tactic, do it
+   if (minRange < cSTART_MANEUVER_RANGE && closestTrack.IsValid())
+   {
+writeln_d("Maneuver started at range: ", minRange);
+      mFlightLeadAgent.TargetSet(closestTrack);
+
+      PLATFORM.Comment("Maneuver started...");
+      mFlightLeadAgent.SetTopState("FLIGHT_MANEUVER");
+   }
+
+   if (closestTrack.IsValid())
+   {
+      mFlightLeadAgent.TargetSet(closestTrack);
+      PLATFORM.Comment("Range to target: " + (string)minRange);
+
+      // turn towards the track
+      double heading = PLATFORM.TrueBearingTo(closestTrack);
+      PLATFORM.TurnToHeading(heading);
+      PLATFORM.GoToAltitude(closestTrack.Altitude());
+      PLATFORM.GoToSpeed(cINTERCEPT_SPEED);
+   }
+   else
+   {
+//      PLATFORM.GoToAltitude(cDEFAULT_ALTITUDE);
+//      PLATFORM.GoToSpeed(cWAIT_SPEED);
+   }
+end_script
+
+on_update
+   string flightTopState = "*NO*FLIGHT*LEAD*";
+
+   writeln_d("--- four on_update Platform: ", PLATFORM.Name(), ", Time: ", TIME_NOW);
+//   string myTopState = PLATFORM.GetTopState();
+   if (!mFlightLeadAgent.IsValid())
+   {
+      mFlightLeadAgent = (WsfAIFLProcessor)(PROCESSOR.GetCommander());
+      if (mFlightLeadAgent.IsValid())
+      {
+         writeln_d("    acquired mFlightLeadAgent ", mFlightLeadAgent.Name());
+      }
+      else
+      {
+//         aiai_update();
+         // can't do anything without a FL
+         return;
+      }
+   }
+
+   flightTopState = mFlightLeadAgent.GetTopState();
+
+   writeln_d("    flightTopState: ", flightTopState);
+
+   // one time transition to FLIGHT_WAIT state
+//   if ((myTopState == "STRAIGHT") && (mFirstPass == true))
+   if (mFirstPass == true)
+   {
+      mFlightLeadAgent.AssignNewLead(0);
+
+//      PLATFORM.SetTopState("FLIGHT_WAIT");
+      mFirstPass = false;
+   }
+
+   // if my flight has been disrupted, just go to ai logic
+   if (!mFlightLeadAgent.FlightIntact())
+   {
+      aiai_update();
+      return;
+   }
+
+   // the flight is waiting for something to act on
+   //  - lead flies straight and level
+   //  - flight follows the lead in formation
+writeln_d("    mFlightIndex: ", mFlightIndex);
+
+//   if (myTopState == "FLIGHT_WAIT")
+//   extern string mFlightName;
+   if (mFlightName == "four")
+   {
+writeln_d("   four...");
+      // if lead has commanded to do the maneuver, do it
+      if (flightTopState == "FLIGHT_SOLO")
+      {
+         aiai_update();
+         return;
+      }
+      else if (flightTopState == "FLIGHT_MANEUVER")
+      {
+writeln_d("   FLIGHT_MANEUVER...");
+         // get my position in the flight if not done already
+//         if (mFlightIndex < 0)
+//         {
+            mFlightIndex = mFlightLeadAgent.GetFormationIndex(PLATFORM) + 1;
+writeln_d("   mFlightIndex acquired == ", mFlightIndex);
+//         }
+
+         perform_maneuver(mFlightIndex);
+      }
+      else if (flightTopState == "FLIGHT_RELEASE")
+      {
+         if (mFlightLeadAgent.GetLeadStatus(PLATFORM) == true && !mFlightLeadAgent.TargetPlatformGet().IsValid())
+         {
+writeln_d("   target dead, FLIGHT_WAIT");
+            mFlightLeadAgent.SetTopState("FLIGHT_WAIT");
+//            PLATFORM.FollowRoute("DEFAULT_ROUTE", "CLOSEST_POINT");
+            PLATFORM.FollowRoute("DEFAULT_ROUTE");
+            return;
+         }
+writeln_d("   FLIGHT_RELEASE...");
+         aiai_update();
+         return;
+      }
+      else
+      {
+writeln_d("   other (", flightTopState, ")...");
+         if (mFlightLeadAgent.GetLeadStatus(PLATFORM) == true)
+         {
+writeln_d("   I am lead, so wait");
+            SetUpdateInterval(cFAST_UPDATE_RATE);
+//            PLATFORM.GoToLocation(0, 0, 0); // trying to trick mover so next FollowRoute works right
+//            PLATFORM.FollowRoute("DEFAULT_ROUTE", "CLOSEST_POINT");            
+//            PLATFORM.FollowRoute("line", "CLOSEST_POINT");            
+            lead_wait_logic();
+         }
+         else
+         {
+writeln_d("   follow the leader");
+            // follow the lead
+            WsfPlatform leadPlatform = mFlightLeadAgent.GetPlatformInFormation(-1);
+            SetFollowingFormationIndex(-1);
+            mManeuverState = 0;
+            SetUpdateInterval(cFAST_UPDATE_RATE);
+            formation_update(leadPlatform);
+         }
+      }
+   }
+end_on_update

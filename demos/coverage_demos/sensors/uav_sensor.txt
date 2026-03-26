@@ -1,0 +1,30 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: sensors/uav_sensor.txt
+
+# UAV Sensor, Slightly off-nadir
+
+sensor UAV_SENSOR WSF_GEOMETRIC_SENSOR 
+   tilt -80 deg
+   
+   frame_time 5 s   
+   maximum_range 100 km
+   
+   field_of_view circular
+      half_angle 50 deg
+   end_field_of_view
+   
+   check_terrain_masking enabled
+   
+   hits_to_establish_track 1 1
+   hits_to_maintain_track 1 1
+   
+   ignore_same_side
+   reports_location   
+end_sensor

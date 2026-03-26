@@ -1,0 +1,20 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+# New file created by AFSIM-Wizard
+
+include_once signatures/fighter_spherical_optical_signature.txt
+include_once signatures/fighter_box_optical_signature.txt
+include_once signatures/fighter_multi_shape_optical_signature.txt
+
+platform_type SIMPLE_FIGHTER WSF_PLATFORM
+   icon F-18
+   mover WSF_AIR_MOVER
+   end_mover
+end_platform_type

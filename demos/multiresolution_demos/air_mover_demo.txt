@@ -1,0 +1,65 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# Copyright (C) 2021 Stellar Science; U.S. Government has Unlimited Rights.
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+###################################################################################
+# air_mover_demo.txt
+# This example demonstrates a simple use of multiresolution_mover: Two identical
+# mover models (WSF_AIR_MOVER), but with different update intervals. For comparison, 
+# a platform that uses WSF_AIR_MOVER is included. The fidelity parameter can be 
+# adjusted to choose the model that will be used on the platform. A fidelity value
+# in [0,0.5) will choose an AIR_MOVER with an update interval of 30 seconds and 
+# a value in [0.5, 1.0] will choose an AIR_MOVER with an update interval of 0.1 s.
+###################################################################################
+
+define_path_variable CASE air_mover_demo
+log_file output/$(CASE).log
+
+include_once movers/air_mover.txt
+
+end_time 4 min
+
+event_pipe file 
+   output/$(CASE).aer
+   maximum_mover_update_interval 0 sec
+end_event_pipe
+
+platform_type SIMPLE_FIGHTER WSF_PLATFORM
+   icon F-18  
+   multiresolution_mover MR_AIR_MOVER
+   end_multiresolution_mover
+end_platform_type
+
+# Platform using multiresolution mover
+platform test SIMPLE_FIGHTER
+   multiresolution_mover
+      fidelity 1
+      common
+         route
+            position 0n 0e altitude 20000 ft heading 0 deg speed 450 kts
+            position 0.1n 0e altitude 20000 ft speed 450 kts
+            position 0.1n 0.1e altitude 25000 ft speed 450 kts
+         end_route
+      end_common
+   end_multiresolution_mover
+end_platform
+
+# Comparison platform using standard mover
+platform test2 WSF_PLATFORM
+   icon F-18  
+   add mover WSF_AIR_MOVER
+      update_interval 30 sec
+   end_mover
+   route
+      position 0n 0e altitude 20000 ft heading 0 deg speed 450 kts
+      position 0.1n 0e altitude 20000 ft speed 450 kts
+      position 0.1n 0.1e altitude 25000 ft speed 450 kts
+   end_route
+end_platform

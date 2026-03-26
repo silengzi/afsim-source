@@ -1,0 +1,294 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+#it is assumed that all weapons on the platform this agent is on... are alert-5 aircraft
+#when it launches an alert-5 aircraft, it will find the first one available & fire
+
+behavior launch_alert-5_aircraft
+
+   script_debug_writes  off
+
+   script_variables
+      //public
+      string  mFlightLeadToSupport    =  "fighter_flight_lead";
+      int     mSalvoCount             =  2;
+      //private
+      bool    mLaunched               =  false;
+   end_script_variables
+
+   #on_init
+   #end_on_init
+
+   script WsfWeapon GetNextAlert5()
+      WsfWeapon empty;
+      for(int i=0; i<PLATFORM.WeaponCount(); i=i+1)
+      {
+        WsfWeapon test = PLATFORM.WeaponEntry(i);
+        if (test.QuantityRemaining() >= 1)
+        {
+          return test;
+        }
+      }
+      return empty;
+   end_script
+
+
+   script WsfRIPRProcessor GetRIPR(string platformName)
+      WsfRIPRProcessor empty;
+      WsfPlatform plat = WsfSimulation.FindPlatform(platformName);
+      if (plat.IsValid())
+      {
+          for (int i=0; i<plat.ProcessorCount(); i=i+1)
+          {
+              WsfProcessor proc = plat.ProcessorEntry(i);
+              if (proc.IsA_TypeOf("WSF_RIPR_PROCESSOR"))
+              {
+                  WsfRIPRProcessor rProc = (WsfRIPRProcessor)proc;
+                  return rProc;
+              }
+          }
+      }
+      return empty;
+   end_script
+
+
+   script bool LaunchAlert_5(WsfWeapon alert5Weapon, int salvo)
+      WsfGeoPoint pt = PLATFORM.Location();
+      pt.Offset(PLATFORM.Heading(), 9260, 0.0, -9260);
+      WsfTrack tgt = WsfTrack();
+      tgt.SetLocation(pt);
+      return alert5Weapon.FireSalvo(tgt, salvo);
+   end_script
+
+
+   precondition
+      writeln_d("precondition launch_alert-5_aircraft");
+      if (mLaunched==true)
+      {
+        writeln_d("already launched alert5 aircraft!");
+        return Failure("already launched alert5 aircraft!");
+      }
+      WsfWeapon test = GetNextAlert5();
+      if (!test.IsValid())
+      {
+        writeln_d("no alert5 aircraft available to launch!");
+        return Failure("no alert5 aircraft available to launch!");
+      }
+
+      WsfRIPRProcessor proc = GetRIPR(mFlightLeadToSupport);
+      if (proc.IsValid())
+      {
+        WsfRIPRJob job = proc.GetRIPRCommanderProcessor().GetJobFor(TIME_NOW, proc);
+        if( job.IsValid())
+        {
+            return true;
+        }
+      }
+      else
+      {
+        writeln_d("flight lead not found:  ", mFlightLeadToSupport);
+        return Failure("flight lead not found!");
+      }
+      writeln_d("flight lead does not need support yet!");
+      return Failure("flight lead does not need support yet!");
+
+   end_precondition
+
+
+   execute
+      writeln_d("executing launch_alert-5_aircraft");
+      mLaunched = LaunchAlert_5(GetNextAlert5(), mSalvoCount);
+   end_execute
+
+end_behavior
+
+
+
+
+#it is assumed that all weapons on the platform this agent is on... are alert-5 aircraft
+#when it launches an alert-5 aircraft, it will find the first one available & fire
+
+behavior launch_alert-5_aircraft2
+   script_debug_writes off
+
+   script_variables //public
+      #string mFlightLeadToSupport	= "fighter flightjlead";
+      int mSalvoCount	= 2;
+      double mFlightLaunchDelay	= 120.0; # 30 sec per a/c, 2 a/c per flight
+      bool mFirstLaunch	= true;
+      double mFirstFlightLaunchDelay	= 420.0; #account for 5 minute delay of first launch //private
+      double mLastLaunchedTime	= -9999.0;
+      int mNumberOfAirThreats = 0;
+      int mNumberOfSubsInAir = 0;
+      bool mCheckPeers = true;
+      string mProtectZoneName = "";
+      double mProtectRange = 1852 * 100;  //100nm (in meters)
+   end_script_variables
+
+#   #on init #end on init
+#   script bool ValidType(WsfTrack track)
+#      if (track.Target().IsValid())
+#      {
+#         if (track.Target().Type() == "STRIKER" || track.Target().Type() == "SWEEPER" || track.Target().Type() == "CAPPER" || track.Target().IsATypeOf("E-3C"))
+#         {
+#            return true;
+#         }
+#      }
+#      return false;
+#   end_script
+
+   script WsfWeapon GetNextAlert5()
+      WsfWeapon empty;
+      for(int i=0; i<PLATFORM.WeaponCount(); i=i+l)
+      {
+         WsfWeapon test = PLATFORM.WeaponEntry(i);
+         if (test.QuantityRemaining() >= 1)
+         {
+            return test;
+         }
+      }
+      return empty;
+   end_script
+
+   script bool AnyActiveRequests()
+      for(int i=0; i<PLATFORM.WeaponCount(); i=i+l)
+      {
+         WsfWeapon test = PLATFORM.WeaponEntry(i);
+         if (test.ActiveRequestCount() > 0)
+         {
+            return true;
+         }
+      }
+      return false;
+   end_script
+
+#	script WsfRIPRProcessor GetRIPR(string platformName)
+#	WsfRIPRProcessor empty;
+#	WsfPlatform plat = WsfSimulation.FindPlatform(platformName);
+#	if (plat.IsValid())
+#	{
+#	for (int i=0; i<plat.ProcessorCount(); i=i+l)
+#	{
+#	WsfProcessor proc = plat.ProcessorEntry(i);
+#	if (proc.IsA TypeOf("WSFRIPRPROCESSOR"))
+#	{
+#	WsfRIPRProcessor rProc = (WsfRIPRProcessor)proc;
+#	return rProc;
+#	}
+#	}
+#	}
+#	return empty;
+precondition
+   writelnd("T= ",TIME NOW,", ", PLATFORM.Name()," precondition launch_alert-5 aircraft");
+   WsfWeapon test = GetNextAlert5();
+   if (!test.IsValid())
+   {
+      writelnd("T= ", TIME NOW," no alert5 aircraft available to launch!");
+      return Failure("no alert5 aircraft available to launch!");
+   }
+   if (AnyActiveRequests())
+   {
+      writeln_d("currently launching something");
+      return Failure("currently launching something");
+   }
+
+   mNumberOfAirThreats = 0; //check num threats every time foreach (WsfTrack track in PLATFORM.MasterTrackList())
+   if ((track.TimeSinceUpdated() < 60.0) &&
+       (track.LocationValid() || (track.RangeValid() && track.BearingValid())) &&
+      #(ValidType(track)) &&
+       ((mProtectZoneName != "" || track.WithinZoneOf(PLATFORM, mProtectZoneName)) || PLATFORM.GroundRangeTo(track) < mProtectRange))
+   {
+      mNumberOfAirThreats = mNumberOfAirThreats + 1;
+      writeln_d("threat: ", track.TargetName());
+   }
+
+   if (mCheckPeers == true)
+   {
+      mNumberOfSubsInAir = 0; //reset here, & then count
+      WsfPlatform commander = PLATFORM.Commander();
+      if (!commander.IsValid())
+      {
+         writeln_d("no commander!");
+         return Failure("no commander!");
+      }
+
+      foreach (WsfPlatform sub in commander.Subordinates())
+      {
+         if (sub.Type() == "FLIGHT_LEAD_RED") # for each flight lead
+         {
+            foreach (WsfPlatform airInt in sub.Subordinates()) # for each airborne interceptor
+            {
+               if (airInt.AuxDataExists("ENGAGING") && airInt.AuxDataBool("ENGAGING"))
+               {
+                  mNumberOfSubsInAir = mNumberOfSubsInAir + 1;
+                  writeln_d("subordinate: ", airInt.Name());
+               }
+               else
+               {
+                  writeln_d("not engaging: ", airInt.Name());
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      mNumberOfSubsInAir = 0; //reset here, & then count
+      foreach (WsfPlatform airInt in PLATFORM.Subordinates()) # for each airborne interceptor
+      {
+         if (airInt.AuxDataExists("ENGAGING") && airInt.AuxDataBool("ENGAGING"))
+         {
+            mNumberOfSubsInAir = mNumberOfSubsInAir + 1;
+            writeln_d("subordinate: ", airInt.Name());
+         }
+         else
+         {
+            writeln_d("not engaging: ", airInt.Name());
+         }
+      }
+   }
+
+   if (mNumberOfAirThreats <= mNumberOfSubsInAir)
+   {
+      writeln_d("T= ",TIME_N0W," ", PLATFORM.Name(),", enough subordinates in air already for threats!");
+      return Failure("enough subordinates in air already for threats!");
+   }
+   double delay = mFlightLaunchDelay;
+   if (mFirstLaunch == true)
+   {
+      delay = mFirstFlightLaunchDelay;
+   }
+   if ((TIME_NOW-mLastLaunchedTime) < delay)
+   {
+      writeln_d("T= ",TIME NOW," Still launching previous flight!");
+      return Failure("Still launching previous flight!");
+   }
+   return true;
+end_precondition
+
+execute
+   writeln_d("T= ", TIME_NOW," executing launch_alert-5_aircraft");
+   WsfGeoPoint pt = PLATFORM.Location();
+   pt.Offset(PLATFORM.Heading(), 9260, 0.0, -9260);
+   WsfTrack tgt = WsfTrack();
+   tgt.SetLocation(pt);
+   WsfWeapon alert5Weapon = GetNextAlert5();
+   if (alert5Weapon.FireSalvo(tgt, mSalvoCount))
+   {
+      if (mLastLaunchedTime > 0)
+      {
+         mFirstLaunch = false;
+      }
+      mLastLaunchedTime = TIME_NOW;
+      PLATFORM.Comment("Launch Alert 5");
+   }
+end_execute
+
+end_behavior

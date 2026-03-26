@@ -1,0 +1,42 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+//include_once Coeffs_10_Percent.txt
+
+# Typical Carbon Dioxide
+# Wavelength 1000 nm; Haze values 1-5
+include_once COEFS1000_1.txt
+//include_once COEFS1000_2.txt
+//include_once COEFS1000_3.txt
+//include_once COEFS1000_4.txt
+//include_once COEFS1000_5.txt
+
+# Nd_Yag
+# Wavelength 1064 nm; Haze values 1-5
+include_once COEFS1064_1.txt
+include_once COEFS1064_2.txt
+include_once COEFS1064_3.txt
+include_once COEFS1064_4.txt
+include_once COEFS1064_5.txt
+
+# COIL (Iodine lasing)
+# Wavelength 1315 nm; Haze values 1-5
+include_once COEFS1315_1.txt
+//include_once COEFS1315_2.txt
+//include_once COEFS1315_3.txt
+//include_once COEFS1315_4.txt
+//include_once COEFS1315_5.txt
+
+# Deuterium Flouride
+# Wavelength 3800 nm; Haze values 1-5
+include_once COEFS3800_1.txt
+//include_once COEFS3800_2.txt
+//include_once COEFS3800_3.txt
+//include_once COEFS3800_4.txt
+//include_once COEFS3800_5.txt

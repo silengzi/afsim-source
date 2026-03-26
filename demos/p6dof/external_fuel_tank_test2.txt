@@ -1,0 +1,119 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario uses two aircraft flying straight and level at 10000ft. One
+# aircraft has 5000 lbs of internal fuel while the second aircraft has 5000 lbs
+# fuel internally plus another 4400lbs of fuel in two external fuel tanks. The
+# aircraft fly until they run out of fuel, then data is output including the
+# range and endurance of each flight.
+#
+# ******************************************************************************
+
+define_path_variable CASE ext_tank_test2
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 110 min
+
+include_once p6dof_types/environment/p6dof_environment.txt
+include_once platforms/fa-lgt.txt
+include_once platforms/fa-lgt_external-tanks.txt
+include_once platforms/tnk-f16-370g.txt
+
+include p6dof_types/scripts/p6dof_all_scripts.txt
+
+script_variables
+   double p6dof_1_range = 0.0;
+   double p6dof_1_time = 0.0;
+   double p6dof_1_fuel = 0.0;
+   double p6dof_2_range = 0.0;
+   double p6dof_2_time = 0.0;
+   double p6dof_2_fuel = 0.0;
+end_script_variables
+
+platform p6dof_1 FA-LGT
+   update_interval 0.01 sec
+   side blue
+   route
+      position   21.320n  158.50w  altitude 10000.0 ft speed 500.0 kts
+      position   24.320n  158.50w  altitude 10000.0 ft speed 500.0 kts
+   end_route
+   follow_vertical_track
+end_platform
+
+platform p6dof_2 FA-LGT-EXTERNAL-TANKS
+   update_interval 0.01 sec
+   side blue
+   route
+      position   21.320n  158.51w  altitude 10000.0 ft speed 500.0 kts
+      position   24.320n  158.51w  altitude 10000.0 ft speed 500.0 kts
+   end_route
+   follow_vertical_track
+end_platform
+
+//Get Initial Fuel Values
+execute at_time .1 sec absolute
+   WsfPlatform p6dof_1 = WsfSimulation.FindPlatform("p6dof_1");
+   WsfPlatform p6dof_2 = WsfSimulation.FindPlatform("p6dof_2");
+
+   if(!p6dof_1.IsNull())
+   {
+      p6dof_1_fuel = GetTotalFuelRemaining_lbs(p6dof_1);
+   }
+   if(!p6dof_2.IsNull())
+   {
+      p6dof_2_fuel = GetTotalFuelRemaining_lbs(p6dof_2);
+   }
+end_execute
+
+//Check every 5 secs to see if fuel has expired.
+execute at_interval_of 5 sec
+   WsfPlatform p6dof_1 = WsfSimulation.FindPlatform("p6dof_1");
+   WsfPlatform p6dof_2 = WsfSimulation.FindPlatform("p6dof_2");
+
+   if(!p6dof_1.IsNull())
+   {
+      if(GetTotalFuelRemaining_lbs(p6dof_1) == 0)
+      {
+         p6dof_1_range = GetRangeSinceStart_km(p6dof_1);
+         p6dof_1_time = TIME_NOW;
+         WsfSimulation.DeletePlatform("p6dof_1");
+      }
+   }
+
+   if(!p6dof_2.IsNull())
+   {
+      if(GetTotalFuelRemaining_lbs(p6dof_2) == 0)
+      {
+         p6dof_2_range = GetRangeSinceStart_km(p6dof_2);
+         p6dof_2_time = TIME_NOW;
+         WsfSimulation.DeletePlatform("p6dof_2");
+      }
+   }
+end_execute
+
+script void SimulationComplete()
+   writeln("***************************************");
+   writeln("Aircraft 1");
+   writeln("  Range            : ", p6dof_1_range * 1000.0 * MATH.NM_PER_M(), " nm");
+   writeln("  Flight Time      : ", p6dof_1_time / 60, " min");
+   writeln("  Starting Fuel    : ", p6dof_1_fuel, " lbs");
+   writeln("Aircraft 2");
+   writeln("  Range            : ", p6dof_2_range * 1000.0 * MATH.NM_PER_M(), " nm");
+   writeln("  Flight Time      : ", p6dof_2_time / 60, " min");
+   writeln("  Starting Fuel    : ", p6dof_2_fuel, " lbs");
+   writeln("***************************************");
+end_script
+
+observer
+   enable SIMULATION_COMPLETE SimulationComplete
+end_observer

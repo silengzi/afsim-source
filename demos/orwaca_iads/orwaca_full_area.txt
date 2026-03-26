@@ -1,0 +1,28 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+define_path_variable CASE orwaca_full_area
+log_file output/$(CASE).log
+
+include setup.txt  // reads in all of the platform_types
+
+// IADS laydown
+include scenarios/orwaca_cmdr_ew_full.txt  // Must have this because it has the commander and ew radars
+include scenarios/orwaca_elr_sams_full.txt // 175 nmile sams
+include scenarios/orwaca_lr_sams_full.txt  // 100 nmile sams
+include scenarios/orwaca_mr_sams_full.txt  // 50 nmile sams
+include scenarios/orwaca_sr_sams_full.txt  // 10 nmile sams (short range telars < 15kft ALT point defense)
+include scenarios/tbm_route_and_launch.txt
+
+// Blue targets
+include scenarios/target.txt
+
+event_output file output/$(CASE).evt end_event_output
+event_pipe file output/$(CASE).aer end_event_pipe
+
+end_time 180 min

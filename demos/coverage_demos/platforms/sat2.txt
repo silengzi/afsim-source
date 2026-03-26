@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# file: platforms/sat2.txt
+
+include_once sensors/sat_sensor_narrow.txt
+
+platform_type SAT WSF_PLATFORM
+   icon satellite
+   side blue
+   
+   add mover WSF_SPACE_MOVER
+      epoch_date_time jun 07 2020 00:00:00.00
+   end_mover
+   
+   sensor narrow_sat_sensor SAT_SENSOR
+      on
+   end_sensor
+   
+end_platform_type

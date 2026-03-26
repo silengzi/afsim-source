@@ -1,0 +1,191 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+##############################################################################
+#                      SAM type and subsystem definitions
+##############################################################################
+
+include_once sensors/radar/sam_radar.txt
+include_once weapons/sam/missile.txt
+
+platform_type sam_battery WSF_PLATFORM
+  icon SA-6_Launcher
+
+  comm red-net COMM_RADIO
+    processor track_processor
+    processor thinker
+  end_comm
+
+  comm weapon-uplink WSF_COMM_TRANSCEIVER
+  end_comm
+
+  sensor sam_radar SAM_RADAR
+    off
+    processor track_processor
+    ignore ignored-by-iads-radar
+  end_sensor
+
+  weapon missile missile
+    quantity         6
+    firing_delay     1.5 sec
+    salvo_interval   1.5 sec
+    slew_mode        both
+  end_weapon
+
+  processor track_processor WSF_TRACK_PROCESSOR
+    purge_interval 1 min
+  end_processor
+
+  processor thinker WSF_TASK_PROCESSOR
+    //show_state_transitions
+    //show_task_messages
+
+    weapon_uplink_path sam_radar weapon-uplink
+
+    // Assign a tracking sensor
+    script bool AcquireTarget()
+      bool trackBlocksRemaining=false;
+      WsfSensor sensor = PLATFORM.Sensor("sam_radar");
+      if (sensor.IsOperational())
+      {
+        if ((sensor.ActiveRequestCount() < sensor.MaximumRequestCount()) ||
+            sensor.HaveRequestFor(TRACK.TrackId()))
+        {
+          trackBlocksRemaining = StartTracking(TRACK, "Track", sensor, "");
+        }
+      }
+      return trackBlocksRemaining;
+    end_script
+
+    // Check to see if should cancel all tasks
+    script bool ShouldICancel()
+      bool shouldCancel=false;
+      if (TRACK.IFF_Friend()                                    ||
+          (PLATFORM.Weapon("missile").QuantityRemaining() == 0) ||
+          (! TRACK.WithinZoneOf(PLATFORM, "sam_zone"))          ||
+          (PLATFORM.GroundRangeTo(TRACK) > 50000))
+      {
+        shouldCancel = true;
+      }
+      return shouldCancel;
+    end_script
+
+    // ************************************************************************
+
+    // ASSIGNED is the initial state and the state where tracks reside
+    // until they are determined to be of interest.
+    evaluation_interval ASSIGNED 20.0 sec
+    time_to_evaluate    ASSIGNED 0.1 sec
+    state ASSIGNED
+      next_state ASSIGNED
+        if (ShouldICancel())
+        {
+          // cancel any tasks I have assigned this track
+          CancelTask(TRACK.TrackId(), "");
+
+          // if I received an assignment for this track the inform
+          // commander what I've done
+          if (TasksReceivedFor(TRACK.TrackId(), "Engage") != 0)
+          {
+            //TaskComplete(TRACK.TrackId(), "Engage");
+          }
+          return true;
+        }
+        return false;
+      end_next_state
+
+      next_state ENGAGEABLE
+        return (TasksReceivedFor(TRACK.TrackId()) != 0);
+      end_next_state
+    end_state
+
+
+    // target is now engageable
+    evaluation_interval ENGAGEABLE 20.0 sec
+    time_to_evaluate    ENGAGEABLE 0.1 sec
+
+    state ENGAGEABLE
+      next_state CANCELED
+        return ((TasksReceivedFor(TRACK.TrackId(), "Engage") == 0) ||
+                ShouldICancel());
+      end_next_state
+
+      next_state ENGAGED
+        double relTgtAlt = PLATFORM.RelativeAltitudeOf(TRACK);
+        if ((relTgtAlt > 50)                         &&
+            (relTgtAlt < 15000)                      &&
+            (PLATFORM.GroundRangeTo(TRACK) < 45000))
+        {
+          // give tracking radar task to begin tracking target
+          AcquireTarget();
+          return true;
+        }
+        return false;
+      end_next_state
+    end_state
+
+
+    // engaging target; waiting to fire
+
+    evaluation_interval ENGAGED 20.0 sec
+    time_to_evaluate    ENGAGED 0.1 sec
+
+    state ENGAGED
+      next_state CANCELED
+        return ((TasksReceivedFor(TRACK.TrackId(), "Engage") == 0) ||
+                ShouldICancel());
+      end_next_state
+
+      next_state LAUNCHED
+        WsfWeapon weapon = PLATFORM.Weapon("missile");
+        double relTgtAlt = PLATFORM.RelativeAltitudeOf(TRACK);
+
+        bool firedWeapon = false;
+        if ((weapon.QuantityRemaining() > 0)               &&
+            (relTgtAlt > 50)                               &&
+            (relTgtAlt < 15000)                            &&
+            (PLATFORM.GroundRangeTo(TRACK) < 45000)        &&
+            (PLATFORM.RelativeHeadingOf(TRACK) > 95))
+        {
+          weapon.CueToTrack(TRACK);
+          firedWeapon = weapon.FireSalvo(TRACK, 2);
+        }
+
+        return firedWeapon;
+      end_next_state
+    end_state
+
+
+    evaluation_interval LAUNCHED 20.0 sec
+    time_to_evaluate    LAUNCHED 0.1 sec
+
+//TODO-may need to go to CANCELED instead of ASSIGNED so the sensor is dropped???
+    state LAUNCHED
+      next_state ASSIGNED
+//        return (TasksReceivedFor(TRACK.TrackId(), "Engaged") == 0);
+         return (WeaponsActiveFor(TRACK.TrackId()) < 1);
+      end_next_state
+    end_state
+
+
+    evaluation_interval CANCELED 1 min
+    time_to_evaluate    CANCELED 0.001 sec
+
+    state CANCELED
+      next_state ASSIGNED
+        // cancel any tasks I have assigned this track
+        CancelTask(TRACK.TrackId(), "");
+        return true;
+      end_next_state
+    end_state
+
+  end_processor
+
+  category ignored-by-iads-radar
+  category ignored-by-bomber-radar
+end_platform_type

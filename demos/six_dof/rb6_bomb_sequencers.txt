@@ -1,0 +1,618 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates five examples of bombing using SixDOF movers.
+#
+# The first example uses a heavy bomber (Rolling Thunder) at very low altitude
+# that drops a series of high-drag bombs to destroy a runway.
+#
+# The second example uses a heavy bomber (Arc Light) at high altitude that
+# drops a series of low-drag bombs to destroy another runway. This aircraft
+# is in the contrail band and will produce contrails in the Warlock and
+# Mystic tools.
+#
+# The third example uses a flying-wing bomber (Ghost) at medium altitude that
+# drops a series of guided-bombs (representing GPS-guided bombs) that use
+# pre-briefed tracks to attack point targets at the air base.
+#
+# The fourth example uses a tactical fighter (Viper 1) to drop low-drag bombs
+# using a dive bombing approach. This shows the use of a single, nested
+# sequencer to drop multiple bombs with a single call.
+#
+# The fifth (and last) example also uses a tactical fighter (Viper 2) to drop
+# low-drag bombs with a dive bombing approach. In this case, however, it uses
+# individual sequencers to drop bombs individually.
+#
+# ******************************************************************************
+
+define_path_variable CASE rb_bomb_sequencers
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 4 min
+
+include_once platforms/fa-lgt-bombs-ld.txt
+include_once platforms/b-fw.txt
+include_once platforms/b-hvy.txt
+include_once platforms/gbu-500.txt
+include_once platforms/ubu-500-ld.txt
+include_once platforms/ubu-500-hd.txt
+
+include_once six_dof_types/environment/six_dof_environment.txt
+
+platform_type GROUND-TARGET WSF_PLATFORM
+   spatial_domain land
+   side           red
+   icon           target
+end_platform_type
+
+platform gnd_tgt_1 GROUND-TARGET
+   position 21:18:08n 158:04:16.5w  altitude 20 ft
+   heading 180 deg
+end_platform
+
+platform gnd_tgt_2 GROUND-TARGET
+   position 21:18:22n 158:04:22w altitude 20 ft
+   heading 180 deg
+end_platform
+
+platform gnd_tgt_3 GROUND-TARGET
+   position 21:18:44n 158:04:45w  altitude 30 ft
+   heading 180 deg
+end_platform
+
+platform gnd_tgt_4 GROUND-TARGET
+   position 21:18:41n 158:04:18w  altitude 30 ft
+   heading 180 deg
+end_platform
+
+platform gnd_tgt_5 GROUND-TARGET
+   position 21:18:37n 158:04:14w altitude 25 ft
+   heading 180 deg
+end_platform
+
+platform gnd_tgt_6 GROUND-TARGET
+   position 21:18:44n 158:04:23w  altitude 30 ft
+   heading 180 deg
+end_platform
+
+platform_type B-FW-GPS-BOMBS B-FW_RB6
+   weapon gps_bomb GBU-500_RB6-WEAPON
+      quantity       8
+      location       0.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+end_platform_type
+
+platform ghost B-FW-GPS-BOMBS
+   update_interval 0.01 sec
+   side blue
+
+   route
+      position 21:17:00n 158:10:00w  altitude 24000.0 ft  speed 500.0 kts
+      position 21:18:38n 158:03:54w  altitude 24000.0 ft  speed 500.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover
+
+include scripts/six_dof_simple_scripts.txt
+
+   execute at_time 24.0 sec absolute   
+      writeln("Bomber 'ghost' begins to drop GPS-guided bombs.");
+      
+      writeln("Bomber 'ghost' drops first gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();         
+         trk.SetTarget("gnd_tgt_1");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 24.5 sec absolute   
+      writeln("Bomber 'ghost' drops second gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("gnd_tgt_2");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 25.0 sec absolute   
+      writeln("Bomber 'ghost' drops third gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("gnd_tgt_3");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 25.5 sec absolute   
+      writeln("Bomber 'ghost' drops fourth gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("gnd_tgt_4");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 26.0 sec absolute   
+      writeln("Bomber 'ghost' drops fifth gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("gnd_tgt_5");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 26.5 sec absolute   
+      writeln("Bomber 'ghost' drops sixth (and last) gps bomb...");
+      WsfWeapon wpn = PLATFORM.Weapon("gps_bomb");
+      if(wpn.IsValid())
+      {
+         WsfTrack trk = WsfTrack();
+         trk.SetTarget("gnd_tgt_6");      
+         wpn.Fire(trk);
+      }
+   end_execute
+
+   execute at_time 40.0 sec absolute
+      writeln("Bomber 'ghost' making a slow right turn towards the south...");
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotVerticalSpeed(0.0);
+         mover.SetAutopilotRollAngle(10.0);
+         mover.SetAutopilotSpeedKCAS(500.0);
+      }
+   end_execute
+   
+end_platform
+
+# --------------------------------------------------------------------------------------------------
+
+platform_type B-HVY-BOMBS-LD B-HVY_RB6
+   weapon iron_bomb_forward_rack UBU-500-LD_RB6-WEAPON
+      quantity 8
+      location 16.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+   weapon iron_bomb_mid_rack UBU-500-LD_RB6-WEAPON
+      quantity 8
+      location 8.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+   weapon iron_bomb_aft_rack UBU-500-LD_RB6-WEAPON
+      quantity 8
+      location 0.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+end_platform_type
+
+platform_type B-HVY-BOMBS-HD B-HVY_RB6
+   weapon iron_bomb_forward_rack UBU-500-HD_RB6-WEAPON
+      quantity 8
+      location 16.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+   weapon iron_bomb_mid_rack UBU-500-HD_RB6-WEAPON
+      quantity 8
+      location 8.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+   weapon iron_bomb_aft_rack UBU-500-HD_RB6-WEAPON
+      quantity 8
+      location 0.0 0.0 0.0 ft
+      launch_delta_v 0.0 0.0 2.0 ft/sec
+   end_weapon
+end_platform_type
+
+platform arc_light B-HVY-BOMBS-LD
+   update_interval 0.01 sec
+   side blue
+
+   route
+      position 21:14:10.0n 158:10:29.0w  altitude 36000.0 ft  speed 530.0 kts
+      position 21:18:10.0n 158:04:29.0w  altitude 36000.0 ft  speed 530.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover   
+
+   script_variables
+      bool bombTriggerPulled = false;
+      bool bombsRemain       = true;
+      string activeRack      = "iron_bomb_aft_rack";
+   end_script_variables
+   
+   script void ReleaseNextBomb()
+
+      // First, verify bombs are available
+      WsfWeapon wpn = PLATFORM.Weapon(activeRack);
+      if(wpn.IsValid())
+      {
+         if(wpn.QuantityRemaining() < 0.5)
+         {
+            // Switch to the next rack
+            if(activeRack == "iron_bomb_aft_rack")
+            {
+               activeRack = "iron_bomb_mid_rack";
+            }
+            else if(activeRack == "iron_bomb_mid_rack")
+            {
+               activeRack = "iron_bomb_forward_rack";
+            }
+            else
+            {
+               // No racks
+               bombsRemain = false;
+            }
+         }
+      }
+      
+      if(bombTriggerPulled && bombsRemain)
+      {
+         WsfWeapon wpn = PLATFORM.Weapon(activeRack);
+         if(wpn.IsValid())
+         {
+            if(wpn.QuantityRemaining() > 0.0)
+            {
+               wpn.Fire();
+            }
+         }
+      }
+
+      if(bombsRemain) { PLATFORM.ExecuteAtTime(TIME_NOW + 0.3, "ReleaseNextBomb", {}); }
+      
+   end_script
+   
+   script void ReleaseBombs()
+      bombTriggerPulled = true;
+      ReleaseNextBomb();
+   end_script
+   
+   # Drop the bombs
+   execute at_time 5.0 sec absolute   
+      writeln("Bomber 'arc_light' drops its bombs...");
+      ReleaseBombs();
+   end_execute
+
+   execute at_time 16.0 sec absolute
+      writeln("Bomber 'arc_light' making a right turn towards the east...");
+      PLATFORM.TurnToHeading(90.0);
+   end_execute
+
+   execute at_time 35.0 sec absolute
+      writeln("Bomber 'arc_light' continuing turn towards the southwest...");
+      PLATFORM.TurnToHeading(230.0);    
+   end_execute
+
+end_platform
+
+platform rolling_thunder B-HVY-BOMBS-HD
+   update_interval 0.01 sec
+   side blue
+
+   route
+      position 21:15:17.20n 157:58:05.89w  altitude 150.0 ft  speed 480.0 kts
+      position 21:18:18.91n 158:04:16.24w  altitude 150.0 ft  speed 480.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover   
+
+   script_variables
+      bool bombTriggerPulled = false;
+      bool bombsRemain       = true;
+      string activeRack      = "iron_bomb_aft_rack";
+   end_script_variables
+   
+   script void ReleaseNextBomb()
+
+      # First, verify bombs are available
+      WsfWeapon wpn = PLATFORM.Weapon(activeRack);
+      if(wpn.IsValid())
+      {
+         if(wpn.QuantityRemaining() < 0.5)
+         {
+            // Switch to the next rack
+            if(activeRack == "iron_bomb_aft_rack")
+            {
+               activeRack = "iron_bomb_mid_rack";
+            }
+            else if(activeRack == "iron_bomb_mid_rack")
+            {
+               activeRack = "iron_bomb_forward_rack";
+            }
+            else
+            {
+               // No racks
+               bombsRemain = false;
+            }
+         }
+      }
+      
+      if(bombTriggerPulled && bombsRemain)
+      {
+         WsfWeapon wpn = PLATFORM.Weapon(activeRack);
+         if(wpn.IsValid())
+         {
+            if(wpn.QuantityRemaining() > 0.0)
+            {
+               wpn.Fire();
+            }
+         }
+      }
+
+      if(bombsRemain) { PLATFORM.ExecuteAtTime(TIME_NOW + 0.25, "ReleaseNextBomb", {}); }
+      
+   end_script
+   
+   script void ReleaseBombs()
+      bombTriggerPulled = true;
+      ReleaseNextBomb();
+   end_script
+   
+   execute at_time 34.0 sec absolute
+      writeln("Bomber 'rolling_thunder' climbing to 1,000 feet...");
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotAltitude(1000.0);
+         mover.SetAutopilotSpeedKCAS(550.0);
+      }
+   end_execute
+
+   # Drop the bombs
+   execute at_time 40.0 sec absolute   
+      writeln("Bomber 'rolling_thunder' drops its bombs...");
+      ReleaseBombs();
+   end_execute
+
+   execute at_time 52.0 sec absolute
+      writeln("Bomber 'rolling_thunder' turns towards the southwest...");
+      PLATFORM.TurnToHeading(220.0);    
+      PLATFORM.GoToAltitude(150.0);
+   end_execute
+
+   execute at_time 100.0 sec absolute
+      writeln("Bomber 'rolling_thunder' continuing to the southwest...");
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotAltitude(600.0);
+         mover.SetAutopilotSpeedKCAS(400.0);
+      }
+   end_execute
+
+end_platform
+
+platform viper_1 FA-LGT-BOMBS-LD_RB6
+   update_interval 0.01 sec
+   side blue
+
+   heading 90 deg
+   route
+      position 21:21:15.98n 158:08:15.79w  altitude 12000.0 ft  speed 550.0 kts
+      position 21:19:18.96n 158:07:40.00w  altitude 12000.0 ft  speed 550.0 kts      
+      position 21:18:46.68n 158:04:41.20w  altitude 12000.0 ft  speed 550.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover
+
+   include scripts/six_dof_simple_scripts.txt
+
+   execute at_time 14.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotDeltaRoll(-100.0);         
+      }
+   end_execute
+
+   execute at_time 16.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(5.0);
+         mover.SetAutopilotDeltaRoll(0.0);         
+      }
+   end_execute
+   execute at_time 20.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+   execute at_time 22.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.9);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+   execute at_time 24.0 sec absolute
+      writeln("viper_1 is rippling off six bombs with a nested sequencer...");
+      ActivateSequencer(PLATFORM, "RippleBombs");
+   end_execute
+
+   execute at_time 25.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(7.0);
+         mover.SetAutopilotRollAngle(50.0);         
+      }
+   end_execute
+
+   execute at_time 37.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+   execute at_time 55.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotVerticalSpeed(0.0);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+end_platform
+
+platform viper_2 FA-LGT-BOMBS-LD_RB6
+   update_interval 0.01 sec
+   side blue
+
+   heading 90 deg
+   route
+      position 21:21:16.98n 158:08:16.79w  altitude 11980.0 ft  speed 550.0 kts
+      position 21:19:19.96n 158:07:41.00w  altitude 11980.0 ft  speed 550.0 kts      
+      position 21:18:47.68n 158:04:42.20w  altitude 11980.0 ft  speed 550.0 kts
+   end_route
+
+   edit mover
+      wash_in_conditions true
+   end_mover
+
+   include scripts/six_dof_simple_scripts.txt
+
+   execute at_time 0.1 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotVerticalSpeed(0.0);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+   
+   execute at_time 10.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(4.0);
+         mover.SetAutopilotDeltaRoll(-70.0);         
+      }
+   end_execute
+
+   execute at_time 16.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotDeltaRoll(-60.0);         
+      }
+   end_execute
+   
+   execute at_time 18.0 sec absolute   
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(5.0);
+         mover.SetAutopilotDeltaRoll(0.0);         
+      }
+   end_execute
+   execute at_time 22.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+   execute at_time 24.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.9);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+   execute at_time 26.0 sec absolute
+      writeln("viper_2 is releasing bombs individually...");
+      ActivateSequencer(PLATFORM, "DropBomb1");
+   end_execute
+   
+   execute at_time 26.15 sec absolute
+      ActivateSequencer(PLATFORM, "DropBomb2");
+   end_execute
+   
+   execute at_time 26.30 sec absolute
+      ActivateSequencer(PLATFORM, "DropBomb3");
+   end_execute
+   
+   execute at_time 26.45 sec absolute
+      ActivateSequencer(PLATFORM, "DropBomb4");
+   end_execute
+   
+   execute at_time 26.60 sec absolute
+      ActivateSequencer(PLATFORM, "DropBomb5");
+   end_execute
+   
+   execute at_time 26.75 sec absolute
+      ActivateSequencer(PLATFORM, "DropBomb6");
+   end_execute
+
+   execute at_time 27.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(7.0);
+         mover.SetAutopilotRollAngle(50.0);         
+      }
+   end_execute
+
+   execute at_time 39.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetPitchGLoad(0.2);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+   execute at_time 57.0 sec absolute
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if(!mover.IsNull())
+      {
+         mover.SetAutopilotVerticalSpeed(0.0);
+         mover.SetAutopilotRollAngle(0.0);         
+      }
+   end_execute
+
+end_platform

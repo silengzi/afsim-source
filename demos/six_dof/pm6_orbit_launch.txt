@@ -1,0 +1,59 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates the ground launch and subsequent orbit of a space
+# vehicle. The launch vehicle begins its flight inverted, expends its booster
+# stage, then rights itself. A liquid rocket motor is used on the orbiter in
+# order to preserve fuel when transitioning between the initial launch phase
+# and the orbiting phase. The resulting orbit is elliptical but stable.
+#
+# Two launch vehicles are observed: one with a traditional eastward launch
+# trajectory, and the other pointing west, counter to Earth's rotation. While
+# the eastward-pointing system is able to achieve a stable orbit in part due
+# to Earth's rotation, the same effects work against the westward system's
+# ability to gain altitude and eventually results in its descent.
+#
+# ****************************************************************************
+
+define_path_variable CASE pm_orbit
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 24 hour
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once platforms/orbiter-main.txt
+include_once platforms/orbiter-booster.txt
+
+platform Orbiter ORBITER-MAIN_PM6
+
+   six_dof_ned_heading 60 deg
+   six_dof_ned_pitch   85 deg
+   six_dof_ned_roll   180 deg
+   six_dof_position 28.45 -80.55
+   six_dof_alt        100 ft
+
+end_platform
+
+// This platform fires in the other direction, demonstrating the effect
+// of earth's rotation on a system's orbital capabilities.
+platform OrbiterWrongWay ORBITER-MAIN_PM6
+
+   side dark_green
+
+   six_dof_ned_heading -60 deg
+   six_dof_ned_pitch   85 deg
+   six_dof_ned_roll   180 deg
+   six_dof_position 28.45 -80.55
+   six_dof_alt        100 ft
+
+end_platform

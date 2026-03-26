@@ -1,0 +1,23 @@
+2025-12-10 16:58:13 file run_course.txt
+2025-12-10 16:58:13 file setup.txt
+2025-12-10 16:58:13 file platforms/common.txt
+2025-12-10 16:58:13 file platforms/target.txt
+2025-12-10 16:58:13 file platforms/ucav.txt
+2025-12-10 16:58:13 file ./weapons/agm/blue_gps_bomb_1.txt
+2025-12-10 16:58:13 file ./weapons/agm/blue_glide_bomb_1.txt
+2025-12-10 16:58:13 file ./signatures/ucav_infrared_sig.txt
+2025-12-10 16:58:13 file ./signatures/ucav_optical_sig.txt
+2025-12-10 16:58:13 file ./signatures/ucav_radar_sig.txt
+2025-12-10 16:58:13 file ./processors/ucav_weapon_release.txt
+2025-12-10 16:58:13 file platforms/single_large_sam.txt
+2025-12-10 16:58:13 file ./weapons/sam/large_sam.txt
+2025-12-10 16:58:13 file ./sensors/radar/acq_radar.txt
+2025-12-10 16:58:13 file ./sensors/radar/ttr_radar.txt
+2025-12-10 16:58:13 file event_output.txt
+2025-12-10 16:58:13 file scenarios/target_list.txt
+2025-12-10 16:58:13 file scenarios/red_air_strike.txt
+2025-12-10 16:58:13 file scenarios/blue_sams.txt
+2025-12-10 16:58:13 AER output file: output/alternate_locations.aer
+2025-12-10 16:58:13 Event output file: output/alternate_locations.evt
+2025-12-10 16:58:13 start 1
+2025-12-10 16:58:13 complete 3600.001 0.119 0.109

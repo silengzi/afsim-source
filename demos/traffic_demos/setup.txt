@@ -1,0 +1,25 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+file_path .
+#file_path ../base_types
+
+include event_pipe.txt
+include event_output.txt
+include terrain.txt
+
+# include the platform type definitions
+include platforms/road_platforms.txt
+include platforms/airport.txt
+include platforms/ground_radar_static.txt
+include platforms/command_post_static.txt
+include platforms/red_srbm_launcher_static.txt
+include platforms/blue_multirole_fighter_1_static.txt
+include platforms/sea_platforms.txt
+include platforms/air_platforms.txt

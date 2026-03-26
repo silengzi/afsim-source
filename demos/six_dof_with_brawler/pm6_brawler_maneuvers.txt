@@ -1,0 +1,263 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario presents a series of behaviors that SixDOF aircraft movers can
+# carry out. The demo includes two aircraft. One aircraft aircraft (dark blue)
+# performs a series of maneuvers, either using commands a Brawler mover might
+# use, or behaviors borrowed from the air-to-air demos. The other aircraft
+# (light blue) carries out similar (not identical) behaviors using the
+# WsfSixDOF_Maneuver capability.
+#
+# This demo exists to illustrate that while Brawler tactics can be migrated
+# to SixDOF, SixDOF affords other maneuvering capabilities that users may find
+# easier to build dynamic tactics with.
+#
+# ******************************************************************************
+
+define_path_variable CASE pm_brawler_maneuvers
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time 200 sec
+
+include_once six_dof_types/environment/six_dof_environment.txt
+include_once platforms/lte_fighter.txt
+include_once scripts/brawler_behaviors.txt
+
+platform_type Fighter BLUE_FIGHTER_PM6
+   update_interval 0.05 sec
+   icon f16
+   
+   route
+      position   21.180n  158.55w  altitude 20000.0 ft  speed 500.0 kts
+      position   21.480n  157.95w  altitude 20000.0 ft  speed 500.0 kts
+      position   21.520n  157.95w  altitude 20000.0 ft  speed 500.0 kts
+   end_route
+   follow_vertical_track
+   
+   script void SetInitialRanges(WsfSixDOF_Mover aMover)
+      aMover.SetBankAngleMax(180.0);
+      aMover.SetPitchGLoadMax(8.0);
+      aMover.SetPitchGLoadMin(0.0);
+      aMover.SetRollRateMax(180.0);
+   end_script
+end_platform_type
+
+platform ManeuverFighter Fighter
+   side light_blue
+   
+   script WsfSixDOF_ManeuverSequence StraightAndLevelManeuver()
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      
+      sequence.Append(WsfSixDOF_FlightPathAngleManeuver.Construct(0.0));
+      sequence.Append(WsfSixDOF_SpeedKTAS_Maneuver.Construct(MATH.NMPH_PER_MPS() * PLATFORM.Speed()));
+      sequence.Append(WsfSixDOF_TurnToHeadingManeuver.Construct(PLATFORM.Heading()));
+      
+      return sequence;
+   end_script
+   
+   script WsfSixDOF_ManeuverSequence StraightAndLevelMaxSpeedManeuver()
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      
+      sequence.Append(WsfSixDOF_FlightPathAngleManeuver.Construct(0.0));
+      sequence.Append(WsfSixDOF_SpeedMachManeuver.Construct(3.0));
+      sequence.Append(WsfSixDOF_TurnToHeadingManeuver.Construct(PLATFORM.Heading()));
+      
+      return sequence;
+   end_script
+   
+   script WsfSixDOF_ManeuverSequence SliceManeuver(double aHeadingAngle, double aRollAngle)
+      # Roll according to the specified angle.
+      # This could be any value, including one passed as an argument to a function.
+      WsfSixDOF_RollDeltaManeuver roll = WsfSixDOF_RollDeltaManeuver.Construct(aRollAngle);
+      
+      # Wait until wings-vertical to begin pulling. This entry phase will last ten seconds.
+      WsfSixDOF_PitchGLoadManeuver entryPull = WsfSixDOF_PitchGLoadManeuver.Construct(9.0);
+      WsfSixDOF_ManeuverConstraint beginEntryPull = WsfSixDOF_ManeuverConstraint.AT_ROLL_ANGLE(90.0);
+      WsfSixDOF_ManeuverConstraint endEntryPull = WsfSixDOF_ManeuverConstraint.AT_RELATIVE_TIME(3.0);
+      entryPull.SetEntryConstraint(beginEntryPull);
+      entryPull.SetExitConstraint(endEntryPull);
+      
+      # Continue the pull, then evaluate flight path angle to decide when to roll out.
+      WsfSixDOF_PitchGLoadManeuver exitPull = WsfSixDOF_PitchGLoadManeuver.Construct(9.0);
+      WsfSixDOF_ManeuverConstraint endExitPull = WsfSixDOF_ManeuverConstraint.AT_HEADING(aHeadingAngle);
+      exitPull.SetExitConstraint(endExitPull);
+   
+      # Roll out and maintain level flight
+      WsfSixDOF_ManeuverSequence rollout = WsfSixDOF_ManeuverSequence.Construct();
+      rollout.Append(WsfSixDOF_FlightPathAngleManeuver.Construct(0.0));
+      rollout.Append(WsfSixDOF_TurnToHeadingManeuver.Construct(aHeadingAngle));
+      
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      sequence.Append(roll);
+      sequence.Append(entryPull);
+      sequence.Append(exitPull);
+      sequence.Append(rollout);
+      return sequence;
+   end_script
+
+   script WsfSixDOF_ManeuverSequence PullUpManeuver()
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      
+      sequence.Append(WsfSixDOF_PitchDeltaManeuver.Construct(90.0));
+      
+      return sequence;
+   end_script
+   
+   script WsfSixDOF_ManeuverSequence SlowPullManeuver()
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      
+      sequence.Append(WsfSixDOF_PitchGLoadManeuver.Construct(9.0));
+      sequence.Append(WsfSixDOF_SpeedMachManeuver.Construct(0.0));
+      sequence.Append(WsfSixDOF_RollDeltaManeuver.Construct(90.0));
+      
+      return sequence;
+   end_script
+   
+   script WsfSixDOF_ManeuverSequence LevelTurnManeuver(double aHeading, double aMach)
+      WsfSixDOF_ManeuverSequence sequence = WsfSixDOF_ManeuverSequence.Construct();
+      
+      sequence.Append(WsfSixDOF_FlightPathAngleManeuver.Construct(0.0));
+      sequence.Append(WsfSixDOF_SpeedMachManeuver.Construct(aMach));
+      sequence.Append(WsfSixDOF_TurnToHeadingManeuver.Construct(aHeading));
+      
+      return sequence;
+   end_script
+   
+   
+   # This platform uses specialized maneuver commands
+   execute at_time 5.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level at max speed.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(StraightAndLevelMaxSpeedManeuver());
+      }
+   end_execute
+
+   execute at_time 10.0 sec absolute
+      writeln(PLATFORM.Name(), " slice.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(SliceManeuver(180.0, 135.0));
+      }
+   end_execute
+
+   execute at_time 35.0 sec absolute
+      writeln(PLATFORM.Name(), " pull up.");
+
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(PullUpManeuver());
+      }
+   end_execute
+
+   execute at_time 45.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(StraightAndLevelManeuver());
+      }
+   end_execute
+
+   execute at_time 80.0 sec absolute
+      writeln(PLATFORM.Name(), " slow roll and pull.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(SlowPullManeuver());
+      }
+   end_execute
+
+   execute at_time 90.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level at max speed.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(StraightAndLevelMaxSpeedManeuver());
+      }
+   end_execute
+
+   execute at_time 140.0 sec absolute
+      writeln(PLATFORM.Name(), " level turn to due south.");
+      
+      WsfSixDOF_Mover mv = (WsfSixDOF_Mover)PLATFORM.Mover();
+      if (mv.IsValid())
+      {
+         mv.ExecuteManeuverSequence(LevelTurnManeuver(180.0, 0.9));
+      }
+   end_execute
+
+end_platform
+
+platform CommandFighter Fighter   
+   side dark_blue
+   # This platform uses mover/platform commands, similar to those a BrawlerMover might use
+   execute at_time 5.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level at max speed.");
+      StraightLevelMaxSpeed(PLATFORM);
+   end_execute
+   
+   script void RepeatSlice(double aInterval, double aMaxTime, double aHeading, double aAltitude_m)
+      if (TIME_NOW <= aMaxTime)
+      {      
+         WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+         mover.Slice(180, 2000);
+      
+         ExecuteAtTime(TIME_NOW + aInterval, "RepeatSlice", {aInterval, aMaxTime, aHeading, aAltitude_m});
+      }
+   end_script
+
+   execute at_time 10.0 sec absolute
+      writeln(PLATFORM.Name(), " slice.");
+      RepeatSlice(1.0, 25.0, 180.0, 2000.0);
+   end_execute
+   
+   execute at_time 30.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level.");
+      StraightLevel(PLATFORM);
+   end_execute
+
+   execute at_time 35.0 sec absolute
+      writeln(PLATFORM.Name(), " pull up.");
+      PullGMaxSust(PLATFORM);
+   end_execute
+
+   execute at_time 45.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level.");
+      StraightLevel(PLATFORM);
+   end_execute
+
+   execute at_time 80.0 sec absolute
+      writeln(PLATFORM.Name(), " slow roll and pull.");
+      SlowPullLeft(PLATFORM);
+   end_execute
+
+   execute at_time 90.0 sec absolute
+      writeln(PLATFORM.Name(), " straight and level at max speed.");
+      StraightLevelMaxSpeed(PLATFORM);
+   end_execute
+
+   execute at_time 140.0 sec absolute
+      writeln(PLATFORM.Name(), " level turn to due south.");
+      WsfSixDOF_Mover mover = (WsfSixDOF_Mover)PLATFORM.Mover();
+      mover.Prlvl(180, 0.9);
+   end_execute
+end_platform

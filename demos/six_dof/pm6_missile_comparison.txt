@@ -1,0 +1,528 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+#
+# This scenario demonstrates several missile engagements.
+#
+# The first engagement, south of Oahu, involves two short-range (SR) air-to-air
+# missiles (AAMs). The blue fighter fires two SR-AAMs at the red target
+# aircraft. These include a nominal SR-AAM configuration along with a variant
+# that uses thrust-vector control (TVC). This direct comparison dramatically
+# shows how TVC can increase the agility of a missile, and how SixDOF movers
+# can perform high-alpha maneuvers that 3DOF guided movers cannot emulate.
+#
+# The second engagement, also in the south, involves a medium-range (MR)
+# air-to-air missile. The same blue fighter fires a MR-AAM at another red
+# target aircraft. Note that the MR-AAM uses a loft maneuver to increase
+# its range.
+#
+# A third engagement, further to the east, involves a long-range (LR) air-
+# to-air missile. This missile consists of two stages, the first of which is
+# discarded after its propellant is spent.
+#
+# The fourth engagement, in the northwest, involves a surface-to-air missile
+# (SAM). A red SAM detects aircraft, but does not identify them. The red
+# rules of engagement (ROE) allow engagement of any aircraft in its sector,
+# so a SAM is launched. The missile guides to its target, which was actually
+# "white air" -- a commercial airliner. One airliner is defenseless and is
+# shot down. The second airliner is (unrealistically) equipped with self-
+# defense munitions and is able to intercept the SAM and turn away.
+#
+# ******************************************************************************
+
+define_path_variable CASE pm_missile_comparison
+
+include_once std_setup.txt
+
+# Set start time, GMT (The start date was set in std_setup.txt above)
+start_time 23:00:00.000
+
+end_time  3 min
+
+# Define WSF platform types that use SixDOF movers
+include_once platforms/sam-mr.txt
+include_once platforms/lrm-1-a.txt
+include_once platforms/lrm-1-c.txt
+include_once platforms/aam-mr.txt
+include_once platforms/aam-sr.txt
+include_once platforms/aam-sr-tvc.txt
+include_once platforms/fa-lgt.txt
+include_once platforms/c-hvy.txt
+
+include scripts/weapon_scripts.txt
+
+include_once scripts/support_scripts.txt
+
+# --------------------------------------------------------------------------------------------------
+
+platform_type BLUE_FIGHTER_WITH_MISSILES FA-LGT_PM6
+
+   sensor radar WSF_GEOMETRIC_SENSOR
+      on
+      azimuth_field_of_view   -110.0 degrees  110.0 degrees
+      elevation_field_of_view  -90.0 degrees   90.0 degrees
+      maximum_range 100 nm
+      frame_time    0.1 sec
+      reports_location
+      reports_velocity
+      reports_range
+      reports_iff
+      reports_type
+      track_quality 1.0
+      internal_link data_mgr
+      ignore_same_side
+   end_sensor
+
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval  60 sec
+   end_processor
+
+   weapon lr-aam AAM-LR_PM6-WEAPON
+
+      quantity 1
+
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+
+      script void on_create(WsfPlatform aWeapon, WsfTrack aTrack)
+         missile_on_create(aWeapon, aTrack);
+      end_script
+
+   end_weapon
+
+   weapon mr-aam AAM-MR_PM6-WEAPON
+
+      quantity 1
+
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+
+      script void on_create(WsfPlatform aWeapon, WsfTrack aTrack)
+         missile_on_create(aWeapon, aTrack);
+      end_script
+
+   end_weapon
+
+   weapon sr-aam AAM-SR_PM6-WEAPON
+
+      quantity 1
+
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+
+      script void on_create(WsfPlatform aWeapon, WsfTrack aTrack)
+         missile_on_create(aWeapon, aTrack);
+      end_script
+
+   end_weapon
+
+   weapon sr-aam-tvc AAM-SR-TVC_PM6-WEAPON
+
+      quantity 1
+
+      launch_delta_v 30.0 0.0 0.0 ft/sec
+
+      script void on_create(WsfPlatform aWeapon, WsfTrack aTrack)
+         missile_on_create(aWeapon, aTrack);
+      end_script
+
+   end_weapon
+   
+   processor pilot-thinker WSF_SCRIPT_PROCESSOR
+     update_interval 1.5 sec
+
+     on
+
+     on_initialize
+       WsfSensor seeker = PLATFORM.SensorEntry(0);
+       seeker.TurnOn();
+     end_on_initialize
+
+     on_update
+         WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+         WsfLocalTrack     currentTgtTrack;
+         int numTracks = trackList.TrackCount();
+         
+         # Start with an impractically large distance
+         double nearestTrackDistance_m = Earth.MEAN_RADIUS(); 
+
+         # Find the nearest threat
+         foreach (WsfLocalTrack trk in trackList)
+         {
+            # Don't worry about targets we're already engaging
+            if (PLATFORM.WeaponsActiveFor(trk.TrackId()) == 0)
+            {
+               WsfPlatform target = trk.Target();
+            
+               if (target.IsValid() && target.Side().Lower() == "red")
+               {
+                  # Found a red threat, see if it's the nearest so far
+                  # If it is, assign it as our target
+                  if (trk.Range() < nearestTrackDistance_m)
+                  {
+                     PLATFORM.SetCurrentTarget(trk);
+                     nearestTrackDistance_m = trk.Range();
+                  }
+               }
+            }
+         }
+            
+         # If the target is close enough, fire SR AAMs
+         # Otherwise, consider firing the MR AAM
+         WsfTrack trk = PLATFORM.CurrentTargetTrack();
+         if(trk.IsValid())
+         {
+            # Only fire if we have no other missiles tracking
+            if (PLATFORM.WeaponsActiveFor(trk.TrackId()) == 0)
+            {
+               WsfPlatform target = trk.Target();
+               if (target.IsValid())
+               {
+                  double range_m = trk.Range();
+
+                  if (range_m < 15000.0)
+                  {
+                     # Launch the SR missiles
+                     WsfWeapon weapon_sr = PLATFORM.Weapon("sr-aam");
+                     WsfWeapon weapon_srtvc = PLATFORM.Weapon("sr-aam-tvc");
+                     
+                     if (weapon_sr.IsValid() && weapon_sr.QuantityRemaining() > 0)
+                     {
+                        weapon_sr.Fire(trk);
+                        writeln("T+", (string) TIME_NOW, ": FOX TWO (", weapon_sr.Name(), " vs ", target.Name(), ")");
+                     }
+                     
+                     if (weapon_srtvc.IsValid() && weapon_srtvc.QuantityRemaining() > 0)
+                     {
+                        weapon_srtvc.Fire(trk);
+                        writeln("T+", (string) TIME_NOW, ": FOX TWO (", weapon_srtvc.Name(), " vs ", target.Name(), ")");
+                     }
+                  }
+                  else if (range_m < 75000.0)
+                  {
+                     # Launch an MR missile
+                     WsfWeapon weapon_mr = PLATFORM.Weapon("mr-aam");
+                     
+                     if (weapon_mr.IsValid() && weapon_mr.QuantityRemaining() > 0)
+                     {
+                        weapon_mr.Fire(trk);
+                        writeln("T+", (string) TIME_NOW, ": FOX THREE (", weapon_mr.Name(), " vs ", target.Name(), ")");
+                     }                  
+                  }
+                  else if (range_m < 150000.0)
+                  {
+                     # Launch an LR missile
+                     WsfWeapon weapon_lr = PLATFORM.Weapon("lr-aam");
+                     
+                     if (weapon_lr.IsValid() && weapon_lr.QuantityRemaining() > 0)
+                     {
+                        weapon_lr.Fire(trk);
+                        writeln("T+", (string) TIME_NOW, ": FOX THREE (", weapon_lr.Name(), " vs ", target.Name(), ")");
+                     }                  
+                  }
+               }
+            }       
+         }
+     end_on_update
+   end_processor
+
+end_platform_type
+
+# --------------------------------------------------------------------------------------------------
+
+platform blue_fighter BLUE_FIGHTER_WITH_MISSILES
+
+   update_interval 0.01 sec
+   
+   icon  f16
+   side  blue
+
+   route
+     position 21.225n 157.94w  altitude 24000.0 ft  speed 600.0 kts
+     position 21.225n 157.25w  altitude 24000.0 ft  speed 600.0 kts
+   end_route
+   
+   execute at_time 9.0 sec absolute
+      writeln("blue_fighter cranks right...");
+      PLATFORM.TurnToHeading(140.0);
+   end_execute
+
+   execute at_time 22.0 sec absolute
+      PLATFORM.TurnToHeading(40.0);
+   end_execute
+
+end_platform
+
+# --------------------------------------------------------------------------------------------------
+
+platform_type AirlinerSelfDefense C-HVY_PM6
+
+   icon  b777
+   side  white
+   
+   weapon sr-sdm AAM-SR-TVC_PM6-WEAPON
+
+      quantity 1
+
+      launch_delta_v 0.0 0.0 0.0 ft/sec
+
+      script void on_create(WsfPlatform aWeapon, WsfTrack aTrack)
+         missile_on_create(aWeapon, aTrack);
+      end_script
+
+   end_weapon   
+   
+   sensor radar WSF_GEOMETRIC_SENSOR
+      on
+      azimuth_field_of_view   -110.0 degrees  110.0 degrees
+      elevation_field_of_view  -90.0 degrees   90.0 degrees
+      maximum_range 10 nm
+      frame_time    0.1 sec
+      reports_location
+      reports_velocity
+      reports_range
+      reports_iff
+      reports_type
+      track_quality 1.0
+      internal_link data_mgr
+      ignore_same_side
+   end_sensor
+
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval  60 sec
+   end_processor   
+   
+   processor pilot-thinker WSF_SCRIPT_PROCESSOR
+     update_interval 1.5 sec
+
+     on
+
+     on_initialize
+       WsfSensor seeker = PLATFORM.SensorEntry(0);
+       seeker.TurnOn();
+     end_on_initialize
+
+     on_update
+         WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+         WsfLocalTrack     currentTgtTrack;
+         int numTracks = trackList.TrackCount();
+         
+         # Find the nearest threat
+         double nearestThreatDistance_m = 10000000;
+         foreach (WsfLocalTrack trk in trackList)
+         {
+            if (trk.Range() < nearestThreatDistance_m)
+            {         
+               # Don't worry about targets we're already engaging
+               if (PLATFORM.WeaponsActiveFor(trk.TrackId()) == 0)
+               {
+                  WsfPlatform target = trk.Target();
+            
+                  if (target.IsValid() &&
+                      target.Side().Lower() == "red" &&
+                      target.SpatialDomain().Lower() == "air")
+                  {
+                     PLATFORM.SetCurrentTarget(trk);
+                     nearestThreatDistance_m = trk.Range();
+                  }
+               }
+            }
+         }
+            
+         # If the target is close enough, fire SR AAM
+         WsfTrack trk = PLATFORM.CurrentTargetTrack();
+         if(trk.IsValid())
+         {
+            # Only fire if we have no other missiles tracking
+            if (PLATFORM.WeaponsActiveFor(trk.TrackId()) == 0)
+            {
+               WsfPlatform target = trk.Target();
+               if (target.IsValid())
+               {
+                  double range_m = trk.Range();
+
+                  if (range_m < 15000.0)
+                  {
+                     # Launch the SDM missile
+                     WsfWeapon weapon_sr = PLATFORM.Weapon("sr-sdm");
+                     
+                     if (weapon_sr.IsValid() && weapon_sr.QuantityRemaining() > 0)
+                     {
+                        weapon_sr.Fire(trk);
+                        writeln("T+", (string) TIME_NOW, ": FOX TWO (", weapon_sr.Name(), " vs ", target.Name(), ")");
+                        
+                        PLATFORM.TurnToHeading(0.0);
+                        PLATFORM.GoToAltitude(10000.0 * MATH.M_PER_FT());
+                     }
+                  }
+               }
+            }       
+         }
+     end_on_update
+   end_processor
+
+end_platform_type
+
+platform airliner C-HVY_PM6
+
+   icon  b777
+   side  white
+   
+   route
+     position  21:41n 158:09w  altitude  28000.0 ft  speed  400.0 kts
+     position  21:32n 158:19w  altitude  28000.0 ft  speed  400.0 kts
+   end_route
+   
+end_platform
+
+platform airliner_sdm AirlinerSelfDefense
+
+   route
+     position  21:51n 158:05w  altitude  32000.0 ft  speed  400.0 kts
+     position  21:42n 158:10w  altitude  32000.0 ft  speed  400.0 kts
+   end_route
+   
+end_platform
+
+# --------------------------------------------------------------------------------------------------
+
+platform_type SAM_LAUNCHER WSF_PLATFORM
+
+   side red
+   
+   sensor radar WSF_GEOMETRIC_SENSOR
+      on
+      azimuth_field_of_view   -60.0 degrees  60.0 degrees
+      elevation_field_of_view  1.0 degrees   60.0 degrees
+      maximum_range 50 nm
+      frame_time    0.1 sec
+      reports_location
+      reports_velocity
+      reports_range
+      reports_iff
+      reports_type
+      track_quality 1.0
+      internal_link data_mgr
+   end_sensor
+
+   processor data_mgr WSF_TRACK_PROCESSOR
+      purge_interval  8 sec
+   end_processor
+
+   weapon sam-mr SAM-MR_PM6-WEAPON
+      pitch 60 deg
+      quantity 3
+   end_weapon
+   
+end_platform_type
+
+platform sam SAM_LAUNCHER
+   icon tank
+   position 21:34:37n 158:12:07w  altitude 15 ft   
+   heading 5 deg
+   
+   script_variables
+        bool   tgtLocked    = false;
+        double lastShot_sec = -3600.0;
+   end_script_variables
+   
+   execute at_interval_of 2 sec
+   
+      tgtLocked = false;
+   
+      WsfLocalTrackList trackList = PLATFORM.MasterTrackList();
+   
+      double closestTrackDistance_m = 10000000;
+      foreach (WsfLocalTrack trk in trackList)
+      {
+         if( trk.IsValid() &&
+             trk.Target().IsValid() &&
+             trk.Target().Side() != Side())
+         {
+            if( trk.Range() < closestTrackDistance_m)
+            {
+               closestTrackDistance_m = GroundRangeTo(trk);
+               PLATFORM.SetCurrentTarget(trk);
+               tgtLocked = true;
+               # writeln("T=", TIME_NOW, " Sam locked onto unknown target at ", trk.Range()/1000.0, " km...");
+            }
+         }
+      }
+       
+   end_execute
+   
+   execute at_interval_of 2 sec
+   
+      if(tgtLocked)
+      {
+         WsfTrack track = PLATFORM.CurrentTargetTrack();
+         if( track.IsValid() && 
+             track.Range() < 20000)
+         {
+            WsfWeapon missile = PLATFORM.Weapon("sam-mr");            
+            if(missile.IsValid())
+            {
+               if(missile.QuantityRemaining() > 0 && missile.ActiveWeaponPlatformsFor(track.TrackId()).Empty())
+               {
+                  if((TIME_NOW - lastShot_sec) > 30.0)
+                  {
+                     if (missile.Fire(track))
+                     {
+                        lastShot_sec = TIME_NOW;
+                        writeln("T=", TIME_NOW, " Sam firing at unknown target at ", track.Range()/1000.0, " km  -- bird away!");
+                     }
+                  }
+               }
+            }
+         }
+      }
+   
+   end_execute
+
+end_platform
+
+# --------------------------------------------------------------------------------------------------
+
+platform mig_target1 FA-LGT_PM6
+
+   update_interval 0.01 sec
+
+   icon  mig29_rus
+   side  red
+
+   route
+     position 21.26n 157.94w  altitude 24000.0 ft  speed 500.0 kts
+     position 21.26n 157.25w  altitude 24000.0 ft  speed 500.0 kts
+   end_route 
+   
+end_platform
+
+platform mig_target2 FA-LGT_PM6
+
+   update_interval 0.01 sec
+
+   icon  mig29_nk
+   side  red
+
+   route
+     position 21.20n 157.6w  altitude 27000.0 ft  speed 500.0 kts
+     position 21.25n 157.9w  altitude 27000.0 ft  speed 500.0 kts
+   end_route
+   
+end_platform
+
+platform mig_target3 FA-LGT_PM6
+
+   update_interval 0.01 sec
+
+   icon  mig29_nk
+   side  red
+
+   route
+     position 21.20n 156.6w  altitude 27000.0 ft  speed 500.0 kts
+     position 21.25n 157.9w  altitude 27000.0 ft  speed 500.0 kts
+   end_route
+   
+end_platform

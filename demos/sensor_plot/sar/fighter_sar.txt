@@ -1,0 +1,106 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# ============================================================================
+# An example SAR typical of what might be on a fighter-type aircraft.
+#
+# Data provided by Tim Brown on 11-Feb-2009.
+#
+# NOTE: The user is responsible for setting the installation angles using the
+#       yaw and pitch commands. This allows this definition to be be used on
+#       various types of aircraft.
+# ============================================================================
+
+# The antenna_pattern using the 'steered_array_pattern' is not used because
+# it is much more numerically intensive. The other pattern will be used for now.
+
+/*
+antenna_pattern FIGHTER_SAR_ANTENNA
+
+   # 1001 modules @ 8 watts/module
+   #
+   # 2.0 modules/wavelength
+   # Area = 2.1 ft^2 = 1950.96384 cm^2
+   # wavelength = c / 10 ghz = 3 cm
+
+   steered_array_pattern
+      element_spacing_x                1.5 cm              # wavelength / 2
+      element_spacing_y                1.299038106 cm      # sqrt(3)/2 * x spacing
+
+      # Assume a square array. Note that the following only results in 986 modules,
+      # but that doesn't really matter because this is simply used to compute the
+      # antenna gain pattern. The power is set in the transmitter.
+
+      number_elements_x                29                  # sqrt(area) / x spacing
+      number_elements_y                34                  # sqrt(area) / y spacing
+
+      edge_angle_x                     0 deg
+      edge_angle_y                     60 deg
+end_antenna_pattern
+*/
+
+///*
+antenna_pattern FIGHTER_SAR_ANTENNA
+   # Approximately the same as the 'steered_array_pattern' above.
+   circular_pattern
+      peak_gain                        34.7 db
+      beamwidth                        3.17 deg
+end_antenna_pattern
+//*/
+
+sensor FIGHTER_SAR WSF_SAR_SENSOR
+
+   slew_mode                           azimuth_and_elevation
+   azimuth_slew_limits                 -60 deg 60 deg
+   elevation_slew_limits               -60 deg 60 deg
+
+   mode_template
+
+      maximum_range                    100 nm
+      azimuth_field_of_view            -1.58 deg 1.58 deg
+      elevation_field_of_view          -1.58 deg 1.58 deg
+
+      electronic_beam_steering         azimuth_and_elevation
+      electronic_beam_steering_limit   60.0 deg
+      electronic_beam_steering_loss_exponent 1.4
+
+      transmitter
+         antenna_pattern               FIGHTER_SAR_ANTENNA
+         frequency                     10 ghz
+         power                         8008.0 w            # 1001 modules * 8 watts/module
+         pulse_width                   50 us
+         #pulse_repetition_frequency    1000 hz
+         internal_loss                 5.4 db
+         attenuation_model             earce
+      end_transmitter
+
+      receiver
+         # Assume a matched-filter for a pulse width of 50 us
+         bandwidth                     20 khz
+         noise_figure                  6.1 absolute
+      end_receiver
+
+      resolution                       10 ft
+      maximum_dwell_time               10 sec
+      minimum_clutter_to_noise_ratio   6 db
+
+      doppler_filter_broadening_factor 1.20                # Ka
+      doppler_foldover_margin_factor   1.20                # Kd
+
+      reports_location
+   end_mode_template
+
+   mode SPOT
+      operating_mode                   spot
+   end_mode
+
+   mode STRIP
+      operating_mode                   strip
+   end_mode
+
+end_sensor

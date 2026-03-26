@@ -1,0 +1,57 @@
+# ****************************************************************************
+# CUI//REL TO USA ONLY
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+
+
+
+################################################################################
+#
+# The first three lines above are comments that are written to the output files.
+#
+# If the first two lines are blank, the converter will provide default values.
+# The third line is copied verbatim and is typically used for security marking.
+
+################################################################################
+#
+# If the 'opaque_plume' command is uncommented, you will get the following:
+#
+# -) The plume intensity will be the sum of 'splir' and 'bkgrdtpl'
+# -) The plume area will be the actual plume area.
+#
+# This has the effect of treating the plume as an opaque object that obscures
+# the background. By adding 'bkgrdtpl' to 'splir', one is adding the background
+# contribution directly to the plume.
+#
+# If it is NOT specified then the following will occur:
+#
+# -) The plume intensity will be only 'splir'.
+# -) The plume area will be set to zero.
+#
+# This has the effect of defining a translucent plume where the background is
+# treated independently. By setting the area to zero, the plume does not mask
+# the background.
+#
+# The current recommendation is to leave this command commented-out (i.e.: the
+# plume is translucent!)
+
+# opaque_plume                      # <--- Uncomment to enable the opaque plume
+
+################################################################################
+#
+# The 'ignore_part' command is used if you want total control of what parts
+# contribute to the body signature. If you want this behavior, you must include
+# the line 'ignore_part stlir' (the total body IR part) and include additional
+# 'ignore_part' commands for those other components that are NOT desired.
+#
+# Note that this is only concerned with 'body' parts. 'bkgrdrad' is always
+# ignored and 'splir' and 'bkgrdtpl' are processed with the plume
+
+# ignore_part stlir                 # <--- Ignore the 'total IR' term.
+# ignore_part xxx                   # <--- Ignore others parts as desired.
+
+################################################################################

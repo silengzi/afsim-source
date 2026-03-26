@@ -1,0 +1,38 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+sp {propose*pursue-target*lag
+   (state <s> ^name RIPR-AIAI
+              ^io.input-link <il>
+              ^io.input-link.track-root <tr>
+#              ^target-name <tn>
+                           )
+   (<il> ^ownship-engagement-range-max <erx>)
+   (<tr> ^<target> <t>)
+   (<t> ^target-name <tn>
+        ^slant-range-to <srt> <= <erx>
+       -^positioning <pos> << head-to-head head-to-tail >>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name pursue-target
+        ^target <t>
+        ^actions <a>)
+   (<a> ^pursue-target <command>)
+   (<command> ^pursuit-mode lag
+              ^target-name <tn>)
+}
+
+#sp {evaluate*pursue-target*reject-lag*closing-too-slow
+#   (state <s> ^name RIPR-AIAI
+#              ^operator <o1> +
+#              ^io.input-link.ownship-closing-speed-min <csm>)
+#   (<o1> ^actions.pursue-target.pursuit-mode lag
+#         ^target.closing-speed-of <cso> < <csm>)
+#-->
+#   (<s> ^operator <o1> -)
+#}

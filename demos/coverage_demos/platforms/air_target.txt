@@ -1,0 +1,16 @@
+# ****************************************************************************
+# CUI
+#
+# The Advanced Framework for Simulation, Integration, and Modeling (AFSIM)
+#
+# The use, dissemination or disclosure of data in this file is subject to
+# limitation or restriction. See accompanying README and LICENSE for details.
+# ****************************************************************************
+# File: platforms/air_target.txt
+
+platform_type flock WSF_PLATFORM
+   mover WSF_AIR_MOVER
+   end_mover
+   icon b52
+   side purple
+end_platform_type

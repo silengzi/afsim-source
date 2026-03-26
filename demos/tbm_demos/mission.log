@@ -1,0 +1,19 @@
+2025-11-27 00:45:43 file 1st_tbm_demo.txt
+2025-11-27 00:45:43 version wsf 2.9.0
+2025-11-27 00:45:43 file 1st_tbm_demo.txt
+2025-11-27 00:45:43 file setup.txt
+2025-11-27 00:45:43 file event_pipe.txt
+2025-11-27 00:45:43 file event_output.txt
+2025-11-27 00:45:43 file terrain.txt
+2025-11-27 00:45:43 file platforms/tbm_launcher1.txt
+2025-11-27 00:45:43 file platforms\../weapons/ssm/tbm1.txt
+2025-11-27 00:45:43 file platforms/tbm_launcher2.txt
+2025-11-27 00:45:43 file platforms\../weapons/ssm/tbm2.txt
+2025-11-27 00:45:43 file platforms/tbm_launcher3.txt
+2025-11-27 00:45:43 file platforms\../weapons/ssm/tbm3.txt
+2025-11-27 00:45:43 file platforms/target.txt
+2025-11-27 00:45:43 file scenarios/launch3tbms.txt
+2025-11-27 00:45:43 AER output file: output/1st_tbm_demo.aer
+2025-11-27 00:45:43 Event output file: output/1st_tbm_demo.evt
+2025-11-27 00:45:43 start 1
+2025-11-27 00:45:43 complete 1000.001 0.156 0.156
